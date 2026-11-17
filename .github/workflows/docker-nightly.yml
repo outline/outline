@@ -19,3 +19,50 @@ jobs:
         type=raw,value=nightly
         type=raw,value=nightly-{{date 'YYYYMMDD'}}
         type=sha,prefix=nightly-,format=short
+
+  cleanup:
+    runs-on: ubuntu-latest
+    needs:
+      - publish
+    environment: dockerhub-nightly
+    env:
+      REPOSITORY: outlinewiki/outline
+      RETENTION_DAYS: 30
+    steps:
+      - name: Delete old nightly tags
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          token=$(jq -n --arg id "$DOCKERHUB_USERNAME" --arg secret "$DOCKERHUB_TOKEN" \
+            '{identifier: $id, secret: $secret}' \
+            | curl -fsS -X POST -H "Content-Type: application/json" -d @- \
+              https://hub.docker.com/v2/auth/token \
+            | jq -r '.access_token')
+          echo "::add-mask::$token"
+
+          # Collect all matching tags before deleting so pagination stays stable.
+          tags=()
+          url="https://hub.docker.com/v2/repositories/${REPOSITORY}/tags?page_size=100&name=nightly-"
+          while [ -n "$url" ] && [ "$url" != "null" ]; do
+            page=$(curl -fsS -H "Authorization: Bearer $token" "$url")
+            while IFS= read -r tag; do
+              if [ -n "$tag" ]; then
+                tags+=("$tag")
+              fi
+            done < <(jq -r --argjson days "$RETENTION_DAYS" '
+              .results[]
+              | select(.name | startswith("nightly-"))
+              | select((.last_updated | sub("\\.[0-9]+Z$"; "Z") | fromdateiso8601) < (now - $days * 86400))
+              | .name' <<< "$page")
+            url=$(jq -r '.next' <<< "$page")
+          done
+
+          echo "Deleting ${#tags[@]} tags older than ${RETENTION_DAYS} days"
+          for tag in "${tags[@]}"; do
+            echo "Deleting ${REPOSITORY}:${tag}"
+            curl -fsS -X DELETE -H "Authorization: Bearer $token" \
+              "https://hub.docker.com/v2/repositories/${REPOSITORY}/tags/${tag}/"
+          done

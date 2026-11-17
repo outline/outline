@@ -212,18 +212,14 @@ router.post(
           required: false,
         },
         {
-          model: Document,
+          // Memberships are needed to compute the share policies.
+          model: Document.scope([
+            "defaultScope",
+            { method: ["withMembership", user.id] },
+          ]),
           required: false,
           paranoid: true,
           as: "document",
-          include: [
-            {
-              model: Collection.scope({
-                method: ["withMembership", user.id],
-              }),
-              as: "collection",
-            },
-          ],
         },
         {
           model: User,
@@ -276,6 +272,7 @@ router.post(
       allowSubscriptions,
       showLastUpdated,
       showTOC,
+      expiresAt,
     } = ctx.input.body;
     const { user } = ctx.state.auth;
     authorize(user, "createShare", user.team);
@@ -320,6 +317,8 @@ router.post(
         allowSubscriptions,
         showLastUpdated,
         showTOC,
+        expiresAt:
+          expiresAt === undefined ? user.team.defaultShareExpiresAt : expiresAt,
         urlId,
       },
     });
@@ -361,6 +360,7 @@ router.post(
       allowSubscriptions,
       showLastUpdated,
       showTOC,
+      expiresAt,
       title,
       iconUrl,
     } = ctx.input.body;
@@ -388,6 +388,7 @@ router.post(
       allowSubscriptions,
       showLastUpdated,
       showTOC,
+      expiresAt,
       title: title === "" ? null : title,
       iconUrl: iconUrl === "" ? null : iconUrl,
     });

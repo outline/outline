@@ -111,7 +111,7 @@ router.post(
       transaction,
       lock: {
         of: Revision,
-        level: transaction.LOCK.UPDATE,
+        level: transaction.LOCK.NO_KEY_UPDATE,
       },
     });
     const document = await Document.findByPk(revision.documentId, {

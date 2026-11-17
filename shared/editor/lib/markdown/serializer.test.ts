@@ -2,6 +2,18 @@ import { Node } from "prosemirror-model";
 import { parser, schema, serializer } from "../../../test/editor";
 import { MarkdownSerializerState } from "./serializer";
 
+/**
+ * Serializes a document to markdown and parses the output again.
+ *
+ * @param input - the markdown to parse, or a document.
+ * @returns the document, the serialized output and the second parse.
+ */
+const roundTrip = (input: string | Node) => {
+  const doc = typeof input === "string" ? parser.parse(input) : input;
+  const output = serializer.serialize(doc);
+  return { doc, output, reparsed: parser.parse(output) };
+};
+
 describe("tables", () => {
   it("preserves line breaks and empty paragraphs in table cells", () => {
     const doc = Node.fromJSON(schema, {
@@ -76,19 +88,18 @@ describe("code fences", () => {
         },
       ],
     });
-    const output = serializer.serialize(doc);
+    const { output, reparsed } = roundTrip(doc);
 
     expect(output.startsWith("````")).toBe(true);
-    expect(parser.parse(output)?.toJSON()).toEqual(doc.toJSON());
+    expect(reparsed.toJSON()).toEqual(doc.toJSON());
   });
 
   it("round trips a code block followed by other content", () => {
-    const markdown =
-      "````\ntext with a\n``` fenced line\n````\n\nA paragraph after";
-    const doc = parser.parse(markdown);
-    const output = serializer.serialize(doc);
+    const { doc, reparsed } = roundTrip(
+      "````\ntext with a\n``` fenced line\n````\n\nA paragraph after"
+    );
 
-    expect(parser.parse(output)?.toJSON()).toEqual(doc?.toJSON());
+    expect(reparsed.toJSON()).toEqual(doc.toJSON());
   });
 
   it("parses only the first token of the fence info string as language", () => {
@@ -109,11 +120,10 @@ describe("code fences", () => {
         },
       ],
     });
-    const output = serializer.serialize(doc);
-    const infoLine = output.split("\n")[0];
+    const { output, reparsed } = roundTrip(doc);
 
-    expect(infoLine).toBe("```not");
-    expect(parser.parse(output)?.firstChild?.type.name).toBe("code_block");
+    expect(output.split("\n")[0]).toBe("```not");
+    expect(reparsed.firstChild?.type.name).toBe("code_block");
   });
 });
 
@@ -256,5 +266,37 @@ describe("expelEnclosingWhitespace", () => {
 
   it("keeps text after a newline", () => {
     expect(strong("a \nb")).toBe("x**a \nb**y");
+  });
+});
+
+describe("nested notices and rules", () => {
+  it.each([
+    [
+      "a notice after text in an ordered list item",
+      "1. Alpha one.\n2. Bravo two:\n\n   :::info\n   A note inside item two.\n   :::\n3. Charlie three.",
+    ],
+    [
+      "a notice as the first child of a bullet list item",
+      "* :::info\n  A note.\n  :::\n* Bravo item.",
+    ],
+    [
+      "a notice in a nested bullet list item",
+      "* Alpha item.\n* Bravo item:\n  * Inner item:\n\n    :::info\n    A deep note.\n    :::\n* Charlie item.",
+    ],
+    [
+      "a notice in a blockquote",
+      "> Alpha quoted.\n>\n> :::info\n> A note in the quote.\n> :::\n>\n> Omega quoted.",
+    ],
+    ["a rule in a bullet list item", "* Alpha item:\n\n  ---\n* Bravo item."],
+    ["a rule in a blockquote", "> Alpha quoted.\n>\n> ***\n>\n> Omega quoted."],
+    ["a rule after a paragraph", "Alpha paragraph.\n\n___\n\nOmega paragraph."],
+    ["a rule after an empty paragraph", "Alpha.\n\n\\\n\n---\n\nOmega."],
+    [
+      "a rule after an empty paragraph in a list item",
+      "* Alpha item:\n\n  \\\n\n  ---\n* Bravo item.",
+    ],
+  ])("round trips %s", (_name, markdown) => {
+    const { doc, reparsed } = roundTrip(markdown);
+    expect(reparsed.toJSON()).toEqual(doc.toJSON());
   });
 });

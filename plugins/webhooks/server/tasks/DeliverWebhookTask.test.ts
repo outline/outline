@@ -137,6 +137,67 @@ describe("DeliverWebhookTask", () => {
     expect(delivery.responseBody).toEqual("SUCCESS");
   });
 
+  it("should truncate stored response bodies", async () => {
+    const subscription = await buildWebhookSubscription({
+      url: "http://example.com",
+      events: ["*"],
+    });
+    const signedInUser = await buildUser({ teamId: subscription.teamId });
+    captureWebhook(
+      "http://example.com",
+      () => new HttpResponse("a".repeat(5000), { status: 200 })
+    );
+
+    await new DeliverWebhookTask().perform({
+      subscriptionId: subscription.id,
+      event: {
+        name: "users.signin",
+        userId: signedInUser.id,
+        teamId: subscription.teamId,
+        actorId: signedInUser.id,
+        ip,
+      },
+    });
+
+    const delivery = await WebhookDelivery.findOne({
+      where: { webhookSubscriptionId: subscription.id },
+      rejectOnEmpty: true,
+    });
+    expect(delivery.status).toBe("success");
+    expect(delivery.responseBody).toEqual("a".repeat(1024));
+  });
+
+  it("should not read response bodies over the size limit", async () => {
+    const subscription = await buildWebhookSubscription({
+      url: "http://example.com",
+      events: ["*"],
+    });
+    const signedInUser = await buildUser({ teamId: subscription.teamId });
+    captureWebhook(
+      "http://example.com",
+      () => new HttpResponse("a".repeat(128 * 1024), { status: 200 })
+    );
+
+    await new DeliverWebhookTask().perform({
+      subscriptionId: subscription.id,
+      event: {
+        name: "users.signin",
+        userId: signedInUser.id,
+        teamId: subscription.teamId,
+        actorId: signedInUser.id,
+        ip,
+      },
+    });
+
+    const delivery = await WebhookDelivery.findOne({
+      where: { webhookSubscriptionId: subscription.id },
+      rejectOnEmpty: true,
+    });
+    expect(delivery.status).toBe("success");
+    expect(delivery.statusCode).toBe(200);
+    expect(delivery.responseBody).toEqual("");
+  });
+
   it("should hit the subscription url with signature header", async () => {
     const subscription = await buildWebhookSubscription({
       url: "http://example.com",

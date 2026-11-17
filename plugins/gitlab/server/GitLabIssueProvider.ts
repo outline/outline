@@ -142,7 +142,7 @@ export class GitLabIssueProvider extends BaseIssueProvider {
       const integration = (await Integration.findOne({
         where,
         replacements: { jsonCondition },
-        lock: transaction.LOCK.UPDATE,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
         transaction,
       })) as Integration<IntegrationType.Embed>;
 
@@ -213,7 +213,7 @@ export class GitLabIssueProvider extends BaseIssueProvider {
       const integrations = (await Integration.findAll({
         where: whereCondition,
         replacements,
-        lock: transaction.LOCK.UPDATE,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
         transaction,
       })) as Integration<IntegrationType.Embed>[];
 
@@ -257,7 +257,7 @@ export class GitLabIssueProvider extends BaseIssueProvider {
         replacements: {
           projectJson: JSON.stringify([{ id: String(payload.project_id) }]),
         },
-        lock: transaction.LOCK.UPDATE,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
         transaction,
       });
 
@@ -303,7 +303,7 @@ export class GitLabIssueProvider extends BaseIssueProvider {
           ...(teamId ? { teamId } : {}),
           "settings.gitlab.installation.account.id": payload.user_id,
         },
-        lock: transaction.LOCK.UPDATE,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
         transaction,
       })) as Integration<IntegrationType.Embed>;
 
@@ -354,7 +354,7 @@ export class GitLabIssueProvider extends BaseIssueProvider {
         replacements: {
           projectJson: JSON.stringify([{ id: String(payload.project_id) }]),
         },
-        lock: transaction.LOCK.UPDATE,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
         transaction,
       });
 

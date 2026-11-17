@@ -348,24 +348,47 @@ describe("Authentication middleware", () => {
     );
   });
 
-  it("should allow passing transfer token as a GET param", async () => {
+  it("should not accept transfer token as a GET param", async () => {
     const state = {} as DefaultState;
     const user = await buildUser();
     const authMiddleware = auth();
-    await authMiddleware(
-      buildMockContext({
-        request: {
-          get: vi.fn(() => null),
-          query: {
-            token: user.getTransferToken(),
+
+    await expect(
+      authMiddleware(
+        buildMockContext({
+          request: {
+            get: vi.fn(() => null),
+            query: {
+              token: user.getTransferToken(),
+            },
           },
-        },
-        state,
-        cache: {},
-      }),
-      vi.fn()
+          state,
+          cache: {},
+        }),
+        vi.fn()
+      )
+    ).rejects.toThrow(
+      "Session token must be passed in the cookie or Authorization header"
     );
-    expect(state.auth.user.id).toEqual(user.id);
+  });
+
+  it("should not accept transfer token in the Authorization header", async () => {
+    const state = {} as DefaultState;
+    const user = await buildUser();
+    const authMiddleware = auth();
+
+    await expect(
+      authMiddleware(
+        buildMockContext({
+          request: {
+            get: vi.fn(() => `Bearer ${user.getTransferToken()}`),
+          },
+          state,
+          cache: {},
+        }),
+        vi.fn()
+      )
+    ).rejects.toThrow("Invalid token");
   });
 
   it("should return an error for suspended users", async () => {

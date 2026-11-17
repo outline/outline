@@ -6,6 +6,7 @@ import styled from "styled-components";
 import { errToString } from "@shared/utils/error";
 import { ApiKeyValidation } from "@shared/validations";
 import Button from "~/components/Button";
+import ExpiryDatePicker from "~/components/ExpiryDatePicker";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import type { Option } from "~/components/InputSelect";
@@ -14,7 +15,6 @@ import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import useUserLocale from "~/hooks/useUserLocale";
 import { dateToExpiry } from "~/utils/date";
-import ExpiryDatePicker from "./components/ExpiryDatePicker";
 import { ExpiryType, ExpiryValues, calculateExpiryDate } from "./utils";
 
 type Props = {
@@ -136,7 +136,7 @@ function ApiKeyNew({ onSubmit }: Props) {
             label={t("Expiration")}
           />
           {expiryType === ExpiryType.Custom ? (
-            <ExpiryDatePicker
+            <StyledExpiryDatePicker
               selectedDate={expiresAt}
               onSelect={handleSelectCustomDate}
             />
@@ -161,6 +161,10 @@ function ApiKeyNew({ onSubmit }: Props) {
 const StyledExpirySelect = styled(InputSelect)`
   width: 150px !important;
   margin-bottom: 16px;
+`;
+
+const StyledExpiryDatePicker = styled(ExpiryDatePicker)`
+  margin-top: 12px;
 `;
 
 const StyledExpiryText = styled(Text)`

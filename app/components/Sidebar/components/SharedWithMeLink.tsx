@@ -3,16 +3,21 @@ import type { Location } from "history";
 import { observer } from "mobx-react";
 import * as React from "react";
 import type { match } from "react-router";
-import { IconType, NotificationEventType } from "@shared/types";
+import { useHistory } from "react-router-dom";
+import { IconType, NotificationEventType, UserPreference } from "@shared/types";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { determineIconType } from "@shared/utils/icon";
 import type GroupMembership from "~/models/GroupMembership";
 import UserMembership from "~/models/UserMembership";
 import { useActiveSidebarContext } from "~/hooks/useActiveSidebarContext";
 import useBoolean from "~/hooks/useBoolean";
 import { useComputed } from "~/hooks/useComputed";
+import useCurrentUser from "~/hooks/useCurrentUser";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
 import * as Scenes from "~/routes/scenes";
+import { documentEditPath } from "~/utils/routeHelpers";
 import {
   useDragMembership,
   useDropToReorderUserMembership,
@@ -31,6 +36,7 @@ import SidebarDisclosureContext, {
   useSidebarDisclosureState,
 } from "./SidebarDisclosureContext";
 import { useSidebarContext, type SidebarContextType } from "./SidebarContext";
+import { childDepthFor } from "./SidebarLink";
 import { useSidebarNavigation } from "./SidebarNavigation";
 
 type Props = {
@@ -50,6 +56,9 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
   const activeSidebarContext = useActiveSidebarContext();
   const sidebarContext = useSidebarContext();
   const document = documentId ? documents.get(documentId) : undefined;
+  const can = usePolicy(document);
+  const history = useHistory();
+  const user = useCurrentUser();
 
   const membershipDocuments = membership.documents;
   const expansion = useSidebarExpansionState(membershipDocuments);
@@ -119,6 +128,45 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
       onDisclosureClick,
       expansion,
       membershipDocuments,
+    ]
+  );
+
+  const handleNewDoc = React.useCallback(
+    async (input: string) => {
+      if (!document) {
+        return;
+      }
+      const newDocument = await documents.create(
+        {
+          collectionId: document.collectionId ?? undefined,
+          parentDocumentId: document.id,
+          fullWidth:
+            document.fullWidth ??
+            user.getPreference(UserPreference.FullWidthDocuments),
+          title: input,
+          data: ProsemirrorDataHelper.getEmpty(),
+        },
+        { publish: true }
+      );
+      if (newDocument.collectionId) {
+        collections
+          .get(newDocument.collectionId)
+          ?.addDocument(newDocument, document.id);
+      }
+      membership.addDocument(newDocument, document.id);
+      history.push({
+        pathname: documentEditPath(newDocument),
+        state: { sidebarContext },
+      });
+    },
+    [
+      documents,
+      collections,
+      document,
+      membership,
+      sidebarContext,
+      user,
+      history,
     ]
   );
 
@@ -236,6 +284,8 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
       }
       menu={menu}
       menuOpen={menuOpen}
+      canCreateChild={can.createChildDocument}
+      onCreateChild={handleNewDoc}
       isActiveOverride={isActive}
     >
       <SidebarDisclosureContext.Provider value={disclosureEvent}>
@@ -243,7 +293,7 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
           <Folder expanded={displayChildDocuments}>
             <DocumentTree
               nodes={childDocuments}
-              depth={depth + 1}
+              depth={childDepthFor(depth)}
               parentId={document.id}
               collection={collection}
               membership={membership}

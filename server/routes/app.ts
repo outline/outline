@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import util from "node:util";
+import Router from "@koa/router";
 import type { Context, Next } from "koa";
 import { escape } from "es-toolkit/compat";
 import { isbot } from "isbot";
@@ -26,7 +27,28 @@ import { getTeamFromContext } from "@server/utils/passport";
 import prefetchTags from "@server/utils/prefetchTags";
 import readManifestFile from "@server/utils/readManifestFile";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
+import { isInvalidAppPath } from "@server/utils/url";
 import { loadPublicShare } from "@server/commands/shareLoader";
+import {
+  getWorkspaceRedirectUrl,
+  getWorkspaceRenderOptions,
+} from "./workspace";
+
+/** Options used to render the app shell. */
+export interface AppRenderOptions {
+  title?: string;
+  description?: string;
+  content?: string;
+  canonical?: string;
+  shortcutIcon?: string;
+  image?: string;
+  siteName?: string;
+  rootShareId?: string;
+  isShare?: boolean;
+  markdownUrl?: string;
+  analytics?: Integration<IntegrationType.Analytics>[];
+  allowIndexing?: boolean;
+}
 
 const readFile = util.promisify(fs.readFile);
 const entry = "app/index.tsx";
@@ -139,20 +161,7 @@ const readIndexFile = async (): Promise<Buffer> => {
 export const renderApp = async (
   ctx: Context,
   next: Next,
-  options: {
-    title?: string;
-    description?: string;
-    content?: string;
-    canonical?: string;
-    shortcutIcon?: string;
-    image?: string;
-    siteName?: string;
-    rootShareId?: string;
-    isShare?: boolean;
-    markdownUrl?: string;
-    analytics?: Integration<IntegrationType.Analytics>[];
-    allowIndexing?: boolean;
-  } = {}
+  options: AppRenderOptions = {}
 ) => {
   const {
     title = env.APP_NAME,
@@ -444,3 +453,23 @@ export const renderShare = async (ctx: Context, next: Next) => {
     markdownUrl: document || collection ? markdownUrl : undefined,
   });
 };
+
+const router = new Router();
+
+router.get("{/*path}", async (ctx, next) => {
+  if (isInvalidAppPath(ctx.path)) {
+    ctx.status = 404;
+    return;
+  }
+
+  const team = await getTeamFromContext(ctx);
+  const redirectUrl = await getWorkspaceRedirectUrl(ctx, team);
+  if (redirectUrl) {
+    ctx.redirect(redirectUrl);
+    return;
+  }
+
+  return renderApp(ctx, next, await getWorkspaceRenderOptions(team));
+});
+
+export default router;

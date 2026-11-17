@@ -16,7 +16,7 @@ import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { User, Team } from "@server/models";
+import { GroupUser, User, Team } from "@server/models";
 import {
   buildWhere,
   combineFilters,
@@ -237,7 +237,7 @@ router.get(
     try {
       const res = await getDetailsForEmailUpdateToken(code as string, {
         transaction,
-        lock: transaction.LOCK.UPDATE,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
       });
       user = res.user;
       email = res.email;
@@ -281,7 +281,7 @@ router.post(
       user = await User.findByPk(id, {
         rejectOnEmpty: true,
         transaction,
-        lock: transaction.LOCK.UPDATE,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
       });
     }
     authorize(actor, "update", user);
@@ -382,13 +382,13 @@ async function updateRole(ctx: APIContext<T.UsersChangeRoleReq>) {
 
   const user = await User.findByPk(userId, {
     transaction,
-    lock: transaction.LOCK.UPDATE,
+    lock: transaction.LOCK.NO_KEY_UPDATE,
   });
   authorize(actor, "update", user);
 
   await Team.findByPk(user.teamId, {
     transaction,
-    lock: transaction.LOCK.UPDATE,
+    lock: transaction.LOCK.NO_KEY_UPDATE,
   });
 
   let name;
@@ -413,6 +413,20 @@ async function updateRole(ctx: APIContext<T.UsersChangeRoleReq>) {
   }
 
   await user.updateWithCtx(ctx, { role }, { name });
+
+  // Guests cannot be members of groups, remove any existing memberships
+  if (role === UserRole.Guest) {
+    const groupUsers = await GroupUser.unscoped().findAll({
+      where: { userId: user.id },
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+
+    for (const groupUser of groupUsers) {
+      await groupUser.destroyWithCtx(ctx, { name: "remove_user" });
+    }
+  }
+
   const includeDetails = !!can(actor, "readDetails", user);
 
   ctx.body = {
@@ -435,7 +449,7 @@ router.post(
     const user = await User.findByPk(userId, {
       rejectOnEmpty: true,
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      lock: transaction.LOCK.NO_KEY_UPDATE,
     });
     authorize(actor, "suspend", user);
 
@@ -472,7 +486,7 @@ router.post(
     const user = await User.findByPk(userId, {
       rejectOnEmpty: true,
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      lock: transaction.LOCK.NO_KEY_UPDATE,
     });
     authorize(actor, "activate", user);
 
@@ -539,7 +553,7 @@ router.post(
     const actor = auth.user;
 
     const user = await User.findByPk(id, {
-      lock: transaction.LOCK.UPDATE,
+      lock: transaction.LOCK.NO_KEY_UPDATE,
       transaction,
     });
     authorize(actor, "resendInvite", user);
@@ -618,7 +632,7 @@ router.post(
       user = await User.findByPk(id, {
         rejectOnEmpty: true,
         transaction,
-        lock: transaction.LOCK.UPDATE,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
       });
     } else {
       user = actor;

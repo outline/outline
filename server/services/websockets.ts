@@ -14,6 +14,7 @@ import * as Tracing from "@server/logging/tracer";
 import { traceFunction } from "@server/logging/tracing";
 import type { User } from "@server/models";
 import { rejectUpgrade } from "@server/onupgrade";
+import { isDatabaseUnavailableError } from "@server/storage/database";
 import Redis from "@server/storage/redis";
 import { ShutdownHelper, ShutdownOrder } from "@server/utils/ShutdownHelper";
 import { getUserForJWT } from "@server/utils/jwt";
@@ -101,13 +102,12 @@ export default function init(
     Metrics.increment("websockets.connected");
     Metrics.gaugePerInstance("websockets.count", io.engine.clientsCount);
 
-    // If the socket didn't authenticate after connection, disconnect it
+    // If the socket didn't authenticate after connection, close the transport
+    // without a disconnect packet so the client reconnects.
     const authTimeout = setTimeout(function () {
       if (!socket.client.auth) {
         Logger.debug("websockets", `Disconnecting socket ${socket.id}`);
-
-        // @ts-expect-error should be boolean
-        socket.disconnect("unauthorized");
+        socket.conn.close();
       }
     }, 1000);
 
@@ -142,6 +142,13 @@ export default function init(
         socket.disconnect();
       });
     } catch (err) {
+      // Close the transport without a disconnect packet so the client reconnects.
+      if (isDatabaseUnavailableError(err)) {
+        Metrics.increment("database.unavailable", { source: "websockets" });
+        socket.conn.close();
+        return;
+      }
+
       const message = errToString(err);
       Logger.debug("websockets", `Authentication error socket ${socket.id}`, {
         error: message,

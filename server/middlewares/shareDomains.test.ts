@@ -1,3 +1,4 @@
+import { subDays } from "date-fns";
 import type { Context } from "koa";
 import { randomString } from "@shared/random";
 import env from "@server/env";
@@ -30,6 +31,22 @@ describe("shareDomains middleware", () => {
     await shareDomains()(ctx, vi.fn());
 
     expect(ctx.state.rootShare?.id).toEqual(share.id);
+  });
+
+  it("should not resolve an expired share", async () => {
+    const domain = `${randomString(10).toLowerCase()}.example.com`;
+    const team = await buildTeam();
+    await buildShare({
+      teamId: team.id,
+      published: true,
+      domain,
+      expiresAt: subDays(new Date(), 1),
+    });
+    const ctx = buildContext(domain);
+
+    await shareDomains()(ctx, vi.fn());
+
+    expect(ctx.state.rootShare).toEqual(null);
   });
 
   it("should not resolve the share when the team is deleted", async () => {

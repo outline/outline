@@ -1,7 +1,44 @@
 import { z } from "zod";
 import type { DateFilter } from "../types";
+import { StatusFilter } from "../types";
 import { isISO8601Duration } from "../utils/date";
 import { FilterValidation } from "../validations";
+
+/**
+ * Look up the ISO 8601 duration for a coarse date filter name.
+ *
+ * @param value the date filter name, such as "week".
+ * @returns the duration, or undefined if the value is not a date filter.
+ */
+export function durationForDateFilter(value: string): string | undefined {
+  return isDateFilter(value) ? DURATION_BY_DATE_FILTER[value] : undefined;
+}
+
+function isDateFilter(value: string): value is DateFilter {
+  return Object.hasOwn(DURATION_BY_DATE_FILTER, value);
+}
+
+/**
+ * Build the filter expression that matches documents with a status.
+ *
+ * @param status the document status.
+ * @returns the filter expression for the status.
+ */
+export function statusToFilter(status: StatusFilter): Filter {
+  if (status === StatusFilter.Archived) {
+    return { field: "archivedAt", operator: "isNotNull" };
+  }
+  return {
+    operator: "AND",
+    filters: [
+      { field: "archivedAt", operator: "isNull" },
+      {
+        field: "publishedAt",
+        operator: status === StatusFilter.Published ? "isNotNull" : "isNull",
+      },
+    ],
+  };
+}
 
 /** The ISO 8601 duration each coarse date filter corresponds to. */
 export const DURATION_BY_DATE_FILTER: Record<DateFilter, string> = {
@@ -134,7 +171,7 @@ export const RANGE_OPERATORS = new Set<ComparisonOperator>([
  * @param operator the operator the value is used with.
  * @returns true if the value is a valid input for the field.
  */
-function scalarMatchesKind(
+export function scalarMatchesKind(
   kind: FieldKind,
   value: unknown,
   operator: ComparisonOperator

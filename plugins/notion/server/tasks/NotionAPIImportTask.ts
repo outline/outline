@@ -50,10 +50,20 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
 
     const client = new NotionClient(integration.authentication.token);
 
+    // Settle every page before failing so no requests outlive this attempt.
+    const results = await Promise.allSettled(
+      importTask.input.map((item) => this.parsePage({ item, client }))
+    );
+
     const parsedPages: (ParsePageOutput & { ancestorExternalIds: string[] })[] =
       [];
-    for (const item of importTask.input) {
-      const parsedPage = await this.parsePage({ item, client });
+    results.forEach((result, index) => {
+      if (result.status === "rejected") {
+        throw result.reason;
+      }
+
+      const parsedPage = result.value;
+      const item = importTask.input[index];
 
       // Skip pages/databases that couldn't be accessed
       if (parsedPage) {
@@ -65,7 +75,7 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
           ],
         });
       }
-    }
+    });
 
     const taskOutput: ImportTaskOutput = parsedPages.map((parsedPage) => ({
       externalId: parsedPage.externalId,

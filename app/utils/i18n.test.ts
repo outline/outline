@@ -1,5 +1,6 @@
 import i18n from "i18next";
 import de_DE from "../../shared/i18n/locales/de_DE/translation.json";
+import en_GB from "../../shared/i18n/locales/en_GB/translation.json";
 import en_US from "../../shared/i18n/locales/en_US/translation.json";
 import pt_PT from "../../shared/i18n/locales/pt_PT/translation.json";
 
@@ -85,5 +86,29 @@ describe("i18n env is pt-PT", () => {
   it("translation if changed to de-DE", async () => {
     await i18n.changeLanguage("de-DE");
     expect(i18n.t("Saving")).toBe("Speichert");
+  });
+});
+
+describe("translations without entries that match their key", () => {
+  beforeAll(async () => {
+    i18n.addResources(
+      "en-GB",
+      "translation",
+      Object.fromEntries(
+        Object.entries(en_GB).filter(([key, value]) => key !== value)
+      )
+    );
+    await i18n.changeLanguage("en-GB");
+  });
+
+  it("should show the key", () => expect(i18n.t("Saving")).toBe("Saving"));
+
+  it("should keep plurals", () => {
+    expect(i18n.t("{{ count }} document starred", { count: 1 })).toBe(
+      "1 document marked with a star"
+    );
+    expect(i18n.t("{{ count }} document starred", { count: 2 })).toBe(
+      "2 documents marked with a star"
+    );
   });
 });

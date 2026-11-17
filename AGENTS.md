@@ -112,6 +112,7 @@ This keeps overrides scoped to the affected dependents and avoids forcing unrela
 - Use `observable.map` rather than a set when observers check membership by key. `ObservableSet.has()` tracks the whole set, so any change re-renders every observer.
 - Store lookups called for each row of a list must not scan a computed list such as `orderedData`, as this subscribes the component to every item in the store.
 - A context value provided near the app root must not change on navigation. Expose frequently changing store values as getters read on access, not values read during render.
+- For client model/store fetch deduplication, use `CoalescedFetch` or `KeyedCoalescedFetch` instead of an `isFetching` early return. A forced call during a request must await a follow-up request after it settles, even if it fails; unforced callers must await the in-flight result.
 
 ## Database & ORM
 
@@ -129,6 +130,8 @@ yarn sequelize migration:create --name=add-field-to-table
 - When updating Sequelize array or JSON attributes, replace the value instead of mutating it in place; reload the model in tests to verify persistence rather than trusting its in-memory state.
 - Schedule optional background work that depends on a transaction from `afterCommit`, and use non-fatal scheduling so a queue failure does not fail the committed operation.
 - When changing persisted task input fields, keep readers compatible with queued inputs or migrate them before removing old fields.
+- For row locks used only for non-key updates or soft deletes, use `LOCK.NO_KEY_UPDATE` and set `lock.of` to the target model when includes or scopes add joins. Verify with separate transactions that foreign-key inserts and locks on unrelated joined rows do not block the operation, while competing writers to the target still wait for commit.
+- In import task completion and failure handlers, reload the import under a row lock in the transaction before changing its state. Preserve `Processed` and `Import.terminalStates` outcomes, and never mark a completed task errored. Test cancellation committed while a task runs and late failure callbacks, then reload the import and task to verify their states.
 
 ## API Design
 
@@ -148,6 +151,7 @@ yarn sequelize migration:create --name=add-field-to-table
 - Always verify user permissions before data access.
 - When linking accounts by provider email, use exact case-insensitive equality within the workspace.
 - Set account email and passkey management routes to `AuthenticationType.APP`; API-key authentication must not change login credentials or authenticators.
+- For passkey registration and sign-in verification, consume the stored challenge atomically with Redis `GETDEL` before verification; do not read it and delete only after success. Verify that a failed attempt consumes the challenge and concurrent attempts cannot both retrieve it.
 
 ## Real-time Collaboration
 
@@ -158,6 +162,7 @@ yarn sequelize migration:create --name=add-field-to-table
 - Do not persist viewer-specific unfurls in shared document mentions; only store unfurls that map to a stable mention type.
 - When persisting pasted attachment URLs, use `signedUrlToAttachmentUrl` to convert this instance’s signed URLs to stable attachment redirects. Cover HTML, Markdown, and single-URL pastes, including pasting over selected text; document nodes and link marks must not retain expiring local URLs, and external URLs must remain unchanged.
 - Editor plugins that repair the document (assigning missing IDs, fixing invalid structure) must use `RepairPlugin` from `shared/editor/plugins/RepairPlugin.ts`. Other plugins that change the document in `appendTransaction` must only respond to local changes, guard with `isLocalDocChange` from `shared/editor/lib/multiplayer.ts`. Otherwise every connected client writes the change in response to remote edits and is attributed as an editor.
+- When changing block-node Markdown serializers, write a leading blank line separately from the block opener so list indentation and blockquote prefixes apply to the opener. Verify parse/serialize/parse structural equality inside lists and blockquotes, including after empty paragraphs; Markdown patch edits must preserve untouched nested blocks.
 
 ## Documentation
 
@@ -227,3 +232,4 @@ yarn test:shared   # All shared code tests
 - Follow OWASP guidelines.
 - Never store sensitive data in plain text.
 - Use environment variables for secrets.
+- When reading untrusted response bodies or import archives, enforce limits while consuming data rather than truncating after buffering. For ZIP imports, set `ZipHelper` entry-count and aggregate read-byte limits as well as per-entry limits. Verify oversized responses and archives whose individually valid entries exceed the aggregate limit stop reading.

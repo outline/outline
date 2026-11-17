@@ -1,4 +1,5 @@
 import { faker } from "@faker-js/faker";
+import { addDays, subDays } from "date-fns";
 import { DocumentPermission } from "@shared/types";
 import { UserMembership } from "@server/models";
 import {
@@ -280,6 +281,39 @@ describe("shareLoader", () => {
       expect(result.parentShare).toBeNull();
     });
 
+    it("should not return an expired parentShare", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const childDocument = await buildDocument({
+        parentDocumentId: document.id,
+        collectionId: collection.id,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      await buildShare({
+        includeChildDocuments: true,
+        userId: user.id,
+        teamId: user.teamId,
+        documentId: document.id,
+        expiresAt: subDays(new Date(), 1),
+      });
+
+      const result = await loadShareWithParent({
+        documentId: childDocument.id,
+        user,
+      });
+
+      expect(result.parentShare).toBeNull();
+    });
+
     it("should return parentShare when the document has no share of its own", async () => {
       const user = await buildUser();
       const collection = await buildCollection({
@@ -311,6 +345,134 @@ describe("shareLoader", () => {
 
       expect(result.share).toBeNull();
       expect(result.parentShare?.id).toEqual(parentShare.id);
+    });
+
+    it("should return parentShare from a grandparent document", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const childDocument = await buildDocument({
+        parentDocumentId: document.id,
+        collectionId: collection.id,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const grandchildDocument = await buildDocument({
+        parentDocumentId: childDocument.id,
+        collectionId: collection.id,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const parentShare = await buildShare({
+        includeChildDocuments: true,
+        userId: user.id,
+        teamId: user.teamId,
+        documentId: document.id,
+      });
+
+      const result = await loadShareWithParent({
+        documentId: grandchildDocument.id,
+        user,
+      });
+
+      expect(result.share).toBeNull();
+      expect(result.parentShare?.id).toEqual(parentShare.id);
+    });
+
+    it("should not return a parent document share for a draft", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const draft = await buildDocument({
+        parentDocumentId: document.id,
+        collectionId: collection.id,
+        publishedAt: null,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      await buildShare({
+        includeChildDocuments: true,
+        userId: user.id,
+        teamId: user.teamId,
+        documentId: document.id,
+      });
+
+      const result = await loadShareWithParent({
+        documentId: draft.id,
+        user,
+      });
+
+      expect(result.share).toBeNull();
+      expect(result.parentShare).toBeNull();
+    });
+
+    it("should not return a parent document share for an archived document", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const archived = await buildDocument({
+        parentDocumentId: document.id,
+        collectionId: collection.id,
+        archivedAt: new Date(),
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      await buildShare({
+        includeChildDocuments: true,
+        userId: user.id,
+        teamId: user.teamId,
+        documentId: document.id,
+      });
+
+      const result = await loadShareWithParent({
+        documentId: archived.id,
+        user,
+      });
+
+      expect(result.share).toBeNull();
+      expect(result.parentShare).toBeNull();
+    });
+
+    it("should return no shares for a top-level document without a share", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+
+      const result = await loadShareWithParent({
+        documentId: document.id,
+        user,
+      });
+
+      expect(result.share).toBeNull();
+      expect(result.parentShare).toBeNull();
     });
 
     it("should not return parentShare when the user cannot read the document", async () => {
@@ -499,6 +661,23 @@ describe("shareLoader", () => {
   });
 
   describe("inactive share when requested with id", () => {
+    it("should throw error when share has expired", async () => {
+      const share = await buildShare({
+        expiresAt: subDays(new Date(), 1),
+      });
+
+      await expect(loadPublicShare({ id: share.id })).rejects.toThrow();
+    });
+
+    it("should return share when expiry is in the future", async () => {
+      const share = await buildShare({
+        expiresAt: addDays(new Date(), 1),
+      });
+
+      const result = await loadPublicShare({ id: share.id });
+      expect(result.share.id).toEqual(share.id);
+    });
+
     it("should throw error when share is not published", async () => {
       const share = await buildShare({
         published: false,

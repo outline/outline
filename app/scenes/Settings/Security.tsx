@@ -6,6 +6,7 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import { errToString } from "@shared/utils/error";
+import { TeamValidation } from "@shared/validations";
 import type { TeamPreferences, UserRole } from "@shared/types";
 import { CommentingAccess, TeamPreference, EmailDisplay } from "@shared/types";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
@@ -16,14 +17,17 @@ import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import isCloudHosted from "~/utils/isCloudHosted";
 import SettingRow from "./components/SettingRow";
+import { SettingsSection } from "./components/SettingsSection";
 
 function Security() {
   const { dialogs } = useStores();
   const team = useCurrentTeam();
   const { t } = useTranslation();
+  const can = usePolicy(team);
 
   const [data, setData] = useState({
     sharing: team.sharing,
@@ -91,6 +95,16 @@ function Security() {
           value: CommentingAccess.None,
         },
       ] satisfies Option[],
+    [t]
+  );
+
+  const defaultShareExpiryOptions: Option[] = React.useMemo(
+    () =>
+      TeamValidation.defaultShareExpiryDays.map((count): Option => ({
+        type: "item",
+        label: count === 0 ? t("Never") : t("{{ count }} days", { count }),
+        value: String(count),
+      })),
     [t]
   );
 
@@ -211,6 +225,17 @@ function Security() {
     [saveData, team.preferences]
   );
 
+  const handleDefaultShareExpiryChange = React.useCallback(
+    async (days: string) => {
+      const preferences = {
+        ...team.preferences,
+        [TeamPreference.DefaultShareExpiryDays]: Number(days),
+      };
+      await saveData({ preferences });
+    },
+    [saveData, team.preferences]
+  );
+
   const handleInviteRequiredChange = React.useCallback(
     async (checked: boolean) => {
       const inviteRequired = checked;
@@ -256,166 +281,189 @@ function Security() {
         </Trans>
       </Text>
 
-      <Heading as="h2">{t("Invites")}</Heading>
-      <SettingRow
-        label={t("Allow users to send invites")}
-        name={TeamPreference.MembersCanInvite}
-        description={t("Allow editors to invite other people to the workspace")}
-      >
-        <Switch
-          id={TeamPreference.MembersCanInvite}
-          checked={team.getPreference(TeamPreference.MembersCanInvite)}
-          onChange={handleMembersCanInviteChange}
-        />
-      </SettingRow>
-      {isCloudHosted && (
+      <SettingsSection title={t("Invites")}>
         <SettingRow
-          label={t("Require invites")}
-          name="inviteRequired"
+          label={t("Allow users to send invites")}
+          name={TeamPreference.MembersCanInvite}
           description={t(
-            "Require members to be invited to the workspace before they can create an account using SSO."
+            "Allow editors to invite other people to the workspace"
           )}
         >
           <Switch
-            id="inviteRequired"
-            checked={data.inviteRequired}
-            onChange={handleInviteRequiredChange}
+            id={TeamPreference.MembersCanInvite}
+            checked={team.getPreference(TeamPreference.MembersCanInvite)}
+            onChange={handleMembersCanInviteChange}
           />
         </SettingRow>
-      )}
+        {isCloudHosted && (
+          <SettingRow
+            label={t("Require invites")}
+            name="inviteRequired"
+            description={t(
+              "Require members to be invited to the workspace before they can create an account using SSO."
+            )}
+          >
+            <Switch
+              id="inviteRequired"
+              checked={data.inviteRequired}
+              onChange={handleInviteRequiredChange}
+            />
+          </SettingRow>
+        )}
 
-      {!data.inviteRequired && (
+        {!data.inviteRequired && (
+          <SettingRow
+            label={t("Default role")}
+            name="defaultUserRole"
+            description={t(
+              "The default user role for new accounts. Changing this setting does not affect existing user accounts."
+            )}
+          >
+            <InputSelect
+              value={data.defaultUserRole}
+              options={userRoleOptions}
+              onChange={handleDefaultRoleChange}
+              label={t("Default role")}
+              labelHidden
+              short
+            />
+          </SettingRow>
+        )}
+      </SettingsSection>
+
+      <SettingsSection title={t("Behavior")}>
         <SettingRow
-          label={t("Default role")}
-          name="defaultUserRole"
+          label={t("Public document sharing")}
+          name="sharing"
           description={t(
-            "The default user role for new accounts. Changing this setting does not affect existing user accounts."
+            "When enabled, documents can be shared publicly on the internet by any member of the workspace"
           )}
-          border={false}
+        >
+          <Switch
+            id="sharing"
+            checked={data.sharing}
+            onChange={handleSharingChange}
+          />
+        </SettingRow>
+        {can.setDefaultShareExpiry && (
+          <SettingRow
+            label={t("Default link expiration")}
+            name={TeamPreference.DefaultShareExpiryDays}
+            description={t(
+              "New public links will expire after this period. Existing links are not affected."
+            )}
+          >
+            <InputSelect
+              value={String(
+                team.getPreference(TeamPreference.DefaultShareExpiryDays)
+              )}
+              options={defaultShareExpiryOptions}
+              onChange={handleDefaultShareExpiryChange}
+              label={t("Default link expiration")}
+              labelHidden
+              short
+            />
+          </SettingRow>
+        )}
+        <SettingRow
+          label={t("Viewer document exports")}
+          name={TeamPreference.ViewersCanExport}
+          description={t(
+            "When enabled, viewers can see download options for documents"
+          )}
+        >
+          <Switch
+            id={TeamPreference.ViewersCanExport}
+            checked={team.getPreference(TeamPreference.ViewersCanExport)}
+            onChange={handleViewersCanExportChange}
+          />
+        </SettingRow>
+        <SettingRow
+          label={t("Users can delete account")}
+          name={TeamPreference.MembersCanDeleteAccount}
+          description={t(
+            "When enabled, users can delete their own account from the workspace"
+          )}
+        >
+          <Switch
+            id={TeamPreference.MembersCanDeleteAccount}
+            checked={team.getPreference(TeamPreference.MembersCanDeleteAccount)}
+            onChange={handleMembersCanDeleteAccountChange}
+          />
+        </SettingRow>
+        <SettingRow
+          label={t("Email address visibility")}
+          name={TeamPreference.EmailDisplay}
+          description={t(
+            "Controls who can see user email addresses in the workspace"
+          )}
         >
           <InputSelect
-            value={data.defaultUserRole}
-            options={userRoleOptions}
-            onChange={handleDefaultRoleChange}
-            label={t("Default role")}
+            value={team.getPreference(TeamPreference.EmailDisplay) as string}
+            options={emailDisplayOptions}
+            onChange={handleEmailDisplayChange}
+            label={t("Email address visibility")}
             labelHidden
             short
           />
         </SettingRow>
-      )}
-
-      <Heading as="h2">{t("Behavior")}</Heading>
-      <SettingRow
-        label={t("Public document sharing")}
-        name="sharing"
-        description={t(
-          "When enabled, documents can be shared publicly on the internet by any member of the workspace"
-        )}
-      >
-        <Switch
-          id="sharing"
-          checked={data.sharing}
-          onChange={handleSharingChange}
-        />
-      </SettingRow>
-      <SettingRow
-        label={t("Viewer document exports")}
-        name={TeamPreference.ViewersCanExport}
-        description={t(
-          "When enabled, viewers can see download options for documents"
-        )}
-      >
-        <Switch
-          id={TeamPreference.ViewersCanExport}
-          checked={team.getPreference(TeamPreference.ViewersCanExport)}
-          onChange={handleViewersCanExportChange}
-        />
-      </SettingRow>
-      <SettingRow
-        label={t("Users can delete account")}
-        name={TeamPreference.MembersCanDeleteAccount}
-        description={t(
-          "When enabled, users can delete their own account from the workspace"
-        )}
-      >
-        <Switch
-          id={TeamPreference.MembersCanDeleteAccount}
-          checked={team.getPreference(TeamPreference.MembersCanDeleteAccount)}
-          onChange={handleMembersCanDeleteAccountChange}
-        />
-      </SettingRow>
-      <SettingRow
-        label={t("Email address visibility")}
-        name={TeamPreference.EmailDisplay}
-        description={t(
-          "Controls who can see user email addresses in the workspace"
-        )}
-      >
-        <InputSelect
-          value={team.getPreference(TeamPreference.EmailDisplay) as string}
-          options={emailDisplayOptions}
-          onChange={handleEmailDisplayChange}
-          label={t("Email address visibility")}
-          labelHidden
-          short
-        />
-      </SettingRow>
-      <SettingRow
-        label={t("Commenting")}
-        name={TeamPreference.Commenting}
-        description={t("Controls who can add comments to documents")}
-      >
-        <InputSelect
-          value={
-            team.getPreference(TeamPreference.Commenting) ||
-            CommentingAccess.Members
-          }
-          options={commentingOptions}
-          onChange={handleCommentingChange}
-          label={t("Commenting")}
-          labelHidden
-          short
-        />
-      </SettingRow>
-      <SettingRow
-        label={t("Personal documents")}
-        name={TeamPreference.PersonalDocs}
-        description={t(
-          "Allow editors to create personal documents that are only visible to themselves and the people they share them with"
-        )}
-      >
-        <Switch
-          id={TeamPreference.PersonalDocs}
-          checked={team.getPreference(TeamPreference.PersonalDocs)}
-          onChange={handlePersonalDocsChange}
-        />
-      </SettingRow>
-      <SettingRow
-        label={t("Collection creation")}
-        name="memberCollectionCreate"
-        description={t(
-          "Allow editors to create new collections within the workspace"
-        )}
-      >
-        <Switch
-          id="memberCollectionCreate"
-          checked={data.memberCollectionCreate}
-          onChange={handleMemberCollectionCreateChange}
-        />
-      </SettingRow>
-      {isCloudHosted && (
         <SettingRow
-          label={t("Workspace creation")}
-          name="memberTeamCreate"
-          description={t("Allow editors to create new workspaces")}
+          label={t("Commenting")}
+          name={TeamPreference.Commenting}
+          description={t("Controls who can add comments to documents")}
         >
-          <Switch
-            id="memberTeamCreate"
-            checked={data.memberTeamCreate}
-            onChange={handleMemberTeamCreateChange}
+          <InputSelect
+            value={
+              team.getPreference(TeamPreference.Commenting) ||
+              CommentingAccess.Members
+            }
+            options={commentingOptions}
+            onChange={handleCommentingChange}
+            label={t("Commenting")}
+            labelHidden
+            short
           />
         </SettingRow>
-      )}
+        <SettingRow
+          label={t("Personal documents")}
+          name={TeamPreference.PersonalDocs}
+          description={t(
+            "Allow editors to create personal documents that are only visible to themselves and the people they share them with"
+          )}
+        >
+          <Switch
+            id={TeamPreference.PersonalDocs}
+            checked={team.getPreference(TeamPreference.PersonalDocs)}
+            onChange={handlePersonalDocsChange}
+          />
+        </SettingRow>
+        <SettingRow
+          label={t("Collection creation")}
+          name="memberCollectionCreate"
+          description={t(
+            "Allow editors to create new collections within the workspace"
+          )}
+        >
+          <Switch
+            id="memberCollectionCreate"
+            checked={data.memberCollectionCreate}
+            onChange={handleMemberCollectionCreateChange}
+          />
+        </SettingRow>
+        {isCloudHosted && (
+          <SettingRow
+            label={t("Workspace creation")}
+            name="memberTeamCreate"
+            description={t("Allow editors to create new workspaces")}
+          >
+            <Switch
+              id="memberTeamCreate"
+              checked={data.memberTeamCreate}
+              onChange={handleMemberTeamCreateChange}
+            />
+          </SettingRow>
+        )}
+      </SettingsSection>
     </Scene>
   );
 }

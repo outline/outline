@@ -1,3 +1,4 @@
+import { endOfDay } from "date-fns";
 import { debounce, uniqueId } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import {
@@ -10,7 +11,6 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled, { useTheme } from "styled-components";
-import { errToString } from "@shared/utils/error";
 import { s } from "@shared/styles";
 import { HStack } from "~/components/primitives/HStack";
 import { AttachmentPreset } from "@shared/types";
@@ -19,6 +19,7 @@ import type Share from "~/models/Share";
 import { createAction } from "~/actions";
 import { ShareSection } from "~/actions/sections";
 import { AvatarSize } from "~/components/Avatar";
+import ExpiryDatePicker from "~/components/ExpiryDatePicker";
 import Input from "~/components/Input";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import NudeButton from "~/components/NudeButton";
@@ -37,12 +38,17 @@ import {
   PopoverContent,
 } from "~/components/primitives/Popover";
 import { ListItem } from "./ListItem";
+import { showErrorToast } from "./toasts";
 
 type Props = {
   /** The share model to configure settings for. */
   share: Share;
   /** Custom trigger element. If not provided, a default settings icon button is rendered. */
   children?: React.ReactElement;
+  /** Whether the popover is open, if controlled by the parent. */
+  open?: boolean;
+  /** Called when the popover opens or closes. */
+  onOpenChange?: (open: boolean) => void;
 };
 
 /**
@@ -50,7 +56,7 @@ type Props = {
  * for configuring a published share link (indexing, subscriptions, etc.),
  * as well as custom title and logo branding.
  */
-function ShareSettingsPopover({ share, children }: Props) {
+function ShareSettingsPopover({ share, children, open, onOpenChange }: Props) {
   const { t } = useTranslation();
   const { auth } = useStores();
   const theme = useTheme();
@@ -71,7 +77,7 @@ function ShareSettingsPopover({ share, children }: Props) {
           await share.save({ title: val || null });
           hasChangesRef.current = true;
         } catch (err) {
-          toast.error(errToString(err));
+          showErrorToast(err);
         }
       }, 500),
     [share]
@@ -101,7 +107,7 @@ function ShareSettingsPopover({ share, children }: Props) {
         await share.save({ iconUrl: attachment.url });
         hasChangesRef.current = true;
       } catch (err) {
-        toast.error(errToString(err));
+        showErrorToast(err);
       } finally {
         setIsUploading(false);
         if (fileInputRef.current) {
@@ -117,7 +123,7 @@ function ShareSettingsPopover({ share, children }: Props) {
       await share.save({ iconUrl: null });
       hasChangesRef.current = true;
     } catch (err) {
-      toast.error(errToString(err));
+      showErrorToast(err);
     }
   }, [share]);
 
@@ -127,7 +133,7 @@ function ShareSettingsPopover({ share, children }: Props) {
         await share.save({ allowIndexing: checked });
         hasChangesRef.current = true;
       } catch (err) {
-        toast.error(errToString(err));
+        showErrorToast(err);
       }
     },
     [share]
@@ -139,7 +145,7 @@ function ShareSettingsPopover({ share, children }: Props) {
         await share.save({ allowSubscriptions: checked });
         hasChangesRef.current = true;
       } catch (err) {
-        toast.error(errToString(err));
+        showErrorToast(err);
       }
     },
     [share]
@@ -151,7 +157,7 @@ function ShareSettingsPopover({ share, children }: Props) {
         await share.save({ showLastUpdated: checked });
         hasChangesRef.current = true;
       } catch (err) {
-        toast.error(errToString(err));
+        showErrorToast(err);
       }
     },
     [share]
@@ -163,10 +169,29 @@ function ShareSettingsPopover({ share, children }: Props) {
         await share.save({ showTOC: checked });
         hasChangesRef.current = true;
       } catch (err) {
-        toast.error(errToString(err));
+        showErrorToast(err);
       }
     },
     [share]
+  );
+
+  const handleExpiryChanged = React.useCallback(
+    async (date: Date | null) => {
+      try {
+        await share.save({
+          expiresAt: date ? endOfDay(date).toISOString() : null,
+        });
+        hasChangesRef.current = true;
+      } catch (err) {
+        showErrorToast(err);
+      }
+    },
+    [share]
+  );
+
+  const handleExpiryCleared = React.useCallback(
+    () => handleExpiryChanged(null),
+    [handleExpiryChanged]
   );
 
   const flushChangeToast = React.useCallback(() => {
@@ -177,12 +202,13 @@ function ShareSettingsPopover({ share, children }: Props) {
   }, [t]);
 
   const handleOpenChange = React.useCallback(
-    (open: boolean) => {
-      if (!open) {
+    (isOpen: boolean) => {
+      if (!isOpen) {
         flushChangeToast();
       }
+      onOpenChange?.(isOpen);
     },
-    [flushChangeToast]
+    [flushChangeToast, onOpenChange]
   );
 
   // Also flush on unmount in case the parent popover closes us before
@@ -217,7 +243,7 @@ function ShareSettingsPopover({ share, children }: Props) {
   const iconRootAction = useMenuAction(iconActions);
 
   return (
-    <Popover modal onOpenChange={handleOpenChange}>
+    <Popover modal open={open} onOpenChange={handleOpenChange}>
       <Tooltip content={t("Display settings")}>
         <PopoverTrigger>
           {children ?? (
@@ -391,6 +417,33 @@ function ShareSettingsPopover({ share, children }: Props) {
             }
           />
         )}
+        <ListItem
+          title={
+            <ExpiryLabel>
+              {t("Expiration")}&nbsp;
+              <Tooltip
+                content={t(
+                  "The public link will stop working after the selected date"
+                )}
+              >
+                <NudeButton size={18} aria-label={t("More information")}>
+                  <QuestionMarkIcon size={18} />
+                </NudeButton>
+              </Tooltip>
+            </ExpiryLabel>
+          }
+          actions={
+            <CompactExpiryDatePicker
+              small
+              placeholder={t("No expiry")}
+              selectedDate={
+                share.expiresAt ? new Date(share.expiresAt) : undefined
+              }
+              onSelect={handleExpiryChanged}
+              onClear={handleExpiryCleared}
+            />
+          }
+        />
       </PopoverContent>
     </Popover>
   );
@@ -401,6 +454,17 @@ const SwitchLabel = styled.label`
   align-items: center;
   color: ${s("textSecondary")};
   cursor: var(--pointer);
+`;
+
+const ExpiryLabel = styled.span`
+  display: flex;
+  align-items: center;
+  color: ${s("textSecondary")};
+`;
+
+// Keeps the row the same height as the rows that contain a switch.
+const CompactExpiryDatePicker = styled(ExpiryDatePicker)`
+  margin: -3px 0;
 `;
 
 const SettingsTrigger = styled(NudeButton)`

@@ -795,8 +795,11 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     });
   }
 
-  /** Maximum number of bytes to read from webhook response bodies. */
+  /** Maximum number of bytes to store from webhook response bodies. */
   private static readonly MAX_RESPONSE_BODY_SIZE = 1024;
+
+  /** Maximum number of bytes to read from webhook response bodies. */
+  private static readonly MAX_RESPONSE_READ_SIZE = 64 * 1024;
 
   private async sendWebhook({
     event,
@@ -838,6 +841,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
         body: JSON.stringify(requestBody),
         redirect: "error",
         timeout: 5000,
+        size: DeliverWebhookTask.MAX_RESPONSE_READ_SIZE,
       });
       status = response.ok ? "success" : "failed";
     } catch (err) {
@@ -858,7 +862,6 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
 
     if (response) {
       try {
-        // TODO: Use stream to avoid buffering large responses in memory.
         const text = await response.text();
         responseBody = text.slice(0, DeliverWebhookTask.MAX_RESPONSE_BODY_SIZE);
       } catch (err) {

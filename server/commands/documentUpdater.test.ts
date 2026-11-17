@@ -743,6 +743,57 @@ describe("documentUpdater", () => {
       });
     });
 
+    it("should keep a notice nested in its list item when patching another item", async () => {
+      const user = await buildUser();
+      let document = await buildDocument({
+        teamId: user.teamId,
+        text: "1. Alpha one.\n2. Bravo two:\n\n   :::info\n   A note inside item two.\n   :::\n3. Charlie three.",
+      });
+
+      document = await withAPIContext(user, (ctx) =>
+        documentUpdater(ctx, {
+          text: "Amber",
+          findText: "Alpha",
+          document,
+          editMode: TextEditMode.Patch,
+        })
+      );
+
+      expect(document.content).toMatchObject({
+        type: "doc",
+        content: [
+          {
+            type: "ordered_list",
+            content: [
+              listItem("Amber one."),
+              {
+                type: "list_item",
+                content: [
+                  {
+                    type: "paragraph",
+                    content: [{ type: "text", text: "Bravo two:" }],
+                  },
+                  {
+                    type: "container_notice",
+                    content: [
+                      {
+                        type: "paragraph",
+                        content: [
+                          { type: "text", text: "A note inside item two." },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+              listItem("Charlie three."),
+            ],
+          },
+          { type: "paragraph" },
+        ],
+      });
+    });
+
     it("should append new blocks after a table when patching the last row", async () => {
       const user = await buildUser();
       let document = await buildDocument({

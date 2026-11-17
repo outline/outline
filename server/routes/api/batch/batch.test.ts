@@ -1,6 +1,7 @@
 import { RateLimiterRes } from "rate-limiter-flexible";
+import { DatabaseError } from "sequelize";
 import env from "@server/env";
-import { Collection } from "@server/models";
+import { Collection, Document as DocumentModel } from "@server/models";
 import type { Document, User } from "@server/models";
 import {
   buildAdmin,
@@ -268,6 +269,34 @@ describe("#batch", () => {
     expect(body.data[0].ok).toBe(false);
     expect(body.data[0].status).toEqual(404);
     expect(body.data[0].error).toEqual("not_found");
+  });
+
+  it("should return a request timeout when a sub-request waits too long for a lock", async () => {
+    const parent = Object.assign(
+      new Error("canceling statement due to lock timeout"),
+      { code: "55P03", sql: "" }
+    );
+    vi.spyOn(DocumentModel, "findByPk").mockRejectedValueOnce(
+      new DatabaseError(parent)
+    );
+
+    const res = await server.post("/api/batch", user, {
+      body: {
+        requests: [
+          {
+            method: "documents.update",
+            body: { id: documentOne.id, title: "Updated" },
+          },
+        ],
+      },
+    });
+    const body = await res.json();
+    vi.restoreAllMocks();
+
+    expect(res.status).toEqual(200);
+    expect(body.data[0].ok).toBe(false);
+    expect(body.data[0].status).toEqual(503);
+    expect(body.data[0].error).toEqual("request_timeout");
   });
 
   it("should surface per-request validation errors", async () => {

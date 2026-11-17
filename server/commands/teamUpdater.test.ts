@@ -1,11 +1,76 @@
+import type { MockInstance } from "vitest";
+import { vi } from "vitest";
 import type { CustomTheme } from "@shared/types";
 import { randomString } from "@shared/random";
-import { CommentingAccess, TeamPreference } from "@shared/types";
-import { buildTeam, buildUser } from "@server/test/factories";
+import { CommentingAccess, Plan, TeamPreference } from "@shared/types";
+import { Team } from "@server/models";
+import { buildAdmin, buildTeam, buildUser } from "@server/test/factories";
 import { setCloudHosted, withAPIContext } from "@server/test/support";
 import teamUpdater from "./teamUpdater";
 
 describe("teamUpdater", () => {
+  describe("default share expiry", () => {
+    let planSpy: MockInstance<() => Plan>;
+
+    beforeEach(() => {
+      planSpy = vi.spyOn(Team.prototype, "plan", "get");
+    });
+
+    afterEach(() => {
+      planSpy.mockRestore();
+    });
+
+    const update = async (days: number) => {
+      const team = await buildTeam();
+      const user = await buildAdmin({ teamId: team.id });
+      return {
+        team,
+        user,
+        run: () =>
+          withAPIContext(user, (ctx) =>
+            teamUpdater(ctx, {
+              params: {
+                preferences: { [TeamPreference.DefaultShareExpiryDays]: days },
+              },
+              user,
+              team,
+            })
+          ),
+      };
+    };
+
+    it("should allow setting with the advanced security entitlement", async () => {
+      planSpy.mockReturnValue(Plan.Business);
+      const { run } = await update(30);
+
+      const updated = await run();
+      await updated.reload();
+      expect(
+        updated.getPreference(TeamPreference.DefaultShareExpiryDays)
+      ).toEqual(30);
+    });
+
+    it("should require the advanced security entitlement to set", async () => {
+      planSpy.mockReturnValue(Plan.Community);
+      const { run } = await update(30);
+
+      await expect(run()).rejects.toThrow();
+    });
+
+    it("should allow removing without the entitlement", async () => {
+      planSpy.mockReturnValue(Plan.Community);
+      const { team, run } = await update(0);
+      team.setPreference(TeamPreference.DefaultShareExpiryDays, 30);
+      await team.save();
+
+      const updated = await run();
+      await updated.reload();
+      expect(
+        updated.getPreference(TeamPreference.DefaultShareExpiryDays)
+      ).toEqual(0);
+    });
+  });
+
   describe("preferences", () => {
     it("should update preference when value changes", async () => {
       const team = await buildTeam();

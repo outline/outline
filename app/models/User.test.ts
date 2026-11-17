@@ -1,5 +1,10 @@
+import { vi } from "vitest";
+import { UserPreference } from "@shared/types";
 import User from "./User";
 import stores from "~/stores";
+import { client } from "~/utils/ApiClient";
+
+const post = vi.mocked(client.post);
 
 describe("User model", () => {
   const users = stores.users;
@@ -192,6 +197,128 @@ describe("User model", () => {
         users
       );
       expect(user.initials).toBe("JG");
+    });
+  });
+
+  describe("documentMemberships", () => {
+    const user = new User({ id: "300", name: "Member" }, users);
+
+    beforeEach(() => {
+      stores.documents.clear();
+      stores.userMemberships.clear();
+    });
+
+    const addDocument = (id: string, parentDocumentId?: string) =>
+      stores.documents.add({
+        id,
+        title: id,
+        parentDocumentId,
+        collectionId: "collection",
+      });
+
+    const addMembership = (id: string, documentId: string) =>
+      stores.userMemberships.add({
+        id,
+        userId: user.id,
+        documentId,
+        sourceId: null,
+        index: id,
+      });
+
+    it("should only include the highest shared document of a tree", () => {
+      addDocument("parent");
+      addDocument("child", "parent");
+      addDocument("grandchild", "child");
+      addMembership("m1", "grandchild");
+      addMembership("m2", "child");
+      addMembership("m3", "parent");
+
+      expect(user.documentMemberships.map((m) => m.documentId)).toEqual([
+        "parent",
+      ]);
+    });
+
+    it("should include a moved document that is still in a cached tree", () => {
+      addDocument("parent");
+      addDocument("child");
+      addMembership("m1", "child");
+      const parent = addMembership("m2", "parent");
+      parent.node = {
+        id: "parent",
+        title: "parent",
+        url: "/doc/parent",
+        children: [
+          { id: "child", title: "child", url: "/doc/child", children: [] },
+        ],
+      };
+
+      expect(user.documentMemberships.map((m) => m.documentId)).toEqual([
+        "child",
+        "parent",
+      ]);
+    });
+
+    it("should include a document whose parent is not shared", () => {
+      addDocument("parent");
+      addDocument("child", "parent");
+      addDocument("other");
+      addMembership("m1", "child");
+      addMembership("m2", "other");
+
+      expect(user.documentMemberships.map((m) => m.documentId)).toEqual([
+        "child",
+        "other",
+      ]);
+    });
+  });
+
+  describe("savePreference", () => {
+    beforeEach(() => {
+      post.mockReset();
+    });
+
+    it("should send only preferences and keep other values", async () => {
+      const user = users.add({
+        id: "pref-success",
+        name: "Alice",
+        preferences: { [UserPreference.RememberLastPath]: true },
+      });
+      post.mockResolvedValueOnce({ data: { id: "pref-success" } });
+
+      const promise = user.savePreference(
+        UserPreference.UseCursorPointer,
+        false
+      );
+      expect(user.getPreference(UserPreference.UseCursorPointer)).toBe(false);
+      await promise;
+
+      expect(post).toHaveBeenCalledWith("/users.update", {
+        id: "pref-success",
+        preferences: {
+          [UserPreference.RememberLastPath]: true,
+          [UserPreference.UseCursorPointer]: false,
+        },
+      });
+      expect(user.getPreference(UserPreference.UseCursorPointer)).toBe(false);
+      expect(user.getPreference(UserPreference.RememberLastPath)).toBe(true);
+    });
+
+    it("should revert the preference on failure", async () => {
+      const user = users.add({
+        id: "pref-failure",
+        name: "Alice",
+        preferences: { [UserPreference.UseCursorPointer]: true },
+      });
+      post.mockRejectedValueOnce(new Error("server error"));
+
+      const promise = user.savePreference(
+        UserPreference.UseCursorPointer,
+        false
+      );
+      expect(user.getPreference(UserPreference.UseCursorPointer)).toBe(false);
+
+      await expect(promise).rejects.toThrow("server error");
+      expect(user.getPreference(UserPreference.UseCursorPointer)).toBe(true);
     });
   });
 });

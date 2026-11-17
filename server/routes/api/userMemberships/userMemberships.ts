@@ -33,6 +33,15 @@ router.post(
         sourceId: {
           [Op.eq]: null,
         },
+
+        // Documents that inherit access from a shared ancestor are shown
+        // nested under that ancestor rather than as separate roots.
+        [Op.and]: Sequelize.literal(`NOT EXISTS (
+          SELECT 1 FROM user_permissions AS sourced
+          WHERE sourced."documentId" = "user_permission"."documentId"
+            AND sourced."userId" = "user_permission"."userId"
+            AND sourced."sourceId" IS NOT NULL
+        )`),
       },
       include: [
         {
@@ -88,7 +97,7 @@ router.post(
     const membership = await UserMembership.scope("withUser").findByPk(id, {
       transaction,
       lock: {
-        level: transaction.LOCK.UPDATE,
+        level: transaction.LOCK.NO_KEY_UPDATE,
         of: UserMembership,
       },
       rejectOnEmpty: true,

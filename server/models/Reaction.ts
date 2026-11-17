@@ -61,7 +61,7 @@ class Reaction extends IdModel<
 
     const lock = transaction
       ? {
-          level: transaction.LOCK.UPDATE,
+          level: transaction.LOCK.NO_KEY_UPDATE,
           of: Comment,
         }
       : undefined;
@@ -112,7 +112,7 @@ class Reaction extends IdModel<
 
     const lock = transaction
       ? {
-          level: transaction.LOCK.UPDATE,
+          level: transaction.LOCK.NO_KEY_UPDATE,
           of: Comment,
         }
       : undefined;

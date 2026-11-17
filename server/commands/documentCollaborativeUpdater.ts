@@ -89,7 +89,7 @@ export default async function documentCollaborativeUpdater({
       transaction,
       lock: {
         of: Document,
-        level: transaction.LOCK.UPDATE,
+        level: transaction.LOCK.NO_KEY_UPDATE,
       },
       rejectOnEmpty: true,
       paranoid: false,

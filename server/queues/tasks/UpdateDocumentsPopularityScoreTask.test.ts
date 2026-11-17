@@ -347,4 +347,34 @@ describe("UpdateDocumentsPopularityScoreTask", () => {
     expect(Number(updatedDraft?.popularityScore)).toEqual(0);
     expect(Number(updatedDeleted?.popularityScore)).toEqual(0);
   });
+
+  it("should update documents that hold a key share lock", async () => {
+    const team = await buildTeam();
+    const document = await buildDocument({
+      teamId: team.id,
+      publishedAt: new Date(),
+    });
+    await DocumentInsight.create({
+      documentId: document.id,
+      teamId: team.id,
+      date: dayStr(new Date()),
+      revisionCount: 1,
+    });
+
+    // Inserts into tables that reference documents take this lock.
+    const transaction = await sequelize.transaction();
+    try {
+      await sequelize.query(
+        `SELECT id FROM documents WHERE id = :id FOR KEY SHARE`,
+        { replacements: { id: document.id }, transaction }
+      );
+
+      await task.perform(props);
+    } finally {
+      await transaction.rollback();
+    }
+
+    const updated = await Document.findByPk(document.id);
+    expect(Number(updated?.popularityScore)).toBeGreaterThan(0);
+  });
 });
