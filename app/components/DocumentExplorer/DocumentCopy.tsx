@@ -8,10 +8,9 @@ import type Document from "~/models/Document";
 import Button from "~/components/Button";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
-import useCollectionTrees from "~/hooks/useCollectionTrees";
-import useStores from "~/hooks/useStores";
 import { FlexContainer, Footer } from "./Components";
 import DocumentExplorer from "./DocumentExplorer";
+import { useDestinationTrees } from "./useDestinationTrees";
 
 type Props = {
   /** The original document to duplicate */
@@ -21,24 +20,13 @@ type Props = {
 
 function DocumentCopy({ document, onSubmit }: Props) {
   const { t } = useTranslation();
-  const { policies } = useStores();
-  const collectionTrees = useCollectionTrees();
+  const items = useDestinationTrees();
   const [publish, setPublish] = React.useState<boolean>(!!document.publishedAt);
   const [copying, setCopying] = React.useState<boolean>(false);
   const [recursive, setRecursive] = React.useState<boolean>(true);
   const [selectedPath, selectPath] = React.useState<NavigationNode | null>(
     null
   );
-
-  const items = React.useMemo(() => {
-    const nodes = collectionTrees.filter((node) =>
-      node.collectionId
-        ? policies.get(node.collectionId)?.abilities.createDocument
-        : true
-    );
-
-    return nodes;
-  }, [policies, collectionTrees]);
 
   const copy = async (path = selectedPath) => {
     if (!path) {

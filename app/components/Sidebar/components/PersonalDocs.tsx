@@ -3,7 +3,9 @@ import { DocumentIcon, PlusIcon } from "outline-icons";
 import { useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
+import styled, { css } from "styled-components";
 import { PersonalCollectionId } from "@shared/constants";
+import { s } from "@shared/styles";
 import { UserPreference } from "@shared/types";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { DocumentValidation } from "@shared/validations";
@@ -11,7 +13,6 @@ import { createAction } from "~/actions";
 import { sortCollection } from "~/actions/definitions/collections";
 import { DocumentSection } from "~/actions/sections";
 import EditableTitle, { type RefHandle } from "~/components/EditableTitle";
-import Flex from "~/components/Flex";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -20,6 +21,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { useSyncSidebarContext } from "~/hooks/useSyncSidebarContext";
 import { documentEditPath } from "~/utils/routeHelpers";
+import { useDropToPersonalCollection } from "../hooks/useDragAndDrop";
 import CollectionLinkChildren from "./CollectionLinkChildren";
 import Header from "./Header";
 import Relative from "./Relative";
@@ -44,6 +46,7 @@ export const PersonalDocs = observer(function PersonalDocs() {
     ? !!canCollection.createDocument
     : !!can.createPersonalCollection;
   const [isAddingNew, setIsAddingNew, closeAddingNew] = useBoolean();
+  const [{ isOverPersonal }, dropRef] = useDropToPersonalCollection(collection);
   const newTitleRef = useRef<RefHandle>(null);
 
   // Opens a temporary row with an editable title, the document is only
@@ -154,7 +157,7 @@ export const PersonalDocs = observer(function PersonalDocs() {
   return (
     <SidebarContext.Provider value="personal">
       <ActionContextProvider value={{ activeModels }}>
-        <Flex column>
+        <Section ref={dropRef} $isActiveDrop={isOverPersonal}>
           <Header
             id="personal"
             title={t("Personal")}
@@ -177,8 +180,21 @@ export const PersonalDocs = observer(function PersonalDocs() {
               <SidebarAction action={newDocAction} depth={0} />
             </Relative>
           </Header>
-        </Flex>
+        </Section>
       </ActionContextProvider>
     </SidebarContext.Provider>
   );
 });
+
+const Section = styled.div<{ $isActiveDrop?: boolean }>`
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  transition: background 100ms ease-in-out;
+
+  ${(props) =>
+    props.$isActiveDrop &&
+    css`
+      background: ${s("sidebarActiveBackground")};
+    `}
+`;

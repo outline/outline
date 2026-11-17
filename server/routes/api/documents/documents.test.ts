@@ -49,6 +49,7 @@ import {
   buildAttachment,
   buildSubdomain,
   buildGuestUser,
+  buildPersonalCollection,
 } from "@server/test/factories";
 import {
   getTestServer,
@@ -5410,6 +5411,65 @@ describe("#documents.viewed", () => {
 });
 
 describe("#documents.move", () => {
+  it("should create the personal collection for the personal collectionId", async () => {
+    const team = await buildTeam();
+    team.setPreference(TeamPreference.PersonalDocs, true);
+    await team.save();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+    });
+
+    const res = await server.post("/api/documents.move", user, {
+      body: { id: document.id, collectionId: "personal" },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+
+    const collection = await Collection.findOne({
+      where: { teamId: team.id, ownerId: user.id },
+      rejectOnEmpty: true,
+    });
+    expect(body.data.documents[0].collectionId).toEqual(collection.id);
+    await document.reload();
+    expect(document.collectionId).toEqual(collection.id);
+  });
+
+  it("should use the existing personal collection for the personal collectionId", async () => {
+    const user = await buildUser();
+    const personal = await buildPersonalCollection(user);
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/documents.move", user, {
+      body: { id: document.id, collectionId: "personal" },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.documents[0].collectionId).toEqual(personal.id);
+    expect(await Collection.count({ where: { ownerId: user.id } })).toEqual(1);
+  });
+
+  it("should not create the personal collection when turned off", async () => {
+    const team = await buildTeam();
+    team.setPreference(TeamPreference.PersonalDocs, false);
+    await team.save();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+    });
+
+    const res = await server.post("/api/documents.move", user, {
+      body: { id: document.id, collectionId: "personal" },
+    });
+    expect(res.status).toEqual(403);
+    expect(await Collection.count({ where: { ownerId: user.id } })).toEqual(0);
+  });
+
   it("should fail if attempting to nest doc within itself", async () => {
     const user = await buildUser();
     const document = await buildDocument({
@@ -6858,6 +6918,48 @@ describe("#documents.create", () => {
 });
 
 describe("#documents.update", () => {
+  it("should publish a draft to the personal collection for the personal collectionId", async () => {
+    const team = await buildTeam();
+    team.setPreference(TeamPreference.PersonalDocs, true);
+    await team.save();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDraftDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: null,
+    });
+
+    const res = await server.post("/api/documents.update", user, {
+      body: { id: document.id, collectionId: "personal", publish: true },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+
+    const collection = await Collection.findOne({
+      where: { teamId: team.id, ownerId: user.id },
+      rejectOnEmpty: true,
+    });
+    expect(body.data.collectionId).toEqual(collection.id);
+    expect(body.data.publishedAt).toBeTruthy();
+  });
+
+  it("should not create the personal collection when not publishing", async () => {
+    const user = await buildUser();
+    const document = await buildDraftDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: null,
+    });
+
+    const res = await server.post("/api/documents.update", user, {
+      body: { id: document.id, collectionId: "personal", title: "Updated" },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.collectionId).toBeFalsy();
+    expect(await Collection.count({ where: { ownerId: user.id } })).toEqual(0);
+  });
+
   describe("deprecatedReason", () => {
     it.each(["archived", "deleted"])(
       "should update the reason for an %s document without changing attribution",
@@ -9436,6 +9538,31 @@ describe("#documents.memberships", () => {
 });
 
 describe("#documents.duplicate", () => {
+  it("should create the personal collection for the personal collectionId", async () => {
+    const team = await buildTeam();
+    team.setPreference(TeamPreference.PersonalDocs, true);
+    await team.save();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+    });
+
+    const res = await server.post("/api/documents.duplicate", user, {
+      body: { id: document.id, collectionId: "personal", publish: true },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+
+    const collection = await Collection.findOne({
+      where: { teamId: team.id, ownerId: user.id },
+      rejectOnEmpty: true,
+    });
+    expect(body.data.documents[0].collectionId).toEqual(collection.id);
+    await document.reload();
+    expect(document.collectionId).not.toEqual(collection.id);
+  });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/documents.duplicate");
     expect(res.status).toEqual(401);

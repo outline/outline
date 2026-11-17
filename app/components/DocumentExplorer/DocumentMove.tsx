@@ -12,6 +12,7 @@ import useCollectionTrees from "~/hooks/useCollectionTrees";
 import useStores from "~/hooks/useStores";
 import { FlexContainer, Footer } from "./Components";
 import DocumentExplorer from "./DocumentExplorer";
+import { useDestinationTrees } from "./useDestinationTrees";
 
 type Props = {
   /** The documents to move. */
@@ -19,9 +20,10 @@ type Props = {
 };
 
 function DocumentMove({ documents }: Props) {
-  const { collections, dialogs, policies } = useStores();
+  const { collections, dialogs } = useStores();
   const { t } = useTranslation();
   const collectionTrees = useCollectionTrees();
+  const destinationTrees = useDestinationTrees();
   const [moving, setMoving] = useState<boolean>(false);
   const [selectedPath, selectPath] = useState<NavigationNode | null>(null);
   const [treesFailed, setTreesFailed] = useState<boolean>(false);
@@ -80,14 +82,7 @@ function DocumentMove({ documents }: Props) {
         .map(filterSourceDocuments),
     });
 
-    const nodes = collectionTrees
-      .map(filterSourceDocuments)
-      // Filter out collections that we don't have permission to create documents in.
-      .filter((node) =>
-        node.collectionId
-          ? policies.get(node.collectionId)?.abilities.createDocument
-          : true
-      );
+    const nodes = destinationTrees.map(filterSourceDocuments);
 
     // Documents nested under another selected document move along with it,
     // so only the outermost documents are moved to keep the structure. They
@@ -106,7 +101,7 @@ function DocumentMove({ documents }: Props) {
       );
 
     return { items: nodes, movableDocuments: movable };
-  }, [policies, collectionTrees, documents]);
+  }, [collectionTrees, destinationTrees, documents]);
 
   const move = async (path = selectedPath) => {
     if (isLoadingTrees) {

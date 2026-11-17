@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next";
 import type { ListImperativeAPI, RowComponentProps } from "react-window";
 import { List } from "react-window";
 import styled, { useTheme } from "styled-components";
+import { PersonalCollectionId } from "@shared/constants";
 import { breakpoint } from "@shared/styles/breakpoint";
 import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
@@ -23,9 +24,12 @@ import { ancestors, descendants, flattenTree } from "@shared/utils/tree";
 import DocumentExplorerNode from "./DocumentExplorerNode";
 import DocumentExplorerSearchResult from "./DocumentExplorerSearchResult";
 import Flex from "~/components/Flex";
-import CollectionIcon from "~/components/Icons/CollectionIcon";
+import CollectionIcon, {
+  PersonalCollectionIcon,
+} from "~/components/Icons/CollectionIcon";
 import InputSearch from "~/components/InputSearch";
 import Text from "~/components/Text";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 
@@ -70,6 +74,7 @@ function DocumentExplorer({
   const { collections, documents } = useStores();
   const { t } = useTranslation();
   const theme = useTheme();
+  const user = useCurrentUser();
 
   const [searchTerm, setSearchTerm] = React.useState<string>();
   // Defer filtering so typing in the search input stays responsive.
@@ -291,9 +296,11 @@ function DocumentExplorer({
 
       if (isCollection) {
         const col = collections.get(node.collectionId as string);
-        renderedIcon = col && (
+        renderedIcon = col ? (
           <CollectionIcon collection={col} expanded={isExpanded(index)} />
-        );
+        ) : node.collectionId === PersonalCollectionId ? (
+          <PersonalCollectionIcon owner={user} />
+        ) : undefined;
         title = node.title;
       } else {
         const doc = documents.get(node.id);
