@@ -103,7 +103,7 @@ class User extends ParanoidModel implements Searchable {
 
   @computed
   get searchSuppressed(): boolean {
-    return this.isDeleted;
+    return this.isDeleted || this.isSuspended;
   }
 
   @computed

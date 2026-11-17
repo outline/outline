@@ -321,4 +321,30 @@ describe("User model", () => {
       expect(user.getPreference(UserPreference.UseCursorPointer)).toBe(true);
     });
   });
+
+  describe("searchSuppressed", () => {
+    it("should be false for an active user", () => {
+      const user = new User(
+        { id: "600", name: "Active", isSuspended: false },
+        users
+      );
+      expect(user.searchSuppressed).toBe(false);
+    });
+
+    it("should be true for a suspended user", () => {
+      const user = new User(
+        { id: "601", name: "Suspended", isSuspended: true },
+        users
+      );
+      expect(user.searchSuppressed).toBe(true);
+    });
+
+    it("should be true for a deleted user", () => {
+      const user = new User(
+        { id: "602", name: "Deleted", deletedAt: new Date().toISOString() },
+        users
+      );
+      expect(user.searchSuppressed).toBe(true);
+    });
+  });
 });
