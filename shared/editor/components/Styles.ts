@@ -1203,7 +1203,7 @@ th .image .${EditorStyleHelper.imageWrapper} img {
   max-width: 100vw;
   clear: both;
   position: initial;
-  transform: translateX(calc(50% + var(--container-width) * -0.5 + var(--full-width-transform-offset)));
+  transform: translateX(calc(50% + var(--container-width) * -0.5 + var(--full-width-transform-offset, 0px)));
 
   img {
     max-width: 100vw;
@@ -1216,7 +1216,7 @@ th .image .${EditorStyleHelper.imageWrapper} img {
 .${EditorStyleHelper.tableFullWidth} {
   transform: translateX(calc(50% + ${
     EditorStyleHelper.padding
-  }px + var(--container-width) * -0.5 + var(--full-width-transform-offset)));
+  }px + var(--container-width) * -0.5 + var(--full-width-transform-offset, 0px)));
 
   .${EditorStyleHelper.tableScrollable},
   table {
