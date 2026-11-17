@@ -238,6 +238,15 @@ const Actions = styled(Flex)`
       margin-inline: -4px;
     }
 
+    /* A single action shows as a circle, like the menu button. */
+    &:has(> :only-child) {
+      padding-inline: 0;
+    }
+
+    & > :only-child {
+      margin-inline: 0;
+    }
+
     && [data-variant] {
       background: transparent;
       box-shadow: none;

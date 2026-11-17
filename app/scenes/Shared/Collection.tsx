@@ -22,7 +22,10 @@ import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import { collectionPath } from "~/utils/routeHelpers";
 import Overview from "../Collection/components/Overview";
-import { AppearanceAction } from "~/components/Sharing/components/Actions";
+import {
+  AppearanceAction,
+  SearchAction,
+} from "~/components/Sharing/components/Actions";
 
 type Props = {
   collection: CollectionModel;
@@ -30,9 +33,10 @@ type Props = {
 
 function SharedCollection({ collection }: Props) {
   const { t } = useTranslation();
-  const { shareId, showLastUpdated } = useShare();
+  const { shareId, sharedTree, showLastUpdated } = useShare();
   const can = usePolicy(collection);
   const isMobile = useMobile();
+  const hasSidebar = !!sharedTree?.children?.length;
 
   const editAction = (
     <Action>
@@ -66,6 +70,7 @@ function SharedCollection({ collection }: Props) {
       actions={
         <>
           <AppearanceAction />
+          {hasSidebar && <SearchAction />}
           {can.update ? editAction : null}
         </>
       }
