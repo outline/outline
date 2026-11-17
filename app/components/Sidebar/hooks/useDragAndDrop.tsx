@@ -399,9 +399,11 @@ export function useDropToPersonalCollection(
         }
       }
     },
+    // Documents already at the root of the personal collection have nowhere to move.
     canDrop: (item) =>
       canCreate &&
-      item.collectionId !== collection?.id &&
+      (item.collectionId !== collection?.id ||
+        !!documents.get(item.id)?.parentDocumentId) &&
       !!policies.abilities(item.id).move,
     collect: (monitor) => ({
       isOverPersonal: monitor.isOver({ shallow: true }) && monitor.canDrop(),

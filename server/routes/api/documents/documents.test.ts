@@ -9563,6 +9563,33 @@ describe("#documents.duplicate", () => {
     expect(document.collectionId).not.toEqual(collection.id);
   });
 
+  it("should accept the personal collectionId with a parent in the personal collection", async () => {
+    const user = await buildUser();
+    const personal = await buildPersonalCollection(user);
+    const parent = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: personal.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/documents.duplicate", user, {
+      body: {
+        id: document.id,
+        collectionId: "personal",
+        parentDocumentId: parent.id,
+        publish: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.documents[0].collectionId).toEqual(personal.id);
+    expect(body.data.documents[0].parentDocumentId).toEqual(parent.id);
+  });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/documents.duplicate");
     expect(res.status).toEqual(401);

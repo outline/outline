@@ -1543,7 +1543,12 @@ router.post(
         throw InvalidRequestError("Cannot duplicate document inside a draft");
       }
 
-      if (collectionId && collectionId !== parent.collectionId) {
+      const requestedCollectionId =
+        collectionId === PersonalCollectionId
+          ? (await Collection.findPersonal(user, { transaction }))?.id
+          : collectionId;
+
+      if (collectionId && requestedCollectionId !== parent.collectionId) {
         throw InvalidRequestError(
           "collectionId must match the collection of the parent document"
         );
