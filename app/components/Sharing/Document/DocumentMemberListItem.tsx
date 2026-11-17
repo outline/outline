@@ -103,7 +103,7 @@ const DocumentMemberListItem = ({
         )
       }
       actions={
-        <div style={{ marginRight: -8 }}>
+        <div style={{ marginRight: -6 }}>
           <InputMemberPermissionSelect
             permissions={
               onLeave
@@ -122,7 +122,7 @@ const DocumentMemberListItem = ({
             }
             value={membership?.permission}
             onChange={handleChange}
-            disabled={!onUpdate && !onLeave}
+            disabled={(!onUpdate && !onLeave) || !!membership?.source}
           />
         </div>
       }
