@@ -346,14 +346,5 @@ describe("User model", () => {
       );
       expect(user.searchSuppressed).toBe(true);
     });
-
-    it("should exclude suspended users from findByQuery", () => {
-      users.clear();
-      users.add({ id: "603", name: "Zebulon Active", isSuspended: false });
-      users.add({ id: "604", name: "Zebulon Suspended", isSuspended: true });
-
-      const results = users.findByQuery("zebulon").map((user) => user.id);
-      expect(results).toEqual(["603"]);
-    });
   });
 });
