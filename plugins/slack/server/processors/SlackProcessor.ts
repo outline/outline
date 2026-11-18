@@ -22,6 +22,32 @@ export default class SlackProcessor extends BaseProcessor {
     "integrations.create",
   ];
 
+  /**
+   * Only queue document events when the team has a Slack post integration
+   * subscribed to the event.
+   *
+   * @param event The event about to be queued.
+   * @returns true if the event may need to be posted to Slack.
+   */
+  static async shouldQueue(event: Event): Promise<boolean> {
+    if (event.name === "integrations.create") {
+      return true;
+    }
+
+    const eventName =
+      event.name === "revisions.create" ? "documents.update" : event.name;
+    const integrations = await Integration.findEnabledByTeamIdAndService(
+      event.teamId,
+      IntegrationService.Slack
+    );
+
+    return integrations.some(
+      (integration) =>
+        integration.type === IntegrationType.Post &&
+        !!integration.events?.includes(eventName)
+    );
+  }
+
   async perform(event: Event) {
     switch (event.name) {
       case "documents.publish":
