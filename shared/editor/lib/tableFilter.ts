@@ -2,14 +2,6 @@ import type { Node } from "prosemirror-model";
 import { TableMap } from "prosemirror-tables";
 import { TableFilterOperator, type TableFilter } from "../types";
 
-/** A distinct value found in a table column. */
-export interface TableColumnValue {
-  /** The text of the value, as first found in the column. */
-  value: string;
-  /** The number of rows that have the value. */
-  count: number;
-}
-
 const operators = Object.values(TableFilterOperator);
 
 /**
@@ -299,22 +291,19 @@ export function getHiddenTableRows(
 
 /**
  * Get the distinct values in a column of a table, below the header row. Values
- * that differ only by case are counted as one.
+ * that differ only by case or whitespace are the same, and the first is kept.
  *
  * @param table the table node.
  * @param column the index of the column.
  * @returns the values, sorted alphabetically.
  */
-export function getTableColumnValues(
-  table: Node,
-  column: number
-): TableColumnValue[] {
+export function getTableColumnValues(table: Node, column: number): string[] {
   const map = TableMap.get(table);
   if (column < 0 || column >= map.width) {
     return [];
   }
 
-  const values = new Map<string, TableColumnValue>();
+  const values = new Map<string, string>();
   for (let row = 1; row < map.height; row++) {
     const cell = table.nodeAt(map.map[row * map.width + column]);
     const value = cell ? getCellValue(cell) : "";
@@ -323,16 +312,13 @@ export function getTableColumnValues(
     }
 
     const key = toFilterKey(value);
-    const existing = values.get(key);
-    if (existing) {
-      existing.count++;
-    } else {
-      values.set(key, { value, count: 1 });
+    if (!values.has(key)) {
+      values.set(key, value);
     }
   }
 
   return [...values.values()].sort((a, b) =>
-    a.value.localeCompare(b.value, undefined, { numeric: true })
+    a.localeCompare(b, undefined, { numeric: true })
   );
 }
 

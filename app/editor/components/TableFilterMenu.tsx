@@ -8,6 +8,7 @@ import styled from "styled-components";
 import {
   getTableColumnValues,
   isListOperator,
+  isTableFilterActive,
   isTextOperator,
   parseTableFilterOperator,
   parseTableFilters,
@@ -231,21 +232,22 @@ const TableFilterForm = observer(function TableFilterForm({
     values: [],
   };
   const selected = new Set(filter.values.map(toFilterKey));
-  const found = new Set(columnValues.map((v) => toFilterKey(v.value)));
+  const found = new Set(columnValues.map(toFilterKey));
 
   // Chosen values that no rows have any more are kept, so that they can be
   // removed.
   const values = [
     ...columnValues,
-    ...filter.values
-      .filter((value) => !found.has(toFilterKey(value)))
-      .map((value) => ({ value, count: 0 })),
+    ...filter.values.filter((value) => !found.has(toFilterKey(value))),
   ];
   const normalizedQuery = toFilterKey(query);
   const matchingValues = normalizedQuery
-    ? values.filter((v) => toFilterKey(v.value).includes(normalizedQuery))
+    ? values.filter((value) => toFilterKey(value).includes(normalizedQuery))
     : values;
   const visibleValues = matchingValues.slice(0, MaxShownValues);
+  const canClear = filters.some(
+    (f) => f.column === target.column && isTableFilterActive(f)
+  );
   const hasValues = isListOperator(filter.operator);
   const hasText = isTextOperator(filter.operator);
 
@@ -366,11 +368,10 @@ const TableFilterForm = observer(function TableFilterForm({
               />
             )}
             <ValueList role="group" aria-label={t("Values")}>
-              {visibleValues.map(({ value, count }) => (
+              {visibleValues.map((value) => (
                 <ValueOption
                   key={value}
                   value={value}
-                  count={count}
                   checked={selected.has(toFilterKey(value))}
                   onChange={handleValueChange}
                 />
@@ -398,23 +399,23 @@ const TableFilterForm = observer(function TableFilterForm({
             {t("This column has no values")}
           </Text>
         ))}
-      <Flex justify="space-between" align="center" gap={8}>
-        <Text type="secondary" size="small">
-          {summary
-            ? t("{{ visible }} of {{ total }} rows", {
-                visible: summary.visibleRows,
-                total: summary.totalRows,
-              })
-            : null}
-        </Text>
-        <ButtonSmall
-          neutral
-          onClick={handleClear}
-          disabled={!filters.some((f) => f.column === target.column)}
-        >
-          {t("Clear")}
-        </ButtonSmall>
-      </Flex>
+      {(summary || canClear) && (
+        <Flex justify="space-between" align="center" gap={8}>
+          <Text type="secondary" size="small">
+            {summary
+              ? t("{{ visible }} of {{ total }} rows", {
+                  visible: summary.visibleRows,
+                  total: summary.totalRows,
+                })
+              : null}
+          </Text>
+          {canClear && (
+            <ButtonSmall neutral onClick={handleClear}>
+              {t("Clear")}
+            </ButtonSmall>
+          )}
+        </Flex>
+      )}
     </Flex>
   );
 });
@@ -481,24 +482,19 @@ function FilterTextInput({
 type ValueOptionProps = {
   /** The value. */
   value: string;
-  /** The number of rows that have the value. */
-  count: number;
   /** Whether the value is chosen. */
   checked: boolean;
   /** Called when the value is chosen or no longer chosen. */
   onChange: (value: string, checked: boolean) => void;
 };
 
-function ValueOption({ value, count, checked, onChange }: ValueOptionProps) {
+function ValueOption({ value, checked, onChange }: ValueOptionProps) {
   const id = React.useId();
   const handleChange = (next: boolean) => onChange(value, next);
 
   return (
     <ValueRow htmlFor={id}>
       <ValueLabel>{value}</ValueLabel>
-      <Text type="tertiary" size="small">
-        {count}
-      </Text>
       <Switch
         id={id}
         checked={checked}
