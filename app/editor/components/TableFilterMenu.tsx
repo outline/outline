@@ -470,8 +470,8 @@ function FilterTextInput({
     <Input
       value={text}
       onChange={handleChange}
-      placeholder={`${t("Text")}…`}
-      label={t("Text")}
+      placeholder={`${t("Filter")}…`}
+      label={t("Filter")}
       labelHidden
       margin={0}
       ref={ref}
