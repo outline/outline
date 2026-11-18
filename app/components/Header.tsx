@@ -197,6 +197,7 @@ const Breadcrumbs = styled("div")`
   display: flex;
 
   ${breakpoint("mobile", "tablet")`
+    min-width: auto;
     gap: 8px;
 
     && [data-variant] {
@@ -227,6 +228,10 @@ const Actions = styled(Flex)`
     flex: 0 0 auto;
     gap: 0;
     margin-inline-start: auto;
+
+    /* Leaves room for the menu button; actions past the start edge are clipped. */
+    max-width: calc(100% - ${MOBILE_TOUCH_TARGET + 8}px);
+    overflow: hidden;
 
     &:not(:empty) {
       ${mobilePill}
