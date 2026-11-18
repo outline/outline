@@ -599,8 +599,8 @@ function buildFilterBar(
       const label = document.createElement("span");
       label.textContent = activeCount
         ? `${t("{{ count }} filter applied", { count: activeCount })} · ${t(
-            "{{ visible }} of {{ total }} rows",
-            { visible: visibleRows, total: totalRows }
+            "{{ visible }} of {{ count }} rows",
+            { visible: visibleRows, count: totalRows }
           )}`
         : t("Filters cleared for you");
       bar.appendChild(label);

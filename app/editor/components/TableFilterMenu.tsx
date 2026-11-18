@@ -73,9 +73,9 @@ export const TableFilterMenu = observer(function TableFilterMenu() {
     if (!summary || summary.visibleRows === summary.totalRows) {
       return t("Showing all rows");
     }
-    return t("Showing {{ visible }} of {{ total }} rows", {
+    return t("Showing {{ visible }} of {{ count }} rows", {
       visible: summary.visibleRows,
-      total: summary.totalRows,
+      count: summary.totalRows,
     });
   }, [editor, t]);
 
@@ -403,9 +403,9 @@ const TableFilterForm = observer(function TableFilterForm({
         <Flex justify="space-between" align="center" gap={8}>
           <Text type="secondary" size="small">
             {summary
-              ? t("{{ visible }} of {{ total }} rows", {
+              ? t("{{ visible }} of {{ count }} rows", {
                   visible: summary.visibleRows,
-                  total: summary.totalRows,
+                  count: summary.totalRows,
                 })
               : null}
           </Text>
