@@ -2752,7 +2752,7 @@ table .${EditorStyleHelper.table} > .${EditorStyleHelper.tableScrollable} > tabl
   padding: 0;
   border: 0;
   border-radius: 4px;
-  background: none;
+  background: ${props.theme.backgroundSecondary};
   color: inherit;
   cursor: var(--pointer);
   z-index: 1;
@@ -2765,12 +2765,6 @@ table .${EditorStyleHelper.table} > .${EditorStyleHelper.tableScrollable} > tabl
     mask: url("data:image/svg+xml;base64,${btoa(
       '<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="7" width="14" height="2" rx="1"/><rect x="7.5" y="11" width="9" height="2" rx="1"/><rect x="10" y="15" width="4" height="2" rx="1"/></svg>'
     )}") center / contain no-repeat;
-  }
-
-  &:hover,
-  &:focus-visible,
-  &.expanded {
-    background: ${props.theme.backgroundSecondary};
   }
 
   &.active::before {
