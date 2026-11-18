@@ -388,18 +388,6 @@ export function cellWidget(
   return Decoration.widget(cellPos + 1, toDOM, { ...spec, side: -1 });
 }
 
-/**
- * Focus the editor if it does not have focus, for controls such as the table
- * grips that stay visible while focus is elsewhere.
- *
- * @param view The editor view.
- */
-export function focusEditor(view: EditorView): void {
-  if (!view.hasFocus()) {
-    view.focus();
-  }
-}
-
 const spanTrackers = new WeakMap<globalThis.Node, () => void>();
 
 /**

@@ -9,7 +9,6 @@ import { addColumnBefore, moveColumn, selectColumn } from "../commands/table";
 import { isMobile } from "../../utils/browser";
 import { isRemoteTransaction } from "../lib/multiplayer";
 import {
-  focusEditor,
   cellWidget,
   getCellAttrs,
   getCellSpan,
@@ -21,6 +20,7 @@ import {
   trackSpanPosition,
   untrackSpanPosition,
 } from "../lib/table";
+import { focusEditor } from "../lib/focusEditor";
 import { isInlineTransaction } from "../queries/isInlineTransaction";
 import {
   getCellsInColumn,

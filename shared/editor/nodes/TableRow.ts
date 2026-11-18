@@ -4,13 +4,13 @@ import { isInTable, moveTableRow, selectedRect } from "prosemirror-tables";
 import Node from "./Node";
 import { cn } from "../styles/utils";
 import {
-  focusEditor,
   cellWidget,
   getCellSpan,
   setSpanPosition,
   trackSpanPosition,
   untrackSpanPosition,
 } from "../lib/table";
+import { focusEditor } from "../lib/focusEditor";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { type Decoration, DecorationSet } from "prosemirror-view";
 import type { EditorView } from "prosemirror-view";
