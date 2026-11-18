@@ -235,9 +235,6 @@ class Integration<T = unknown> extends ParanoidModel<
     model: Integration,
     options: { transaction?: Transaction | null }
   ) {
-    // Defer invalidation until after the transaction commits so that a rollback
-    // does not leave the cache out of sync, and so a stale pre-commit read is
-    // not re-cached by a concurrent reader.
     await afterCommit(options.transaction, () =>
       CacheHelper.removeData(
         RedisPrefixHelper.getIntegrationsKey(model.teamId, model.service)
