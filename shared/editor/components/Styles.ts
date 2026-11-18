@@ -2765,11 +2765,11 @@ table .${EditorStyleHelper.table} > .${EditorStyleHelper.tableScrollable} > tabl
 
   &:hover,
   &:focus-visible {
-    color: ${props.theme.text};
     background: ${props.theme.backgroundSecondary};
   }
 
-  &.active {
+  &.active,
+  &.expanded {
     display: block;
   }
 

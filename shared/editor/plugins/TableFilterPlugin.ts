@@ -66,6 +66,20 @@ type TableFilterAction =
   | { type: "open"; target: TableFilterTarget }
   | { type: "close" };
 
+/** The inputs and outputs of a build of table decorations. */
+interface BuildContext {
+  /** The position of the row that holds the selection. */
+  selectionRow: number | null;
+  /** The filters of the current reader. */
+  local: ReadonlyMap<number, TableFilter[]>;
+  /** The column whose filter menu is open. */
+  open: TableFilterTarget | null;
+  /** The list to add decorations to. */
+  decorations: Decoration[];
+  /** The map to add summaries to. */
+  summaries: Map<number, TableFilterSummary>;
+}
+
 /** The key of the table filter plugin. */
 export const tableFilterPluginKey = new PluginKey<TableFilterPluginState>(
   "table-filter"
@@ -149,24 +163,21 @@ export class TableFilterPlugin extends Plugin<TableFilterPluginState> {
       key: tableFilterPluginKey,
       state: {
         init: (_, state) => {
-          const local = new Map<number, TableFilter[]>();
-          const decorations: Decoration[] = [];
-          const summaries = new Map<number, TableFilterSummary>();
-          buildTables(
-            state.doc,
-            0,
-            getSelectionRow(state),
-            local,
-            decorations,
-            summaries
-          );
+          const context: BuildContext = {
+            selectionRow: getSelectionRow(state),
+            local: new Map(),
+            open: null,
+            decorations: [],
+            summaries: new Map(),
+          };
+          buildTables(state.doc, 0, context);
 
           return {
-            local,
-            summaries,
+            local: context.local,
+            summaries: context.summaries,
             open: null,
             changed: null,
-            decorations: DecorationSet.create(state.doc, decorations),
+            decorations: DecorationSet.create(state.doc, context.decorations),
           };
         },
         apply,
@@ -286,10 +297,15 @@ function apply(
         break;
       }
       case "open":
-        open = action.target;
-        break;
       case "close":
-        open = null;
+        // The button of the open menu stays shown.
+        if (open) {
+          stale.add(open.pos);
+        }
+        open = action.type === "open" ? action.target : null;
+        if (open) {
+          stale.add(open.pos);
+        }
         break;
     }
   }
@@ -316,18 +332,22 @@ function apply(
     return { local, summaries, open, changed, decorations };
   }
 
-  const selectionRow = getSelectionRow(state);
-  const found: Decoration[] = [];
+  const context: BuildContext = {
+    selectionRow: getSelectionRow(state),
+    local,
+    open,
+    decorations: [],
+    summaries: new Map(),
+  };
 
   if (rebuildAll || stale.size > 1) {
-    const nextSummaries = new Map<number, TableFilterSummary>();
-    buildTables(state.doc, 0, selectionRow, local, found, nextSummaries);
+    buildTables(state.doc, 0, context);
     return {
       local,
-      summaries: nextSummaries,
+      summaries: context.summaries,
       open,
       changed,
-      decorations: DecorationSet.create(state.doc, found),
+      decorations: DecorationSet.create(state.doc, context.decorations),
     };
   }
 
@@ -337,18 +357,17 @@ function apply(
   const table = state.doc.nodeAt(pos);
   if (table?.type.spec.tableRole === "table") {
     const end = pos + table.nodeSize;
-    const nextSummaries = new Map(summaries);
-    nextSummaries.forEach((_, key) => {
-      if (key >= pos && key < end) {
-        nextSummaries.delete(key);
+    summaries.forEach((summary, key) => {
+      if (key < pos || key >= end) {
+        context.summaries.set(key, summary);
       }
     });
-    buildTable(table, pos, selectionRow, local, found, nextSummaries);
-    buildTables(table, pos + 1, selectionRow, local, found, nextSummaries);
+    buildTable(table, pos, context);
+    buildTables(table, pos + 1, context);
     decorations = decorations
       .remove(decorations.find(pos + 1, end))
-      .add(state.doc, found);
-    summaries = nextSummaries;
+      .add(state.doc, context.decorations);
+    summaries = context.summaries;
   }
 
   return { local, summaries, open, changed, decorations };
@@ -359,47 +378,24 @@ function apply(
  *
  * @param node the node to search.
  * @param start the position of the start of the node content.
- * @param selectionRow the position of the row that holds the selection.
- * @param local the filters of the current reader.
- * @param decorations the list to add decorations to.
- * @param summaries the map to add summaries to.
+ * @param context the build inputs and outputs.
  */
-function buildTables(
-  node: Node,
-  start: number,
-  selectionRow: number | null,
-  local: ReadonlyMap<number, TableFilter[]>,
-  decorations: Decoration[],
-  summaries: Map<number, TableFilterSummary>
-) {
+function buildTables(node: Node, start: number, context: BuildContext) {
   node.descendants((child, offset) => {
     if (child.type.spec.tableRole === "table") {
-      buildTable(
-        child,
-        start + offset,
-        selectionRow,
-        local,
-        decorations,
-        summaries
-      );
+      buildTable(child, start + offset, context);
       return true;
     }
     return child.isBlock && !child.isTextblock;
   });
 }
 
-function buildTable(
-  node: Node,
-  pos: number,
-  selectionRow: number | null,
-  local: ReadonlyMap<number, TableFilter[]>,
-  decorations: Decoration[],
-  summaries: Map<number, TableFilterSummary>
-) {
+function buildTable(node: Node, pos: number, context: BuildContext) {
   if (!isTableFilterable(node)) {
     return;
   }
 
+  const { selectionRow, local, open, decorations, summaries } = context;
   const map = TableMap.get(node);
   const tableStart = pos + 1;
   const saved = parseTableFilters(node.attrs.filters);
@@ -420,7 +416,8 @@ function buildTable(
       buildFilterButton(
         tableStart + map.map[column],
         column,
-        activeColumns.has(column)
+        activeColumns.has(column),
+        open?.pos === pos && open.column === column
       )
     );
   }
@@ -467,8 +464,16 @@ function buildTable(
   }
 }
 
-function buildFilterButton(cellPos: number, column: number, active: boolean) {
-  const className = cn(EditorStyleHelper.tableFilterButton, { active });
+function buildFilterButton(
+  cellPos: number,
+  column: number,
+  active: boolean,
+  expanded: boolean
+) {
+  const className = cn(EditorStyleHelper.tableFilterButton, {
+    active,
+    expanded,
+  });
 
   return cellWidget(
     cellPos,
@@ -491,6 +496,7 @@ function buildFilterButton(cellPos: number, column: number, active: boolean) {
         );
       });
       button.setAttribute("aria-haspopup", "dialog");
+      button.setAttribute("aria-expanded", String(expanded));
       button.setAttribute(
         "aria-label",
         active ? t("Change column filter") : t("Filter column")
