@@ -21,7 +21,8 @@ PluginManager.add([
       icon: HistoryIcon,
       description: "Track security and activity events across your workspace.",
       component: createLazyComponent(() => import("./AuditLog")),
-      upsell: PlanFeature.AuditLog,
+      entitlement: PlanFeature.AuditLog,
+      placeholder: true,
     },
   },
   {
@@ -36,7 +37,8 @@ PluginManager.add([
       description:
         "Manage permissions and settings for every collection, including private ones.",
       component: createLazyComponent(() => import("./Collections")),
-      upsell: PlanFeature.ContentManagement,
+      entitlement: PlanFeature.ContentManagement,
+      placeholder: true,
     },
   },
   {
@@ -50,7 +52,8 @@ PluginManager.add([
       icon: BuildingBlocksIcon,
       description: "Define custom properties and metadata for documents.",
       component: createLazyComponent(() => import("./DataAttributes")),
-      upsell: PlanFeature.DataAttributes,
+      entitlement: PlanFeature.DataAttributes,
+      placeholder: true,
     },
   },
   {
@@ -64,7 +67,8 @@ PluginManager.add([
       description:
         "Index and search your workspace content inside Glean enterprise search.",
       component: createLazyComponent(() => import("./Glean")),
-      upsell: PlanFeature.PremiumIntegrations,
+      entitlement: PlanFeature.PremiumIntegrations,
+      placeholder: true,
     },
   },
 ]);

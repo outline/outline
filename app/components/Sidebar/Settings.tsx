@@ -37,11 +37,11 @@ function SettingsSidebar() {
     // Locked upsell items sort to the end of their group.
     sortBy(
       configs.filter((item) =>
-        item.group === t("Integrations") && item.pluginId && !item.upsell
+        item.group === t("Integrations") && item.pluginId && !item.locked
           ? integrations.findByService(item.pluginId)
           : true
       ),
-      (item) => (item.upsell ? 1 : 0)
+      (item) => (item.locked ? 1 : 0)
     ),
     "group"
   );
@@ -76,8 +76,11 @@ function SettingsSidebar() {
                     }
                     icon={<item.icon />}
                     label={
-                      item.upsell ? (
-                        <UpsellLabel name={item.name} feature={item.upsell} />
+                      item.locked && item.entitlement ? (
+                        <UpsellLabel
+                          name={item.name}
+                          feature={item.entitlement}
+                        />
                       ) : (
                         item.name
                       )

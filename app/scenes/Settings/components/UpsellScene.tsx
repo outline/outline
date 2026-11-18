@@ -23,7 +23,7 @@ interface Props {
   /** The icon displayed alongside the title. */
   icon: React.ReactNode;
   /** A short description of the feature being advertised. */
-  description: React.ReactNode;
+  description?: React.ReactNode;
   /** The plan feature that unlocks this page. */
   feature: PlanFeature;
 }
@@ -44,9 +44,11 @@ export function UpsellScene({ title, icon, description, feature }: Props) {
   return (
     <Scene title={title} textTitle={title} icon={icon}>
       <Title>{title}</Title>
-      <Text as="p" type="secondary">
-        {description}
-      </Text>
+      {description && (
+        <Text as="p" type="secondary">
+          {description}
+        </Text>
+      )}
 
       <Callout align="center" gap={12}>
         <StarredIcon />

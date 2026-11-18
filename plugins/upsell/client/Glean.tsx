@@ -2,7 +2,7 @@ import { SearchIcon } from "outline-icons";
 import { Trans } from "react-i18next";
 import env from "~/env";
 import { PlanFeature } from "@shared/types";
-import { UpsellScene } from "./components/UpsellScene";
+import { UpsellScene } from "~/scenes/Settings/components/UpsellScene";
 
 /**
  * Upsell placeholder for the paid Glean integration, which surfaces

@@ -44,8 +44,10 @@ type PluginValueMap = {
     description?: string;
     /** Whether the plugin is enabled in the current context. */
     enabled?: (team: Team, user: User) => boolean;
-    /** The plan feature this page advertises, when the page is an upsell. */
-    upsell?: PlanFeature;
+    /** The plan feature needed for this page. Without it, an upsell page shows instead. */
+    entitlement?: PlanFeature;
+    /** Whether the page is only an upsell, removed when a real page needs the same entitlement. */
+    placeholder?: boolean;
   };
   [Hook.Imports]: {
     /** The title of the import. */

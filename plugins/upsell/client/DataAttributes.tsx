@@ -1,7 +1,7 @@
 import { BuildingBlocksIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import { PlanFeature } from "@shared/types";
-import { UpsellScene } from "./components/UpsellScene";
+import { UpsellScene } from "~/scenes/Settings/components/UpsellScene";
 
 /**
  * Upsell placeholder for the paid data attributes feature, which

@@ -65,8 +65,12 @@ export type ConfigItem = {
   enabled: boolean;
   group: string;
   pluginId?: string;
-  /** The plan feature this page advertises, when the page is an upsell. */
-  upsell?: PlanFeature;
+  /** The plan feature needed for this page. Without it, an upsell page shows instead. */
+  entitlement?: PlanFeature;
+  /** Whether the page is only an upsell, removed when a real page needs the same entitlement. */
+  placeholder?: boolean;
+  /** Whether the team does not have the entitlement for this page. */
+  locked?: boolean;
 };
 
 const useSettingsConfig = () => {
@@ -265,11 +269,6 @@ const useSettingsConfig = () => {
     // Plugins
     PluginManager.getHooks(Hook.Settings).forEach((plugin) => {
       const group = plugin.value.group ?? "Integrations";
-
-      // Upsell pages are hidden once the workspace has the feature.
-      const isEntitled = plugin.value.upsell
-        ? team.hasEntitlement(plugin.value.upsell)
-        : false;
       const insertIndex = plugin.value.after
         ? items.findIndex((i) => i.name === t(plugin.value.after!)) + 1
         : items.findIndex((i) => i.group === t(group));
@@ -284,17 +283,40 @@ const useSettingsConfig = () => {
         description: plugin.value.description,
         component: plugin.value.component.Component,
         preload: plugin.value.component.preload,
-        enabled:
-          !isEntitled &&
-          (plugin.value.enabled
-            ? plugin.value.enabled(team, user)
-            : can.update),
+        enabled: plugin.value.enabled
+          ? plugin.value.enabled(team, user)
+          : can.update,
         icon: plugin.value.icon,
-        upsell: plugin.value.upsell,
+        entitlement: plugin.value.entitlement,
+        placeholder: plugin.value.placeholder,
       } as ConfigItem);
     });
 
-    return items;
+    return items
+      .filter(
+        (item) =>
+          !item.placeholder ||
+          !items.some(
+            (other) =>
+              !other.placeholder && other.entitlement === item.entitlement
+          )
+      )
+      .map((item): ConfigItem => {
+        if (!item.entitlement) {
+          return item;
+        }
+
+        const locked = !team.hasEntitlement(item.entitlement);
+        if (item.placeholder && !locked) {
+          return { ...item, enabled: false };
+        }
+
+        return {
+          ...item,
+          locked,
+          preload: locked && !item.placeholder ? undefined : item.preload,
+        };
+      });
   }, [t, can.createApiKey, can.update, can.createImport, can.createExport]);
 
   return config.filter((item) => item.enabled);
