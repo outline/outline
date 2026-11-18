@@ -10,11 +10,7 @@ import type RootStore from "~/stores/RootStore";
 import type { SidebarContextType } from "./components/Sidebar/components/SidebarContext";
 import type Model from "./models/base/Model";
 import type Document from "./models/Document";
-import type FileOperation from "./models/FileOperation";
-import type Pin from "./models/Pin";
-import type Star from "./models/Star";
 import type User from "./models/User";
-import type UserMembership from "./models/UserMembership";
 import type Policy from "./models/Policy";
 
 export type PartialExcept<T, K extends keyof T> = Partial<Omit<T, K>> &
@@ -31,6 +27,7 @@ export type MenuItemButton = {
   icon?: React.ReactNode;
   tooltip?: React.ReactNode;
   shortcut?: string[];
+  badge?: React.ReactNode;
 };
 
 export type MenuItemWithChildren = {
@@ -66,6 +63,7 @@ export type MenuInternalLink = {
   disabled?: boolean;
   icon?: React.ReactNode;
   shortcut?: string[];
+  badge?: React.ReactNode;
 };
 
 export type MenuExternalLink = {
@@ -78,6 +76,7 @@ export type MenuExternalLink = {
   level?: number;
   icon?: React.ReactNode;
   shortcut?: string[];
+  badge?: React.ReactNode;
 };
 
 export type MenuGroup = {
@@ -225,10 +224,6 @@ export type CommandBarAction = {
   parent?: string;
 };
 
-export type LocationWithState = Location & {
-  state: Record<string, string>;
-};
-
 export type FetchOptions = {
   prefetch?: boolean;
   revisionId?: string;
@@ -287,16 +282,6 @@ export type WebsocketCommentReactionEvent = {
   user: User;
 };
 
-export type WebsocketEvent =
-  | PartialExcept<Pin, "id">
-  | PartialExcept<Star, "id">
-  | PartialExcept<FileOperation, "id">
-  | PartialExcept<UserMembership, "id">
-  | WebsocketCollectionUpdateIndexEvent
-  | WebsocketEntityDeletedEvent
-  | WebsocketEntitiesEvent
-  | WebsocketCommentReactionEvent;
-
 type CursorPosition = {
   type: {
     client: number;
@@ -336,7 +321,6 @@ export type Permission = {
   divider?: boolean;
 };
 
-// TODO: Can we make this type driven by the @Field decorator
 export type Properties<C> = {
   [
     Property in keyof C as C[Property] extends JSONValue ? Property : never

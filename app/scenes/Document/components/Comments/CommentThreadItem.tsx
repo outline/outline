@@ -1,5 +1,4 @@
 import { differenceInMilliseconds } from "date-fns";
-import { runInAction } from "mobx";
 import { observer } from "mobx-react";
 import { DoneIcon } from "outline-icons";
 import { darken } from "polished";
@@ -7,7 +6,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled, { css } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";
 import { s, hover } from "@shared/styles";
 import type { ProsemirrorData } from "@shared/types";
@@ -28,7 +27,7 @@ import { resolveCommentActionFactory } from "~/actions/definitions/comments";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import CommentMenu from "~/menus/CommentMenu";
-import lazyWithRetry from "~/utils/lazyWithRetry";
+import lazyWithRetry from "@shared/utils/lazyWithRetry";
 
 const CommentEditor = lazyWithRetry(() => import("./CommentEditor"));
 import { HighlightedText } from "./HighlightText";
@@ -184,8 +183,7 @@ function CommentThreadItem({
 
     try {
       handleSetReadOnly();
-      runInAction(() => (comment.data = data));
-      await comment.save();
+      await comment.save({ data });
     } catch (_err) {
       setEditing();
       toast.error(t("Error updating comment"));
@@ -317,7 +315,7 @@ const ResolveButton = ({
   const { t } = useTranslation();
 
   return (
-    <Tooltip content={t("Mark as resolved")} placement="top">
+    <Tooltip content={t("Mark as resolved")}>
       <Action
         as={NudeButton}
         action={resolveCommentActionFactory({

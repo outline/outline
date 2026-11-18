@@ -39,7 +39,7 @@ export const ChangesNavigation = observer(function ChangesNavigation_() {
                   count: totalChanges,
                 })}
           </NavigationLabel>
-          <Tooltip content={t("Previous change")} placement="bottom">
+          <Tooltip content={t("Previous change")} side="bottom">
             <NavigationButton
               icon={<CaretUpIcon />}
               onClick={() => editor?.commands.prevChange()}
@@ -47,7 +47,7 @@ export const ChangesNavigation = observer(function ChangesNavigation_() {
               aria-label={t("Previous change")}
             />
           </Tooltip>
-          <Tooltip content={t("Next change")} placement="bottom">
+          <Tooltip content={t("Next change")} side="bottom">
             <NavigationButton
               icon={<CaretDownIcon />}
               onClick={() => editor?.commands.nextChange()}

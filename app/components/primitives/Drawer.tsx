@@ -100,11 +100,17 @@ const StyledContent = styled(m.div)`
   ${borderRadius(8)}
 
   background: ${s("menuBackground")};
+
+  @media print {
+    display: none;
+  }
 `;
 
 const StyledInnerContent = styled(Flex)`
   padding: 6px;
-  padding-bottom: calc(6px + var(--sab, 0px));
+
+  /* The safe area inset is zero unless the viewport uses viewport-fit=cover. */
+  padding-bottom: max(24px, calc(6px + var(--sab, 0px)));
   height: 100%;
 `;
 

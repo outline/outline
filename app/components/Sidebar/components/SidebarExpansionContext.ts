@@ -1,6 +1,7 @@
-import { action, makeObservable, observable } from "mobx";
+import { action, autorun, makeObservable, observable } from "mobx";
 import { createContext, useContext, useEffect, useState } from "react";
 import type { NavigationNode } from "@shared/types";
+import useStores from "~/hooks/useStores";
 
 /**
  * Computes the set of node IDs along the path from any node in `roots` down
@@ -38,13 +39,12 @@ function computeAncestorPath(
 /**
  * Manages the set of expanded node IDs for a sidebar document tree.
  *
- * Uses a MobX ObservableSet so that individual `observer`-wrapped
- * DocumentLinks only re-render when their own node's membership in the set
- * changes, rather than on every expansion toggle anywhere in the tree.
+ * Uses a MobX ObservableMap, which tracks `has` per key, so that individual
+ * `observer`-wrapped DocumentLinks only re-render when their own node is
+ * expanded or collapsed, rather than on every expansion change in the tree.
  */
 export class SidebarExpansionState {
-  @observable
-  expandedIds = new Set<string>();
+  expandedIds = observable.map<string, true>();
 
   constructor() {
     makeObservable(this);
@@ -67,7 +67,7 @@ export class SidebarExpansionState {
    */
   @action
   expand(nodeId: string): void {
-    this.expandedIds.add(nodeId);
+    this.expandedIds.set(nodeId, true);
   }
 
   /**
@@ -88,7 +88,7 @@ export class SidebarExpansionState {
   @action
   expandDescendants(node: NavigationNode): void {
     const walk = (n: NavigationNode) => {
-      this.expandedIds.add(n.id);
+      this.expandedIds.set(n.id, true);
       for (const child of n.children) {
         walk(child);
       }
@@ -120,7 +120,7 @@ export class SidebarExpansionState {
   @action
   expandPath(ids: Iterable<string>): void {
     for (const id of ids) {
-      this.expandedIds.add(id);
+      this.expandedIds.set(id, true);
     }
   }
 
@@ -133,7 +133,7 @@ export class SidebarExpansionState {
   expandAll(roots: NavigationNode[]): void {
     const walk = (nodes: NavigationNode[]) => {
       for (const node of nodes) {
-        this.expandedIds.add(node.id);
+        this.expandedIds.set(node.id, true);
         walk(node.children);
       }
     };
@@ -179,24 +179,31 @@ export function useSidebarExpansion(): SidebarExpansionState {
  * to be provided via SidebarExpansionContext.Provider.
  *
  * @param roots the top-level navigation nodes (e.g. collection documents).
- * @param activeDocumentId the currently active document ID.
  * @returns the expansion state instance.
  */
 export function useSidebarExpansionState(
-  roots: NavigationNode[] | undefined,
-  activeDocumentId: string | undefined
+  roots: NavigationNode[] | undefined
 ): SidebarExpansionState {
+  const { ui } = useStores();
   const [state] = useState(() => new SidebarExpansionState());
 
+  // The active document is read in a reaction rather than during render, so
+  // that the component does not re-render on every navigation.
   useEffect(() => {
-    if (!roots || !activeDocumentId) {
+    if (!roots) {
       return;
     }
-    const path = computeAncestorPath(roots, activeDocumentId);
-    if (path.length > 0) {
-      state.expandPath(path);
-    }
-  }, [state, roots, activeDocumentId]);
+    return autorun(() => {
+      const activeDocumentId = ui.activeDocumentId;
+      if (!activeDocumentId) {
+        return;
+      }
+      const path = computeAncestorPath(roots, activeDocumentId);
+      if (path.length > 0) {
+        state.expandPath(path);
+      }
+    });
+  }, [state, roots, ui]);
 
   return state;
 }

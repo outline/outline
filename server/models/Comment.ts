@@ -4,7 +4,9 @@ import type {
   InferAttributes,
   InferCreationAttributes,
   InstanceUpdateOptions,
+  WhereOptions,
 } from "sequelize";
+import { Op } from "sequelize";
 import {
   DataType,
   BelongsTo,
@@ -18,10 +20,12 @@ import {
   AfterUpdate,
 } from "sequelize-typescript";
 import type { ProsemirrorData, ReactionSummary } from "@shared/types";
+import { CommentStatusFilter } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { CommentValidation } from "@shared/validations";
 import { commentSchema, serializer } from "@server/editor";
 import { ValidationError } from "@server/errors";
+import { afterCommit } from "@server/storage/transaction";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import Document from "./Document";
@@ -98,6 +102,112 @@ class Comment extends ParanoidModel<
   @Column(DataType.UUID)
   parentCommentId: string;
 
+  // static methods
+
+  /**
+   * Finds the comments a user can access, restricted to a single document or
+   * collection when one is given, along with the total for pagination.
+   *
+   * @param user The user listing comments, whose collection access is applied.
+   * @param options Filters, ordering, and pagination for the query.
+   * @returns The matching comments and the total number that match.
+   */
+  static async findAllForUser(
+    user: User,
+    options: {
+      /** Only comments on this document, which the caller has authorized. */
+      document?: Document | null;
+      /** Only comments in this collection, which the caller has authorized. */
+      collectionId?: string;
+      /** Only replies to this comment. */
+      parentCommentId?: string;
+      /** Only comments with these resolution states. */
+      statusFilter?: CommentStatusFilter[];
+      /** Whether to load and attach the document each comment belongs to. */
+      includeDocuments?: boolean;
+      sort?: string;
+      direction?: "ASC" | "DESC";
+      offset?: number;
+      limit?: number;
+    }
+  ): Promise<{ comments: Comment[]; total: number }> {
+    const {
+      document,
+      collectionId,
+      parentCommentId,
+      statusFilter,
+      includeDocuments,
+      sort = "createdAt",
+      direction = "DESC",
+      offset,
+      limit,
+    } = options;
+
+    const statusQuery: WhereOptions<Comment>[] = [];
+    if (statusFilter?.includes(CommentStatusFilter.Resolved)) {
+      statusQuery.push({ resolvedById: { [Op.not]: null } });
+    }
+    if (statusFilter?.includes(CommentStatusFilter.Unresolved)) {
+      statusQuery.push({ resolvedById: null });
+    }
+
+    const and: WhereOptions<Comment>[] = [];
+    if (document) {
+      and.push({ documentId: document.id });
+    }
+    if (parentCommentId) {
+      and.push({ parentCommentId });
+    }
+    if (statusQuery.length) {
+      and.push({ [Op.or]: statusQuery });
+    }
+
+    // Without a document the join restricts results to documents the user
+    // can access. It loads no columns, the document is attached separately.
+    const include = document
+      ? []
+      : [
+          {
+            model: Document.scope("published"),
+            required: true,
+            attributes: [],
+            where: {
+              teamId: user.teamId,
+              collectionId: collectionId ?? (await user.collectionIds()),
+            },
+          },
+        ];
+
+    const { rows: comments, count: total } = await this.findAndCountAll({
+      where: { [Op.and]: and },
+      include,
+      order: [[sort, direction]],
+      offset,
+      limit,
+    });
+
+    if (document) {
+      comments.forEach((comment) => (comment.document = document));
+    } else if (includeDocuments) {
+      // Each document is loaded once so comments on the same document share
+      // an instance, and with it the memoized comment marks.
+      const documents = await Document.scope("withoutState").findAll({
+        where: {
+          id: [...new Set(comments.map((comment) => comment.documentId))],
+        },
+      });
+      const documentsById = new Map(documents.map((doc) => [doc.id, doc]));
+      comments.forEach((comment) => {
+        const doc = documentsById.get(comment.documentId);
+        if (doc) {
+          comment.document = doc;
+        }
+      });
+    }
+
+    return { comments, total };
+  }
+
   // methods
 
   /**
@@ -163,15 +273,17 @@ class Comment extends ParanoidModel<
 
   // hooks
 
-  // A reply created on an already-resolved thread inherits the parent's
-  // resolved state so the resolvedAt column alone can answer "is this thread
-  // resolved?" — keeping read queries simple and the counter cache index-only.
+  // A reply must belong to a thread root in the same document, so that a
+  // thread is never more than one level deep. A reply created on an
+  // already-resolved thread inherits the parent's resolved state so the
+  // resolvedAt column alone can answer "is this thread resolved?" — keeping
+  // read queries simple and the counter cache index-only.
   @BeforeCreate
-  public static async inheritResolvedFromParent(
+  public static async validateParentComment(
     model: Comment,
     options: CreateOptions<InferAttributes<Comment>>
   ) {
-    if (!model.parentCommentId || model.resolvedAt) {
+    if (!model.parentCommentId) {
       return;
     }
     const parent = await this.unscoped().findOne({
@@ -181,13 +293,16 @@ class Comment extends ParanoidModel<
       },
       transaction: options.transaction,
       lock: options.transaction
-        ? { level: options.transaction.LOCK.UPDATE, of: this }
+        ? { level: options.transaction.LOCK.NO_KEY_UPDATE, of: this }
         : undefined,
     });
     if (!parent) {
       throw ValidationError("Parent comment must belong to the same document");
     }
-    if (parent?.resolvedAt) {
+    if (parent.parentCommentId) {
+      throw ValidationError("Cannot reply to a reply");
+    }
+    if (!model.resolvedAt && parent.resolvedAt) {
       model.resolvedAt = parent.resolvedAt;
       model.resolvedById = parent.resolvedById;
     }
@@ -218,43 +333,24 @@ class Comment extends ParanoidModel<
       );
     }
 
-    const invalidate = () =>
+    await afterCommit(options.transaction, () =>
       CacheHelper.removeData(
         RedisPrefixHelper.getCounterCacheKey(
           "Document",
           "unresolvedComments",
           model.documentId
         )
-      );
-
-    if (options.transaction) {
-      const transaction = options.transaction.parent || options.transaction;
-      transaction.afterCommit(invalidate);
-    } else {
-      await invalidate();
-    }
+      )
+    );
   }
 
   @AfterDestroy
   public static async deleteChildComments(model: Comment, ctx: HookContext) {
-    const { transaction } = ctx;
-
-    const lock = transaction
-      ? {
-          level: transaction.LOCK.UPDATE,
-          of: this,
-        }
-      : undefined;
-
-    const childComments = await this.findAll({
-      where: { parentCommentId: model.id },
-      transaction,
-      lock,
+    await this.destroy({
+      where: { parentCommentId: model.id, documentId: model.documentId },
+      transaction: ctx.transaction,
+      hooks: false,
     });
-
-    await Promise.all(
-      childComments.map((childComment) => childComment.destroy({ transaction }))
-    );
   }
 }
 

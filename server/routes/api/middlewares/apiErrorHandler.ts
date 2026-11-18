@@ -1,3 +1,4 @@
+import httpErrors from "http-errors";
 import type { Context, Next } from "koa";
 import {
   ValidationError as SequelizeValidationError,
@@ -6,9 +7,18 @@ import {
 } from "sequelize";
 import {
   AuthorizationError,
+  DatabaseReadOnlyError,
   NotFoundError,
+  RequestTimeoutError,
+  ServiceUnavailableError,
   ValidationError,
 } from "@server/errors";
+import Metrics from "@server/logging/Metrics";
+import {
+  isDatabaseReadOnlyError,
+  isDatabaseUnavailableError,
+  isQueryCanceledError,
+} from "@server/storage/database";
 
 /** Postgres codes for a requested date the database cannot represent. */
 const DATE_RANGE_ERROR_CODES = new Set(["22008", "22015"]);
@@ -61,12 +71,42 @@ export default function apiErrorHandler() {
         );
       }
 
+      if (isQueryCanceledError(err)) {
+        transformedErr = RequestTimeoutError();
+      }
+
+      if (isDatabaseReadOnlyError(err)) {
+        Metrics.increment("database.read_only", { source: "api" });
+        transformedErr = DatabaseReadOnlyError();
+      }
+
+      if (isDatabaseUnavailableError(err)) {
+        Metrics.increment("database.unavailable", { source: "api" });
+        transformedErr = ServiceUnavailableError();
+      }
+
       if (
         (err instanceof Error && "code" in err && err.code === "ENOENT") ||
         err instanceof SequelizeEmptyResultError ||
         (err instanceof Error && /Not found/i.test(err.message))
       ) {
         transformedErr = NotFoundError();
+      }
+
+      // RFC 6750 §3: a 401 must carry a challenge for the Bearer scheme.
+      if (
+        httpErrors.isHttpError(transformedErr) &&
+        transformedErr.status === 401
+      ) {
+        const headers = transformedErr.headers ?? {};
+        const hasChallenge =
+          !!ctx.response.get("WWW-Authenticate") ||
+          Object.keys(headers).some(
+            (key) => key.toLowerCase() === "www-authenticate"
+          );
+        if (!hasChallenge) {
+          transformedErr.headers = { ...headers, "WWW-Authenticate": "Bearer" };
+        }
       }
 
       throw transformedErr;

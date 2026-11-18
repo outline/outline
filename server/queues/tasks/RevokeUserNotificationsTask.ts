@@ -28,6 +28,10 @@ type Props = RevokeScope & {
  * read, so that the record – which embeds the document title and text – does not outlive access.
  */
 export default class RevokeUserNotificationsTask extends BaseTask<Props> {
+  protected jobId({ userId, documentId, collectionId }: Props) {
+    return `revoke-notifications:${userId}:${documentId ?? collectionId ?? "all"}`;
+  }
+
   public async perform({ userId, documentId, collectionId }: Props) {
     const user = await User.findByPk(userId);
 

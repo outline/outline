@@ -10,7 +10,6 @@ import {
   LogoutIcon,
   ProfileIcon,
   BrowserIcon,
-  ShapesIcon,
   DraftsIcon,
   BugIcon,
   ImportIcon,
@@ -19,7 +18,7 @@ import { UrlHelper } from "@shared/utils/UrlHelper";
 import { isMac } from "@shared/utils/browser";
 import stores from "~/stores";
 import type SearchQuery from "~/models/SearchQuery";
-import KeyboardShortcuts from "~/scenes/KeyboardShortcuts";
+import KeyboardShortcuts from "~/components/KeyboardShortcuts";
 import {
   createAction,
   createExternalLinkAction,
@@ -138,15 +137,6 @@ export const navigateToProfileSettings = createInternalLinkAction({
   iconInContextMenu: false,
   icon: <ProfileIcon />,
   to: settingsPath(),
-});
-
-export const navigateToTemplateSettings = createInternalLinkAction({
-  name: ({ t }) => t("Templates"),
-  analyticsName: "Navigate to template settings",
-  section: NavigationSection,
-  iconInContextMenu: false,
-  icon: <ShapesIcon />,
-  to: settingsPath("templates"),
 });
 
 export const navigateToNotificationSettings = createInternalLinkAction({

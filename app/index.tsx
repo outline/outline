@@ -1,4 +1,3 @@
-// oxlint-disable-next-line import/no-unresolved
 import "vite/modulepreload-polyfill";
 // Keep ahead of the other imports so polyfills apply before they evaluate.
 import "~/utils/polyfills";
@@ -22,9 +21,8 @@ import Toasts from "~/components/Toasts";
 import env from "~/env";
 import { initI18n } from "~/utils/i18n";
 import Desktop from "./components/DesktopEventHandler";
-import LazyPolyfill from "./components/LazyPolyfills";
 import PageScroll from "./components/PageScroll";
-import Routes from "./routes";
+import Routes, { preloadShared } from "./routes";
 import Logger from "./utils/Logger";
 import { PluginManager } from "./utils/PluginManager";
 import history from "./utils/history";
@@ -35,7 +33,8 @@ import { ActionContextProvider } from "./hooks/useActionContext";
 // Load plugins as soon as possible
 void PluginManager.loadPlugins();
 
-initI18n(env.DEFAULT_LANGUAGE);
+// Start with the language of the stored user to prevent a second fetch.
+initI18n(stores.auth.user?.language ?? env.DEFAULT_LANGUAGE);
 
 // Register ahead of rendering so the capture-phase listeners run before any
 // React-mounted listener, such as kbar's Enter handler.
@@ -77,20 +76,18 @@ if (element) {
               <ActionContextProvider>
                 <ErrorBoundary showTitle>
                   <KBarProvider actions={[]} options={commandBarOptions}>
-                    <LazyPolyfill>
-                      <LazyMotion features={domMax}>
-                        <PageScroll>
-                          <PageTheme />
-                          <ScrollToTop>
-                            <Routes />
-                          </ScrollToTop>
-                          <Toasts />
-                          <Dialogs />
-                          <Presentation />
-                          <Desktop />
-                        </PageScroll>
-                      </LazyMotion>
-                    </LazyPolyfill>
+                    <LazyMotion features={domMax}>
+                      <PageScroll>
+                        <PageTheme />
+                        <ScrollToTop>
+                          <Routes />
+                        </ScrollToTop>
+                        <Toasts />
+                        <Dialogs />
+                        <Presentation />
+                        <Desktop />
+                      </PageScroll>
+                    </LazyMotion>
                   </KBarProvider>
                 </ErrorBoundary>
               </ActionContextProvider>
@@ -101,8 +98,16 @@ if (element) {
     </StrictMode>
   );
 
-  element.__reactRoot ??= createRoot(element);
-  element.__reactRoot.render(<App />);
+  // A lazy chunk that suspends the first render holds back the content for
+  // 300ms after it loads, so share pages wait for their chunks before render.
+  const ready = env.isShare
+    ? preloadShared().catch(() => undefined)
+    : Promise.resolve();
+
+  void ready.then(() => {
+    element.__reactRoot ??= createRoot(element);
+    element.__reactRoot.render(<App />);
+  });
 }
 
 window.addEventListener("load", async () => {

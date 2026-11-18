@@ -1,3 +1,4 @@
+import { once } from "node:events";
 import type { RedisOptions } from "ioredis";
 import Redis from "ioredis";
 import { defaults } from "es-toolkit/compat";
@@ -77,12 +78,46 @@ export default class RedisAdapter extends Redis {
     this.setMaxListeners(100);
 
     this.on("error", (err) => {
-      if (err.name === "MaxRetriesPerRequestError") {
-        Logger.fatal("Redis maximum retries exceeded", err);
-      } else {
-        Logger.error("Redis error", err);
-      }
+      Logger.error("Redis error", err);
     });
+
+    // Exit when the connection stays unavailable, as a restart can recover a
+    // process that is unable to reconnect by itself.
+    let unavailableTimeout: NodeJS.Timeout | undefined;
+
+    const startUnavailableTimeout = () => {
+      if (unavailableTimeout) {
+        return;
+      }
+
+      unavailableTimeout = setTimeout(() => {
+        unavailableTimeout = undefined;
+        if (this.status === "ready" || this.status === "end") {
+          return;
+        }
+
+        Logger.fatal(
+          "Redis connection unavailable",
+          new Error(
+            `Redis connection not ready after ${env.REDIS_UNAVAILABLE_TIMEOUT}ms`
+          ),
+          { connectionName, status: this.status }
+        );
+      }, env.REDIS_UNAVAILABLE_TIMEOUT);
+
+      // Don't keep the Node event loop alive solely for the timeout.
+      unavailableTimeout.unref();
+    };
+
+    const clearUnavailableTimeout = () => {
+      clearTimeout(unavailableTimeout);
+      unavailableTimeout = undefined;
+    };
+
+    this.on("connecting", startUnavailableTimeout);
+    this.on("reconnecting", startUnavailableTimeout);
+    this.on("ready", clearUnavailableTimeout);
+    this.on("end", clearUnavailableTimeout);
 
     // Skip the healthcheck on connections reserved for blocking or pub/sub
     // operations (signalled via maxRetriesPerRequest: null). A PING issued on
@@ -123,8 +158,60 @@ export default class RedisAdapter extends Redis {
     }
   }
 
+  /**
+   * Add or update a sorted-set member with an increasing score and refresh the
+   * key's expiry. Score assignment and insertion are atomic. Scores use Redis
+   * time in microseconds, advancing past the highest existing score if needed.
+   *
+   * @param key the sorted-set key.
+   * @param member the member to add or update.
+   * @param ttlSeconds the key's expiry in seconds.
+   * @returns the assigned sequence number.
+   * @throws if Redis fails or returns an invalid sequence.
+   */
+  public async zaddWithSequence(
+    key: string,
+    member: string,
+    ttlSeconds: number
+  ): Promise<number> {
+    const result = await this.eval(
+      `local now = redis.call('TIME')
+       local latest = redis.call('ZREVRANGE', KEYS[1], 0, 0, 'WITHSCORES')
+       local score = math.max(tonumber(now[1]) * 1000000 + tonumber(now[2]),
+         (tonumber(latest[2]) or 0) + 1)
+       local sequence = string.format('%.0f', score)
+       redis.call('ZADD', KEYS[1], sequence, ARGV[1])
+       redis.call('EXPIRE', KEYS[1], ARGV[2])
+       return sequence`,
+      1,
+      key,
+      member,
+      ttlSeconds
+    );
+
+    if (typeof result !== "string" || !Number.isSafeInteger(Number(result))) {
+      throw new Error("Invalid sorted-set sequence");
+    }
+
+    return Number(result);
+  }
+
+  /**
+   * Read the most recently sequenced member of a sorted set.
+   *
+   * @param key the sorted-set key.
+   * @returns the member and its sequence, or undefined if the set is empty.
+   */
+  public async zlatestWithSequence(
+    key: string
+  ): Promise<{ member: string; sequence: number } | undefined> {
+    const [member, score] = await this.zrevrange(key, 0, 0, "WITHSCORES");
+    return member ? { member, sequence: Number(score) } : undefined;
+  }
+
   private static client: RedisAdapter;
   private static subscriber: RedisAdapter;
+  private static ephemeral: RedisAdapter;
   private static collabClient: RedisAdapter;
   private static collabSubscriber: RedisAdapter;
 
@@ -145,6 +232,45 @@ export default class RedisAdapter extends Redis {
         connectionNameSuffix: "subscriber",
       }))
     );
+  }
+
+  /**
+   * A Redis adapter for ephemeral data that can be lost, such as caches, locks
+   * and rate limits. Commands fail at once when there is no connection, and
+   * after a short timeout when Redis does not reply, so that callers can
+   * continue without Redis.
+   */
+  public static get ephemeralClient(): RedisAdapter {
+    return (
+      this.ephemeral ||
+      (this.ephemeral = new this(env.REDIS_URL, {
+        commandTimeout: env.REDIS_EPHEMERAL_COMMAND_TIMEOUT,
+        enableOfflineQueue: false,
+        connectionNameSuffix: "ephemeral",
+      }))
+    );
+  }
+
+  /**
+   * Creates the ephemeral client and waits for its connection, as it fails
+   * commands at once until connected. Never rejects, so that a process can
+   * start without Redis.
+   */
+  public static async connectEphemeralClient(): Promise<void> {
+    const client = this.ephemeralClient;
+    if (client.status === "ready") {
+      return;
+    }
+
+    try {
+      await once(client, "ready", {
+        signal: AbortSignal.timeout(env.REDIS_EPHEMERAL_COMMAND_TIMEOUT),
+      });
+    } catch (err) {
+      Logger.warn("Starting before the ephemeral Redis client connected", {
+        error: err,
+      });
+    }
   }
 
   /**

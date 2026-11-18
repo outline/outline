@@ -1,11 +1,15 @@
+import { addDays, differenceInCalendarDays } from "date-fns";
 import queryString from "query-string";
+import type { MockInstance } from "vitest";
+import { vi } from "vitest";
 import { randomString } from "@shared/random";
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, Plan, TeamPreference } from "@shared/types";
 import { createContext } from "@server/context";
-import { UserMembership, Share, ShareSubscription } from "@server/models";
+import { UserMembership, Share, ShareSubscription, Team } from "@server/models";
 import {
   buildUser,
   buildDocument,
+  buildDraftDocument,
   buildShare,
   buildAdmin,
   buildViewer,
@@ -53,6 +57,24 @@ describe("#shares.list", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(share.id);
     expect(body.data[0].documentTitle).toBe(document.title);
+  });
+
+  it("should return the update policy for document shares", async () => {
+    const admin = await buildAdmin();
+    const document = await buildDocument({
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: admin.teamId,
+      userId: admin.id,
+    });
+    const res = await server.post("/api/shares.list", admin);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.policies[0].id).toEqual(share.id);
+    expect(body.policies[0].abilities.update).toBeTruthy();
   });
 
   it("should allow filtering by document title", async () => {
@@ -349,6 +371,100 @@ describe("#shares.create", () => {
     expect(body.data.allowIndexing).toBe(false);
     expect(body.data.showLastUpdated).toBe(true);
     expect(body.data.documentTitle).toBe(document.title);
+  });
+
+  it("should accept expiresAt parameter", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const expiresAt = addDays(new Date(), 7).toISOString();
+    const res = await server.post("/api/shares.create", user, {
+      body: {
+        documentId: document.id,
+        published: true,
+        expiresAt,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.expiresAt).toEqual(expiresAt);
+  });
+
+  describe("default share expiry", () => {
+    let planSpy: MockInstance<() => Plan>;
+
+    beforeEach(() => {
+      planSpy = vi.spyOn(Team.prototype, "plan", "get");
+    });
+
+    afterEach(() => {
+      planSpy.mockRestore();
+    });
+
+    const buildTeamWithDefault = async () => {
+      const team = await buildTeam();
+      team.setPreference(TeamPreference.DefaultShareExpiryDays, 30);
+      await team.save();
+      const user = await buildUser({ teamId: team.id });
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: team.id,
+      });
+      return { user, document };
+    };
+
+    it("should apply the team default to new shares", async () => {
+      planSpy.mockReturnValue(Plan.Business);
+      const { user, document } = await buildTeamWithDefault();
+
+      const res = await server.post("/api/shares.create", user, {
+        body: { documentId: document.id, published: true },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(
+        differenceInCalendarDays(new Date(body.data.expiresAt), new Date())
+      ).toEqual(30);
+    });
+
+    it("should prefer an explicit expiry over the team default", async () => {
+      planSpy.mockReturnValue(Plan.Business);
+      const { user, document } = await buildTeamWithDefault();
+      const expiresAt = addDays(new Date(), 7).toISOString();
+
+      const res = await server.post("/api/shares.create", user, {
+        body: { documentId: document.id, published: true, expiresAt },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.expiresAt).toEqual(expiresAt);
+    });
+
+    it("should create a share without expiry when expiresAt is null", async () => {
+      planSpy.mockReturnValue(Plan.Business);
+      const { user, document } = await buildTeamWithDefault();
+
+      const res = await server.post("/api/shares.create", user, {
+        body: { documentId: document.id, published: true, expiresAt: null },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.expiresAt).toBeNull();
+    });
+
+    it("should not apply the team default without the entitlement", async () => {
+      planSpy.mockReturnValue(Plan.Community);
+      const { user, document } = await buildTeamWithDefault();
+
+      const res = await server.post("/api/shares.create", user, {
+        body: { documentId: document.id, published: true },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.expiresAt).toBeNull();
+    });
   });
 
   it("should fail creating a share record with read-only permissions and publishing", async () => {
@@ -803,7 +919,7 @@ describe("#shares.info", () => {
     expect(body.data.shares[0].id).toBe(share.id);
     expect(body.data.shares[0].published).toBe(true);
   });
-  it("should allow reading share by documentId", async () => {
+  it("should return no content when the document has no share", async () => {
     const user = await buildUser();
     const document = await buildDocument({
       userId: user.id,
@@ -815,6 +931,40 @@ describe("#shares.info", () => {
       },
     });
     expect(res.status).toEqual(204);
+  });
+  it("should return parent share when the document has no share of its own", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+    });
+    const childDocument = await buildDocument({
+      userId: user.id,
+      teamId: document.teamId,
+      parentDocumentId: document.id,
+      collectionId: collection.id,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+      userId: user.id,
+      includeChildDocuments: true,
+    });
+    const res = await server.post("/api/shares.info", user, {
+      body: {
+        documentId: childDocument.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.shares.length).toBe(1);
+    expect(body.data.shares[0].id).toBe(share.id);
+    expect(body.policies.length).toBe(1);
   });
   it("should return share for parent document with includeChildDocuments=true", async () => {
     const user = await buildUser();
@@ -958,6 +1108,38 @@ describe("#shares.info", () => {
 });
 
 describe("#shares.update", () => {
+  it("should set and clear expiresAt", async () => {
+    const user = await buildAdmin();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const expiresAt = addDays(new Date(), 7).toISOString();
+
+    const res = await server.post("/api/shares.update", user, {
+      body: { id: share.id, expiresAt },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.expiresAt).toEqual(expiresAt);
+    await share.reload();
+    expect(share.expiresAt?.toISOString()).toEqual(expiresAt);
+
+    const cleared = await server.post("/api/shares.update", user, {
+      body: { id: share.id, expiresAt: null },
+    });
+    const clearedBody = await cleared.json();
+    expect(cleared.status).toEqual(200);
+    expect(clearedBody.data.expiresAt).toBeNull();
+    await share.reload();
+    expect(share.expiresAt).toBeNull();
+  });
+
   it("should fail for invalid urlId", async () => {
     const user = await buildUser();
     const document = await buildDocument({
@@ -1312,6 +1494,28 @@ describe("#shares.revoke", () => {
     expect(res.status).toEqual(200);
   });
 
+  it("should allow author to revoke a share on a draft", async () => {
+    const user = await buildUser();
+    const document = await buildDraftDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post("/api/shares.revoke", user, {
+      body: {
+        id: share.id,
+      },
+    });
+    expect(res.status).toEqual(200);
+
+    const reloaded = await Share.unscoped().findByPk(share.id);
+    expect(reloaded!.revokedAt).toBeTruthy();
+  });
+
   it("should allow author to revoke collection share", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
@@ -1439,6 +1643,13 @@ describe("#shares.sitemap", () => {
 });
 
 describe("#shares.subscribe", () => {
+  beforeEach(async () => {
+    // Requests share a loopback IP, so earlier runs would reach the per-IP limit.
+    await ShareSubscription.destroy({
+      where: { ipAddress: ["127.0.0.1", "::1", "::ffff:127.0.0.1"] },
+    });
+  });
+
   it("should fail with status 400 bad request when shareId is invalid", async () => {
     const share = await buildShare();
     const res = await server.post("/api/shares.subscribe", {
@@ -1788,6 +1999,61 @@ describe("#shares.unsubscribe", () => {
     );
     expect(res.status).toEqual(302);
     expect(res.headers.get("location")).toContain("notice=invalid-auth");
+
+    await subscription.reload();
+    expect(subscription.unsubscribedAt).toBeNull();
+  });
+
+  it("should allow one-click unsubscribe with a form POST", async () => {
+    const share = await buildShare();
+    const subscription = await ShareSubscription.create({
+      shareId: share.id,
+      documentId: share.documentId!,
+      email: "user@example.com",
+      emailFingerprint: "user@example.com",
+      secret: randomString(32),
+      confirmedAt: new Date(),
+    });
+
+    const token = ShareSubscription.generateUnsubscribeToken(subscription);
+    const res = await server.post(
+      `/api/shares.unsubscribe?${queryString.stringify({
+        id: subscription.id,
+        token,
+      })}`,
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "List-Unsubscribe=One-Click",
+      }
+    );
+    expect(res.status).toEqual(200);
+
+    await subscription.reload();
+    expect(subscription.unsubscribedAt).not.toBeNull();
+  });
+
+  it("should reject one-click unsubscribe with an invalid token", async () => {
+    const share = await buildShare();
+    const subscription = await ShareSubscription.create({
+      shareId: share.id,
+      documentId: share.documentId!,
+      email: "user@example.com",
+      emailFingerprint: "user@example.com",
+      secret: randomString(32),
+      confirmedAt: new Date(),
+    });
+
+    const res = await server.post(
+      `/api/shares.unsubscribe?${queryString.stringify({
+        id: subscription.id,
+        token: "invalid-token",
+      })}`,
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "List-Unsubscribe=One-Click",
+      }
+    );
+    expect(res.status).toEqual(401);
 
     await subscription.reload();
     expect(subscription.unsubscribedAt).toBeNull();

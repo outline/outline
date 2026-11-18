@@ -17,7 +17,7 @@ async function presentRevision(
 ) {
   const { includeContent = true } = options;
 
-  // TODO: Remove this fallback once all revisions have been migrated
+  // Older revisions may store the emoji icon as a prefix of the title.
   const { emoji, strippedTitle } = parseTitle(revision.title);
 
   const [data, text, collaborators] = await Promise.all([

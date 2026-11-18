@@ -1,7 +1,12 @@
 import { computed, observable } from "mobx";
 import { TeamPreferenceDefaults } from "@shared/constants";
 import { CommentingAccess, TeamPreference } from "@shared/types";
-import type { TeamPreferences, UserRole } from "@shared/types";
+import type {
+  Plan,
+  PlanFeature,
+  TeamPreferences,
+  UserRole,
+} from "@shared/types";
 import { stringToColor } from "@shared/utils/color";
 import Model from "./base/Model";
 import Field from "./decorators/Field";
@@ -88,6 +93,12 @@ class Team extends Model {
   @observable
   allowedDomains: string[] | null | undefined = undefined;
 
+  @observable
+  plan: Plan;
+
+  @observable
+  entitlements: PlanFeature[];
+
   @computed
   get signinMethods(): string {
     return "SSO";
@@ -117,6 +128,16 @@ class Team extends Model {
   }
 
   /**
+   * Whether the team is entitled to use the given feature.
+   *
+   * @param feature The feature to check for.
+   * @returns true if the team is entitled to the feature, false otherwise.
+   */
+  hasEntitlement(feature: PlanFeature): boolean {
+    return !!this.entitlements?.includes(feature);
+  }
+
+  /**
    * Returns the value of the provided preference.
    *
    * @param preference The team preference to retrieve
@@ -135,16 +156,17 @@ class Team extends Model {
   }
 
   /**
-   * Set the value for a specific preference key.
+   * Set the value for a specific preference key and save it to the server.
+   * The value is applied at once and reverted if the request fails.
    *
    * @param key The TeamPreference key to set.
    * @param value The value to set.
+   * @returns a promise that resolves when the preference is saved.
    */
-  setPreference<T extends TeamPreference>(key: T, value: TeamPreferences[T]) {
-    this.preferences = {
-      ...this.preferences,
-      [key]: value,
-    };
+  savePreference<T extends TeamPreference>(key: T, value: TeamPreferences[T]) {
+    return this.save({
+      preferences: { ...this.preferences, [key]: value },
+    });
   }
 }
 

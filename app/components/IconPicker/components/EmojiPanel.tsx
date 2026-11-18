@@ -1,6 +1,7 @@
 import { concat } from "es-toolkit/compat";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
+import type { ListImperativeAPI } from "react-window";
 import { useTranslation } from "react-i18next";
 import type { EmojiSkinTone } from "@shared/types";
 import { EmojiCategory, IconType } from "@shared/types";
@@ -26,6 +27,7 @@ const GRID_HEIGHT = 410;
 
 type Props = {
   panelWidth: number;
+  icon?: string | null;
   query: string;
   panelActive: boolean;
   height?: number;
@@ -35,6 +37,7 @@ type Props = {
 
 const EmojiPanel = ({
   panelWidth,
+  icon,
   query,
   panelActive,
   onEmojiChange,
@@ -46,7 +49,7 @@ const EmojiPanel = ({
   const team = useCurrentTeam();
   const can = usePolicy(team);
   const searchRef = React.useRef<HTMLInputElement | null>(null);
-  const scrollableRef = React.useRef<HTMLDivElement | null>(null);
+  const scrollableRef = React.useRef<ListImperativeAPI>(null);
   const customEmojis = useComputed(
     () => emojis.orderedData.map(toIcon),
     [emojis.orderedData]
@@ -134,15 +137,18 @@ const EmojiPanel = ({
     }
   }, []);
 
+  // Defer the search so typing stays responsive while the grid re-derives.
+  const deferredQuery = React.useDeferredValue(query);
+
   // Drop the preview when the grid contents change out from under it.
   React.useEffect(() => {
     setActiveEmoji(undefined);
-  }, [query, skinTone]);
+  }, [deferredQuery, skinTone]);
 
-  const isSearch = query !== "";
+  const isSearch = deferredQuery !== "";
   const templateData: DataNode[] = isSearch
     ? getSearchResults({
-        query,
+        query: deferredQuery,
         skinTone,
         customEmojis,
       })
@@ -157,7 +163,7 @@ const EmojiPanel = ({
     if (!panelActive) {
       return;
     }
-    scrollableRef.current?.scroll({ top: 0 });
+    scrollableRef.current?.element?.scroll({ top: 0 });
     requestAnimationFrame(() => searchRef.current?.focus());
   }, [panelActive]);
 
@@ -171,7 +177,7 @@ const EmojiPanel = ({
           onChange={handleFilter}
         />
         <SkinTonePicker skinTone={skinTone} onChange={handleSkinChange} />
-        {can.update && (
+        {can.createEmoji && (
           <MenuButton
             onClick={handleUploadClick}
             aria-label={t("Upload emoji")}
@@ -185,16 +191,19 @@ const EmojiPanel = ({
         width={panelWidth}
         height={height - 48 - PREVIEW_HEIGHT}
         data={templateData}
+        selected={icon}
         onIconSelect={handleEmojiSelection}
         onIconActive={handleEmojiActive}
         onOverflowChange={setHasMoreBelow}
         empty={
-          <IconButton
-            onClick={handleUploadClick}
-            aria-label={t("Upload emoji")}
-          >
-            <PlusIcon />
-          </IconButton>
+          can.createEmoji ? (
+            <IconButton
+              onClick={handleUploadClick}
+              aria-label={t("Upload emoji")}
+            >
+              <PlusIcon />
+            </IconButton>
+          ) : undefined
         }
       />
       <IconPreview

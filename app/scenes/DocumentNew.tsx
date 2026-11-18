@@ -76,13 +76,13 @@ function DocumentNew() {
           location.state
         );
       } catch (_err) {
-        toast.error(t("Couldn’t create the document, try again?"));
+        toast.error(t("Couldn’t create the document. Try again?"));
         history.goBack();
       }
     }
 
     void createDocument();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

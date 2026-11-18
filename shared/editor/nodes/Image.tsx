@@ -177,6 +177,11 @@ export default class Image extends SimpleImage {
             const img = dom.getElementsByTagName("img")[0] as
               | HTMLImageElement
               | undefined;
+            const src = img?.getAttribute("src");
+            if (!src) {
+              return false;
+            }
+
             const className = dom.className;
             const layoutClassMatched =
               className && className.match(/image-(.*)$/);
@@ -193,7 +198,7 @@ export default class Image extends SimpleImage {
             const href = sanitizeUrl(img?.closest("a")?.getAttribute("href"));
 
             return {
-              src: img?.getAttribute("src"),
+              src,
               alt: img?.getAttribute("alt"),
               title: img?.getAttribute("title"),
               source: img?.getAttribute("source"),
@@ -210,6 +215,11 @@ export default class Image extends SimpleImage {
             // Don't parse images from our own editor with this rule. A linked
             // image nests the <img> inside an <a>, so check ancestors too.
             if (dom.closest(".image") || dom.closest(".emoji")) {
+              return false;
+            }
+
+            const src = dom.getAttribute("src");
+            if (!src) {
               return false;
             }
 
@@ -232,7 +242,7 @@ export default class Image extends SimpleImage {
             }
 
             return {
-              src: dom.getAttribute("src"),
+              src,
               alt: dom.getAttribute("alt"),
               title: dom.getAttribute("title"),
               width: width ? parseInt(width, 10) : undefined,
@@ -367,6 +377,10 @@ export default class Image extends SimpleImage {
       const { doc, tr } = view.state;
 
       const pos = getPos();
+      if (pos === undefined) {
+        return;
+      }
+
       const $pos = doc.resolve(pos);
 
       view.dispatch(tr.setSelection(new NodeSelection($pos)));
@@ -385,7 +399,12 @@ export default class Image extends SimpleImage {
         event.preventDefault();
 
         const { view } = this.editor;
-        const $pos = view.state.doc.resolve(getPos() + node.nodeSize);
+        const pos = getPos();
+        if (pos === undefined) {
+          return;
+        }
+
+        const $pos = view.state.doc.resolve(pos + node.nodeSize);
         view.dispatch(
           view.state.tr
             .setSelection(TextSelection.near($pos))
@@ -401,7 +420,12 @@ export default class Image extends SimpleImage {
         event.preventDefault();
         event.stopPropagation();
         const { view } = this.editor;
-        const $pos = view.state.doc.resolve(getPos());
+        const pos = getPos();
+        if (pos === undefined) {
+          return;
+        }
+
+        const $pos = view.state.doc.resolve(pos);
         const tr = view.state.tr.setSelection(new NodeSelection($pos));
         view.dispatch(tr);
         view.focus();
@@ -423,9 +447,7 @@ export default class Image extends SimpleImage {
       // The blur may fire while the node view is being torn down, at which
       // point the position no longer refers to this image in the document.
       const pos = getPos();
-      const current =
-        pos === undefined ? undefined : view.state.doc.nodeAt(pos);
-      if (current?.type !== node.type) {
+      if (pos === undefined || view.state.doc.nodeAt(pos)?.type !== node.type) {
         return;
       }
 
@@ -439,16 +461,26 @@ export default class Image extends SimpleImage {
   handleZoomIn =
     ({ getPos, view }: ComponentProps) =>
     () => {
+      const pos = getPos();
+      if (pos === undefined) {
+        return;
+      }
+
       this.editor.updateActiveLightboxImage(
-        LightboxImageFactory.createLightboxImage(view, getPos())
+        LightboxImageFactory.createLightboxImage(view, pos)
       );
     };
 
   handleClick =
     ({ getPos, view }: ComponentProps) =>
     () => {
+      const pos = getPos();
+      if (pos === undefined) {
+        return;
+      }
+
       this.editor.updateActiveLightboxImage(
-        LightboxImageFactory.createLightboxImage(view, getPos())
+        LightboxImageFactory.createLightboxImage(view, pos)
       );
     };
 
@@ -468,6 +500,10 @@ export default class Image extends SimpleImage {
         return;
       }
       const pos = getPos();
+      if (pos === undefined) {
+        return;
+      }
+
       const $pos = view.state.doc.resolve(pos);
       view.dispatch(view.state.tr.setSelection(new NodeSelection($pos)));
       commands.editDiagram();

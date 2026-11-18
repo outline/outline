@@ -1,10 +1,8 @@
-/* oxlint-disable react/prop-types */
 import { observer } from "mobx-react";
 import * as React from "react";
 import type { Props as TooltipProps } from "~/components/Tooltip";
 import Tooltip from "~/components/Tooltip";
 import { performAction, resolve } from "~/actions";
-import useIsMounted from "~/hooks/useIsMounted";
 import useActionContext from "~/hooks/useActionContext";
 import type { ActionVariant, ActionWithChildren } from "~/types";
 
@@ -17,6 +15,8 @@ export type Props = React.HTMLAttributes<HTMLButtonElement> & {
   action?: Exclude<ActionVariant, ActionWithChildren>;
   /** If tooltip props are provided the button will be wrapped in a tooltip */
   tooltip?: Omit<TooltipProps, "children">;
+  /** The button type, defaults to "button" */
+  type?: "button" | "submit" | "reset";
 };
 
 /**
@@ -27,16 +27,17 @@ function ActionButton({
   tooltip,
   hideOnActionDisabled,
   ref,
+  type = "button",
   ...rest
 }: Props & { ref?: React.Ref<HTMLButtonElement> }) {
   const actionContext = useActionContext({
     isButton: true,
   });
-  const isMounted = useIsMounted();
   const [executing, setExecuting] = React.useState(false);
 
   if (!actionContext || !action) {
-    return <button {...rest} ref={ref} />;
+    // oxlint-disable-next-line react/button-has-type -- type defaults to "button"
+    return <button {...rest} type={type} ref={ref} />;
   }
 
   const actionIsDisabled =
@@ -57,6 +58,8 @@ function ActionButton({
   const button = (
     <button
       {...rest}
+      // oxlint-disable-next-line react/button-has-type -- type defaults to "button"
+      type={type}
       aria-label={typeof label === "string" ? label : undefined}
       disabled={disabled || executing}
       ref={ref}
@@ -68,7 +71,7 @@ function ActionButton({
               const response = performAction(action, actionContext);
               if (response?.finally) {
                 setExecuting(true);
-                void response.finally(() => isMounted() && setExecuting(false));
+                void response.finally(() => setExecuting(false));
               }
             }
           : rest.onClick

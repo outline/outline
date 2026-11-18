@@ -29,10 +29,9 @@ export function SigningIn() {
   );
 }
 
-const Note = styled(Text)`
+const Note = styled(Text).attrs({ size: "small" })`
   color: ${s("textTertiary")};
   text-align: center;
-  font-size: 14px;
   margin-top: 8px;
 
   em {

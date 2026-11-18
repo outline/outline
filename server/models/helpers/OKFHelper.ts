@@ -63,7 +63,7 @@ export default class OKFHelper {
 
     const data: Frontmatter = {
       type: this.conceptType,
-      title: document.titleWithDefault,
+      title: document.displayTitle,
       ...(description ? { description } : {}),
       resource: `${origin}${document.path}`,
       status: this.status(document),

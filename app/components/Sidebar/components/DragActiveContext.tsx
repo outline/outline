@@ -1,13 +1,13 @@
 import * as React from "react";
-import { useDragLayer } from "react-dnd";
+import { useDragLayer } from "~/components/DragAndDrop";
 
-const DragActiveContext = React.createContext(false);
+const DraggedItemContext = React.createContext<string | undefined>(undefined);
 
 const SidebarScrollContext = React.createContext<HTMLElement | null>(null);
 
 /**
- * Provides the sidebar's scroll container so descendants can use it as the
- * IntersectionObserver root when deciding whether to render heavy content.
+ * Provides the sidebar's scroll container so descendants can virtualize their
+ * content against it.
  */
 export const SidebarScrollProvider = SidebarScrollContext.Provider;
 
@@ -20,18 +20,21 @@ export function useSidebarScrollElement(): HTMLElement | null {
 }
 
 /**
- * Subscribes once to react-dnd's drag state and exposes a boolean via context.
+ * Subscribes once to the drag state and exposes the id of the dragged item via
+ * context.
  *
- * Visibility-gated sidebar rows read this to keep their inner content mounted
- * for the duration of a drag, so that scrolling away from the dragged source
- * (or a drop target the user is heading toward) does not unmount it mid-drag.
+ * Virtualized sidebar trees read this to keep the dragged row mounted for the
+ * duration of a drag, so that the row keeps its dragging state.
  */
 export function DragActiveProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const isDragging = useDragLayer((monitor) => monitor.isDragging());
+  const { isDragging, itemId } = useDragLayer((monitor) => ({
+    isDragging: monitor.isDragging(),
+    itemId: monitor.getItem()?.id,
+  }));
 
   // Expose drag state to CSS so per-row UI (e.g. the hover actions slot) can
   // be hidden for the duration of a drag without re-rendering
@@ -41,15 +44,16 @@ export function DragActiveProvider({
   }, [isDragging]);
 
   return (
-    <DragActiveContext.Provider value={isDragging}>
+    <DraggedItemContext.Provider value={itemId}>
       {children}
-    </DragActiveContext.Provider>
+    </DraggedItemContext.Provider>
   );
 }
 
 /**
- * Returns whether any react-dnd drag is currently active.
+ * Returns the id of the item being dragged, or undefined when no drag is in
+ * progress.
  */
-export function useIsDragActive(): boolean {
-  return React.useContext(DragActiveContext);
+export function useDraggedItemId(): string | undefined {
+  return React.useContext(DraggedItemContext);
 }

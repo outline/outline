@@ -1,22 +1,213 @@
+import Router from "@koa/router";
 import { faker } from "@faker-js/faker";
 import { randomUUID } from "node:crypto";
 import { errToString } from "@shared/utils/error";
 import { Event, TeamDomain } from "@server/models";
 import Collection from "@server/models/Collection";
 import UserAuthentication from "@server/models/UserAuthentication";
+import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
+import SyncUserGroupsTask from "@server/queues/tasks/SyncUserGroupsTask";
 import {
   buildUser,
   buildTeam,
   buildAdmin,
+  buildInvite,
   buildSubdomain,
 } from "@server/test/factories";
-import { setSelfHosted } from "@server/test/support";
+import { mockTaskSchedule, setSelfHosted } from "@server/test/support";
+import { Hook } from "@server/utils/PluginManager";
 import accountProvisioner from "./accountProvisioner";
 import { createContext } from "@server/context";
 
 describe("accountProvisioner", () => {
   const ip = faker.internet.ip();
   const ctx = createContext({ ip });
+  const schedule = mockTaskSchedule();
+
+  describe("invites", () => {
+    it("should record invite_accepted against the invited user and team", async () => {
+      const team = await buildTeam();
+      const invite = await buildInvite({ teamId: team.id });
+      const providers = await team.$get("authenticationProviders");
+
+      const result = await accountProvisioner(ctx, {
+        user: {
+          name: invite.name,
+          email: invite.email!,
+          avatarUrl: invite.avatarUrl,
+          emailVerified: true,
+        },
+        team: {
+          teamId: team.id,
+          name: team.name,
+          avatarUrl: team.avatarUrl,
+          subdomain: faker.internet.domainWord(),
+        },
+        authenticationProvider: {
+          name: providers[0].name,
+          providerId: providers[0].providerId,
+        },
+        authentication: {
+          providerId: randomUUID(),
+          accessToken: "123",
+          scopes: ["read"],
+        },
+      });
+
+      expect(result.user.id).toEqual(invite.id);
+      expect(result.isNewUser).toEqual(true);
+
+      const event = await Event.findLatest({
+        name: "users.invite_accepted",
+        userId: invite.id,
+      });
+      expect(event?.teamId).toEqual(team.id);
+      expect(event?.actorId).toEqual(invite.id);
+      expect(event?.ip).toEqual(ip);
+    });
+
+    it("should not attribute invite_accepted to the user of an existing session", async () => {
+      const team = await buildTeam();
+      const invite = await buildInvite({ teamId: team.id });
+      const providers = await team.$get("authenticationProviders");
+      const sessionUser = await buildUser();
+
+      await accountProvisioner(createContext({ ip, user: sessionUser }), {
+        user: {
+          name: invite.name,
+          email: invite.email!,
+          avatarUrl: invite.avatarUrl,
+          emailVerified: true,
+        },
+        team: {
+          teamId: team.id,
+          name: team.name,
+          avatarUrl: team.avatarUrl,
+          subdomain: faker.internet.domainWord(),
+        },
+        authenticationProvider: {
+          name: providers[0].name,
+          providerId: providers[0].providerId,
+        },
+        authentication: {
+          providerId: randomUUID(),
+          accessToken: "123",
+          scopes: ["read"],
+        },
+      });
+
+      const event = await Event.findLatest({
+        name: "users.invite_accepted",
+        userId: invite.id,
+      });
+      expect(event?.teamId).toEqual(team.id);
+      expect(event?.actorId).toEqual(invite.id);
+    });
+  });
+
+  it("should not record invite_accepted for a user that was not invited", async () => {
+    const team = await buildTeam();
+    const providers = await team.$get("authenticationProviders");
+
+    const result = await accountProvisioner(ctx, {
+      user: {
+        name: faker.person.fullName(),
+        email: faker.internet.email().toLowerCase(),
+        emailVerified: true,
+      },
+      team: {
+        teamId: team.id,
+        name: team.name,
+        avatarUrl: team.avatarUrl,
+        subdomain: faker.internet.domainWord(),
+      },
+      authenticationProvider: {
+        name: providers[0].name,
+        providerId: providers[0].providerId,
+      },
+      authentication: {
+        providerId: randomUUID(),
+        accessToken: "123",
+        scopes: ["read"],
+      },
+    });
+
+    expect(result.isNewUser).toEqual(true);
+    await expect(
+      Event.findLatest({
+        name: "users.invite_accepted",
+        userId: result.user.id,
+      })
+    ).resolves.toBeNull();
+  });
+
+  describe("group sync", () => {
+    async function provisionExistingUser({
+      groupSyncEnabled,
+    }: {
+      groupSyncEnabled: boolean;
+    }) {
+      const existingTeam = await buildTeam();
+      const providers = await existingTeam.$get("authenticationProviders");
+      const authenticationProvider = providers[0];
+      await authenticationProvider.update({
+        settings: { groupSyncEnabled },
+      });
+      const existing = await buildUser({ teamId: existingTeam.id });
+      const authentications = await existing.$get("authentications");
+      const authentication = authentications[0];
+
+      await accountProvisioner(ctx, {
+        user: {
+          name: existing.name,
+          email: existing.email!,
+          avatarUrl: existing.avatarUrl,
+        },
+        team: {
+          name: existingTeam.name,
+          avatarUrl: existingTeam.avatarUrl,
+          subdomain: faker.internet.domainWord(),
+        },
+        authenticationProvider: {
+          name: authenticationProvider.name,
+          providerId: authenticationProvider.providerId,
+        },
+        authentication: {
+          providerId: authentication.providerId,
+          accessToken: "123",
+          scopes: ["read"],
+        },
+      });
+
+      return authentication;
+    }
+
+    it("should schedule a group sync when enabled for the provider", async () => {
+      const authentication = await provisionExistingUser({
+        groupSyncEnabled: true,
+      });
+
+      const calls = schedule.mock.calls.filter(
+        (_, index) =>
+          schedule.mock.instances[index] instanceof SyncUserGroupsTask
+      );
+      expect(calls).toEqual([
+        [
+          { userAuthenticationId: authentication.id },
+          { jobId: `sync-user-groups:${authentication.id}` },
+        ],
+      ]);
+    });
+
+    it("should not schedule a group sync when disabled for the provider", async () => {
+      await provisionExistingUser({ groupSyncEnabled: false });
+
+      const scheduled = schedule.mock.instances.some(
+        (instance) => instance instanceof SyncUserGroupsTask
+      );
+      expect(scheduled).toEqual(false);
+    });
+  });
 
   describe("hosted", () => {
     it("should create a new user and team", async () => {
@@ -229,6 +420,107 @@ describe("accountProvisioner", () => {
       expect(
         error instanceof Error && "id" in error ? error.id : undefined
       ).toEqual("invalid_authentication");
+    });
+
+    it("should allow authentication by email matching from another tenant when the provider allows it", async () => {
+      const spy = vi
+        .spyOn(AuthenticationHelper, "providers", "get")
+        .mockReturnValue([
+          {
+            type: Hook.AuthProvider,
+            value: {
+              router: new Router(),
+              id: "google",
+              allowEmailMatch: true,
+            },
+          },
+        ]);
+      const subdomain = buildSubdomain();
+      const existingTeam = await buildTeam({
+        subdomain,
+        authenticationProviders: [
+          {
+            name: "google",
+            providerId: faker.internet.domainName(),
+          },
+        ],
+      });
+      const email = faker.internet.email();
+      const existingUser = await buildUser({
+        email,
+        teamId: existingTeam.id,
+      });
+
+      try {
+        const { user } = await accountProvisioner(ctx, {
+          user: {
+            name: existingUser.name,
+            email,
+            emailVerified: true,
+          },
+          team: {
+            teamId: existingTeam.id,
+            subdomain,
+          },
+          authenticationProvider: {
+            name: "google",
+            providerId: faker.internet.domainName(),
+          },
+          authentication: {
+            providerId: randomUUID(),
+            accessToken: "123",
+            scopes: ["read"],
+          },
+        });
+        expect(user.id).toEqual(existingUser.id);
+      } finally {
+        spy.mockRestore();
+      }
+    });
+
+    it("should not allow authentication by email matching from another tenant when the provider does not allow it", async () => {
+      const subdomain = buildSubdomain();
+      const existingTeam = await buildTeam({
+        subdomain,
+      });
+      const email = faker.internet.email();
+      const existingUser = await buildUser({
+        email,
+        teamId: existingTeam.id,
+      });
+
+      let error;
+      try {
+        await accountProvisioner(ctx, {
+          user: {
+            name: existingUser.name,
+            email,
+            emailVerified: true,
+          },
+          team: {
+            teamId: existingTeam.id,
+            subdomain,
+          },
+          authenticationProvider: {
+            name: "slack",
+            providerId: randomUUID(),
+          },
+          authentication: {
+            providerId: randomUUID(),
+            accessToken: "123",
+            scopes: ["read"],
+          },
+        });
+      } catch (err) {
+        error = err;
+      }
+
+      expect(
+        error instanceof Error && "id" in error ? error.id : undefined
+      ).toEqual("invalid_authentication");
+      expect(
+        await UserAuthentication.count({ where: { userId: existingUser.id } })
+      ).toEqual(1);
     });
 
     it("should throw an error when authentication provider is disabled", async () => {

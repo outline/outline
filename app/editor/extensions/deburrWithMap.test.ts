@@ -17,13 +17,22 @@ describe("deburrWithMap", () => {
     }
   });
 
-  it("maps decomposed (longer) output back to original indices for Hangul", () => {
+  it("leaves Hangul unchanged and maps indices 1:1 (fast path)", () => {
     const text = "강의";
     const { deburred, toOriginalIndex } = deburrWithMap(text);
 
-    // NFD decomposition expands each precomposed syllable into jamo, so the
-    // deburred string is longer than the original.
-    expect(deburred.length).toBeGreaterThan(text.length);
+    expect(deburred).toBe(text);
+    for (let i = 0; i <= deburred.length; i++) {
+      expect(toOriginalIndex(i)).toBe(i);
+    }
+  });
+
+  it("maps expanded (longer) output back to original indices", () => {
+    const text = "ßÆ";
+    const { deburred, toOriginalIndex } = deburrWithMap(text);
+
+    // Each letter expands to two letters, so the deburred string is longer.
+    expect(deburred).toBe("ssAe");
 
     // The end position must map to the original length, not the deburred length.
     expect(toOriginalIndex(deburred.length)).toBe(text.length);
@@ -35,8 +44,8 @@ describe("deburrWithMap", () => {
     }
   });
 
-  it("recovers correct original positions for an ASCII match surrounded by CJK", () => {
-    const text = "강의a평가";
+  it("recovers correct original positions for an ASCII match surrounded by expanded letters", () => {
+    const text = "ßÆaßÆ";
     const { deburred, toOriginalIndex } = deburrWithMap(text);
 
     const index = deburred.indexOf("a");
@@ -48,22 +57,24 @@ describe("deburrWithMap", () => {
     expect(text.slice(from, to)).toBe("a");
   });
 
-  it("maps a deburred match for CJK text back to the original code unit", () => {
-    const text = "abc평가";
-    const { toOriginalIndex } = deburrWithMap(text);
+  it("maps Hangul back to the original code unit when another letter expands", () => {
+    const text = "강ß의";
+    const { deburred, toOriginalIndex } = deburrWithMap(text);
 
-    // "abc" appears at the start of both the original and deburred strings.
-    expect(toOriginalIndex(0)).toBe(0);
-    expect(toOriginalIndex(3)).toBe(3);
-    expect(text.slice(toOriginalIndex(0), toOriginalIndex(3))).toBe("abc");
+    expect(deburred).toBe("강ss의");
+
+    const index = deburred.indexOf("의");
+    expect(text.slice(toOriginalIndex(index), toOriginalIndex(index + 1))).toBe(
+      "의"
+    );
   });
 
-  it("keeps the map consistent across interleaved ASCII and Hangul", () => {
-    const text = "a강b의c";
+  it("keeps the map consistent across interleaved ASCII and expanded letters", () => {
+    const text = "aßbÆc";
     const { deburred, toOriginalIndex } = deburrWithMap(text);
 
     // Every ASCII character must still resolve to its exact original code unit,
-    // even though the Hangul characters between them expand under NFD.
+    // even though the letters between them expand.
     for (const ascii of ["a", "b", "c"]) {
       const index = deburred.indexOf(ascii);
       expect(
@@ -78,17 +89,18 @@ describe("deburrWithMap", () => {
     expect(toOriginalIndex(deburred.length)).toBe(text.length);
   });
 
-  it("maps a partial decomposed sequence to a zero-length original range", () => {
-    // A precomposed Hangul syllable decomposes into multiple jamo that all
-    // originate from the same single original code unit. Matching only part of
-    // that sequence therefore collapses to an empty range in the original text,
-    // which consumers must detect and skip.
-    const text = "강";
+  it("maps a partial expanded sequence to a zero-length original range", () => {
+    // An expanded letter emits multiple code units from one original code unit.
+    // Matching only part of that sequence therefore collapses to an empty range
+    // in the original text, which consumers must detect and skip.
+    const text = "ß";
     const { deburred, toOriginalIndex } = deburrWithMap(text);
 
-    expect(deburred.length).toBeGreaterThan(1);
-    // The first jamo alone maps back to a zero-length range (start === end).
+    expect(deburred).toBe("ss");
+
+    // The first letter alone maps back to a zero-length range (start === end).
     expect(toOriginalIndex(0)).toBe(toOriginalIndex(1));
+
     // The full sequence still spans the whole original character.
     expect(toOriginalIndex(0)).toBe(0);
     expect(toOriginalIndex(deburred.length)).toBe(text.length);

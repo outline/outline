@@ -4,10 +4,7 @@ import { HttpsProxyAgent } from "https-proxy-agent";
 import type { JwtPayload } from "jsonwebtoken";
 import type { Context, Next } from "koa";
 import type { Strategy } from "@outlinewiki/koa-passport";
-import type {
-  StateStoreStoreCallback,
-  StateStoreVerifyCallback,
-} from "passport-oauth2";
+import type { StateStoreStoreCallback } from "passport-oauth2";
 import type { Primitive } from "utility-types";
 import { errToString, toError } from "@shared/utils/error";
 import { Client } from "@shared/types";
@@ -28,6 +25,13 @@ import {
   verifyOAuthIntent,
   verifyOAuthState,
 } from "./oauthState";
+
+// With PKCE the library expects the code verifier in place of the boolean result.
+type PKCEStateStoreVerifyCallback = (
+  err: Error | null,
+  result: string | boolean,
+  state: string
+) => void;
 
 const FLOW_QUERY_PARAM = "flow";
 const OAUTH_CSRF_COOKIE = "oauth_csrf";
@@ -196,7 +200,7 @@ export class StateStore {
   verify = (
     ctx: Context,
     providedToken: string,
-    callback: StateStoreVerifyCallback
+    callback: PKCEStateStoreVerifyCallback
   ) => {
     const context = getKoaContext(ctx);
     const csrfNonce = context.cookies.get(OAUTH_CSRF_COOKIE);
@@ -225,7 +229,6 @@ export class StateStore {
 
     context.state.oauthState = state;
 
-    // @ts-expect-error Type in library is wrong
     callback(null, state.codeVerifier ?? true, providedToken);
   };
 }

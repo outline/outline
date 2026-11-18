@@ -1,5 +1,4 @@
 import { observer } from "mobx-react";
-import { DocumentIcon } from "outline-icons";
 import type * as React from "react";
 import styled from "styled-components";
 import Icon from "@shared/components/Icon";
@@ -8,6 +7,7 @@ import Document from "~/models/Document";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
+import { DocumentIcon } from "~/components/Icons/DocumentIcon";
 
 type Props = {
   /** The title of the dialog. */
@@ -51,7 +51,7 @@ export const DialogTitle = observer(function DialogTitle_({
       color={model.color ?? undefined}
     />
   ) : (
-    <DocumentIcon outline={model.isDraft} />
+    <DocumentIcon empty={model.isEmpty} />
   );
 
   return (
@@ -60,7 +60,7 @@ export const DialogTitle = observer(function DialogTitle_({
       <Subject type="secondary" size="small">
         {icon}
         <Text type="secondary" ellipsis>
-          {isDocument ? model.titleWithDefault : model.name}
+          {isDocument ? model.displayTitle : model.displayName}
         </Text>
       </Subject>
     </Wrapper>

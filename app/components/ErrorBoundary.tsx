@@ -14,7 +14,7 @@ import Text from "~/components/Text";
 import env from "~/env";
 import Logger from "~/utils/Logger";
 import isCloudHosted from "~/utils/isCloudHosted";
-import { isStaleChunkError } from "~/utils/lazyWithRetry";
+import { isStaleChunkError } from "@shared/utils/lazyWithRetry";
 import Storage from "@shared/utils/Storage";
 import { deleteAllDatabases } from "~/utils/developer";
 import Flex from "./Flex";
@@ -145,7 +145,7 @@ class ErrorBoundaryClass extends React.Component<Props> {
               <>
                 <PageTitle title={t("Module failed to load")} />
                 <Heading>
-                  <Trans>Loading Failed</Trans>
+                  <Trans>Loading failed</Trans>
                 </Heading>
               </>
             )}
@@ -167,9 +167,9 @@ class ErrorBoundaryClass extends React.Component<Props> {
         <Component>
           {showTitle && (
             <>
-              <PageTitle title={t("Something Unexpected Happened")} />
+              <PageTitle title={t("Something unexpected happened")} />
               <Heading>
-                <Trans>Something Unexpected Happened</Trans>
+                <Trans>Something unexpected happened</Trans>
               </Heading>
             </>
           )}
@@ -177,14 +177,14 @@ class ErrorBoundaryClass extends React.Component<Props> {
           {this.isRepeatedError ? (
             <Text as="p" type="secondary">
               <Trans>
-                An error has occurred multiple times recently. If it continues
+                An error has occurred multiple times recently. If it continues,
                 please try clearing the cache or using a different browser.
               </Trans>
             </Text>
           ) : (
             <Text as="p" type="secondary">
               <Trans
-                defaults="Sorry, an unrecoverable error occurred{{notified}}. Please try reloading the page, it may have been a temporary glitch."
+                defaults="Sorry, an unrecoverable error occurred{{notified}}. Please try reloading the page – it may have been a temporary glitch."
                 values={{
                   notified: isReported
                     ? ` – ${t("our engineers have been notified")}`

@@ -94,7 +94,7 @@ function SharedWithMe() {
     }
     // `history` is read imperatively, the sidebar context should only be
     // recalculated when the active document or memberships change.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [
     ui.activeDocumentId,
     locationSidebarContext,

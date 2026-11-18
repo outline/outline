@@ -22,7 +22,7 @@ import {
   BeforeValidate,
   IsDate,
 } from "sequelize-typescript";
-import slugify from "slugify";
+import slugify from "@server/utils/slugify";
 import type { ProsemirrorData } from "@shared/types";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { DocumentValidation } from "@shared/validations";
@@ -244,6 +244,13 @@ class Template extends ParanoidModel<
       AdditionalFindOptions = {}
   ): Promise<Template | null> {
     if (typeof id !== "string") {
+      if (options.rejectOnEmpty) {
+        throw options.rejectOnEmpty instanceof Error
+          ? options.rejectOnEmpty
+          : new EmptyResultError(
+              `Template doesn't exist with id: ${String(id)}`
+            );
+      }
       return null;
     }
 
@@ -258,40 +265,34 @@ class Template extends ParanoidModel<
       },
     ]);
 
+    let template: Template | null = null;
+    const match = id.match(UrlHelper.SLUG_URL_REGEX);
+
     if (isUUID(id)) {
-      const template = await scope.findOne({
+      template = await scope.findOne({
         where: {
           id,
         },
         ...rest,
         rejectOnEmpty: false,
       });
-
-      if (!template && rest.rejectOnEmpty) {
-        throw new EmptyResultError(`Template doesn't exist with id: ${id}`);
-      }
-
-      return template;
-    }
-
-    const match = id.match(UrlHelper.SLUG_URL_REGEX);
-    if (match) {
-      const template = await scope.findOne({
+    } else if (match) {
+      template = await scope.findOne({
         where: {
           urlId: match[1],
         },
         ...rest,
         rejectOnEmpty: false,
       });
-
-      if (!template && rest.rejectOnEmpty) {
-        throw new EmptyResultError(`Template doesn't exist with id: ${id}`);
-      }
-
-      return template;
     }
 
-    return null;
+    if (!template && rest.rejectOnEmpty) {
+      throw rest.rejectOnEmpty instanceof Error
+        ? rest.rejectOnEmpty
+        : new EmptyResultError(`Template doesn't exist with id: ${id}`);
+    }
+
+    return template;
   }
 }
 

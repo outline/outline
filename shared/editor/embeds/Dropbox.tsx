@@ -8,7 +8,7 @@ function Dropbox({ matches, ...props }: Props) {
   // Files need more vertical space to be readable
   const embedHeight = matches[3].split("/")[0] === "fi" ? "550px" : "350px";
 
-  // Wrap inside an iframe to isolate external script and losened CSP
+  // Wrap inside an iframe to isolate external script and loosened CSP
   return (
     <Frame
       src={`/embeds/dropbox?url=${encodeURIComponent(props.attrs.href)}`}

@@ -195,38 +195,11 @@ export function EmailAuthenticationRequiredError(
   });
 }
 
-export function MicrosoftGraphError(
-  message = "Microsoft Graph API did not return required fields"
-) {
-  return httpErrors(400, message, {
-    id: "graph_error",
-    isReportable: false,
-  });
-}
-
 export function TeamDomainRequiredError(
   message = "Unable to determine workspace from current domain or subdomain"
 ) {
   return httpErrors(400, message, {
     id: "domain_required",
-    isReportable: false,
-  });
-}
-
-export function GmailAccountCreationError(
-  message = "Cannot create account using personal gmail address"
-) {
-  return httpErrors(400, message, {
-    id: "gmail_account_creation",
-    isReportable: false,
-  });
-}
-
-export function OIDCMalformedUserInfoError(
-  message = "User profile information malformed"
-) {
-  return httpErrors(400, message, {
-    id: "malformed_user_info",
     isReportable: false,
   });
 }
@@ -251,12 +224,54 @@ export function UnprocessableEntityError(
   });
 }
 
+export function InvalidClientMetadataError(
+  message = "The client metadata document is invalid"
+) {
+  return httpErrors(422, message, {
+    id: "invalid_client_metadata",
+    isReportable: false,
+  });
+}
+
+export function InvalidRedirectUriError(
+  message = "The redirect URI is invalid"
+) {
+  return httpErrors(400, message, {
+    id: "invalid_redirect_uri",
+    isReportable: false,
+  });
+}
+
 export function RequestTimeoutError(
   message = "Request took too long to complete"
 ) {
   return httpErrors(503, message, {
     id: "request_timeout",
     isReportable: true,
+  });
+}
+
+export function ServiceUnavailableError(
+  message = "The service is temporarily unavailable. Try again shortly."
+) {
+  return httpErrors(503, message, {
+    id: "service_unavailable",
+    isReportable: false,
+    headers: {
+      "Retry-After": "30",
+    },
+  });
+}
+
+export function DatabaseReadOnlyError(
+  message = "Changes cannot be saved during maintenance. Try again shortly."
+) {
+  return httpErrors(503, message, {
+    id: "database_read_only",
+    isReportable: false,
+    headers: {
+      "Retry-After": "30",
+    },
   });
 }
 

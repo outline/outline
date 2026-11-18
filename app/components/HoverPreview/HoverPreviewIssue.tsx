@@ -5,7 +5,6 @@ import { Backticks } from "@shared/components/Backticks";
 import { IssueStatusIcon } from "@shared/components/IssueStatusIcon";
 import { richExtensions } from "@shared/editor/nodes";
 import type { UnfurlResourceType, UnfurlResponse } from "@shared/types";
-import { IntegrationService } from "@shared/types";
 import { Avatar } from "~/components/Avatar";
 import Editor from "~/components/Editor";
 import Flex from "~/components/Flex";
@@ -37,13 +36,6 @@ function HoverPreviewIssue({
   ref,
 }: Props) {
   const authorName = author.name;
-  const urlObj = new URL(url);
-  const service =
-    urlObj.hostname === "linear.app"
-      ? IntegrationService.Linear
-      : urlObj.hostname === "github.com"
-        ? IntegrationService.GitHub
-        : IntegrationService.GitLab;
 
   return (
     <Preview as="a" href={url} target="_blank" rel="noopener noreferrer">
@@ -52,11 +44,7 @@ function HoverPreviewIssue({
           <CardContent>
             <Flex gap={2} column>
               <Title>
-                <StyledIssueStatusIcon
-                  service={service}
-                  state={state}
-                  size={18}
-                />
+                <StyledIssueStatusIcon state={state} size={18} />
                 <span>
                   <Backticks content={title} />
                   &nbsp;<Text type="tertiary">{id}</Text>

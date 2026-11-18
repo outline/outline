@@ -1,7 +1,13 @@
-import { chunk, omit, snakeCase } from "es-toolkit/compat";
+import { omit, snakeCase } from "es-toolkit/compat";
 import type { Middleware } from "koa";
 import compose from "koa-compose";
-import Router from "koa-router";
+import Router from "@koa/router";
+import {
+  addTags,
+  getRootSpanFromRequestContext,
+  setError,
+} from "@server/logging/tracer";
+import { traceFunction } from "@server/logging/tracing";
 import auth from "@server/middlewares/authentication";
 import {
   defaultRateLimiter,
@@ -47,6 +53,9 @@ const dispatchableRouters: Router[] = [documents, collections, stars, pins];
 
 /** The number of sub-requests dispatched in parallel, to limit pool pressure. */
 const BatchConcurrency = 2;
+
+/** Methods that run alone, so that their effects apply in request order. */
+const sequentialMethods = new Set<string>(["documents.move"]);
 
 interface HttpError extends Error {
   status?: number;
@@ -103,7 +112,7 @@ function resolveStack(method: string): Middleware[] | undefined {
 function createSubContext(
   ctx: AppContext,
   method: string,
-  body: Record<string, unknown>
+  body: T.BatchRequestBody
 ) {
   const sub: AppContext = Object.create(ctx);
   // A shallow copy so middleware writes (auth, transaction) don't leak between
@@ -170,7 +179,7 @@ function createSubContext(
 async function dispatch(
   ctx: AppContext,
   method: string,
-  body: Record<string, unknown>
+  body: T.BatchRequestBody
 ): Promise<BatchResult> {
   const stack = resolveStack(method);
   if (!stack) {
@@ -193,6 +202,7 @@ async function dispatch(
     };
   } catch (err) {
     const error: HttpError = toError(err);
+    setError(error);
     return {
       status: typeof error.status === "number" ? error.status : 500,
       ok: false,
@@ -200,6 +210,64 @@ async function dispatch(
       message: error.message,
     };
   }
+}
+
+/**
+ * Dispatches a single sub-request in its own APM span, named for the method.
+ *
+ * @param ctx The parent request context.
+ * @param method The RPC method name to invoke.
+ * @param body The request body for the method.
+ * @returns the result, shaped like a standard API response envelope.
+ */
+function tracedDispatch(
+  ctx: AppContext,
+  method: string,
+  body: T.BatchRequestBody
+): Promise<BatchResult> {
+  return traceFunction({ spanName: "batch.request", resourceName: method })(
+    async () => {
+      const result = await dispatch(ctx, method, body);
+      addTags({ "http.status_code": result.status });
+      return result;
+    }
+  )();
+}
+
+/**
+ * Splits requests into groups that are dispatched in parallel, bounded so that
+ * a single batch can't exhaust the pool. Sequential methods get a group each.
+ *
+ * @param requests The batched requests, in order.
+ * @returns the groups to dispatch one after another.
+ */
+function groupRequests(
+  requests: T.BatchReq["body"]["requests"]
+): T.BatchReq["body"]["requests"][] {
+  const groups: T.BatchReq["body"]["requests"][] = [];
+  let group: T.BatchReq["body"]["requests"] = [];
+
+  for (const request of requests) {
+    if (sequentialMethods.has(request.method)) {
+      if (group.length) {
+        groups.push(group);
+        group = [];
+      }
+      groups.push([request]);
+      continue;
+    }
+
+    group.push(request);
+    if (group.length === BatchConcurrency) {
+      groups.push(group);
+      group = [];
+    }
+  }
+
+  if (group.length) {
+    groups.push(group);
+  }
+  return groups;
 }
 
 router.post(
@@ -210,6 +278,15 @@ router.post(
   async (ctx: APIContext<T.BatchReq>) => {
     const { requests } = ctx.input.body;
 
+    // Sub-request routes would otherwise be appended to the APM route name.
+    addTags(
+      {
+        "resource.name": "POST /batch",
+        "batch.methods": requests.map((request) => request.method).join(","),
+      },
+      getRootSpanFromRequestContext(ctx)
+    );
+
     // Allow 1s per sub-request, clamped between a 15s floor and 25s ceiling.
     const originalTimeout = ctx.req.socket.timeout || 0;
     ctx.req.socket.setTimeout(
@@ -218,11 +295,10 @@ router.post(
 
     try {
       const data: BatchResult[] = [];
-      // Process in bounded groups so a single batch can't exhaust the pool.
-      for (const group of chunk(requests, BatchConcurrency)) {
+      for (const group of groupRequests(requests)) {
         const results = await Promise.all(
           group.map((request) =>
-            dispatch(ctx, request.method, request.body ?? {})
+            tracedDispatch(ctx, request.method, request.body ?? {})
           )
         );
         data.push(...results);

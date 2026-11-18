@@ -8,6 +8,13 @@ type Props = {
 };
 
 export default class GitHubWebhookTask extends BaseTask<Props> {
+  protected jobId({ headers }: Props) {
+    const deliveryId = headers["x-github-delivery"];
+    return typeof deliveryId === "string"
+      ? `github-webhook:${deliveryId}`
+      : undefined;
+  }
+
   public async perform({ headers, payload }: Props): Promise<void> {
     const plugins = PluginManager.getHooks(Hook.IssueProvider);
     const plugin = plugins.find(

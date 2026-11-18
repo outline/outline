@@ -4,6 +4,7 @@ import {
   copyShareUrl,
   goToShareSource,
   revokeShare,
+  setShareExpiry,
 } from "~/actions/definitions/shares";
 import { useMenuAction } from "~/hooks/useMenuAction";
 
@@ -15,7 +16,13 @@ import { useMenuAction } from "~/hooks/useMenuAction";
  */
 export function useShareMenuActions() {
   const actions = useMemo(
-    () => [copyShareUrl, goToShareSource, ActionSeparator, revokeShare],
+    () => [
+      copyShareUrl,
+      goToShareSource,
+      setShareExpiry,
+      ActionSeparator,
+      revokeShare,
+    ],
     []
   );
 

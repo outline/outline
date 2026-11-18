@@ -11,6 +11,8 @@ export default function presentImport(
     service: importModel.service,
     state: importModel.state,
     documentCount: importModel.documentCount,
+    collectionId: importModel.collectionId,
+    documentId: importModel.documentId,
     error: importModel.error,
     createdBy: presentUser(importModel.createdBy),
     createdById: importModel.createdById,

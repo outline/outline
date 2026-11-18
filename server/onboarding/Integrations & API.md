@@ -6,6 +6,7 @@ Outline supports many of the most popular tools on the market without any additi
 Our integration code is also [open-source](https://github.com/outline/outline) and we encourage third party developers and the community to build support for additional tools!
 
 \
+
 :::info
 Most integrations work by simply pasting a link from a supported service into a document.
 :::

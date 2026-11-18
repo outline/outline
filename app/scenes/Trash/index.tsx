@@ -68,7 +68,7 @@ function Trash() {
       return t("No documents found for your filters.");
     }
     if (userId === user.id) {
-      return t("You’ve not deleted any documents.");
+      return t("You haven’t deleted any documents.");
     }
     if (userId) {
       return t("This user has not deleted any documents.");

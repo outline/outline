@@ -65,7 +65,7 @@ function AuthenticatedIsland({ document, share, compact }: Props) {
         <Tooltip
           content={t("Edit {{noun}}", { noun: document.noun })}
           shortcut="e"
-          placement="bottom"
+          side="bottom"
         >
           <IconButton
             as={Link}

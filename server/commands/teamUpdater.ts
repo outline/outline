@@ -3,7 +3,8 @@ import { TeamPreference } from "@shared/types";
 import env from "@server/env";
 import { ValidationError } from "@server/errors";
 import type { User } from "@server/models";
-import { Team, TeamDomain } from "@server/models";
+import { Collection, Team, TeamDomain } from "@server/models";
+import { authorize } from "@server/policies";
 import type { APIContext } from "@server/types";
 
 type Props = {
@@ -14,7 +15,23 @@ type Props = {
 
 const teamUpdater = async (ctx: APIContext, { params, user, team }: Props) => {
   const { allowedDomains, preferences, subdomain, ...attributes } = params;
-  team.setAttributes(attributes);
+  team.fill(attributes);
+
+  if (attributes.defaultCollectionId) {
+    const collection = await Collection.findOne({
+      attributes: ["id"],
+      where: {
+        id: attributes.defaultCollectionId,
+        teamId: team.id,
+        ownerId: null,
+      },
+      transaction: ctx.state.transaction,
+    });
+
+    if (!collection) {
+      throw ValidationError("Default collection not found");
+    }
+  }
 
   if (subdomain !== undefined && env.isCloudHosted) {
     const newSubdomain = subdomain === "" ? null : subdomain;
@@ -71,6 +88,17 @@ const teamUpdater = async (ctx: APIContext, { params, user, team }: Props) => {
   }
 
   if (preferences) {
+    const shareExpiryDays = preferences[TeamPreference.DefaultShareExpiryDays];
+
+    // Removing the default stays possible after losing the entitlement.
+    if (
+      shareExpiryDays &&
+      shareExpiryDays !==
+        team.getPreference(TeamPreference.DefaultShareExpiryDays)
+    ) {
+      authorize(user, "setDefaultShareExpiry", team);
+    }
+
     for (const key of Object.values(TeamPreference)) {
       if (
         has(preferences, key) &&

@@ -8,12 +8,14 @@ import type {
   Schema,
 } from "prosemirror-model";
 import type { Command } from "prosemirror-state";
-import { NodeSelection, Plugin, TextSelection } from "prosemirror-state";
+import { NodeSelection, TextSelection } from "prosemirror-state";
 import type { Primitive } from "utility-types";
 import { v4 as uuidv4 } from "uuid";
 import env from "../../env";
 import type { UnfurlResponse } from "../../types";
-import { MentionType, UnfurlResourceType } from "../../types";
+import { t } from "i18next";
+import { AlignImageRightIcon, EmailIcon } from "outline-icons";
+import { MentionDisplay, MentionType, UnfurlResourceType } from "../../types";
 import { dateToReadable } from "../../utils/date";
 import {
   MentionCollection,
@@ -26,13 +28,20 @@ import {
   MentionURL,
   MentionUser,
 } from "../components/Mentions";
+import { selectBlockLikeVertically } from "../commands/selectBlockLikeVertically";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
-import { transformListToMentions } from "../lib/mention";
+import { canDisplayAsCard, transformListToMentions } from "../lib/mention";
 import { findParentNodeClosestToPos } from "../queries/findParentNode";
 import { isInList } from "../queries/isInList";
 import { isList } from "../queries/isList";
+import { RepairPlugin } from "../plugins/RepairPlugin";
 import mentionRule from "../rules/mention";
-import type { ComponentProps } from "../types";
+import { isNodeActive } from "../queries/isNodeActive";
+import type {
+  ComponentProps,
+  NodeWithPos,
+  SelectionToolbarMenuDescriptor,
+} from "../types";
 import Node from "./Node";
 
 /**
@@ -117,6 +126,9 @@ export default class Mention extends Node {
         unfurl: {
           default: undefined,
         },
+        display: {
+          default: undefined,
+        },
       },
       inline: true,
       marks: "",
@@ -146,6 +158,10 @@ export default class Mention extends Node {
               unfurl: dom.dataset.unfurl
                 ? JSON.parse(dom.dataset.unfurl)
                 : undefined,
+              display:
+                dom.dataset.display === MentionDisplay.Card
+                  ? MentionDisplay.Card
+                  : undefined,
             };
           },
         },
@@ -156,16 +172,17 @@ export default class Mention extends Node {
           ? "span"
           : "a",
         {
-          // Date mentions are self-contained and have nothing to unfurl, so
-          // they opt out of the hover preview behaviour.
+          // Dates have nothing to unfurl and cards already show the preview,
+          // so both opt out of the hover preview behaviour.
           class:
-            node.attrs.type === MentionType.Date
+            node.attrs.type === MentionType.Date ||
+            node.attrs.display === MentionDisplay.Card
               ? node.type.name
               : `${node.type.name} use-hover-preview`,
           id: node.attrs.id,
-          href:
+          href: sanitizeUrl(
             node.attrs.type === MentionType.User ||
-            node.attrs.type === MentionType.Date
+              node.attrs.type === MentionType.Date
               ? undefined
               : node.attrs.type === MentionType.Document
                 ? `${env.URL}/doc/${node.attrs.modelId}${
@@ -173,7 +190,8 @@ export default class Mention extends Node {
                   }`
                 : node.attrs.type === MentionType.Collection
                   ? `${env.URL}/collection/${node.attrs.modelId}`
-                  : sanitizeUrl(node.attrs.href),
+                  : node.attrs.href
+          ),
           "data-type": node.attrs.type,
           "data-id": node.attrs.modelId,
           "data-actorid": node.attrs.actorId,
@@ -182,6 +200,10 @@ export default class Mention extends Node {
             ? sanitizeUrl(node.attrs.href)
             : `mention://${node.attrs.id}/${node.attrs.type}/${node.attrs.modelId}`,
           "data-unfurl": JSON.stringify(node.attrs.unfurl),
+          "data-display":
+            node.attrs.display === MentionDisplay.Card
+              ? MentionDisplay.Card
+              : undefined,
         },
         toPlainText(node),
       ],
@@ -240,33 +262,69 @@ export default class Mention extends Node {
     return [mentionRule];
   }
 
+  selectionToolbarMenus(): SelectionToolbarMenuDescriptor[] {
+    return [
+      {
+        priority: 50,
+        matches: (ctx) =>
+          !ctx.readOnly &&
+          ctx.selection instanceof NodeSelection &&
+          canDisplayAsCard(ctx.selection.node),
+        getItems: (ctx) => {
+          const { schema } = ctx;
+          return [
+            {
+              name: "mentionDisplay",
+              tooltip: t("Display as mention"),
+              attrs: { display: MentionDisplay.Inline },
+              active: (state) =>
+                state.selection instanceof NodeSelection &&
+                state.selection.node.attrs.display !== MentionDisplay.Card,
+              icon: <EmailIcon />,
+            },
+            {
+              name: "mentionDisplay",
+              tooltip: t("Display as card"),
+              attrs: { display: MentionDisplay.Card },
+              active: isNodeActive(schema.nodes.mention, {
+                display: MentionDisplay.Card,
+              }),
+              icon: <AlignImageRightIcon />,
+            },
+          ];
+        },
+      },
+    ];
+  }
+
   get plugins() {
     return [
-      // Ensure mentions have unique IDs
-      new Plugin({
-        appendTransaction: (_transactions, _oldState, newState) => {
-          const tr = newState.tr;
-          const existingIds = new Set();
-          let modified = false;
-
-          tr.doc.descendants((node, pos) => {
-            let nodeId = node.attrs.id;
-            if (
-              node.type.name === this.name &&
-              (!nodeId || existingIds.has(nodeId))
-            ) {
-              nodeId = uuidv4();
-              modified = true;
-              tr.setNodeAttribute(pos, "id", nodeId);
+      // Ensure mentions have unique IDs. Unchanged mentions keep their id, so
+      // a pasted copy is given a new id rather than the original.
+      new RepairPlugin({
+        needsRepair: (node) => node.type.name === this.name,
+        repair: (state, mentions) => {
+          const changed = mentions.filter((mention) => mention.changed);
+          const changedPositions = new Set(changed.map(({ pos }) => pos));
+          const ordered: NodeWithPos[] = [];
+          state.doc.descendants((node, pos) => {
+            if (node.type.name === this.name && !changedPositions.has(pos)) {
+              ordered.push({ node, pos });
             }
-            existingIds.add(nodeId);
           });
+          ordered.push(...changed);
 
-          if (modified) {
-            return tr;
-          }
-
-          return null;
+          const seen = new Set<string>();
+          const tr = state.tr;
+          ordered.forEach(({ node, pos }) => {
+            const { id } = node.attrs;
+            if (id && !seen.has(id)) {
+              seen.add(id);
+              return;
+            }
+            tr.setNodeAttribute(pos, "id", uuidv4());
+          });
+          return tr.docChanged ? tr : null;
         },
       }),
     ];
@@ -280,10 +338,27 @@ export default class Mention extends Node {
       MentionType.PullRequest,
       MentionType.Project,
     ];
+    const isCard = (node: ProsemirrorNode) =>
+      node.type.name === this.name &&
+      node.attrs.display === MentionDisplay.Card;
 
     return {
-      Enter: (state) => {
+      ArrowUp: selectBlockLikeVertically(-1, isCard),
+      ArrowDown: selectBlockLikeVertically(1, isCard),
+      Enter: (state, dispatch) => {
         const { selection } = state;
+        if (selection instanceof NodeSelection && isCard(selection.node)) {
+          const tr = state.tr.split(selection.to, 1, [
+            { type: state.schema.nodes.paragraph },
+          ]);
+          dispatch?.(
+            tr
+              .setSelection(TextSelection.create(tr.doc, selection.to + 2))
+              .scrollIntoView()
+          );
+          return true;
+        }
+
         if (
           selection instanceof NodeSelection &&
           selection.node.type.name === this.name &&
@@ -339,6 +414,29 @@ export default class Mention extends Node {
           dispatch?.(transaction);
           return true;
         },
+      mentionDisplay:
+        (attrs: { display: MentionDisplay }): Command =>
+        (state, dispatch) => {
+          const { selection } = state;
+          if (
+            !(selection instanceof NodeSelection) ||
+            !canDisplayAsCard(selection.node)
+          ) {
+            return false;
+          }
+
+          const tr = state.tr.setNodeAttribute(
+            selection.from,
+            "display",
+            attrs.display === MentionDisplay.Card
+              ? MentionDisplay.Card
+              : undefined
+          );
+          dispatch?.(
+            tr.setSelection(NodeSelection.create(tr.doc, selection.from))
+          );
+          return true;
+        },
       mention_list:
         (attrs: Record<string, Primitive>): Command =>
         (state, dispatch) => {
@@ -391,29 +489,33 @@ export default class Mention extends Node {
     const label =
       mType === MentionType.Date ? dateMentionLabel(node) : node.attrs.label;
     const id = node.attrs.id;
+    const isCard = node.attrs.display === MentionDisplay.Card;
 
-    // Use regular links for document and collection mentions
-    if (mType === MentionType.Document) {
-      state.write(
-        `[${label}](/doc/${mId}${
-          node.attrs.anchorId ? `#${node.attrs.anchorId}` : ""
-        })`
-      );
-    } else if (mType === MentionType.Collection) {
-      state.write(`[${label}](/collection/${mId})`);
+    // The link title stores the card display, so the URL is not changed.
+    const title = isCard ? ` "${MentionDisplay.Card}"` : "";
+
+    // Use regular links for document and collection mentions. Cards add the
+    // "@" prefix so they are parsed back into a mention.
+    if (mType === MentionType.Document || mType === MentionType.Collection) {
+      const href =
+        mType === MentionType.Document
+          ? `/doc/${mId}${node.attrs.anchorId ? `#${node.attrs.anchorId}` : ""}`
+          : `/collection/${mId}`;
+      state.write(`${isCard ? "@" : ""}[${label}](${href}${title})`);
     } else if (
-      state.options.commonMark &&
+      (state.options.commonMark || isCard) &&
       (isExternalMention(mType) || mType === MentionType.URL) &&
       node.attrs.href
     ) {
       // Markdown that leaves Outline cannot resolve a mention:// reference, so
-      // external mentions fall back to the URL they already carry. The "@"
-      // prefix allows them to be parsed back into a mention on the way in.
-      state.write(`@[${label}](${sanitizeUrl(node.attrs.href)})`);
+      // external mentions fall back to the URL they already carry. Cards need
+      // the URL to render, so they always use it. The "@" prefix allows them to
+      // be parsed back into a mention on the way in.
+      state.write(`@[${label}](${sanitizeUrl(node.attrs.href)}${title})`);
     } else {
       // Keep the mention:// format for everything else, it round-trips back
       // into a live mention through Outline's own parser.
-      state.write(`@[${label}](mention://${id}/${mType}/${mId})`);
+      state.write(`@[${label}](mention://${id}/${mType}/${mId}${title})`);
     }
   }
 
@@ -425,19 +527,30 @@ export default class Mention extends Node {
         type: tok.attrGet("type"),
         modelId: tok.attrGet("modelId"),
         href: tok.attrGet("href") ?? undefined,
+        anchorId: tok.attrGet("anchorId") ?? undefined,
         label: tok.content,
+        display:
+          tok.attrGet("display") === MentionDisplay.Card
+            ? MentionDisplay.Card
+            : undefined,
       }),
     };
   }
 
   handleChangeDate =
-    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    ({
+      node,
+      getPos,
+    }: {
+      node: ProsemirrorNode;
+      getPos: () => number | undefined;
+    }) =>
     (modelId: string) => {
       const { view } = this.editor;
       const { tr } = view.state;
       const pos = getPos();
 
-      if (node.attrs.modelId === modelId) {
+      if (pos === undefined || node.attrs.modelId === modelId) {
         return;
       }
 
@@ -450,10 +563,28 @@ export default class Mention extends Node {
     };
 
   handleChangeUnfurl =
-    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    ({ getPos }: { node: ProsemirrorNode; getPos: () => number | undefined }) =>
     (unfurl: UnfurlResponse[keyof UnfurlResponse]) => {
       const { view } = this.editor;
       const { tr } = view.state;
+      const pos = getPos();
+      if (pos === undefined) {
+        return;
+      }
+
+      // The node may have changed while the unfurl was loading, for example
+      // when it was switched to a card, so the current node is used.
+      const node = tr.doc.nodeAt(pos);
+      if (!node || node.type.name !== this.name) {
+        return;
+      }
+
+      // Only unfurls of a resource the mention can represent are stored, others
+      // such as documents depend on the viewer and change between views.
+      const unfurledType = MentionTypeForResource[unfurl.type];
+      if (!unfurledType) {
+        return;
+      }
 
       const label =
         unfurl.type === UnfurlResourceType.Issue ||
@@ -470,16 +601,14 @@ export default class Mention extends Node {
       // The resource an external link points at is only known once it has been
       // unfurled, so narrow a generic URL mention to the type it turned out to
       // be – an issue, pull request or project.
-      const unfurledType = MentionTypeForResource[unfurl.type];
+      // Cards keep the generic URL type so their display survives the unfurl.
       if (
-        unfurledType &&
         node.attrs.type === MentionType.URL &&
+        node.attrs.display !== MentionDisplay.Card &&
         unfurledType !== node.attrs.type
       ) {
         overrides.type = unfurledType;
       }
-
-      const pos = getPos();
 
       if (!isMatch(node.attrs, overrides)) {
         const transaction = tr.setNodeMarkup(pos, undefined, {

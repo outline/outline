@@ -117,7 +117,7 @@ class IntegrationAuthentication extends IdModel<
           this.constructor as typeof IntegrationAuthentication
         ).findByPk(this.id, {
           transaction,
-          lock: transaction.LOCK.UPDATE,
+          lock: transaction.LOCK.NO_KEY_UPDATE,
           rejectOnEmpty: true,
         });
 

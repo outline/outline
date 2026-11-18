@@ -3,13 +3,25 @@ import { unescapeRawTableCell } from "../lib/markdown/tableCell";
 
 const BR_TAG_REGEX = /<br\s*\/?>/gi;
 
-// Matches checkbox syntax with optional list prefix: "- [x] Task" or "[x] Task"
-// Stops at <br> or newline to handle multiple checkboxes in a cell
-const CHECKBOX_REGEX = /^(?:-\s*)?\[(X|\s|_|-)\]\s([^<\n]*)?/i;
-
 // Matches the opening of a notice (:::style), toggle (+++), code (```) or math
 // ($$) fence
 const FENCE_OPEN_REGEX = /^(?::::\S|\+{3,}|```|\$\$)/;
+
+// Matches a line that opens a bullet, ordered, alpha or checkbox list item
+const LIST_OPEN_REGEX = /^(?:[*+-]|\d+[.)]|[a-z]\.|\[[ \tx_-]\])[ \t]+\S/im;
+
+// Matches a checkbox item that has no list marker, such as "[x] Task"
+const BARE_CHECKBOX_REGEX = /^[ \t]*(\[[ \tx_-]\]\s)/gim;
+
+const BLOCK_CELL_TYPES = [
+  "container_notice_open",
+  "container_toggle_open",
+  "fence",
+  "math_block",
+  "bullet_list_open",
+  "ordered_list_open",
+  "checkbox_list_open",
+];
 
 /**
  * Find the offset of the first "\n" escape at or after the given offset that is
@@ -66,45 +78,46 @@ function splitOnBreaks(content: string): string[] {
 }
 
 /**
- * Block content (notice, toggle, code & math fences) is serialized onto a
- * single table-cell line using <br> in place of newlines so it does not break
- * the row. Reconstruct it by re-parsing the un-flattened source, round-tripping
- * back to the original block rather than leaving literal fence markers as
- * text.
+ * Block content (notice, toggle, code & math fences, lists) is serialized onto
+ * a single table-cell line using <br> in place of newlines so it does not
+ * break the row. Reconstruct it by re-parsing the un-flattened source,
+ * round-tripping back to the original block rather than leaving literal
+ * markers as text.
  *
  * @param md - the markdown-it instance, used to re-parse the cell source.
  * @param content - the raw inline content of the cell.
  * @param env - the markdown-it environment, forwarded to the nested parse.
- * @returns the reconstructed block tokens, or null if the cell is not a fence.
+ * @returns the reconstructed block tokens, or null if the cell is not a block.
  */
-function parseFencedCell(
+function parseBlockCell(
   md: MarkdownIt,
   content: string,
   env: unknown
 ): ReturnType<MarkdownIt["parse"]> | null {
   const source = content.replace(BR_TAG_REGEX, "\n");
+  let markdown: string;
+
   // A fenced block spans multiple lines and opens with its fence marker.
-  if (!source.includes("\n") || !FENCE_OPEN_REGEX.test(source)) {
+  if (source.includes("\n") && FENCE_OPEN_REGEX.test(source)) {
+    // Code & math fences are raw, so the parser won't undo the escaping the
+    // serializer added to keep the cell intact — reverse it here. Notice and
+    // toggle content is inline, so markdown unescapes it on re-parse.
+    const isRawFence = source.startsWith("```") || source.startsWith("$$");
+    markdown = isRawFence ? unescapeRawTableCell(source) : source;
+  } else if (LIST_OPEN_REGEX.test(source)) {
+    // Keep each <br> as a hard break, and add the list marker that checkbox
+    // items may be written without, such as "[x] Task".
+    markdown = content
+      .replace(BR_TAG_REGEX, "  \n")
+      .replace(BARE_CHECKBOX_REGEX, "- $1");
+  } else {
     return null;
   }
 
-  // Code & math fences are raw, so the parser won't undo the escaping the
-  // serializer added to keep the cell intact — reverse it here. Notice and
-  // toggle content is inline, so markdown unescapes it on re-parse.
-  const isRawFence = source.startsWith("```") || source.startsWith("$$");
-  const unescaped = isRawFence ? unescapeRawTableCell(source) : source;
-
-  const tokens = md.parse(unescaped, env);
-  const type = tokens[0]?.type;
-  if (
-    type === "container_notice_open" ||
-    type === "container_toggle_open" ||
-    type === "fence" ||
-    type === "math_block"
-  ) {
-    return tokens;
-  }
-  return null;
+  const tokens = md.parse(markdown, env);
+  return tokens.some((token) => BLOCK_CELL_TYPES.includes(token.type))
+    ? tokens
+    : null;
 }
 
 export default function markdownTables(md: MarkdownIt): void {
@@ -146,8 +159,13 @@ export default function markdownTables(md: MarkdownIt): void {
           // great, for now we are stuck checking the node type.
           if (breakParts.length > 1 && child.type !== "code_inline") {
             breakParts.forEach((part, index) => {
+              // Trim only around the breaks, keeping spaces next to siblings.
+              let text = index > 0 ? part.trimStart() : part;
+              if (index < breakParts.length - 1) {
+                text = text.trimEnd();
+              }
               const token = new state.Token("text", "", 1);
-              token.content = part.trim();
+              token.content = text;
               tokens[i].children?.push(token);
 
               if (index < breakParts.length - 1) {
@@ -192,86 +210,30 @@ export default function markdownTables(md: MarkdownIt): void {
           closeIndex++;
         }
 
-        // Check if the cell content looks like a checkbox (or multiple checkboxes)
         const inlineToken = tokens[i + 1];
-        if (inlineToken?.type !== "inline") {
-          // No inline content, just add paragraph wrapper
-          tokens.splice(
-            closeIndex,
-            0,
-            new state.Token("paragraph_close", "p", -1)
+        if (inlineToken?.type === "inline") {
+          // Reconstruct block content that was serialized onto a single line,
+          // replacing the inline token with the block tokens.
+          const blockTokens = parseBlockCell(
+            md,
+            inlineToken.content,
+            state.env
           );
-          tokens.splice(i + 1, 0, new state.Token("paragraph_open", "p", 1));
-          continue;
-        }
-
-        // Reconstruct notice, toggle, code & math fences that were serialized
-        // onto a single line, replacing the inline token with the block tokens.
-        const fenceTokens = parseFencedCell(md, inlineToken.content, state.env);
-        if (fenceTokens) {
-          tokens.splice(i + 1, closeIndex - i - 1, ...fenceTokens);
-          continue;
-        }
-
-        // Split content by <br> to find all checkboxes
-        const parts = inlineToken.content.split(BR_TAG_REGEX);
-        const checkboxItems: Array<{ checked: boolean; label: string }> = [];
-
-        for (const part of parts) {
-          const match = part.trim().match(CHECKBOX_REGEX);
-          if (match) {
-            checkboxItems.push({
-              checked: match[1].toLowerCase() === "x",
-              label: match[2] || "",
-            });
+          if (blockTokens) {
+            tokens.splice(i + 1, closeIndex - i - 1, ...blockTokens);
+            continue;
           }
         }
 
-        if (checkboxItems.length > 0) {
-          // Build tokens for all checkbox items
-          const newTokens: InstanceType<typeof state.Token>[] = [];
-
-          // Opening: checkbox_list_open
-          newTokens.push(new state.Token("checkbox_list_open", "ul", 1));
-
-          // Add each checkbox item
-          for (const item of checkboxItems) {
-            const itemOpen = new state.Token("checkbox_item_open", "li", 1);
-            if (item.checked) {
-              itemOpen.attrs = [["checked", "true"]];
-            }
-            newTokens.push(itemOpen);
-            newTokens.push(new state.Token("paragraph_open", "p", 1));
-
-            // Create inline token for the label
-            const labelInline = new state.Token("inline", "", 0);
-            labelInline.content = item.label;
-            const textToken = new state.Token("text", "", 0);
-            textToken.content = item.label;
-            labelInline.children = [textToken];
-            newTokens.push(labelInline);
-
-            newTokens.push(new state.Token("paragraph_close", "p", -1));
-            newTokens.push(new state.Token("checkbox_item_close", "li", -1));
-          }
-
-          // Closing: checkbox_list_close
-          newTokens.push(new state.Token("checkbox_list_close", "ul", -1));
-
-          // Replace the inline token with our new structure
-          tokens.splice(i + 1, closeIndex - i - 1, ...newTokens);
-        } else {
-          // markdown-it table parser does not return paragraphs inside the cells
-          // but prosemirror requires them, so we add 'em in here.
-          // Insert closing token first (before closeIndex shifts)
-          tokens.splice(
-            closeIndex,
-            0,
-            new state.Token("paragraph_close", "p", -1)
-          );
-          // Then insert opening token
-          tokens.splice(i + 1, 0, new state.Token("paragraph_open", "p", 1));
-        }
+        // markdown-it table parser does not return paragraphs inside the cells
+        // but prosemirror requires them, so we add 'em in here. Insert the
+        // closing token first, before closeIndex shifts.
+        tokens.splice(
+          closeIndex,
+          0,
+          new state.Token("paragraph_close", "p", -1)
+        );
+        tokens.splice(i + 1, 0, new state.Token("paragraph_open", "p", 1));
       }
     }
 

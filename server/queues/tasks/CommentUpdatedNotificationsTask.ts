@@ -2,6 +2,7 @@ import invariant from "invariant";
 import { Op } from "sequelize";
 import { MentionType, NotificationEventType } from "@shared/types";
 import { Comment, Document, Group, Notification, User } from "@server/models";
+import NotificationHelper from "@server/models/helpers/NotificationHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import type { CommentEvent, CommentUpdateEvent } from "@server/types";
 import { canUserAccessDocument } from "@server/utils/permissions";
@@ -126,6 +127,14 @@ export default class CommentUpdatedNotificationsTask extends BaseTask<CommentEve
 
     // Don't notify resolver
     userIdsNotified.push(event.actorId);
+
+    // Don't notify users that unsubscribed from the document
+    const unsubscribedUserIds =
+      await NotificationHelper.getUsersUnsubscribedFromThread(
+        document.id,
+        commentsAndReplies
+      );
+    userIdsNotified.push(...unsubscribedUserIds);
 
     for (const item of commentsAndReplies) {
       // Mentions:

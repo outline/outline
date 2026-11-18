@@ -27,6 +27,54 @@ function isNonPrimitive(value: unknown): value is object {
  * @returns copy of source where every Array and Object have been recursively
  *          reconstructed from their constituent elements.
  */
+/**
+ * Compares two JSON values for deep equality. This is faster than a generic
+ * deep equality check as it only handles the types that JSON can hold. Objects
+ * with a null prototype, such as ProseMirror attrs, are supported.
+ *
+ * @param a the first value.
+ * @param b the second value.
+ * @returns true if the values are deeply equal.
+ */
+export function isJSONEqual(a: unknown, b: unknown): boolean {
+  if (a === b) {
+    return true;
+  }
+  if (!isNonPrimitive(a) || !isNonPrimitive(b)) {
+    // NaN is equal to itself, as with isEqual.
+    return a !== a && b !== b;
+  }
+
+  if (Array.isArray(a) || Array.isArray(b)) {
+    if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) {
+      return false;
+    }
+    for (let i = 0; i < a.length; i++) {
+      if (!isJSONEqual(a[i], b[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  const keys = Object.keys(a);
+  if (keys.length !== Object.keys(b).length) {
+    return false;
+  }
+  for (const key of keys) {
+    if (
+      !hasOwn(b, key) ||
+      !isJSONEqual(
+        (a as Record<string, unknown>)[key],
+        (b as Record<string, unknown>)[key]
+      )
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export function clone<T>(source: T): T {
   if (!isNonPrimitive(source)) {
     // short-circuiting is faster than a single return

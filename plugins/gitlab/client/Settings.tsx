@@ -25,13 +25,16 @@ import { GitLabConnectButton } from "./components/GitLabButton";
 function GitLab() {
   const { integrations } = useStores();
   const { t } = useTranslation();
+  const gitlabIntegrations = integrations.filterByService(
+    IntegrationService.GitLab
+  );
   const query = useQuery();
   const error = query.get("error");
   const installRequest = query.get("install_request");
   const appName = env.APP_NAME;
 
   React.useEffect(() => {
-    void integrations.fetchAll({
+    void integrations.fetchAllIfNeeded({
       service: IntegrationService.GitLab,
       withRelations: true,
     });
@@ -63,20 +66,20 @@ function GitLab() {
       {isTruthyQueryValue(installRequest) && (
         <Notice>
           <Trans>
-            The owner of GitLab account has been requested to install the
+            The owner of the GitLab account has been requested to install the
             application. Once approved, the connection will be completed.
           </Trans>
         </Notice>
       )}
       <Text as="p">
         <Trans>
-          Enable previews of GitLab issues and merge requests in documents by
-          connecting a GitLab organization or specific repositories to {appName}
-          .
+          Enable previews of GitLab issues, merge requests, and projects in
+          documents by connecting a GitLab group or specific projects to{" "}
+          {{ appName }}.
         </Trans>
       </Text>
 
-      {integrations.gitlab.some((int) => int.settings.gitlab?.installation) ? (
+      {gitlabIntegrations.some((int) => int.settings.gitlab?.installation) ? (
         <>
           <Heading as="h2">
             <Flex justify="space-between" auto>
@@ -85,7 +88,7 @@ function GitLab() {
             </Flex>
           </Heading>
           <List>
-            {integrations.gitlab.map((integration) => {
+            {gitlabIntegrations.map((integration) => {
               const gitlabAccount =
                 integration.settings?.gitlab?.installation?.account;
               const integrationCreatedBy = integration.user

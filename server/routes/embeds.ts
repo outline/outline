@@ -1,3 +1,4 @@
+import Router from "@koa/router";
 import escape from "escape-html";
 import type { Context, Next } from "koa";
 import env from "@server/env";
@@ -224,3 +225,12 @@ ${resizeObserverScript(ctx)}
 
   return next();
 };
+
+const router = new Router();
+
+router.get(
+  ["/embeds/gitlab", "/embeds/github", "/embeds/dropbox", "/embeds/pinterest"],
+  renderEmbed
+);
+
+export default router;

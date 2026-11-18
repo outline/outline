@@ -1,4 +1,10 @@
-import type { InferAttributes, InferCreationAttributes } from "sequelize";
+import type {
+  CreateOptions,
+  DestroyOptions,
+  InferAttributes,
+  InferCreationAttributes,
+  Transaction,
+} from "sequelize";
 import {
   AfterCreate,
   AfterDestroy,
@@ -68,14 +74,51 @@ class GroupUser extends Model<
 
   // hooks
 
+  /**
+   * Updates the group timestamp and invalidates document membership IDs after a user joins.
+   *
+   * @param model - the new group membership.
+   * @param options - the creation options, including the transaction.
+   * @returns a promise that resolves when the updates are complete.
+   */
   @AfterCreate
-  static async invalidateDocumentIdsAfterCreate(model: GroupUser) {
+  static async handleMembershipCreated(
+    model: GroupUser,
+    options: CreateOptions<GroupUser>
+  ) {
+    await this.touchGroup(model, options.transaction);
     await Document.invalidateMembershipDocumentIds([model.userId]);
   }
 
+  /**
+   * Updates the group timestamp and invalidates document membership IDs after a user leaves.
+   *
+   * @param model - the removed group membership.
+   * @param options - the deletion options, including the transaction.
+   * @returns a promise that resolves when the updates are complete.
+   */
   @AfterDestroy
-  static async invalidateDocumentIdsAfterDestroy(model: GroupUser) {
+  static async handleMembershipDestroyed(
+    model: GroupUser,
+    options: DestroyOptions<GroupUser>
+  ) {
+    await this.touchGroup(model, options.transaction);
     await Document.invalidateMembershipDocumentIds([model.userId]);
+  }
+
+  private static async touchGroup(
+    model: GroupUser,
+    transaction?: Transaction | null
+  ) {
+    // Sequelize skips bulk updates when updatedAt is the only value.
+    await model.sequelize
+      .getQueryInterface()
+      .bulkUpdate(
+        Group.getTableName(),
+        { updatedAt: new Date() },
+        { id: model.groupId },
+        { transaction }
+      );
   }
 }
 

@@ -10,7 +10,7 @@ export const BatchSchema = BaseSchema.extend({
           /** The RPC method to invoke, e.g. "documents.update". */
           method: z.string(),
           /** The request body passed to the method. */
-          body: z.record(z.string(), z.unknown()).optional(),
+          body: z.record(z.string(), z.json()).optional(),
         })
       )
       .min(1)
@@ -21,3 +21,7 @@ export const BatchSchema = BaseSchema.extend({
 });
 
 export type BatchReq = z.infer<typeof BatchSchema>;
+
+export type BatchRequestBody = NonNullable<
+  BatchReq["body"]["requests"][number]["body"]
+>;

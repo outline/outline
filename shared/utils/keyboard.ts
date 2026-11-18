@@ -58,3 +58,14 @@ export function normalizeKeyDisplay(key: string, toUpperCase?: boolean) {
     .replace(/Control/i, ctrlDisplay)
     .replace(/Shift/i, "⇧");
 }
+
+/**
+ * Returns true if the given keyboard event is for a key that produces a
+ * character, as opposed to a named key such as "Enter", "Shift" or "F1".
+ *
+ * @param event The keyboard event to check.
+ * @returns True if the key produces a character.
+ */
+export function isPrintableKeyEvent(event: Pick<KeyboardEvent, "key">) {
+  return !/^[A-Z][A-Za-z0-9]+$/.test(event.key);
+}

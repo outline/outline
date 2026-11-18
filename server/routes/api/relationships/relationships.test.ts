@@ -175,8 +175,8 @@ describe("#relationships.info", () => {
 describe("#relationships.list", () => {
   let admin: User;
   let user: User;
-  let anotherUser: User; // eslint-disable-line @typescript-eslint/no-unused-vars
-  let relationships: Relationship[]; // eslint-disable-line @typescript-eslint/no-unused-vars
+  let anotherUser: User; // oxlint-disable-line @typescript-eslint/no-unused-vars
+  let relationships: Relationship[]; // oxlint-disable-line @typescript-eslint/no-unused-vars
   let documents: Document[];
 
   beforeEach(async () => {

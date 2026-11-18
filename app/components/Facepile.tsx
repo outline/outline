@@ -63,7 +63,7 @@ function Facepile({
               model,
               size,
               style: {
-                marginRight: lastChild ? 0 : -4,
+                marginRight: lastChild ? 0 : -Math.round(size / 7),
                 ...(lastChild || filtered.length === 1
                   ? {}
                   : { clipPath: `url(#${clipPathId(size)})` }),

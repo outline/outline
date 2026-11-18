@@ -1,8 +1,13 @@
 import env from "@server/env";
-import type { User } from "@server/models";
+import type { Collection, User } from "@server/models";
 import { Team, type Group } from "@server/models";
 import type Model from "@server/models/base/Model";
-import { GroupPermission } from "@shared/types";
+import {
+  CommentingAccess,
+  GroupPermission,
+  TeamPreference,
+  type PlanFeature,
+} from "@shared/types";
 import invariant from "invariant";
 
 type Args = boolean | string | Args[];
@@ -81,6 +86,42 @@ export function isTeamAdmin(
 }
 
 /**
+ * Check if the actor owns the personal collection.
+ *
+ * @param actor The actor to check
+ * @param collection The collection to check
+ * @returns True if the collection is personal and owned by the actor
+ */
+export function isCollectionOwner(
+  actor: User,
+  collection: Collection | null | undefined
+): boolean {
+  return (
+    !!collection?.ownerId &&
+    isTeamModel(actor, collection) &&
+    collection.ownerId === actor.id
+  );
+}
+
+/**
+ * Check if documents in the collection can be changed. A personal collection
+ * is read-only when the team turns personal documents off.
+ *
+ * @param actor The actor to check
+ * @param collection The collection to check
+ * @returns True if documents in the collection can be changed
+ */
+export function isCollectionWritable(
+  actor: User,
+  collection: Collection | null | undefined
+): boolean {
+  return (
+    !collection?.ownerId ||
+    !!actor.team?.getPreference(TeamPreference.PersonalDocs)
+  );
+}
+
+/**
  * Check if the actor is a member of the team.
  *
  * @param actor The actor to check
@@ -92,6 +133,19 @@ export function isTeamMember(actor: User, model: Model | null | undefined) {
 }
 
 /**
+ * Check if commenting is enabled for the actor's team.
+ *
+ * @param actor The actor to check
+ * @returns True if the actor's team allows commenting
+ */
+export function isCommentingEnabled(actor: User): boolean {
+  const commenting = actor.team?.getPreference(TeamPreference.Commenting);
+
+  // A legacy boolean `false` (team not yet migrated) means disabled.
+  return commenting !== CommentingAccess.None && commenting !== false;
+}
+
+/**
  * Check the actors team is mutable, meaning the team models can be modified.
  *
  * @param actor The actor to check
@@ -99,6 +153,24 @@ export function isTeamMember(actor: User, model: Model | null | undefined) {
  */
 export function isTeamMutable(_actor: User, _model?: Model | null) {
   return true;
+}
+
+/**
+ * Check if the team is entitled to use a feature.
+ *
+ * IMPORTANT NOTICE: Bypassing or modifying license controls is a breach of
+ * the license agreement, and will automatically terminate your rights under
+ * the license for the current and all other versions.
+ *
+ * @param team the team to check.
+ * @param feature the feature to check for.
+ * @returns true if the team is entitled to the feature.
+ */
+export function teamHasEntitlement(
+  team: Team | null | undefined,
+  feature: PlanFeature
+): boolean {
+  return !!team?.entitlements.includes(feature);
 }
 
 /**
@@ -119,7 +191,7 @@ export function isCloudHosted() {
  * @returns True if the actor is an admin of the group
  */
 export function isGroupAdmin(actor: User, model: Group | null): boolean {
-  if (!model || !("id" in model)) {
+  if (!model || !("id" in model) || !isTeamModel(actor, model)) {
     return false;
   }
 

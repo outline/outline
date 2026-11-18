@@ -55,7 +55,7 @@ describe("teams.create", () => {
     expect(body.data.team.subdomain).toEqual(slug);
   });
 
-  it.skip("requires a cloud hosted deployment", async () => {
+  it("requires a cloud hosted deployment", async () => {
     setSelfHosted();
 
     const team = await buildTeam();
@@ -65,7 +65,7 @@ describe("teams.create", () => {
         name: faker.company.name(),
       },
     });
-    expect(res.status).toEqual(402);
+    expect(res.status).toEqual(403);
   });
 });
 

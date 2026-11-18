@@ -62,7 +62,7 @@ function mathInline(state: StateInline, silent: boolean): boolean {
   const start = state.pos + inlineMathDelimiter.length;
   match = start;
   while ((match = state.src.indexOf(inlineMathDelimiter, match)) !== -1) {
-    // found potential delimeter, look for escapes, pos will point to
+    // found potential delimiter, look for escapes, pos will point to
     // first non escape when complete
     pos = match - 1;
     while (state.src[pos] === "\\") {

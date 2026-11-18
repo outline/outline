@@ -73,6 +73,11 @@ export function configureChildHeapLimit(processCount: number) {
  * @returns a promise that resolves when the checks have completed successfully.
  */
 export function checkPendingMigrations(): Promise<void> {
+  // Migrations are run as a separate release step in the hosted service.
+  if (env.isCloudHosted) {
+    return Promise.resolve();
+  }
+
   return new Promise((resolve) => {
     const child = fork(
       path.join(__dirname, "..", "scripts", "checkMigrations.js"),

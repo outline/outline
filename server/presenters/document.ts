@@ -58,6 +58,7 @@ async function presentDocument(
   const res: Record<string, unknown> = {
     id: document.id,
     url: document.path,
+    path: document.path,
     urlId: document.urlId,
     title: document.title,
     data:
@@ -110,6 +111,13 @@ async function presentDocument(
     res.tasks = document.tasks;
     res.isCollectionDeleted = await document.isCollectionDeleted();
     res.collectionId = document.collectionId;
+    // The owner of the personal collection that the document is in. Left out
+    // when the collection is not loaded, so that the value is not cleared.
+    if (!document.collectionId) {
+      res.ownerId = null;
+    } else if (document.collection !== undefined) {
+      res.ownerId = document.collection?.ownerId ?? null;
+    }
     res.parentDocumentId = document.parentDocumentId;
     res.createdBy = presentUser(document.createdBy);
     res.updatedBy = presentUser(document.updatedBy);

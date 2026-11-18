@@ -10,7 +10,6 @@ import { Minute } from "@shared/utils/time";
 
 export default class CleanupOldSearchQueriesTask extends CronTask {
   public async perform({ partition }: Props) {
-    // TODO: Hardcoded right now, configurable later
     const retentionDays = 365;
     const cutoffDate = subDays(new Date(), retentionDays);
     const maxSearchQueriesPerTask = 100000;

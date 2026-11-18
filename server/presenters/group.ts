@@ -14,6 +14,8 @@ export default async function presentGroup(group: Group) {
     id: group.id,
     name: group.name,
     description: group.description,
+    icon: group.icon,
+    color: group.color,
     externalId: group.externalId,
     memberCount: await group.memberCount,
     disableMentions: group.disableMentions,

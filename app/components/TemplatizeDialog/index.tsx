@@ -35,7 +35,7 @@ function DocumentTemplatizeDialog({ documentId }: Props) {
 
     if (template) {
       history.push(template.path);
-      toast.success(t("Template created, go ahead and customize it"));
+      toast.success(t("Template created – go ahead and customize it"));
     }
   }, [t, templates, documentId, history, collectionId, publish]);
 
@@ -48,7 +48,7 @@ function DocumentTemplatizeDialog({ documentId }: Props) {
       <Flex column gap={12}>
         <div>
           {t(
-            "Creating a template is a non-destructive action – we'll make a copy of the document and turn it into a template that can be used as a starting point for new documents."
+            "Creating a template is a non-destructive action – we’ll make a copy of the document and turn it into a template that can be used as a starting point for new documents."
           )}
         </div>
         <SelectLocation

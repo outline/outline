@@ -88,7 +88,7 @@ function Umami() {
 
       <Text as="p" type="secondary">
         <Trans>
-          Configure a Umami installation to send views and analytics from the
+          Configure an Umami installation to send views and analytics from the
           workspace to your own Umami instance.
         </Trans>
       </Text>
@@ -97,7 +97,7 @@ function Umami() {
           label={t("Instance URL")}
           name="umamiDomain"
           description={t(
-            "The URL of your Umami instance. If you are using Umami Cloud it will begin with {{ url }}",
+            "The URL of your Umami instance. If you are using Umami Cloud, it will begin with {{ url }}",
             {
               url: "https://cloud.umami.is/",
             }

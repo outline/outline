@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import Dropzone from "react-dropzone";
+import Dropzone, { type Accept } from "react-dropzone";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled, { css } from "styled-components";
@@ -10,7 +10,7 @@ import useImportDocument from "~/hooks/useImportDocument";
 
 type Props = {
   disabled: boolean;
-  accept: string;
+  accept: Accept;
   collectionId: string;
   children?: React.ReactNode;
 };
@@ -36,6 +36,7 @@ const DropToImport: React.FC<Props> = ({
       disabled={disabled}
       noClick
       multiple
+      noPaste
     >
       {({ getRootProps, getInputProps, isDragActive }) => (
         <DropzoneContainer

@@ -33,7 +33,7 @@ import ErrorOffline from "../Errors/ErrorOffline";
 import { Collection as CollectionScene } from "./Collection";
 import { Document as DocumentScene } from "./Document";
 import DelayedMount from "~/components/DelayedMount";
-import lazyWithRetry from "~/utils/lazyWithRetry";
+import lazyWithRetry from "@shared/utils/lazyWithRetry";
 import { ShareContext } from "@shared/hooks/useShare";
 import ClickablePadding from "~/components/ClickablePadding";
 
@@ -138,7 +138,7 @@ function SharedScene() {
 
   const pageTitle =
     model instanceof Collection
-      ? model.name
+      ? model.displayName
       : model instanceof Document
         ? model.title
         : undefined;
@@ -218,7 +218,7 @@ function SharedScene() {
               config?.name && isCloudHosted ? (
                 <Content>
                   {t(
-                    "{{ teamName }} is using {{ appName }} to share documents, please login to continue.",
+                    "{{ teamName }} is using {{ appName }} to share documents. Please log in to continue.",
                     {
                       teamName: config.name,
                       appName: env.APP_NAME,

@@ -3,7 +3,7 @@ import { EditIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { IconTitleWrapper } from "@shared/components/Icon";
 import useShare from "@shared/hooks/useShare";
 import type CollectionModel from "~/models/Collection";
@@ -11,6 +11,7 @@ import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import CenteredContent from "~/components/CenteredContent";
 import Flex from "~/components/Flex";
+import { headerMetaStyles } from "~/components/HeaderMeta";
 import Heading from "~/components/Heading";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import Scene from "~/components/Scene";
@@ -21,7 +22,10 @@ import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import { collectionPath } from "~/utils/routeHelpers";
 import Overview from "../Collection/components/Overview";
-import { AppearanceAction } from "~/components/Sharing/components/Actions";
+import {
+  AppearanceAction,
+  SearchAction,
+} from "~/components/Sharing/components/Actions";
 
 type Props = {
   collection: CollectionModel;
@@ -29,13 +33,14 @@ type Props = {
 
 function SharedCollection({ collection }: Props) {
   const { t } = useTranslation();
-  const { shareId, showLastUpdated } = useShare();
+  const { shareId, sharedTree, showLastUpdated } = useShare();
   const can = usePolicy(collection);
   const isMobile = useMobile();
+  const hasSidebar = !!sharedTree?.children?.length;
 
   const editAction = (
     <Action>
-      <Tooltip content={t("Edit collection")} shortcut="e" placement="bottom">
+      <Tooltip content={t("Edit collection")} shortcut="e" side="bottom">
         <Button
           as={Link}
           icon={<EditIcon />}
@@ -54,17 +59,18 @@ function SharedCollection({ collection }: Props) {
   return (
     <Scene
       centered={false}
-      textTitle={collection.name}
+      textTitle={collection.displayName}
       left={<div />}
       title={
         <>
           <CollectionIcon collection={collection} expanded />
-          &nbsp;{collection.name}
+          &nbsp;{collection.displayName}
         </>
       }
       actions={
         <>
           <AppearanceAction />
+          {hasSidebar && <SearchAction />}
           {can.update ? editAction : null}
         </>
       }
@@ -75,7 +81,7 @@ function SharedCollection({ collection }: Props) {
             <IconTitleWrapper>
               <CollectionIcon collection={collection} size={40} expanded />
             </IconTitleWrapper>
-            {collection.name}
+            {collection.displayName}
           </CollectionHeading>
           {!!shareId && showLastUpdated && !!collection.updatedAt ? (
             <SharedMeta type="tertiary">
@@ -102,8 +108,7 @@ const CollectionHeading = styled(Heading)`
 `;
 
 const SharedMeta = styled(Text)`
-  margin: -12px 0 2em 0;
-  font-size: 14px;
+  ${headerMetaStyles}
 `;
 
 export const Collection = observer(SharedCollection);

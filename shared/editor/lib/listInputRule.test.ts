@@ -61,13 +61,13 @@ function typeTrigger(
       null,
       "￼"
     ) + triggerChar;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // oxlint-disable-next-line @typescript-eslint/no-explicit-any
   const match = (rule as any).match.exec(textBefore) as RegExpMatchArray | null;
   if (!match) {
     return state;
   }
   const startPos = from - (match[0].length - triggerChar.length);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // oxlint-disable-next-line @typescript-eslint/no-explicit-any
   const tr = (rule as any).handler(state, match, startPos, to);
   if (tr) {
     state = state.apply(tr);

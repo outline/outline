@@ -47,8 +47,8 @@ function TeamNew({ user }: Props) {
       <form onSubmit={handleSubmit}>
         <Notice>
           <Trans>
-            Please note that workspaces are completely separated. They can have
-            a different domain, settings, users, and billing.
+            Please note that workspaces are completely separate. They can have a
+            different domain, settings, users, and billing.
           </Trans>
         </Notice>
 
@@ -78,7 +78,7 @@ function TeamNew({ user }: Props) {
           />
           .{" "}
           <Trans>
-            To create a workspace under another email please sign up from the
+            To create a workspace under another email, please sign up from the
             homepage
           </Trans>
         </Text>

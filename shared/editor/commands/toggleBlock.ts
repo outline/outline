@@ -224,15 +224,33 @@ export const indentBlock: Command = (state, dispatch) => {
     return false;
   }
 
-  const slice = new Slice(
-    Fragment.from(state.schema.nodes.container_toggle.create()),
-    1,
-    0
-  );
+  const toggle = state.doc.nodeAt(before)!;
+  const from = before + toggle.nodeSize;
+  const node = state.doc.nodeAt(from)!;
+  const to = from + node.nodeSize;
 
-  const from = before + state.doc.nodeAt(before)!.nodeSize;
-  const to = from + state.doc.nodeAt(from)!.nodeSize;
-  const step = new ReplaceAroundStep(from - 1, to, from, to, slice, 0, true);
+  if (
+    !toggle.canReplace(
+      toggle.childCount,
+      toggle.childCount,
+      Fragment.from(node)
+    )
+  ) {
+    return false;
+  }
+
+  // Move the block to the end of the toggle body without requiring it to be
+  // a valid toggle head.
+  const slice = new Slice(Fragment.from(toggle), 0, 0);
+  const step = new ReplaceAroundStep(
+    before,
+    to,
+    from,
+    to,
+    slice,
+    toggle.nodeSize - 1,
+    false
+  );
 
   const tr = state.tr.step(step).scrollIntoView();
   if (dispatch) {
@@ -277,6 +295,50 @@ export const toggleBlock: Command = (state, dispatch) => {
 
   return true;
 };
+
+/**
+ * Unfold every folded toggle block that hides the given position in its body.
+ *
+ * @param pos the document position to reveal.
+ * @returns a command that unfolds the toggle blocks, or false when none hide the position.
+ */
+export const unfoldToggleBlocksAt =
+  (pos: number): Command =>
+  (state, dispatch) => {
+    const pluginState = toggleFoldPluginKey.getState(state);
+    if (!pluginState) {
+      return false;
+    }
+
+    const $pos = state.doc.resolve(pos);
+    const isToggle = isToggleBlock(state);
+    const targets: number[] = [];
+
+    for (let d = $pos.depth; d > 0; d--) {
+      const node = $pos.node(d);
+
+      // The head is the first child and stays visible when folded.
+      if (
+        isToggle(node) &&
+        pluginState.foldedIds.has(node.attrs.id) &&
+        $pos.index(d) > 0
+      ) {
+        targets.push($pos.before(d));
+      }
+    }
+
+    if (!targets.length) {
+      return false;
+    }
+
+    dispatch?.(
+      state.tr.setMeta(toggleFoldPluginKey, {
+        type: Action.UNFOLD,
+        at: targets,
+      })
+    );
+    return true;
+  };
 
 export const createParagraphNearPreservingBody: Command = (state, dispatch) => {
   const { $cursor } = state.selection as TextSelection;

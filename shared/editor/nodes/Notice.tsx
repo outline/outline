@@ -40,7 +40,7 @@ export default class Notice extends Node {
         },
       },
       content:
-        "(list | blockquote | hr | paragraph | heading | code_block | code_fence | attachment)+",
+        "(list | blockquote | hr | paragraph | heading | code_block | code_fence | attachment | table)+",
       group: "block",
       defining: true,
       draggable: false,
@@ -177,7 +177,9 @@ export default class Notice extends Node {
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
-    state.write("\n:::" + (node.attrs.style || "info") + "\n");
+    // Separate writes, so that a list or quote delimiter also prefixes the opener.
+    state.write("\n");
+    state.write(":::" + (node.attrs.style || "info") + "\n");
     state.renderContent(node);
     state.ensureNewLine();
     state.write(":::");

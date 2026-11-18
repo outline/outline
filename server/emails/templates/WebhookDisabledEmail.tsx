@@ -35,7 +35,7 @@ export default class WebhookDisabledEmail extends BaseEmail<Props> {
 
   protected renderAsText({ webhookName, teamUrl }: Props): string {
     return `
-${this.t("Your webhook ({{ webhookName }}) has been automatically disabled due to a high failure rate in recent delivery attempts. You can re-enable by editing the webhook.", { webhookName })}
+${this.t("Your webhook ({{ webhookName }}) has been automatically disabled due to a high failure rate in recent delivery attempts. You can re-enable it by editing the webhook.", { webhookName })}
 
 ${this.t("Webhook settings")}: ${teamUrl}/settings/webhooks
 `;
@@ -53,7 +53,7 @@ ${this.t("Webhook settings")}: ${teamUrl}/settings/webhooks
           <Heading>{this.t("Webhook disabled")}</Heading>
           <p>
             {this.t(
-              "Your webhook ({{ webhookName }}) has been automatically disabled due to a high failure rate in recent delivery attempts. You can re-enable by editing the webhook.",
+              "Your webhook ({{ webhookName }}) has been automatically disabled due to a high failure rate in recent delivery attempts. You can re-enable it by editing the webhook.",
               { webhookName }
             )}
           </p>

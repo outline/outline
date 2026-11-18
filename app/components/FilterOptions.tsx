@@ -3,6 +3,8 @@ import { CheckmarkIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { breakpoint } from "@shared/styles/breakpoint";
+import { MOBILE_TOUCH_TARGET } from "@shared/constants";
 import { s } from "@shared/styles";
 import type { FetchPageParams } from "~/stores/base/Store";
 import Button, { Inner } from "~/components/Button";
@@ -23,7 +25,7 @@ import { Menu, MenuContent, MenuTrigger, MenuButton } from "./primitives/Menu";
 import * as MenuComponents from "./primitives/components/Menu";
 import { MenuIconWrapper } from "./primitives/components/Menu";
 
-interface TFilterOption extends PaginatedItem {
+export interface TFilterOption extends PaginatedItem {
   key: string;
   label: string;
   icon?: React.ReactNode;
@@ -40,6 +42,12 @@ type Props = {
   fetchQuery?: (options: FetchPageParams) => Promise<PaginatedItem[]>;
   fetchQueryOptions?: Record<string, string>;
   disclosure?: boolean;
+  /** Custom element that opens the options, defaults to a button showing the selection. */
+  trigger?: React.ReactElement;
+  /** Whether the options are open when the component mounts. */
+  defaultOpen?: boolean;
+  /** Callback when the options open or close. */
+  onOpenChange?: (open: boolean) => void;
 };
 
 const FilterOptions = ({
@@ -52,17 +60,34 @@ const FilterOptions = ({
   fetchQuery,
   fetchQueryOptions,
   disclosure = true,
+  trigger: customTrigger,
+  defaultOpen = false,
+  onOpenChange,
   ...rest
 }: Props) => {
   const { t } = useTranslation();
   const isMobile = useMobile();
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const listRef = React.useRef<HTMLDivElement | null>(null);
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpenState] = React.useState(defaultOpen);
+  // A menu that mounts open shows at once; later opens animate as usual.
+  const [skipAnimation, setSkipAnimation] = React.useState(defaultOpen);
+  const setOpen = React.useCallback(
+    (value: boolean) => {
+      setOpenState(value);
+      if (!value) {
+        setSkipAnimation(false);
+      }
+      onOpenChange?.(value);
+    },
+    [onOpenChange]
+  );
   const selectedItems = options.filter((option) =>
     selectedKeys.includes(option.key)
   );
   const [query, setQuery] = React.useState("");
+  // Defer filtering so typing in the search input stays responsive.
+  const deferredQuery = React.useDeferredValue(query);
 
   const selectedLabel = selectedItems.length
     ? selectedItems.map((selected) => selected.label).join(", ")
@@ -107,7 +132,7 @@ const FilterOptions = ({
         />
       );
     },
-    [onSelect, showIcons, selectedKeys, isMobile]
+    [onSelect, setOpen, showIcons, selectedKeys, isMobile]
   );
 
   const handleFilter = React.useCallback(
@@ -118,9 +143,9 @@ const FilterOptions = ({
   );
 
   const filteredOptions = React.useMemo(() => {
-    const normalizedQuery = deburr(query.toLowerCase());
+    const normalizedQuery = deburr(deferredQuery.toLowerCase());
 
-    const filtered = query
+    const filtered = deferredQuery
       ? options.filter((option) =>
           deburr(option.label).toLowerCase().includes(normalizedQuery)
         )
@@ -140,7 +165,7 @@ const FilterOptions = ({
 
       // If both have the same selection state and there's a query,
       // sort options starting with query first
-      if (query) {
+      if (deferredQuery) {
         const aStartsWith = deburr(a.label)
           .toLowerCase()
           .startsWith(normalizedQuery);
@@ -158,7 +183,7 @@ const FilterOptions = ({
 
       return 0;
     });
-  }, [options, query, selectedKeys]);
+  }, [options, deferredQuery, selectedKeys]);
 
   const handleKeyDown = React.useCallback(
     (ev: React.KeyboardEvent) => {
@@ -189,7 +214,7 @@ const FilterOptions = ({
           break;
       }
     },
-    [filteredOptions, onSelect]
+    [filteredOptions, onSelect, setOpen]
   );
 
   const handleEscapeFromList = React.useCallback((ev: React.KeyboardEvent) => {
@@ -215,7 +240,7 @@ const FilterOptions = ({
   const showFilterInput = showFilter || options.length > 10;
   const defaultLabel = rest.defaultLabel || t("Filter options");
 
-  const trigger = (
+  const trigger = customTrigger ?? (
     <StyledButton
       className={className}
       icon={selectedItems[0]?.key && selectedItems[0]?.icon}
@@ -267,7 +292,12 @@ const FilterOptions = ({
     <MenuProvider variant="dropdown">
       <Menu open={open} onOpenChange={setOpen}>
         <MenuTrigger>{trigger}</MenuTrigger>
-        <MenuContent aria-label={defaultLabel} align="start">
+        <MenuContent
+          aria-label={defaultLabel}
+          align="start"
+          maxHeight="75vh"
+          skipAnimation={skipAnimation}
+        >
           {list}
           {showFilterInput && (
             <SearchInput
@@ -357,6 +387,16 @@ export const StyledButton = styled(Button)`
     line-height: 28px;
     min-height: auto;
   }
+
+  ${breakpoint("mobile", "tablet")`
+    && {
+      height: ${MOBILE_TOUCH_TARGET}px;
+    }
+
+    && ${Inner} {
+      min-height: ${MOBILE_TOUCH_TARGET}px;
+    }
+  `};
 `;
 
 export default FilterOptions;

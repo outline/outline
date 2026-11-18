@@ -41,7 +41,7 @@ function Applications() {
       <Heading>{t("Applications")}</Heading>
       <Text as="p" type="secondary">
         <Trans
-          defaults="Applications allow you to build internal or public integrations with Outline and provide secure access via OAuth. For more details see the <em>developer documentation</em>."
+          defaults="Applications allow you to build internal or public integrations with Outline and provide secure access via OAuth. For more details, see the <em>developer documentation</em>."
           components={{
             em: (
               <a

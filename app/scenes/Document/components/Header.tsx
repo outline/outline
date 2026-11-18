@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { TableOfContentsIcon, EditIcon } from "outline-icons";
+import { DoneIcon, TableOfContentsIcon, EditIcon } from "outline-icons";
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -96,6 +96,8 @@ function DocumentHeader({
   // navigates away from the doc
   const [wasNew] = useState(document.isPersistedOnce);
 
+  const saveLabel = isDraft ? t("Save draft") : t("Done editing");
+
   const handleSave = useCallback(() => {
     onSave({
       done: true,
@@ -121,7 +123,7 @@ function DocumentHeader({
             : `${t("Show contents")} (${t("available when headings are added")})`
       }
       shortcut={`Ctrl+${altDisplay}+h`}
-      placement="bottom"
+      side="bottom"
     >
       <TocButton
         aria-label={t("Show contents")}
@@ -139,7 +141,7 @@ function DocumentHeader({
           noun: document.noun,
         })}
         shortcut="e"
-        placement="bottom"
+        side="bottom"
       >
         <Button
           as={Link}
@@ -170,9 +172,7 @@ function DocumentHeader({
       $hidden={isEditingFocus}
       hasSidebar
       left={
-        isMobile ? (
-          <TableOfContentsMenu />
-        ) : (
+        isMobile ? null : (
           <DocumentBreadcrumb document={document}>
             {toc}{" "}
             <StarAction>
@@ -222,17 +222,18 @@ function DocumentHeader({
           {isEditing && (
             <Action>
               <Tooltip
-                content={isDraft ? t("Save draft") : t("Done editing")}
+                content={saveLabel}
                 shortcut={`${metaDisplay}+enter`}
-                placement="bottom"
+                side="bottom"
               >
                 <Button
                   onClick={handleSave}
                   disabled={savingIsDisabled}
-                  neutral={isDraft}
-                  hideIcon
+                  neutral={isDraft || isMobile}
+                  icon={isMobile ? <DoneIcon /> : undefined}
+                  aria-label={isMobile ? saveLabel : undefined}
                 >
-                  {isDraft ? t("Save draft") : t("Done editing")}
+                  {isMobile ? null : saveLabel}
                 </Button>
               </Tooltip>
             </Action>
@@ -257,7 +258,7 @@ function DocumentHeader({
                 <ChangesNavigation />
               </Action>
               <Action>
-                <Tooltip content={t("Restore version")} placement="bottom">
+                <Tooltip content={t("Restore version")} side="bottom">
                   <Button
                     action={restoreRevision}
                     disabled={revision.createdAt === document.updatedAt}
@@ -280,6 +281,11 @@ function DocumentHeader({
               >
                 {document.collectionId ? t("Publish") : `${t("Publish")}…`}
               </Button>
+            </Action>
+          )}
+          {isMobile && (
+            <Action>
+              <TableOfContentsMenu />
             </Action>
           )}
           <Action>

@@ -12,7 +12,7 @@ import { faWindows } from "@fortawesome/free-brands-svg-icons/faWindows";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { KeyIcon } from "outline-icons";
 import styled from "styled-components";
-import { PasskeyBrand } from "@shared/utils/passkeys";
+import { getDesktopAppPlatform, PasskeyBrand } from "@shared/utils/passkeys";
 
 interface PasskeyIconProps {
   passkey: {
@@ -35,6 +35,13 @@ function PasskeyIcon({ passkey, size = 24 }: PasskeyIconProps) {
 
   // Detect icon based on AAGUID
   const getAaguidIcon = () => {
+    switch (getDesktopAppPlatform(aaguid, userAgent)) {
+      case "macOS":
+        return faApple;
+      case "Windows":
+        return faWindows;
+    }
+
     if (!aaguid) {
       return undefined;
     }

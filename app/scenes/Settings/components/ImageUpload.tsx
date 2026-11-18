@@ -7,6 +7,7 @@ import { useDropzone } from "react-dropzone";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { errToString } from "@shared/utils/error";
+import { dataUrlToFile } from "@shared/utils/files";
 import { s } from "@shared/styles";
 import { AttachmentPreset } from "@shared/types";
 import { AttachmentValidation } from "@shared/validations";
@@ -14,7 +15,7 @@ import ButtonLarge from "~/components/ButtonLarge";
 import Flex from "~/components/Flex";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import useStores from "~/hooks/useStores";
-import { uploadFile, dataUrlToBlob } from "~/utils/files";
+import { uploadFile, extname, toDropzoneAccept } from "~/utils/files";
 import { ImageHelper } from "~/utils/ImageHelper";
 
 export type Props = {
@@ -25,13 +26,20 @@ export type Props = {
   children?: React.ReactNode;
 };
 
-const ImageUpload: React.FC<Props> = ({
+/** Imperative handle exposed by ImageUpload. */
+export interface ImageUploadHandle {
+  /** Opens the file picker. */
+  open: () => void;
+}
+
+const ImageUpload = ({
   onSuccess,
   onError,
   submitText,
   borderRadius,
   children,
-}) => {
+  ref,
+}: Props & { ref?: React.Ref<ImageUploadHandle> }) => {
   const { dialogs } = useStores();
   const { t } = useTranslation();
 
@@ -39,14 +47,13 @@ const ImageUpload: React.FC<Props> = ({
   const [isConverting, setIsConverting] = useState(false);
 
   const uploadImage = React.useCallback(
-    async (blob: Blob, file: File) => {
+    async (file: File) => {
       try {
-        const compressed = await ImageHelper.compress(blob, {
+        const compressed = await ImageHelper.compress(file, {
           maxHeight: 512,
           maxWidth: 512,
         });
         const attachment = await uploadFile(compressed, {
-          name: file.name,
           preset: AttachmentPreset.Avatar,
         });
         void onSuccess(attachment.url);
@@ -61,8 +68,8 @@ const ImageUpload: React.FC<Props> = ({
   );
 
   const handleUpload = React.useCallback(
-    (blob: Blob, file: File) => {
-      void uploadImage(blob, file);
+    (file: File) => {
+      void uploadImage(file);
     },
     [uploadImage]
   );
@@ -85,7 +92,7 @@ const ImageUpload: React.FC<Props> = ({
         if (!converted) {
           onError(
             t(
-              "Your browser cannot read HEIC images, please convert it to JPEG or PNG first"
+              "Your browser cannot read HEIC images – please convert the image to JPEG or PNG first"
             )
           );
           return;
@@ -110,10 +117,12 @@ const ImageUpload: React.FC<Props> = ({
     [t, dialogs, handleUpload, handleClose, onError, borderRadius, submitText]
   );
 
-  const { getRootProps, getInputProps } = useDropzone({
-    accept: AttachmentValidation.avatarInputContentTypes.join(", "),
+  const { getRootProps, getInputProps, open } = useDropzone({
+    accept: avatarAccept,
     onDropAccepted,
   });
+
+  React.useImperativeHandle(ref, () => ({ open }), [open]);
 
   if (isCropping) {
     return null; // onDropAccepted would have opened a modal for cropping the image.
@@ -130,7 +139,7 @@ const ImageUpload: React.FC<Props> = ({
 
 type AvatarEditorDialogProps = {
   file: File;
-  onUpload: (blob: Blob, file: File) => void;
+  onUpload: (file: File) => void;
   borderRadius: number;
   submitText: string;
 };
@@ -150,7 +159,13 @@ const AvatarEditorDialog: React.FC<AvatarEditorDialogProps> = observer(
       setTimeout(() => {
         const canvas = avatarEditorRef.current?.getImage();
         invariant(canvas, "canvas is not defined");
-        onUpload(dataUrlToBlob(canvas.toDataURL()), file);
+
+        // The canvas exports PNG, so the name must have a matching extension.
+        const basename = file.name.slice(
+          0,
+          file.name.length - extname(file.name).length
+        );
+        onUpload(dataUrlToFile(canvas.toDataURL(), `${basename}.png`));
       }, 0);
     }, [file, onUpload]);
 
@@ -196,6 +211,10 @@ const AvatarEditorDialog: React.FC<AvatarEditorDialogProps> = observer(
       </Flex>
     );
   }
+);
+
+const avatarAccept = toDropzoneAccept(
+  AttachmentValidation.avatarInputContentTypes
 );
 
 const AvatarEditorContainer = styled(Flex)`

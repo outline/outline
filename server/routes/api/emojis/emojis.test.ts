@@ -2,7 +2,9 @@ import { Emoji, Attachment } from "@server/models";
 import {
   buildAdmin,
   buildAttachment,
+  buildDocument,
   buildEmoji,
+  buildGuestUser,
   buildUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
@@ -31,6 +33,7 @@ describe("#emojis.update", () => {
     const newAttachment = await buildAttachment({
       teamId: user.teamId,
       userId: user.id,
+      documentId: null,
     });
 
     const res = await server.post("/api/emojis.update", user, {
@@ -66,6 +69,7 @@ describe("#emojis.update", () => {
     const newAttachment = await buildAttachment({
       teamId: admin.teamId,
       userId: admin.id,
+      documentId: null,
     });
 
     const res = await server.post("/api/emojis.update", admin, {
@@ -93,6 +97,7 @@ describe("#emojis.update", () => {
     const newAttachment = await buildAttachment({
       teamId: user.teamId,
       userId: user.id,
+      documentId: null,
     });
 
     const res = await server.post("/api/emojis.update", user, {
@@ -116,6 +121,7 @@ describe("#emojis.update", () => {
     const newAttachment = await buildAttachment({
       teamId: user.teamId,
       userId: user.id,
+      documentId: null,
     });
 
     const res = await server.post("/api/emojis.update", user, {
@@ -133,6 +139,7 @@ describe("#emojis.update", () => {
     const newAttachment = await buildAttachment({
       teamId: user.teamId,
       userId: user.id,
+      documentId: null,
     });
 
     const res = await server.post("/api/emojis.update", user, {
@@ -143,6 +150,33 @@ describe("#emojis.update", () => {
     });
 
     expect(res.status).toEqual(404);
+  });
+
+  it("should not allow using a document attachment", async () => {
+    const user = await buildUser();
+    const emoji = await buildEmoji({
+      teamId: user.teamId,
+      createdById: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const documentAttachment = await buildAttachment({
+      teamId: user.teamId,
+      userId: user.id,
+      documentId: document.id,
+    });
+
+    const res = await server.post("/api/emojis.update", user, {
+      body: {
+        id: emoji.id,
+        attachmentId: documentAttachment.id,
+      },
+    });
+
+    expect(res.status).toEqual(400);
+    expect(await Attachment.findByPk(emoji.attachmentId)).not.toBeNull();
   });
 
   it("should return 404 for non-existent attachment", async () => {
@@ -160,5 +194,69 @@ describe("#emojis.update", () => {
     });
 
     expect(res.status).toEqual(404);
+  });
+});
+
+describe("#emojis.create", () => {
+  it("should not allow guests to create an emoji", async () => {
+    const user = await buildGuestUser();
+    const attachment = await buildAttachment({
+      teamId: user.teamId,
+      userId: user.id,
+      documentId: null,
+    });
+
+    const res = await server.post("/api/emojis.create", user, {
+      body: {
+        name: "party",
+        attachmentId: attachment.id,
+      },
+    });
+
+    expect(res.status).toEqual(403);
+    expect(await Emoji.count({ where: { teamId: user.teamId } })).toEqual(0);
+  });
+
+  it("should create an emoji", async () => {
+    const user = await buildUser();
+    const attachment = await buildAttachment({
+      teamId: user.teamId,
+      userId: user.id,
+      documentId: null,
+    });
+
+    const res = await server.post("/api/emojis.create", user, {
+      body: {
+        name: "party",
+        attachmentId: attachment.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.name).toEqual("party");
+  });
+
+  it("should not allow using a document attachment", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const attachment = await buildAttachment({
+      teamId: user.teamId,
+      userId: user.id,
+      documentId: document.id,
+    });
+
+    const res = await server.post("/api/emojis.create", user, {
+      body: {
+        name: "party",
+        attachmentId: attachment.id,
+      },
+    });
+
+    expect(res.status).toEqual(400);
+    expect(await Emoji.count({ where: { teamId: user.teamId } })).toEqual(0);
   });
 });

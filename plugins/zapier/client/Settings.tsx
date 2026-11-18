@@ -24,7 +24,6 @@ function Zapier() {
       />
       <link
         rel="stylesheet"
-        precedence="default"
         href="https://cdn.zapier.com/packages/partner-sdk/v0/zapier-elements/zapier-elements.css"
       />
       <Text as="p" type="secondary">

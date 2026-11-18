@@ -4,7 +4,9 @@ import { SearchIcon } from "outline-icons";
 import { useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { HEADER_HEIGHT } from "@shared/constants";
 import { s } from "@shared/styles";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { metaDisplay, shortcutSeparator } from "@shared/utils/keyboard";
 import type Share from "~/models/Share";
@@ -53,12 +55,12 @@ function SharedSidebar({ share }: Props) {
     () => (rootNode ? [rootNode] : undefined),
     [rootNode]
   );
-  const expansion = useSidebarExpansionState(rootChildren, ui.activeDocumentId);
+  const expansion = useSidebarExpansionState(rootChildren);
 
   useEffect(() => {
     ui.tocVisible = share.showTOC;
     // Only seed the initial visibility, the user can toggle it afterwards.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!rootNode?.children.length) {
@@ -87,7 +89,7 @@ function SharedSidebar({ share }: Props) {
         />
       )}
       <ScrollContainer topShadow flex>
-        <TopSection>
+        <TopSection $hasBranding={brandingAvailable}>
           <SearchButton onClick={handleOpenSearch}>
             <SearchIcon size={20} />
             <SearchLabel>{t("Search")}</SearchLabel>
@@ -128,9 +130,16 @@ const ScrollContainer = styled(Scrollable)`
   padding-bottom: 16px;
 `;
 
-const TopSection = styled(Flex)`
+const TopSection = styled(Flex)<{ $hasBranding: boolean }>`
   padding: 8px;
   flex-shrink: 0;
+
+  /* Search is in the header on mobile. Keep the items clear of the header. */
+  ${breakpoint("mobile", "tablet")`
+    padding: 0;
+    min-height: ${(props: { $hasBranding: boolean }) =>
+      props.$hasBranding ? 0 : HEADER_HEIGHT}px;
+  `}
 `;
 
 const SearchButton = styled.button`
@@ -151,6 +160,10 @@ const SearchButton = styled.button`
     border-color: ${s("inputBorderFocused")};
     color: ${s("textSecondary")};
   }
+
+  ${breakpoint("mobile", "tablet")`
+    display: none;
+  `}
 `;
 
 const SearchLabel = styled.span`

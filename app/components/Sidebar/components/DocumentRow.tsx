@@ -2,6 +2,7 @@ import type { Location, LocationDescriptor } from "history";
 import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
+import { flushSync } from "react-dom";
 import { useTranslation } from "react-i18next";
 import type { match } from "react-router";
 import styled from "styled-components";
@@ -15,7 +16,8 @@ import useBoolean from "~/hooks/useBoolean";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import DropToImport from "./DropToImport";
 import Relative from "./Relative";
-import SidebarLink from "./SidebarLink";
+import SidebarLink, { childDepthFor } from "./SidebarLink";
+import { StaticLink } from "./StaticLink";
 import type { SidebarContextType } from "./SidebarContext";
 import { useSidebarContext } from "./SidebarContext";
 import type { ActionFactory, ActionWithChildren } from "~/types";
@@ -93,8 +95,6 @@ export type DocumentRowProps = {
   canCreateChild?: boolean;
   /** Submit handler for the inline new-child title input. */
   onCreateChild?: (title: string) => Promise<void>;
-  /** Depth of the inline new-child SidebarLink. Defaults to `depth + 1`. */
-  newChildDepth?: number;
 
   /** Context menu action for the row. */
   contextAction?: ActionWithChildren | ActionFactory;
@@ -144,7 +144,6 @@ function DocumentRow({
   menuOpen,
   canCreateChild,
   onCreateChild,
-  newChildDepth,
   contextAction,
   isActiveOverride,
   children,
@@ -196,7 +195,9 @@ function DocumentRow({
       try {
         newChildTitleRef.current?.setIsEditing(false);
         await onCreateChild(value);
-        closeAddingNewChild();
+
+        // Remove the input in the same paint as the new tree item.
+        flushSync(closeAddingNewChild);
       } catch (_err) {
         newChildTitleRef.current?.setIsEditing(true);
       }
@@ -251,8 +252,7 @@ function DocumentRow({
 
   const sidebarLinkElement = (
     <SidebarLink
-      // @ts-expect-error react-router type is wrong, string component is fine.
-      component={isEditing ? "div" : undefined}
+      component={isEditing ? StaticLink : undefined}
       depth={depth}
       to={to}
       expanded={hasChildren && !isDragging ? expanded : undefined}
@@ -306,7 +306,7 @@ function DocumentRow({
       {isAddingNewChild && onCreateChild && (
         <SidebarLink
           isActive={() => true}
-          depth={newChildDepth ?? depth + 1}
+          depth={childDepthFor(depth)}
           ellipsis={false}
           label={
             <EditableTitle

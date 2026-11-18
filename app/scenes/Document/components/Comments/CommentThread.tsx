@@ -5,7 +5,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import scrollIntoView from "scroll-into-view-if-needed";
 import styled, { css } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { s, hover } from "@shared/styles";
 import type { ProsemirrorData } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
@@ -216,6 +216,7 @@ function CommentThread({
 
       setTimeout(
         () => {
+          editor?.revealComment(thread.id);
           getCommentMarkElement()?.scrollIntoView({
             behavior: "smooth",
             block: "center",
@@ -224,7 +225,7 @@ function CommentThread({
         isMarkVisible ? 0 : sidebarAppearDuration
       );
     }
-  }, [focused, scrollOnMount, thread.id]);
+  }, [focused, scrollOnMount, thread.id, editor]);
 
   return (
     <Thread

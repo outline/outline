@@ -1,6 +1,9 @@
+import { NodeSelection } from "prosemirror-state";
 import * as React from "react";
 import styled, { css } from "styled-components";
 import { sanitizeUrl } from "../../utils/urls";
+import { getDisplayUrl } from "../lib/uploadPlaceholder";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import type { ComponentProps } from "../types";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
@@ -12,11 +15,32 @@ type Props = ComponentProps & {
 };
 
 export default function Video(props: Props) {
-  const { isSelected, node, isEditable, children, onChangeSize } = props;
+  const { isSelected, node, isEditable, children, onChangeSize, view, getPos } =
+    props;
   const [naturalWidth] = React.useState(node.attrs.width);
   const [naturalHeight] = React.useState(node.attrs.height);
   const ref = React.useRef<HTMLDivElement>(null);
+  const videoRef = React.useRef<HTMLVideoElement>(null);
   const isResizable = !!onChangeSize;
+
+  // ProseMirror makes a selected node draggable on mousedown, which stops
+  // Safari from releasing the native video controls on mouseup.
+  React.useEffect(() => {
+    const video = videoRef.current;
+    if (!video) {
+      return;
+    }
+
+    const handleMouseDown = (event: MouseEvent) => {
+      const { selection } = view.state;
+      if (selection instanceof NodeSelection && selection.from === getPos()) {
+        event.stopPropagation();
+      }
+    };
+
+    video.addEventListener("mousedown", handleMouseDown);
+    return () => video.removeEventListener("mousedown", handleMouseDown);
+  }, [view, getPos]);
 
   const { width, height, handlePointerDown, handleDoubleClick, dragging } =
     useDragResize({
@@ -37,13 +61,21 @@ export default function Video(props: Props) {
   return (
     <div contentEditable={false} ref={ref}>
       <VideoWrapper
-        className={isSelected ? "ProseMirror-selectednode" : ""}
+        className={
+          isSelected
+            ? `${EditorStyleHelper.videoWrapper} ProseMirror-selectednode`
+            : EditorStyleHelper.videoWrapper
+        }
         $dragging={!!dragging}
         style={style}
       >
         <StyledVideo
-          src={sanitizeUrl(node.attrs.src)}
+          ref={videoRef}
+          src={sanitizeUrl(getDisplayUrl(props.view.state, node.attrs.src))}
           title={node.attrs.title}
+          // Reserves the aspect ratio of the video before its metadata loads.
+          width={width || undefined}
+          height={height || undefined}
           style={style}
           controls={!dragging}
         />
@@ -74,7 +106,7 @@ export const videoStyle = css`
   color: ${(props) => props.theme.text} !important;
   margin: -2px;
   padding: 2px;
-  border-radius: 8px;
+  border-radius: ${EditorStyleHelper.mediaRadius};
   box-shadow: 0 0 0 1px ${(props) => props.theme.divider};
 `;
 
@@ -89,7 +121,7 @@ const VideoWrapper = styled.div<{ $dragging: boolean }>`
   margin-right: auto;
   white-space: nowrap;
   cursor: default;
-  border-radius: 8px;
+  border-radius: ${EditorStyleHelper.mediaRadius};
   user-select: none;
   max-width: 100%;
   overflow: hidden;
@@ -102,6 +134,11 @@ const VideoWrapper = styled.div<{ $dragging: boolean }>`
     transition-property: width, max-height;
     transition-duration: ${(props) => (props.$dragging ? "0ms" : "150ms")};
     transition-timing-function: ease-in-out;
+  }
+
+  &.ProseMirror-selectednode,
+  &.ProseMirror-selectednode video {
+    border-radius: ${EditorStyleHelper.mediaSelectedRadius};
   }
 
   &:hover {

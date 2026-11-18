@@ -3,15 +3,21 @@ import type { Location } from "history";
 import { observer } from "mobx-react";
 import * as React from "react";
 import type { match } from "react-router";
-import { IconType, NotificationEventType } from "@shared/types";
+import { useHistory } from "react-router-dom";
+import { IconType, NotificationEventType, UserPreference } from "@shared/types";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { determineIconType } from "@shared/utils/icon";
 import type GroupMembership from "~/models/GroupMembership";
 import UserMembership from "~/models/UserMembership";
 import { useActiveSidebarContext } from "~/hooks/useActiveSidebarContext";
 import useBoolean from "~/hooks/useBoolean";
+import { useComputed } from "~/hooks/useComputed";
+import useCurrentUser from "~/hooks/useCurrentUser";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
 import * as Scenes from "~/routes/scenes";
+import { documentEditPath } from "~/utils/routeHelpers";
 import {
   useDragMembership,
   useDropToReorderUserMembership,
@@ -21,7 +27,7 @@ import SidebarExpansionContext, {
   useSidebarExpansionState,
 } from "./SidebarExpansionContext";
 import { useSidebarLabelAndIcon } from "../hooks/useSidebarLabelAndIcon";
-import DocumentLink from "./DocumentLink";
+import { DocumentTree } from "./DocumentTree";
 import DocumentRow from "./DocumentRow";
 import DropCursor from "./DropCursor";
 import Folder from "./Folder";
@@ -30,6 +36,8 @@ import SidebarDisclosureContext, {
   useSidebarDisclosureState,
 } from "./SidebarDisclosureContext";
 import { useSidebarContext, type SidebarContextType } from "./SidebarContext";
+import { childDepthFor } from "./SidebarLink";
+import { useSidebarNavigation } from "./SidebarNavigation";
 
 type Props = {
   membership: UserMembership | GroupMembership;
@@ -41,19 +49,26 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
   const { fetchChildDocuments } = documents;
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const { documentId } = membership;
-  const isActiveDocument = documentId === ui.activeDocumentId;
+  const isActiveDocument = useComputed(
+    () => documentId === ui.activeDocumentId,
+    [documentId, ui]
+  );
   const activeSidebarContext = useActiveSidebarContext();
   const sidebarContext = useSidebarContext();
   const document = documentId ? documents.get(documentId) : undefined;
+  const can = usePolicy(document);
+  const history = useHistory();
+  const user = useCurrentUser();
 
   const membershipDocuments = membership.documents;
-  const expansion = useSidebarExpansionState(
-    membershipDocuments,
-    ui.activeDocumentId
+  const expansion = useSidebarExpansionState(membershipDocuments);
+  const isActiveDocumentInPath = useComputed(
+    () =>
+      ui.activeDocumentId
+        ? membership.pathToDocument(ui.activeDocumentId).length > 0
+        : false,
+    [membership, ui]
   );
-  const isActiveDocumentInPath = ui.activeDocumentId
-    ? membership.pathToDocument(ui.activeDocumentId).length > 0
-    : false;
 
   const [expanded, setExpanded, setCollapsed] = useBoolean(
     isActiveDocumentInPath && activeSidebarContext === sidebarContext
@@ -116,6 +131,45 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
     ]
   );
 
+  const handleNewDoc = React.useCallback(
+    async (input: string) => {
+      if (!document) {
+        return;
+      }
+      const newDocument = await documents.create(
+        {
+          collectionId: document.collectionId ?? undefined,
+          parentDocumentId: document.id,
+          fullWidth:
+            document.fullWidth ??
+            user.getPreference(UserPreference.FullWidthDocuments),
+          title: input,
+          data: ProsemirrorDataHelper.getEmpty(),
+        },
+        { publish: true }
+      );
+      if (newDocument.collectionId) {
+        collections
+          .get(newDocument.collectionId)
+          ?.addDocument(newDocument, document.id);
+      }
+      membership.addDocument(newDocument, document.id);
+      history.push({
+        pathname: documentEditPath(newDocument),
+        state: { sidebarContext },
+      });
+    },
+    [
+      documents,
+      collections,
+      document,
+      membership,
+      sidebarContext,
+      user,
+      history,
+    ]
+  );
+
   const parentRef = React.useRef<HTMLDivElement>(null);
   const reparentableNode = React.useMemo(
     () => document?.asNavigationNode,
@@ -123,8 +177,8 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
   );
   const [{ isOverReparent }, dropToReparent] = useDropToReparentDocument(
     reparentableNode,
-    setExpanded,
-    parentRef
+    undefined,
+    setExpanded
   );
 
   const { icon } = useSidebarLabelAndIcon(membership);
@@ -150,6 +204,25 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
 
   const displayChildDocuments = expanded && !isDragging;
 
+  const getNavigationItems = React.useCallback(
+    () =>
+      document
+        ? [
+            {
+              id: document.id,
+              url: document.path,
+              title: document.title,
+              sidebarContext,
+              collapsedChildren: displayChildDocuments
+                ? undefined
+                : membershipDocuments,
+            },
+          ]
+        : [],
+    [document, sidebarContext, displayChildDocuments, membershipDocuments]
+  );
+  useSidebarNavigation(parentRef, getNavigationItems);
+
   if (!document) {
     return null;
   }
@@ -158,7 +231,7 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
   const label =
     determineIconType(docIcon) === IconType.Emoji
       ? document.title.replace(docIcon!, "")
-      : document.titleWithDefault;
+      : document.displayTitle;
   const collection = document.collectionId
     ? collections.get(document.collectionId)
     : undefined;
@@ -201,35 +274,36 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
       parentRef={parentRef}
       dropToReparentRef={dropToReparent}
       isActiveDropTarget={isOverReparent}
+      cursorAfter={
+        reorderProps.isDragging ? (
+          <DropCursor
+            isActiveDrop={reorderProps.isOverCursor}
+            innerRef={dropToReorderRef}
+          />
+        ) : undefined
+      }
       menu={menu}
       menuOpen={menuOpen}
+      canCreateChild={can.createChildDocument}
+      onCreateChild={handleNewDoc}
       isActiveOverride={isActive}
     >
       <SidebarDisclosureContext.Provider value={disclosureEvent}>
         <SidebarExpansionContext.Provider value={expansion}>
           <Folder expanded={displayChildDocuments}>
-            {childDocuments.map((childNode, index) => (
-              <DocumentLink
-                key={childNode.id}
-                node={childNode}
-                collection={collection}
-                membership={membership}
-                activeDocument={documents.active}
-                isDraft={childNode.isDraft}
-                depth={depth + 1}
-                index={index}
-                parentId={document.id}
-              />
-            ))}
+            <DocumentTree
+              nodes={childDocuments}
+              depth={childDepthFor(depth)}
+              parentId={document.id}
+              collection={collection}
+              membership={membership}
+              // Loads the document and its policies on hover, without which
+              // rows that were never opened cannot be dragged or dropped on.
+              prefetchDocument={documents.prefetchDocument}
+            />
           </Folder>
         </SidebarExpansionContext.Provider>
       </SidebarDisclosureContext.Provider>
-      {reorderProps.isDragging && (
-        <DropCursor
-          isActiveDrop={reorderProps.isOverCursor}
-          innerRef={dropToReorderRef}
-        />
-      )}
     </DocumentRow>
   );
 }

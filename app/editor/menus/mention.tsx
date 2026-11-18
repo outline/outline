@@ -16,7 +16,8 @@ import {
   GroupSection,
   MentionUserSection,
 } from "~/actions/sections";
-import { Avatar, AvatarSize, GroupAvatar } from "~/components/Avatar";
+import { Avatar, AvatarSize } from "~/components/Avatar";
+import { ResolvedGroupIcon } from "~/components/Icons/GroupIcon";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import Flex from "~/components/Flex";
 import type Collection from "~/models/Collection";
@@ -88,15 +89,7 @@ export function groupMentionItem(
 ): MentionMenuItem {
   return {
     name: "mention",
-    icon: (
-      <Flex
-        align="center"
-        justify="center"
-        style={{ width: 24, height: 24, marginRight: 4 }}
-      >
-        <GroupAvatar group={group} size={AvatarSize.Small} />
-      </Flex>
-    ),
+    icon: <ResolvedGroupIcon group={group} />,
     title: group.name,
     subtitle: t("{{ count }} members", {
       count: group.memberCount,
@@ -135,7 +128,7 @@ export function collectionMentionItem(
     ) : (
       <CollectionIcon />
     ),
-    title: collection.name,
+    title: collection.displayName,
     section: CollectionsSection,
     appendSpace: true,
     attrs: {
@@ -143,7 +136,7 @@ export function collectionMentionItem(
       type: MentionType.Collection,
       modelId: collection.id,
       actorId,
-      label: collection.name,
+      label: collection.displayName,
     },
   };
 }

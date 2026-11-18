@@ -2,9 +2,7 @@ import { observer } from "mobx-react";
 import { UserIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
 import styled, { useTheme } from "styled-components";
-import { errToString } from "@shared/utils/error";
 import Squircle from "@shared/components/Squircle";
 import { s } from "@shared/styles";
 import { CollectionPermission } from "@shared/types";
@@ -26,6 +24,7 @@ import { Placeholder } from "../components/Placeholder";
 import { PublicAccess } from "./PublicAccess";
 import Flex from "@shared/components/Flex";
 import ButtonLink from "~/components/ButtonLink";
+import { showErrorToast } from "../components/toasts";
 
 type Props = {
   /** Collection to which team members are supposed to be invited */
@@ -124,7 +123,7 @@ export const AccessControlList = observer(
                         permission: value === EmptySelectValue ? null : value,
                       });
                     }}
-                    disabled={!can.update}
+                    disabled={!can.manageUsers}
                     value={collection?.permission}
                     labelHidden
                     nude
@@ -187,12 +186,12 @@ export const AccessControlList = observer(
                                   });
                                 }
                               } catch (err) {
-                                toast.error(errToString(err));
+                                showErrorToast(err);
                                 return false;
                               }
                               return true;
                             }}
-                            disabled={!can.update}
+                            disabled={!can.manageUsers}
                             value={membership.permission}
                           />
                         </div>
@@ -241,12 +240,12 @@ export const AccessControlList = observer(
                                   });
                                 }
                               } catch (err) {
-                                toast.error(errToString(err));
+                                showErrorToast(err);
                                 return false;
                               }
                               return true;
                             }}
-                            disabled={!can.update}
+                            disabled={!can.manageUsers}
                             value={membership.permission}
                           />
                         </div>

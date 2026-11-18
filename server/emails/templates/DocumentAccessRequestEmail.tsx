@@ -1,14 +1,18 @@
 import * as React from "react";
+import { NotificationEventType } from "@shared/types";
 import { Document, User } from "@server/models";
+import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import type { EmailProps } from "./BaseEmail";
 import BaseEmail, { EmailMessageCategory } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import EmailTemplate from "./components/EmailLayout";
+import Footer from "./components/Footer";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
 
 type InputProps = EmailProps & {
+  userId: string;
   documentId: string;
   actorId: string;
   teamUrl: string;
@@ -46,12 +50,24 @@ export default class DocumentAccessRequestEmail extends BaseEmail<
     return { document, actor };
   }
 
+  protected unsubscribeUrl({ userId }: InputProps) {
+    return NotificationSettingsHelper.unsubscribeUrl(
+      userId,
+      NotificationEventType.RequestDocumentAccess
+    );
+  }
+
   protected subject({ actor, document }: Props) {
-    return `${actor.name} is requesting access to "${document.titleWithDefault}"`;
+    return this.t(
+      "{{ actorName }} is requesting access to “{{ documentTitle }}”",
+      { actorName: actor.name, documentTitle: document.displayTitle }
+    );
   }
 
   protected preview({ actor }: Props): string {
-    return `${actor.name} is requesting access to a document`;
+    return this.t("{{ actorName }} is requesting access to a document", {
+      actorName: actor.name,
+    });
   }
 
   protected fromName({ actor }: Props) {
@@ -60,9 +76,9 @@ export default class DocumentAccessRequestEmail extends BaseEmail<
 
   protected renderAsText({ actor, teamUrl, document }: Props): string {
     return `
-${actor.name} is requesting access to "${document.titleWithDefault}".
+${this.t("{{ actorName }} is requesting access to “{{ documentTitle }}”.", { actorName: actor.name, documentTitle: document.displayTitle })}
 
-Open the document to share it with them: ${teamUrl}${document.path}
+${this.t("Open the document to share it with them")}: ${teamUrl}${document.path}
 `;
   }
 
@@ -73,21 +89,29 @@ Open the document to share it with them: ${teamUrl}${document.path}
     return (
       <EmailTemplate
         previewText={this.preview(props)}
-        goToAction={{ url: documentUrl, name: "View Document" }}
+        goToAction={{ url: documentUrl, name: this.t("View Document") }}
       >
         <Header />
 
         <Body>
-          <Heading>{document.titleWithDefault}</Heading>
+          <Heading>{document.displayTitle}</Heading>
           <p>
-            {actor.name} is requesting access to the{" "}
-            <a href={documentUrl}>{document.titleWithDefault}</a> document.
+            {this.t("{{ actorName }} is requesting access to the", {
+              actorName: actor.name,
+            })}{" "}
+            <a href={documentUrl}>{document.displayTitle}</a>{" "}
+            {this.t("document")}.
           </p>
-          <p>Open the document to share it with them.</p>
+          <p>{this.t("Open the document to share it with them")}.</p>
           <p>
-            <Button href={documentUrl}>View Document</Button>
+            <Button href={documentUrl}>{this.t("View Document")}</Button>
           </p>
         </Body>
+
+        <Footer
+          unsubscribeUrl={this.unsubscribeUrl(props)}
+          unsubscribeText={this.t("Unsubscribe from these emails")}
+        />
       </EmailTemplate>
     );
   }

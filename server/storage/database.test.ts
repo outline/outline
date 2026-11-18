@@ -1,8 +1,38 @@
+import { DatabaseError, QueryTypes } from "sequelize";
+import type { Transaction } from "sequelize";
 import type { Sequelize } from "sequelize-typescript";
 import Document from "@server/models/Document";
 import { buildDocument, buildTeam } from "@server/test/factories";
 import env from "@server/env";
-import { createDatabaseInstance } from "./database";
+import {
+  applyStatementTimeoutToTransactions,
+  createDatabaseInstance,
+  optionalWrite,
+} from "./database";
+
+const databaseError = (message: string, code?: string) =>
+  new DatabaseError(Object.assign(new Error(message), { sql: "", code }));
+
+describe("optionalWrite", () => {
+  it("should skip a write when the database is read-only", async () => {
+    await expect(
+      optionalWrite(() => Promise.reject(databaseError("", "25006")))
+    ).resolves.toBeUndefined();
+  });
+
+  it("should skip a write when the database is unavailable", async () => {
+    await expect(
+      optionalWrite(() => Promise.reject(databaseError("", "57P03")))
+    ).resolves.toBeUndefined();
+  });
+
+  it("should rethrow other errors", async () => {
+    const error = databaseError("", "22008");
+    await expect(optionalWrite(() => Promise.reject(error))).rejects.toBe(
+      error
+    );
+  });
+});
 
 describe("read replica transactions", () => {
   let replica: Sequelize;
@@ -43,5 +73,80 @@ describe("read replica transactions", () => {
     });
 
     expect(documents.map((d) => d.id)).toEqual([document.id]);
+  });
+});
+
+describe("applyStatementTimeoutToTransactions", () => {
+  let instance: Sequelize;
+
+  beforeAll(() => {
+    instance = applyStatementTimeoutToTransactions(
+      createDatabaseInstance(env.DATABASE_URL ?? "", {}),
+      1234,
+      567
+    );
+  });
+
+  afterAll(async () => {
+    await instance.close();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  const showLockTimeout = (transaction?: Transaction) =>
+    instance.query<{ lock_timeout: string }>("SHOW lock_timeout", {
+      type: QueryTypes.SELECT,
+      transaction,
+    });
+
+  const showTimeout = (transaction?: Transaction) =>
+    instance.query<{ statement_timeout: string }>("SHOW statement_timeout", {
+      type: QueryTypes.SELECT,
+      transaction,
+    });
+
+  it("should set the timeout in the statement that begins the transaction", async () => {
+    const spy = vi.spyOn(instance, "query");
+
+    const rows = await instance.transaction(showTimeout);
+
+    expect(rows).toEqual([{ statement_timeout: "1234ms" }]);
+    expect(spy.mock.calls.map(([sql]) => sql)).toEqual([
+      "START TRANSACTION; SET LOCAL statement_timeout = 1234; SET LOCAL lock_timeout = 567;",
+      "SHOW statement_timeout",
+      "COMMIT;",
+    ]);
+  });
+
+  it("should set the lock timeout in the transaction", async () => {
+    const rows = await instance.transaction(showLockTimeout);
+
+    expect(rows).toEqual([{ lock_timeout: "567ms" }]);
+  });
+
+  it("should not set the timeout again for a savepoint", async () => {
+    const spy = vi.spyOn(instance, "query");
+
+    const rows = await instance.transaction((transaction) =>
+      instance.transaction({ transaction }, showTimeout)
+    );
+
+    expect(rows).toEqual([{ statement_timeout: "1234ms" }]);
+    expect(
+      spy.mock.calls.filter(
+        ([sql]) => typeof sql === "string" && sql.includes("SET LOCAL")
+      )
+    ).toHaveLength(1);
+  });
+
+  it("should not leak the timeout outside of the transaction", async () => {
+    await instance.transaction(showTimeout);
+
+    const rows = await showTimeout();
+
+    expect(rows).not.toEqual([{ statement_timeout: "1234ms" }]);
+    expect(await showLockTimeout()).not.toEqual([{ lock_timeout: "567ms" }]);
   });
 });

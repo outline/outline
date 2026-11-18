@@ -220,7 +220,7 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
           autoFocus={!webhookSubscription}
           flex
           label={t("Name")}
-          placeholder={t("A memorable identifer")}
+          placeholder={t("A memorable identifier")}
           {...register("name", {
             required: true,
           })}
@@ -235,7 +235,7 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
           error={
             showInsecureUrlWarning
               ? t(
-                  "Webhook delivery over http is insecure, use https if possible"
+                  "Webhook delivery over http is insecure – use https if possible"
                 )
               : undefined
           }
@@ -256,7 +256,7 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
       <Text as="p" type="secondary">
         <Trans>
           Subscribe to all events, groups, or individual events. We recommend
-          only subscribing to the minimum amount of events that your application
+          only subscribing to the minimum number of events that your application
           needs to function.
         </Trans>
       </Text>

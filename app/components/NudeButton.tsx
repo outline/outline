@@ -10,9 +10,9 @@ type Props = ActionButtonProps & {
   type?: "button" | "submit" | "reset";
 };
 
-const NudeButton = styled(ActionButton).attrs((props: Props) => ({
+const NudeButton = styled(ActionButton).attrs<Props>((props) => ({
   type: "type" in props ? props.type : "button",
-}))<Props>`
+}))`
   width: ${(props) =>
     typeof props.width === "string"
       ? props.width

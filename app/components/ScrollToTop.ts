@@ -1,6 +1,6 @@
 // based on: https://reacttraining.com/react-router/web/guides/scroll-restoration
 import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocationSelector } from "~/hooks/useLocationSelector";
 import usePrevious from "~/hooks/usePrevious";
 import { useScrollContext } from "./ScrollContext";
 
@@ -9,24 +9,26 @@ type Props = {
 };
 
 export default function ScrollToTop({ children }: Props) {
-  const location = useLocation<{ retainScrollPosition?: boolean }>();
-  const previousLocationPathname = usePrevious(location.pathname);
+  const pathname = useLocationSelector((location) => location.pathname);
+  const hash = useLocationSelector((location) => location.hash);
+  const retainScrollPosition = useLocationSelector<
+    { retainScrollPosition?: boolean } | undefined,
+    boolean | undefined
+  >((location) => location.state?.retainScrollPosition);
+  const previousLocationPathname = usePrevious(pathname);
   const scrollContainerRef = useScrollContext();
 
   useEffect(() => {
-    if (
-      location.pathname === previousLocationPathname ||
-      location.state?.retainScrollPosition
-    ) {
+    if (pathname === previousLocationPathname || retainScrollPosition) {
       return;
     }
     // The destination has an anchor, scrolling is handled by the target itself
-    if (location.hash) {
+    if (hash) {
       return;
     }
     // exception for when entering or exiting document edit, scroll position should not reset
     if (
-      location.pathname.match(/\/edit\/?$/) ||
+      pathname.match(/\/edit\/?$/) ||
       previousLocationPathname?.match(/\/edit\/?$/)
     ) {
       return;
@@ -34,10 +36,10 @@ export default function ScrollToTop({ children }: Props) {
     (scrollContainerRef?.current || window).scrollTo(0, 0);
   }, [
     scrollContainerRef,
-    location.pathname,
-    location.hash,
+    pathname,
+    hash,
     previousLocationPathname,
-    location.state?.retainScrollPosition,
+    retainScrollPosition,
   ]);
 
   return children;

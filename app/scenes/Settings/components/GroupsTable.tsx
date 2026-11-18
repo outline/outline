@@ -1,16 +1,17 @@
 import { compact } from "es-toolkit/compat";
 import { observer } from "mobx-react";
-import { GroupIcon, HiddenIcon } from "outline-icons";
+import { HiddenIcon } from "outline-icons";
 import * as React from "react";
 import { useCallback, useMemo } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
-import { s, hover } from "@shared/styles";
+import { hover } from "@shared/styles";
 import type Group from "~/models/Group";
 import Facepile from "~/components/Facepile";
 import Flex from "~/components/Flex";
+import { ResolvedGroupIcon } from "~/components/Icons/GroupIcon";
 import { HEADER_HEIGHT } from "~/components/Header";
 import {
   type Props as TableProps,
@@ -32,7 +33,7 @@ import { HStack } from "~/components/primitives/HStack";
 import Tooltip from "~/components/Tooltip";
 import { settingsPath } from "~/utils/routeHelpers";
 
-const ROW_HEIGHT = 60;
+const ROW_HEIGHT = 50;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
 
 type Props = Omit<TableProps<Group>, "columns" | "rowHeight">;
@@ -92,29 +93,21 @@ export function GroupsTable(props: Props) {
           header: t("Name"),
           accessor: (group) => group.name,
           component: (group) => (
-            <HStack>
+            <HStack spacing={6}>
               <Image>
-                <GroupIcon size={24} />
+                <ResolvedGroupIcon group={group} size={24} />
               </Image>
-              <Flex column>
-                <Title onClick={() => handleViewMembers(group)}>
-                  {group.name}
-                  {group.disableMentions && (
-                    <>
-                      {" "}
-                      <Tooltip content={t("This group is hidden")}>
-                        <HiddenIcon size={16} color={theme.textSecondary} />
-                      </Tooltip>
-                    </>
-                  )}
-                </Title>
-                <Text type="tertiary" size="small" weight="normal">
-                  <Trans
-                    defaults="{{ count }} member"
-                    values={{ count: group.memberCount }}
-                  />
-                </Text>
-              </Flex>
+              <Title onClick={() => handleViewMembers(group)}>
+                {group.name}
+                {group.disableMentions && (
+                  <>
+                    {" "}
+                    <Tooltip content={t("This group is hidden")}>
+                      <HiddenIcon size={16} color={theme.textSecondary} />
+                    </Tooltip>
+                  </>
+                )}
+              </Title>
             </HStack>
           ),
           width: "2fr",
@@ -123,13 +116,15 @@ export function GroupsTable(props: Props) {
           type: "data",
           id: "description",
           header: t("Description"),
-          accessor: (group) => group.description || "",
-          component: (group) => (
-            <Text type="secondary" size="small" weight="normal">
-              {group.description}
-            </Text>
-          ),
+          accessor: (group) => group.description,
+          component: (group) =>
+            group.description ? (
+              <Text type="secondary" weight="normal" ellipsis>
+                {group.description}
+              </Text>
+            ) : null,
           width: "2fr",
+          sortable: false,
         },
         {
           type: "data",
@@ -228,10 +223,9 @@ const GroupMembers = styled(NudeButton)`
 const Image = styled(Flex)`
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  background: ${s("backgroundSecondary")};
-  border-radius: 32px;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
 `;
 
 const Title = styled.span`

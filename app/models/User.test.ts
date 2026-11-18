@@ -1,11 +1,16 @@
+import { vi } from "vitest";
+import { UserPreference } from "@shared/types";
 import User from "./User";
 import stores from "~/stores";
+import { client } from "~/utils/ApiClient";
+
+const post = vi.mocked(client.post);
 
 describe("User model", () => {
   const users = stores.users;
 
   describe("initial", () => {
-    test("should return first character of name uppercased", () => {
+    it("should return first character of name uppercased", () => {
       const user = new User(
         {
           id: "123",
@@ -16,7 +21,7 @@ describe("User model", () => {
       expect(user.initial).toBe("A");
     });
 
-    test("should return first character when name is already uppercase", () => {
+    it("should return first character when name is already uppercase", () => {
       const user = new User(
         {
           id: "124",
@@ -27,7 +32,7 @@ describe("User model", () => {
       expect(user.initial).toBe("B");
     });
 
-    test("should return ? when name is empty", () => {
+    it("should return ? when name is empty", () => {
       const user = new User(
         {
           id: "125",
@@ -38,7 +43,7 @@ describe("User model", () => {
       expect(user.initial).toBe("?");
     });
 
-    test("should return ? when name is null", () => {
+    it("should return ? when name is null", () => {
       const user = new User(
         {
           id: "126",
@@ -49,7 +54,7 @@ describe("User model", () => {
       expect(user.initial).toBe("?");
     });
 
-    test("should return ? when name is undefined", () => {
+    it("should return ? when name is undefined", () => {
       const user = new User(
         {
           id: "127",
@@ -62,7 +67,7 @@ describe("User model", () => {
   });
 
   describe("initials", () => {
-    test("should return empty string when name is empty", () => {
+    it("should return empty string when name is empty", () => {
       const user = new User(
         {
           id: "201",
@@ -73,7 +78,7 @@ describe("User model", () => {
       expect(user.initials).toBe("");
     });
 
-    test("should return empty string when name is null", () => {
+    it("should return empty string when name is null", () => {
       const user = new User(
         {
           id: "202",
@@ -84,7 +89,7 @@ describe("User model", () => {
       expect(user.initials).toBe("");
     });
 
-    test("should return single character uppercased for single word name", () => {
+    it("should return single character uppercased for single word name", () => {
       const user = new User(
         {
           id: "203",
@@ -95,7 +100,7 @@ describe("User model", () => {
       expect(user.initials).toBe("A");
     });
 
-    test("should return single character uppercased for single word name already uppercase", () => {
+    it("should return single character uppercased for single word name already uppercase", () => {
       const user = new User(
         {
           id: "204",
@@ -106,7 +111,7 @@ describe("User model", () => {
       expect(user.initials).toBe("B");
     });
 
-    test("should return first and last initials for two word name", () => {
+    it("should return first and last initials for two word name", () => {
       const user = new User(
         {
           id: "205",
@@ -117,7 +122,7 @@ describe("User model", () => {
       expect(user.initials).toBe("AS");
     });
 
-    test("should return first and last initials for three word name", () => {
+    it("should return first and last initials for three word name", () => {
       const user = new User(
         {
           id: "206",
@@ -128,7 +133,7 @@ describe("User model", () => {
       expect(user.initials).toBe("AS");
     });
 
-    test("should return first and last initials for many word name", () => {
+    it("should return first and last initials for many word name", () => {
       const user = new User(
         {
           id: "207",
@@ -139,7 +144,7 @@ describe("User model", () => {
       expect(user.initials).toBe("AS");
     });
 
-    test("should handle names with extra spaces", () => {
+    it("should handle names with extra spaces", () => {
       const user = new User(
         {
           id: "208",
@@ -150,7 +155,7 @@ describe("User model", () => {
       expect(user.initials).toBe("AS");
     });
 
-    test("should handle names with mixed case", () => {
+    it("should handle names with mixed case", () => {
       const user = new User(
         {
           id: "209",
@@ -161,7 +166,7 @@ describe("User model", () => {
       expect(user.initials).toBe("AS");
     });
 
-    test("should handle names with special characters", () => {
+    it("should handle names with special characters", () => {
       const user = new User(
         {
           id: "210",
@@ -172,7 +177,7 @@ describe("User model", () => {
       expect(user.initials).toBe("JO");
     });
 
-    test("should handle single letter names", () => {
+    it("should handle single letter names", () => {
       const user = new User(
         {
           id: "211",
@@ -183,7 +188,7 @@ describe("User model", () => {
       expect(user.initials).toBe("X");
     });
 
-    test("should handle names with unicode characters", () => {
+    it("should handle names with unicode characters", () => {
       const user = new User(
         {
           id: "212",
@@ -192,6 +197,154 @@ describe("User model", () => {
         users
       );
       expect(user.initials).toBe("JG");
+    });
+  });
+
+  describe("documentMemberships", () => {
+    const user = new User({ id: "300", name: "Member" }, users);
+
+    beforeEach(() => {
+      stores.documents.clear();
+      stores.userMemberships.clear();
+    });
+
+    const addDocument = (id: string, parentDocumentId?: string) =>
+      stores.documents.add({
+        id,
+        title: id,
+        parentDocumentId,
+        collectionId: "collection",
+      });
+
+    const addMembership = (id: string, documentId: string) =>
+      stores.userMemberships.add({
+        id,
+        userId: user.id,
+        documentId,
+        sourceId: null,
+        index: id,
+      });
+
+    it("should only include the highest shared document of a tree", () => {
+      addDocument("parent");
+      addDocument("child", "parent");
+      addDocument("grandchild", "child");
+      addMembership("m1", "grandchild");
+      addMembership("m2", "child");
+      addMembership("m3", "parent");
+
+      expect(user.documentMemberships.map((m) => m.documentId)).toEqual([
+        "parent",
+      ]);
+    });
+
+    it("should include a moved document that is still in a cached tree", () => {
+      addDocument("parent");
+      addDocument("child");
+      addMembership("m1", "child");
+      const parent = addMembership("m2", "parent");
+      parent.node = {
+        id: "parent",
+        title: "parent",
+        url: "/doc/parent",
+        children: [
+          { id: "child", title: "child", url: "/doc/child", children: [] },
+        ],
+      };
+
+      expect(user.documentMemberships.map((m) => m.documentId)).toEqual([
+        "child",
+        "parent",
+      ]);
+    });
+
+    it("should include a document whose parent is not shared", () => {
+      addDocument("parent");
+      addDocument("child", "parent");
+      addDocument("other");
+      addMembership("m1", "child");
+      addMembership("m2", "other");
+
+      expect(user.documentMemberships.map((m) => m.documentId)).toEqual([
+        "child",
+        "other",
+      ]);
+    });
+  });
+
+  describe("savePreference", () => {
+    beforeEach(() => {
+      post.mockReset();
+    });
+
+    it("should send only preferences and keep other values", async () => {
+      const user = users.add({
+        id: "pref-success",
+        name: "Alice",
+        preferences: { [UserPreference.RememberLastPath]: true },
+      });
+      post.mockResolvedValueOnce({ data: { id: "pref-success" } });
+
+      const promise = user.savePreference(
+        UserPreference.UseCursorPointer,
+        false
+      );
+      expect(user.getPreference(UserPreference.UseCursorPointer)).toBe(false);
+      await promise;
+
+      expect(post).toHaveBeenCalledWith("/users.update", {
+        id: "pref-success",
+        preferences: {
+          [UserPreference.RememberLastPath]: true,
+          [UserPreference.UseCursorPointer]: false,
+        },
+      });
+      expect(user.getPreference(UserPreference.UseCursorPointer)).toBe(false);
+      expect(user.getPreference(UserPreference.RememberLastPath)).toBe(true);
+    });
+
+    it("should revert the preference on failure", async () => {
+      const user = users.add({
+        id: "pref-failure",
+        name: "Alice",
+        preferences: { [UserPreference.UseCursorPointer]: true },
+      });
+      post.mockRejectedValueOnce(new Error("server error"));
+
+      const promise = user.savePreference(
+        UserPreference.UseCursorPointer,
+        false
+      );
+      expect(user.getPreference(UserPreference.UseCursorPointer)).toBe(false);
+
+      await expect(promise).rejects.toThrow("server error");
+      expect(user.getPreference(UserPreference.UseCursorPointer)).toBe(true);
+    });
+  });
+
+  describe("searchSuppressed", () => {
+    it("should be false for an active user", () => {
+      const user = new User(
+        { id: "600", name: "Active", isSuspended: false },
+        users
+      );
+      expect(user.searchSuppressed).toBe(false);
+    });
+
+    it("should be true for a suspended user", () => {
+      const user = new User(
+        { id: "601", name: "Suspended", isSuspended: true },
+        users
+      );
+      expect(user.searchSuppressed).toBe(true);
+    });
+
+    it("should be true for a deleted user", () => {
+      const user = new User(
+        { id: "602", name: "Deleted", deletedAt: new Date().toISOString() },
+        users
+      );
+      expect(user.searchSuppressed).toBe(true);
     });
   });
 });

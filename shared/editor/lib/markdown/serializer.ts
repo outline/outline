@@ -1,4 +1,3 @@
-/* oxlint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // https://raw.githubusercontent.com/ProseMirror/prosemirror-markdown/master/src/to_markdown.js
 // forked for table support
@@ -123,7 +122,7 @@ export class MarkdownSerializerState {
   set out(value) {
     if (!warnedDirectOutAssignment) {
       warnedDirectOutAssignment = true;
-      // eslint-disable-next-line no-console
+      // oxlint-disable-next-line no-console
       console.warn(
         "MarkdownSerializerState: assigning `out` directly is slow on large documents, use append() instead."
       );
@@ -237,7 +236,11 @@ export class MarkdownSerializerState {
   text(text, escape) {
     const lines = text.split("\n");
     for (let i = 0; i < lines.length; i++) {
-      const startOfLine = this.atBlank() || this.closed;
+      // A <br> in a table cell becomes a new line when the cell is parsed.
+      const startOfLine =
+        this.atBlank() ||
+        this.closed ||
+        (this.inTable && this.out.endsWith("<br>"));
       this.write();
       this.append(
         escape !== false ? this.esc(lines[i], startOfLine) : lines[i]
@@ -319,8 +322,10 @@ export class MarkdownSerializerState {
           return info && info.expelEnclosingWhitespace;
         })
       ) {
-        // oxlint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
-        const [, lead, inner, trail] = /^(\s*)(.*?)(\s*)$/m.exec(node.text);
+        const afterLead = node.text.trimStart();
+        const lead = node.text.slice(0, node.text.length - afterLead.length);
+        const inner = afterLead.trimEnd();
+        const trail = afterLead.slice(inner.length);
         leading += lead;
         trailing = trail;
         if (lead || trail) {
@@ -485,7 +490,6 @@ export class MarkdownSerializerState {
     this.write();
     this.append("\n");
 
-    // Render rows
     node.forEach((row, _, i) => {
       this.write();
       row.forEach((cell, _, j) => {
@@ -503,7 +507,11 @@ export class MarkdownSerializerState {
         cellState.inList = this.inList;
         cellState.inTightList = this.inTightList;
 
-        cell.forEach((cellNode) => {
+        cell.forEach((cellNode, _, index) => {
+          if (index > 0) {
+            cellState.append("\n");
+          }
+
           if (
             !(
               cellNode.textContent === "" &&
@@ -558,9 +566,21 @@ export class MarkdownSerializerState {
     str = str.replace(/[`*\\~]/g, "\\$&");
     // Only escape an opening square bracket when the same line later contains a
     // `](`, meaning it could otherwise be parsed as an inline link or image
-    str = str.replace(/\[(?=[^\n]*\]\()/g, "\\$&");
+    str = str
+      .split("\n")
+      .map((line) => {
+        const last = line.lastIndexOf("](");
+        if (last === -1) {
+          return line;
+        }
+        return line.slice(0, last).replace(/\[/g, "\\$&") + line.slice(last);
+      })
+      .join("\n");
     if (startOfLine) {
-      str = str.replace(/^[:#\-*+]/, "\\$&").replace(/^(\d+)\./, "$1\\.");
+      str = str
+        .replace(/^[:#\-*+]/, "\\$&")
+        .replace(/^(\d+)\.(?=\s|$)/, "$1\\.")
+        .replace(/^([a-z])\.(?=\s)/i, "$1\\.");
     }
 
     if (this.inTable) {
@@ -592,16 +612,5 @@ export class MarkdownSerializerState {
     const info = this.marks[mark.type.name]();
     const value = open ? info.open : info.close;
     return typeof value === "string" ? value : value(this, mark, parent, index);
-  }
-
-  // :: (string) → { leading: ?string, trailing: ?string }
-  // Get leading and trailing whitespace from a string. Values of
-  // leading or trailing property of the return object will be undefined
-  // if there is no match.
-  getEnclosingWhitespace(text) {
-    return {
-      leading: (text.match(/^(\s+)/) || [])[0],
-      trailing: (text.match(/(\s+)$/) || [])[0],
-    };
   }
 }

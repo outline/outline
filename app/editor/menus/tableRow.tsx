@@ -13,10 +13,10 @@ import {
 import type { EditorState } from "prosemirror-state";
 import { CellSelection, selectedRect } from "prosemirror-tables";
 import {
+  canMergeCells,
   getAllSelectedRows,
   getCellsInRow,
   isMergedCellSelection,
-  isMultipleCellSelection,
 } from "@shared/editor/queries/table";
 import { t } from "i18next";
 import type {
@@ -243,7 +243,7 @@ export default function tableRowMenuItems(ctx: SelectionContext): MenuItem[] {
       name: "mergeCells",
       label: t("Merge cells"),
       icon: <TableMergeCellsIcon />,
-      visible: isMultipleCellSelection(state),
+      visible: canMergeCells(state),
     },
     {
       name: "splitCell",

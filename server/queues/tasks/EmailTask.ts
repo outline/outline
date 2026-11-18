@@ -15,7 +15,6 @@ export default class EmailTask extends BaseTask<Props> {
       );
     }
 
-    // @ts-expect-error We won't instantiate an abstract class
     const email = new EmailClass(props, metadata);
     return email.send();
   }

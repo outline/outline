@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import { SearchIcon, HomeIcon, SidebarIcon } from "outline-icons";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   DragActiveProvider,
   SidebarScrollProvider,
@@ -32,10 +32,12 @@ import { DraftsLink } from "./components/DraftsLink";
 import DragPlaceholder from "./components/DragPlaceholder";
 import { DismissableSidebarAction } from "./components/DismissableSidebarAction";
 import HistoryNavigation from "./components/HistoryNavigation";
+import { PersonalDocs } from "./components/PersonalDocs";
 import Section from "./components/Section";
 import SharedWithMe from "./components/SharedWithMe";
 import SidebarButton from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
+import { SidebarNavigationProvider } from "./components/SidebarNavigation";
 import Starred from "./components/Starred";
 import ToggleButton from "./components/ToggleButton";
 import TrashLink from "./components/TrashLink";
@@ -59,22 +61,16 @@ function AppSidebar() {
   }, [history]);
 
   useEffect(() => {
-    void collections.fetchAll();
+    void collections.fetchAllIfNeeded();
 
     if (!user.isViewer) {
       void documents.fetchDrafts();
     }
   }, [documents, collections, user.isViewer]);
 
-  // Scrollable reads ref.current internally for its shadow/ResizeObserver
-  // logic, so we must pass an object ref — a callback ref would leave those
-  // reads undefined. We mirror the attached node into state so the
-  // SidebarScrollProvider can re-render descendants with the scroll element.
-  const scrollRef = useRef<HTMLDivElement>(null);
+  // Hold the scroll element in state so the SidebarScrollProvider can
+  // re-render descendants with it.
   const [scrollArea, setScrollArea] = useState<HTMLElement | null>(null);
-  useEffect(() => {
-    setScrollArea(scrollRef.current);
-  }, []);
 
   const sectionOrder = normalizeSidebarSectionOrder(
     user.getPreference(UserPreference.SidebarSectionOrder, [])
@@ -84,6 +80,7 @@ function AppSidebar() {
     [SidebarSection.Starred]: <Starred />,
     [SidebarSection.SharedWithMe]: <SharedWithMe />,
     [SidebarSection.Collections]: <Collections />,
+    [SidebarSection.Personal]: <PersonalDocs />,
   };
 
   return (
@@ -139,18 +136,20 @@ function AppSidebar() {
             {can.createDocument && <DraftsLink />}
           </Section>
         </Overflow>
-        <Scrollable flex shadow ref={scrollRef}>
+        <Scrollable flex shadow ref={setScrollArea}>
           <SidebarScrollProvider value={scrollArea}>
-            {sectionOrder.map((section) => (
-              <DraggableSection key={section} section={section}>
-                {sectionContent[section]}
-              </DraggableSection>
-            ))}
-            {can.createDocument && (
-              <Section auto>
-                <ArchiveLink />
-              </Section>
-            )}
+            <SidebarNavigationProvider>
+              {sectionOrder.map((section) => (
+                <DraggableSection key={section} section={section}>
+                  {sectionContent[section]}
+                </DraggableSection>
+              ))}
+              {can.createDocument && (
+                <Section auto>
+                  <ArchiveLink />
+                </Section>
+              )}
+            </SidebarNavigationProvider>
             <Section>
               {can.createDocument && <TrashLink />}
               <DismissableSidebarAction

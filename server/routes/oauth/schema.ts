@@ -1,5 +1,6 @@
 import z from "zod";
 import { OAuthClientValidation } from "@shared/validations";
+import { OAuthHelper } from "@server/utils/oauth/OAuthHelper";
 import { BaseSchema } from "../api/schema";
 
 export const TokenSchema = BaseSchema.extend({
@@ -25,10 +26,12 @@ export const TokenRevokeSchema = BaseSchema.extend({
 
 export type TokenRevokeReq = z.infer<typeof TokenRevokeSchema>;
 
-// The received count is included in the message so that clients registering an
-// oversized list, and our own logs, show how far over the limit they are.
+// The URIs themselves are validated by the handler, so that it can respond with
+// the invalid_redirect_uri error code. The received count is included in the
+// message so that clients registering an oversized list, and our own logs, show
+// how far over the limit they are.
 const redirectUris = z
-  .array(z.url().max(OAuthClientValidation.maxRedirectUriLength))
+  .array(z.string().max(OAuthClientValidation.maxRedirectUriLength))
   .min(1)
   .max(OAuthClientValidation.maxRedirectUris, {
     error: (issue) =>
@@ -49,11 +52,13 @@ export const RegisterSchema = BaseSchema.extend({
       .optional(),
     redirect_uris: redirectUris,
     grant_types: z
-      .array(z.enum(["authorization_code", "refresh_token"]))
+      .array(z.enum(OAuthHelper.grantTypes))
       .default(["authorization_code"]),
-    response_types: z.array(z.enum(["code"])).default(["code"]),
+    response_types: z
+      .array(z.enum(OAuthHelper.responseTypes))
+      .default([...OAuthHelper.responseTypes]),
     token_endpoint_auth_method: z
-      .enum(["none", "client_secret_post"])
+      .enum(OAuthHelper.tokenEndpointAuthMethods)
       .default("none"),
     scope: z.string().optional(),
     client_uri: z

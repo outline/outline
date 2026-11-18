@@ -15,10 +15,13 @@ import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import env from "~/env";
+import useConsumeQueryParam from "~/hooks/useConsumeQueryParam";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import SettingRow from "./components/SettingRow";
+import { SettingsSection } from "./components/SettingsSection";
 import { setPostLoginPath } from "~/hooks/useLastVisitedPath";
 import { getRedirectUrl, toRelative } from "~/utils/urls";
 import { settingsPath } from "~/utils/routeHelpers";
@@ -32,6 +35,7 @@ import { VStack } from "~/components/primitives/VStack";
 function Authentication() {
   const { authenticationProviders, dialogs } = useStores();
   const team = useCurrentTeam();
+  const can = usePolicy(team);
   const { t } = useTranslation();
   const theme = useTheme();
 
@@ -46,6 +50,20 @@ function Authentication() {
       void request();
     }
   }, [loading, providers, request]);
+
+  const groupSyncResult = useConsumeQueryParam("groupSync");
+
+  React.useEffect(() => {
+    if (!groupSyncResult) {
+      return;
+    }
+
+    if (groupSyncResult === "connected") {
+      toast.success(t("Group sync connected"));
+    } else {
+      toast.error(t("Could not connect group sync"));
+    }
+  }, [groupSyncResult, t]);
 
   const handleGuestSigninChange = React.useCallback(
     async (checked: boolean) => {
@@ -109,6 +127,15 @@ function Authentication() {
       if (checked) {
         void (async () => {
           try {
+            if (provider.groupSyncRequiresSetup) {
+              const result = await client.post<{ data: { url: string } }>(
+                "/authenticationProviders.startGroupSync",
+                { id: provider.id }
+              );
+              window.location.href = result.data.url;
+              return;
+            }
+
             await provider.save({
               settings: {
                 ...provider.settings,
@@ -162,163 +189,193 @@ function Authentication() {
       <Heading>{t("Authentication")}</Heading>
       <Text as="p" type="secondary">
         <Trans>
-          Manage how members sign-in to your workspace and which authentication
+          Manage how members sign in to your workspace and which authentication
           providers are enabled.
         </Trans>
       </Text>
 
-      <Heading as="h2">{t("Sign In")}</Heading>
-
-      {authenticationProviders.orderedData.map((provider) => (
-        <React.Fragment key={provider.name}>
-          <SettingRow
-            label={
-              <Flex gap={8} align="center">
-                <PluginIcon id={provider.name} /> {provider.displayName}
-              </Flex>
-            }
-            name={provider.name}
-            description={
-              provider.isConnected
-                ? t("Allow members to sign-in with {{ authProvider }}", {
-                    authProvider: provider.displayName,
-                  })
-                : t("Connect {{ authProvider }} to allow members to sign-in", {
-                    authProvider: provider.displayName,
-                  })
-            }
-            border={!(provider.isActive && provider.groupSyncSupported)}
-          >
-            <Flex align="center" gap={12}>
-              {provider.isConnected ? (
-                <VStack align="start">
-                  <Button
-                    icon={
-                      provider.isEnabled ? (
-                        <ConnectedIcon />
-                      ) : (
-                        <ConnectedIcon color={theme.textSecondary} />
-                      )
-                    }
-                    onClick={() =>
-                      !provider.isEnabled
-                        ? handleToggleProvider(provider, true)
-                        : handleRemoveProvider(provider)
-                    }
-                    neutral
-                  >
-                    {provider.isEnabled ? t("Connected") : t("Disabled")}
-                  </Button>
-                  <Text type="tertiary" size="small">
-                    {provider.providerId}
-                  </Text>
-                </VStack>
-              ) : (
-                <Button
-                  onClick={() => handleConnectProvider(provider.name)}
-                  neutral
-                >
-                  {t("Connect")}
-                </Button>
-              )}
-            </Flex>
-          </SettingRow>
-          {provider.isActive && provider.groupSyncSupported && (
-            <SettingRow
-              label={t("Group sync")}
-              name={`groupSync-${provider.name}`}
-              description={t(
-                "Sync group memberships from {{ authProvider }} on each sign-in",
-                { authProvider: provider.displayName }
-              )}
-              border={
-                !(
-                  provider.settings?.groupSyncEnabled &&
-                  provider.groupSyncUsesClaim
-                )
-              }
-            >
-              <Switch
-                id={`groupSync-${provider.name}`}
-                checked={provider.settings?.groupSyncEnabled ?? false}
-                onChange={(checked) => handleToggleGroupSync(provider, checked)}
-              />
-            </SettingRow>
-          )}
-          {provider.isActive &&
+      <SettingsSection title={t("Sign in")}>
+        {authenticationProviders.orderedData.map((provider) => {
+          // Group sync can still be disabled after losing the entitlement.
+          const showGroupSync =
+            provider.isActive &&
             provider.groupSyncSupported &&
-            provider.groupSyncUsesClaim &&
-            provider.settings?.groupSyncEnabled && (
+            (!!can.externalGroupSync || !!provider.settings?.groupSyncEnabled);
+
+          return (
+            <React.Fragment key={provider.name}>
               <SettingRow
-                label={t("Group claim")}
-                name={`groupClaim-${provider.name}`}
-                description={t(
-                  "The claim in the provider response that contains group names (e.g. groups, roles)"
-                )}
-                border={false}
+                label={
+                  <Flex gap={8} align="center">
+                    <PluginIcon id={provider.name} /> {provider.displayName}
+                  </Flex>
+                }
+                name={provider.name}
+                description={
+                  provider.isConnected
+                    ? t("Allow members to sign in with {{ authProvider }}", {
+                        authProvider: provider.displayName,
+                      })
+                    : t(
+                        "Connect {{ authProvider }} to allow members to sign in",
+                        {
+                          authProvider: provider.displayName,
+                        }
+                      )
+                }
+                border={!showGroupSync}
               >
-                <Input
-                  id={`groupClaim-${provider.name}`}
-                  defaultValue={provider.settings?.groupClaim ?? "groups"}
-                  placeholder="groups"
-                  onBlur={(ev: React.FocusEvent<HTMLInputElement>) => {
-                    const value = ev.target.value.trim();
-                    if (value !== (provider.settings?.groupClaim ?? "")) {
-                      void handleGroupClaimChange(provider, value);
-                    }
-                  }}
-                />
+                <Flex align="center" gap={12}>
+                  {provider.isConnected ? (
+                    <VStack align="start">
+                      <Button
+                        icon={
+                          provider.isEnabled ? (
+                            <ConnectedIcon />
+                          ) : (
+                            <ConnectedIcon color={theme.textSecondary} />
+                          )
+                        }
+                        onClick={() =>
+                          !provider.isEnabled
+                            ? handleToggleProvider(provider, true)
+                            : handleRemoveProvider(provider)
+                        }
+                        neutral
+                      >
+                        {provider.isEnabled ? t("Connected") : t("Disabled")}
+                      </Button>
+                      <Text type="tertiary" size="small">
+                        {provider.providerId}
+                      </Text>
+                    </VStack>
+                  ) : (
+                    <Button
+                      onClick={() => handleConnectProvider(provider.name)}
+                      neutral
+                    >
+                      {t("Connect")}
+                    </Button>
+                  )}
+                </Flex>
               </SettingRow>
-            )}
-        </React.Fragment>
-      ))}
-      <SettingRow
-        label={
-          <Flex gap={8} align="center">
-            <EmailIcon /> {t("Email")}
-          </Flex>
-        }
-        name="guestSignin"
-        description={
-          env.EMAIL_ENABLED
-            ? t("Allow members to sign-in using their email address")
-            : t("The server must have SMTP configured to enable this setting")
-        }
-        border={false}
-      >
-        <Switch
-          id="guestSignin"
-          checked={team.guestSignin}
-          onChange={handleGuestSigninChange}
-          disabled={!env.EMAIL_ENABLED}
-        />
-      </SettingRow>
+              {showGroupSync && (
+                <SettingRow
+                  label={t("Group sync")}
+                  name={`groupSync-${provider.name}`}
+                  description={
+                    provider.groupSyncRequiresSetup &&
+                    !provider.settings?.groupSyncEnabled
+                      ? t(
+                          "An administrator of {{ authProvider }} must approve group access for this workspace",
+                          { authProvider: provider.displayName }
+                        )
+                      : t(
+                          "Sync group memberships from {{ authProvider }} on each sign-in",
+                          { authProvider: provider.displayName }
+                        )
+                  }
+                  border={
+                    !(
+                      provider.settings?.groupSyncEnabled &&
+                      provider.groupSyncUsesClaim
+                    )
+                  }
+                >
+                  {provider.groupSyncRequiresSetup &&
+                  !provider.settings?.groupSyncEnabled ? (
+                    <Button
+                      onClick={() => handleToggleGroupSync(provider, true)}
+                      neutral
+                    >
+                      {t("Set up group sync")}
+                    </Button>
+                  ) : (
+                    <Switch
+                      id={`groupSync-${provider.name}`}
+                      checked={provider.settings?.groupSyncEnabled ?? false}
+                      onChange={(checked) =>
+                        handleToggleGroupSync(provider, checked)
+                      }
+                    />
+                  )}
+                </SettingRow>
+              )}
+              {showGroupSync &&
+                provider.groupSyncUsesClaim &&
+                provider.settings?.groupSyncEnabled && (
+                  <SettingRow
+                    label={t("Group claim")}
+                    name={`groupClaim-${provider.name}`}
+                    description={t(
+                      "The claim in the provider response that contains group names (e.g. groups, roles)"
+                    )}
+                    border={false}
+                  >
+                    <Input
+                      id={`groupClaim-${provider.name}`}
+                      defaultValue={provider.settings?.groupClaim ?? "groups"}
+                      placeholder="groups"
+                      onBlur={(ev: React.FocusEvent<HTMLInputElement>) => {
+                        const value = ev.target.value.trim();
+                        if (value !== (provider.settings?.groupClaim ?? "")) {
+                          void handleGroupClaimChange(provider, value);
+                        }
+                      }}
+                    />
+                  </SettingRow>
+                )}
+            </React.Fragment>
+          );
+        })}
+        <SettingRow
+          label={
+            <Flex gap={8} align="center">
+              <EmailIcon /> {t("Email")}
+            </Flex>
+          }
+          name="guestSignin"
+          description={
+            env.EMAIL_ENABLED
+              ? t("Allow members to sign in using their email address")
+              : t("The server must have SMTP configured to enable this setting")
+          }
+        >
+          <Switch
+            id="guestSignin"
+            checked={team.guestSignin}
+            onChange={handleGuestSigninChange}
+            disabled={!env.EMAIL_ENABLED}
+          />
+        </SettingRow>
 
-      <SettingRow
-        label={
-          <Flex gap={8} align="center">
-            <PadlockIcon /> {t("Passkeys")}
-          </Flex>
-        }
-        name="passkeysEnabled"
-        description={t("Allow members to sign-in with a WebAuthn passkey")}
-      >
-        <Switch
-          id="passkeysEnabled"
-          checked={team.passkeysEnabled}
-          onChange={async (checked) => {
-            try {
-              await team.save({ passkeysEnabled: checked });
-              toast.success(t("Settings saved"));
-            } catch (err) {
-              toast.error(errToString(err));
-            }
-          }}
-        />
-      </SettingRow>
+        <SettingRow
+          label={
+            <Flex gap={8} align="center">
+              <PadlockIcon /> {t("Passkeys")}
+            </Flex>
+          }
+          name="passkeysEnabled"
+          description={t("Allow members to sign in with a WebAuthn passkey")}
+        >
+          <Switch
+            id="passkeysEnabled"
+            checked={team.passkeysEnabled}
+            onChange={async (checked) => {
+              try {
+                await team.save({ passkeysEnabled: checked });
+                toast.success(t("Settings saved"));
+              } catch (err) {
+                toast.error(errToString(err));
+              }
+            }}
+          />
+        </SettingRow>
+      </SettingsSection>
 
-      <Heading as="h2">{t("Restrictions")}</Heading>
-      <DomainManagement onSuccess={showSuccessMessage} />
+      <SettingsSection title={t("Restrictions")}>
+        <DomainManagement onSuccess={showSuccessMessage} />
+      </SettingsSection>
     </Scene>
   );
 }

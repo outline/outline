@@ -3,6 +3,7 @@ import { Scope } from "@shared/types";
 import env from "@server/env";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import type { AppContext } from "@server/types";
+import { RequestHelper } from "@server/utils/RequestHelper";
 import {
   generateRawToken,
   bundleToken,
@@ -15,12 +16,20 @@ import { CSRFError } from "@server/errors";
 import { parseAuthentication } from "./authentication";
 
 /**
- * Middleware that generates and attaches CSRF tokens for safe methods
+ * Middleware that generates and attaches CSRF tokens for safe methods. An
+ * existing valid token is kept, so that concurrent requests do not replace the
+ * cookie while a mutating request is in flight.
  */
 export function attachCSRFToken() {
   return async function attachCSRFTokenMiddleware(ctx: AppContext, next: Next) {
     // Only attach tokens for safe methods that don't mutate state
     if (["GET", "HEAD", "OPTIONS"].includes(ctx.method)) {
+      const existing = getTokenFromCookie(ctx);
+      if (existing && unbundleToken(existing, env.SECRET_KEY).valid) {
+        await next();
+        return;
+      }
+
       const raw = generateRawToken(16);
       const bundled = bundleToken(raw, env.SECRET_KEY);
 
@@ -87,8 +96,10 @@ export function verifyCSRFToken() {
 
     // Get token from header or form field depending on type
     // Access the already-parsed body from koa-body middleware
+    const fieldVal = RequestHelper.getBodyObject(ctx.request)[CSRF.fieldName];
     const inputVal =
-      ctx.get(CSRF.headerName) || ctx.request.body?.[CSRF.fieldName];
+      ctx.get(CSRF.headerName) ||
+      (typeof fieldVal === "string" ? fieldVal : undefined);
 
     if (!inputVal) {
       throw CSRFError("CSRF token missing from request");

@@ -18,11 +18,11 @@ env:
 
 jobs:
   changes:
-    # Blacksmith runners are only available to the outline organization, and are
-    # not used for pull requests from forks so that fork-controlled code cannot
-    # write to the shared sticky disks. Keep in sync with actions/install.
-    runs-on: ${{ (github.repository_owner == 'outline' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && 'blacksmith-8vcpu-ubuntu-2404' || 'ubuntu-latest' }}
+    runs-on: ubuntu-latest
     outputs:
+      # Blacksmith runners are only available to the outline organization, and are
+      # not used for pull requests from forks. They are reserved for the test jobs
+      # that set the wall time of a CI run.
       runner: ${{ (github.repository_owner == 'outline' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && 'blacksmith-8vcpu-ubuntu-2404' || 'ubuntu-latest' }}
       code: ${{ steps.filter.outputs.code }}
       config: ${{ steps.filter.outputs.config }}
@@ -43,8 +43,8 @@ jobs:
               - '!shared/i18n/locales/**'
             config:
               - '.github/**'
-              - 'vite.config.ts'
-              - 'vitest.config.ts'
+              - 'vite.config.mts'
+              - 'vitest.config.mts'
             server:
               - 'server/**'
               - 'shared/**'
@@ -64,7 +64,7 @@ jobs:
   lint:
     needs: changes
     if: ${{ needs.changes.outputs.code == 'true' }}
-    runs-on: ${{ needs.changes.outputs.runner }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/install
@@ -83,20 +83,30 @@ jobs:
   types:
     needs: changes
     if: ${{ needs.changes.outputs.code == 'true' }}
-    runs-on: ${{ needs.changes.outputs.runner }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/install
-      - run: yarn tsc
+      # No tsc build cache persists between runs, so skip writing one.
+      - run: yarn tsc --incremental false
 
   audit:
     needs: changes
     if: ${{ needs.changes.outputs.deps == 'true' }}
-    runs-on: ${{ needs.changes.outputs.runner }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/install
-      - run: yarn npm audit --severity high --recursive --environment production
+      # Pass when the audit service is unreachable, but still fail on vulnerabilities.
+      - run: |
+          set +e
+          yarn npm audit --severity high --recursive --environment production 2>&1 | tee audit.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ] && grep -qE "RequestError|ETIMEDOUT|ECONNRESET|ECONNREFUSED|EAI_AGAIN|Response Code: 5[0-9]{2}" audit.log; then
+            echo "::warning::yarn npm audit could not reach the audit service, skipping."
+            exit 0
+          fi
+          exit "$status"
 
   test:
     needs: changes
@@ -136,15 +146,17 @@ jobs:
   bundle-size:
     needs: changes
     if: ${{ (needs.changes.outputs.app == 'true' || needs.changes.outputs.config == 'true') && github.repository == 'outline/outline' }}
-    runs-on: ${{ needs.changes.outputs.runner }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/install
       - name: Set environment to production
         run: echo "NODE_ENV=production" >> "$GITHUB_ENV"
       - run: yarn vite:build
+      # RelativeCI is an external service, an outage should not block merging.
       - name: Send bundle stats to RelativeCI
         if: ${{ env.RELATIVE_CI_KEY != '' }}
+        continue-on-error: true
         env:
           RELATIVE_CI_KEY: ${{ secrets.RELATIVE_CI_KEY }}
         uses: relative-ci/agent-action@38328454d6a23942175eba485fca4fbb807b1f03 # v2

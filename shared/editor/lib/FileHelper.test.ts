@@ -31,4 +31,16 @@ describe("FileHelper", () => {
     expect(FileHelper.isAudio("text/plain")).toBe(false);
     expect(FileHelper.isAudio("application/json")).toBe(false);
   });
+
+  it("withContentType", () => {
+    const mov = FileHelper.withContentType(new File(["x"], "Clip.MOV"));
+    expect(mov.type).toBe("video/quicktime");
+    expect(mov.name).toBe("Clip.MOV");
+
+    const typed = new File(["x"], "clip.mov", { type: "video/mp4" });
+    expect(FileHelper.withContentType(typed)).toBe(typed);
+
+    const unknown = new File(["x"], "notes.txt");
+    expect(FileHelper.withContentType(unknown)).toBe(unknown);
+  });
 });

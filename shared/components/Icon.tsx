@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
-import { getLuminance } from "polished";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "../styles/breakpoint";
+import useContrastColor from "../hooks/useContrastColor";
 import useStores from "../hooks/useStores";
 import { IconType, TeamPreference } from "../types";
 import { IconLibrary } from "../utils/IconLibrary";
@@ -85,22 +85,12 @@ const SVGIcon = observer(
     className,
     forceColor,
   }: Props) => {
-    const { ui, auth } = useStores();
+    const { auth } = useStores();
+    const contrastColor = useContrastColor();
     const palette: string[] =
       auth?.team?.getPreference(TeamPreference.ColorPalette) || colorPalette;
-    let color = inputColor ?? palette[0];
-
-    // If the chosen icon color is very dark then we invert it in dark mode
-    if (!forceColor) {
-      if (ui.resolvedTheme === "dark" && color !== "currentColor") {
-        color = getLuminance(color) > 0.09 ? color : "currentColor";
-      }
-
-      // If the chosen icon color is very light then we invert it in light mode
-      if (ui.resolvedTheme === "light" && color !== "currentColor") {
-        color = getLuminance(color) < 0.9 ? color : "currentColor";
-      }
-    }
+    const rawColor = inputColor ?? palette[0];
+    const color = forceColor ? rawColor : contrastColor(rawColor);
 
     const Component = IconLibrary.getComponent(icon);
 

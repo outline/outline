@@ -1,4 +1,3 @@
-/* oxlint-disable lines-between-class-members */
 import fractionalIndex from "fractional-index";
 import { find, findIndex, isNil, keyBy, remove, uniq } from "es-toolkit/compat";
 import type {
@@ -54,7 +53,7 @@ import type {
 import { CollectionPermission, NavigationNodeType } from "@shared/types";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { sortNavigationNodes } from "@shared/utils/collections";
-import slugify from "@shared/utils/slugify";
+import slugify from "@server/utils/slugify";
 import {
   CollectionValidation,
   DeprecationValidation,
@@ -63,6 +62,7 @@ import { parser } from "@server/editor";
 import { ValidationError } from "@server/errors";
 import type { APIContext } from "@server/types";
 import { LockHelper } from "@server/storage/LockHelper";
+import { afterCommit } from "@server/storage/transaction";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import removeIndexCollision from "@server/utils/removeIndexCollision";
@@ -387,12 +387,6 @@ class Collection extends ParanoidModel<
     } else if (!model.content) {
       model.content = await DocumentHelper.toJSON(model);
     }
-
-    if (model.changed("documentStructure")) {
-      await CacheHelper.clearData(
-        RedisPrefixHelper.getCollectionDocumentsKey(model.id)
-      );
-    }
   }
 
   @AfterSave
@@ -408,13 +402,7 @@ class Collection extends ParanoidModel<
           Collection.DOCUMENT_STRUCTURE_CACHE_TTL
         );
 
-      if (options.transaction) {
-        return (options.transaction.parent || options.transaction).afterCommit(
-          setData
-        );
-      }
-
-      await setData();
+      await afterCommit(options.transaction, setData);
     }
   }
 
@@ -429,7 +417,9 @@ class Collection extends ParanoidModel<
     const total = await this.count({
       where: {
         teamId: model.teamId,
+        ownerId: null,
       },
+      transaction: options.transaction,
     });
     if (total === 1) {
       throw ValidationError("Cannot delete last collection");
@@ -515,6 +505,19 @@ class Collection extends ParanoidModel<
   }
 
   @BeforeUpdate
+  static checkPersonal(model: Collection) {
+    if (!model.ownerId) {
+      return;
+    }
+    if (model.changed("name")) {
+      throw ValidationError("A personal collection cannot be renamed");
+    }
+    if (model.changed("permission") && model.permission) {
+      throw ValidationError("A personal collection must stay private");
+    }
+  }
+
+  @BeforeUpdate
   static async checkIndex(
     model: Collection,
     options: UpdateOptions<Collection>
@@ -569,6 +572,15 @@ class Collection extends ParanoidModel<
   @Column(DataType.UUID)
   archivedById?: string | null;
 
+  /** The user that owns this collection, if it is a personal collection. */
+  @BelongsTo(() => User, "ownerId")
+  owner?: User | null;
+
+  @AllowNull
+  @ForeignKey(() => User)
+  @Column(DataType.UUID)
+  ownerId: string | null;
+
   @HasMany(() => Document, "collectionId")
   documents: Document[];
 
@@ -621,6 +633,7 @@ class Collection extends ParanoidModel<
   ) {
     const collection = await this.scope("withAllMemberships").findOne({
       where: { id: collectionId },
+      attributes: ["id"],
       include: [
         {
           association: "memberships",
@@ -672,6 +685,13 @@ class Collection extends ParanoidModel<
     options: FindOptions<Collection> & AdditionalFindOptions = {}
   ): Promise<Collection | null> {
     if (typeof id !== "string") {
+      if (options.rejectOnEmpty) {
+        throw options.rejectOnEmpty instanceof Error
+          ? options.rejectOnEmpty
+          : new EmptyResultError(
+              `Collection doesn't exist with id: ${String(id)}`
+            );
+      }
       return null;
     }
 
@@ -699,44 +719,34 @@ class Collection extends ParanoidModel<
 
     const scope = this.scope(scopes);
 
+    let collection: Collection | null = null;
+    const match = id.match(UrlHelper.SLUG_URL_REGEX);
+
     if (isUUID(id)) {
-      const collection = await scope.findOne({
+      collection = await scope.findOne({
         ...rest,
         where: {
           id,
         },
         rejectOnEmpty: false,
       });
-
-      if (!collection && rest.rejectOnEmpty) {
-        throw rest.rejectOnEmpty instanceof Error
-          ? rest.rejectOnEmpty
-          : new EmptyResultError(`Collection doesn't exist with id: ${id}`);
-      }
-
-      return collection;
-    }
-
-    const match = id.match(UrlHelper.SLUG_URL_REGEX);
-    if (match) {
-      const collection = await scope.findOne({
+    } else if (match) {
+      collection = await scope.findOne({
         ...rest,
         where: {
           urlId: match[1],
         },
         rejectOnEmpty: false,
       });
-
-      if (!collection && rest.rejectOnEmpty) {
-        throw rest.rejectOnEmpty instanceof Error
-          ? rest.rejectOnEmpty
-          : new EmptyResultError(`Collection doesn't exist with id: ${id}`);
-      }
-
-      return collection;
     }
 
-    return null;
+    if (!collection && rest.rejectOnEmpty) {
+      throw rest.rejectOnEmpty instanceof Error
+        ? rest.rejectOnEmpty
+        : new EmptyResultError(`Collection doesn't exist with id: ${id}`);
+    }
+
+    return collection;
   }
 
   /**
@@ -754,6 +764,7 @@ class Collection extends ParanoidModel<
     return this.findOne({
       where: {
         teamId: user.teamId,
+        ownerId: null,
         id,
       },
       order: [
@@ -766,6 +777,77 @@ class Collection extends ParanoidModel<
   }
 
   /**
+   * Find the personal collection of a user, with the memberships of the user
+   * loaded.
+   *
+   * @param user The user that owns the collection.
+   * @param options Additional options for the query.
+   * @returns the personal collection, or null if the user has none.
+   */
+  static async findPersonal(
+    user: User,
+    options: Omit<FindOptions<Collection>, "where"> = {}
+  ) {
+    return this.scope([
+      "defaultScope",
+      { method: ["withMembership", user.id] },
+    ]).findOne({
+      ...options,
+      where: {
+        teamId: user.teamId,
+        ownerId: user.id,
+      },
+    });
+  }
+
+  /**
+   * Find the personal collection of the user in the context, and create it if
+   * the user does not have one yet. The caller must authorize the creation.
+   *
+   * @param ctx The request context with the acting user and a transaction.
+   * @returns the personal collection of the user.
+   */
+  static async findOrCreatePersonal(ctx: APIContext): Promise<Collection> {
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
+    const existing = await this.findPersonal(user, { transaction });
+    if (existing) {
+      return existing;
+    }
+
+    await LockHelper.acquire(
+      this.sequelize!,
+      `collections:personal:${user.teamId}:${user.id}`,
+      transaction
+    );
+
+    const locked = await this.findPersonal(user, { transaction });
+    if (locked) {
+      return locked;
+    }
+
+    const collection = await this.createWithCtx(ctx, {
+      name: "Personal",
+      teamId: user.teamId,
+      createdById: user.id,
+      ownerId: user.id,
+      permission: null,
+    });
+
+    // The owner membership is created without hooks, so clear the cache here.
+    await afterCommit(transaction, () =>
+      CacheHelper.removeData(RedisPrefixHelper.getUserCollectionIdsKey(user.id))
+    );
+
+    return this.findByPk(collection.id, {
+      userId: user.id,
+      transaction,
+      rejectOnEmpty: true,
+    });
+  }
+
+  /**
    * Convenience method to return if a collection is considered private.
    * This means that a membership is required to view it rather than just being
    * a workspace member.
@@ -774,6 +856,16 @@ class Collection extends ParanoidModel<
    */
   get isPrivate() {
     return !this.permission;
+  }
+
+  /**
+   * Whether this collection is the personal collection of a user. A personal
+   * collection is private and only its owner can see or manage it.
+   *
+   * @returns boolean
+   */
+  get isPersonal() {
+    return !!this.ownerId;
   }
 
   /**
@@ -892,7 +984,7 @@ class Collection extends ParanoidModel<
         attributes: ["id"],
         where: { id: this.id },
         transaction,
-        lock: transaction.LOCK.UPDATE,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
         rejectOnEmpty: true,
       });
     }
@@ -1045,23 +1137,17 @@ class Collection extends ParanoidModel<
 
     const { id } = updatedDocument;
 
-    const updateChildren = (documents: NavigationNode[]) =>
-      Promise.all(
-        documents.map(async (document) => {
-          if (document.id === id) {
-            document = {
-              ...(await updatedDocument.toNavigationNode(options)),
-              children: document.children,
-            };
-          } else {
-            document.children = await updateChildren(document.children);
-          }
+    const updateChildren = (documents: NavigationNode[]): NavigationNode[] =>
+      documents.map((document) => {
+        if (document.id === id) {
+          return updatedDocument.toShallowNavigationNode(document.children);
+        }
 
-          return document;
-        })
-      );
+        document.children = updateChildren(document.children);
+        return document;
+      });
 
-    this.documentStructure = await updateChildren(this.documentStructure);
+    this.documentStructure = updateChildren(this.documentStructure);
     // Sequelize doesn't seem to set the value with splice on JSONB field
     // https://github.com/sequelize/sequelize/blob/e1446837196c07b8ff0c23359b958d68af40fd6d/src/model.js#L3937
     this.changed("documentStructure", true);
@@ -1093,10 +1179,8 @@ class Collection extends ParanoidModel<
     }
 
     // If moving existing document with children, use existing structure
-    const documentJson = {
-      ...(await document.toNavigationNode(options)),
-      ...options.documentJson,
-    };
+    const documentJson =
+      options.documentJson ?? (await document.toNavigationNode(options));
 
     // Determine the insertion index based on order parameter or explicit index
     let insertionIndex: number;

@@ -1,5 +1,6 @@
 import styled, { css } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { textSizeStyles } from "@shared/components/Text";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
@@ -47,7 +48,7 @@ export const metaStyles = css<{ $rtl?: boolean }>`
  */
 export const headerMetaStyles = css`
   margin: -12px 0 2em 0;
-  font-size: 14px;
+  ${textSizeStyles("small")}
   position: relative;
   user-select: none;
   z-index: 1;

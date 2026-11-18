@@ -3,19 +3,19 @@ import {
   concat,
   difference,
   fill,
-  filter,
   flatten,
   includes,
   map,
+  union,
 } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { StarredIcon, DocumentIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import AutoSizer from "react-virtualized-auto-sizer";
-import { FixedSizeList as List } from "react-window";
+import type { ListImperativeAPI, RowComponentProps } from "react-window";
+import { List } from "react-window";
 import styled, { useTheme } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
 import { isModKey } from "@shared/utils/keyboard";
@@ -40,29 +40,23 @@ type Props = {
   defaultValue?: string;
   /** Whether to show child documents */
   showDocuments?: boolean;
+  /** Overrides the icon of a node, return undefined to keep the default. */
+  renderIcon?: (node: NavigationNode) => React.ReactNode;
 };
 
 const VERTICAL_PADDING = 6;
 const HORIZONTAL_PADDING = 24;
 
-function innerElementType({
-  style,
-  ref,
-  ...rest
-}: React.HTMLAttributes<HTMLDivElement> & {
-  ref?: React.Ref<HTMLDivElement>;
-}) {
-  return (
-    <div
-      ref={ref}
-      style={{
-        ...style,
-        height: `${parseFloat(style?.height + "") + VERTICAL_PADDING * 2}px`,
-      }}
-      {...rest}
-    />
-  );
+const expandableDescendantIds = (node: NavigationNode) =>
+  descendants(node)
+    .filter((des) => des.children.length > 0)
+    .map((des) => des.id);
+
+interface RowProps {
+  data: NavigationNode[];
 }
+
+const rowKey = (index: number, { data }: RowProps) => data[index].id;
 
 function DocumentExplorer({
   onSubmit,
@@ -70,6 +64,7 @@ function DocumentExplorer({
   items,
   defaultValue,
   showDocuments,
+  renderIcon,
 }: Props) {
   const isMobile = useMobile();
   const { collections, documents } = useStores();
@@ -77,6 +72,8 @@ function DocumentExplorer({
   const theme = useTheme();
 
   const [searchTerm, setSearchTerm] = React.useState<string>();
+  // Defer filtering so typing in the search input stays responsive.
+  const deferredSearchTerm = React.useDeferredValue(searchTerm);
   const [selectedNode, selectNode] = React.useState<NavigationNode | null>(
     () => {
       if (!defaultValue) {
@@ -101,6 +98,10 @@ function DocumentExplorer({
     }
     return [];
   });
+  // Nodes expanded with alt-click, whose descendants stay expanded as they load.
+  const [deepExpandedNodes, setDeepExpandedNodes] = React.useState<string[]>(
+    []
+  );
 
   const [itemRefs, setItemRefs] = React.useState<
     React.RefObject<HTMLSpanElement>[]
@@ -109,7 +110,7 @@ function DocumentExplorer({
   const inputSearchRef = React.useRef<HTMLInputElement | HTMLTextAreaElement>(
     null
   );
-  const listRef = React.useRef<List<NavigationNode[]>>(null);
+  const listRef = React.useRef<ListImperativeAPI>(null);
 
   const searchIndex = React.useMemo(
     () =>
@@ -123,6 +124,7 @@ function DocumentExplorer({
     if (searchTerm) {
       selectNode(null);
       setExpandedNodes([]);
+      setDeepExpandedNodes([]);
     }
     setActiveNode(0);
   }, [searchTerm]);
@@ -143,8 +145,8 @@ function DocumentExplorer({
         : [item];
     }
 
-    return searchTerm
-      ? searchIndex.search(searchTerm)
+    return deferredSearchTerm
+      ? searchIndex.search(deferredSearchTerm)
       : items.flatMap(includeDescendants);
   }
 
@@ -158,10 +160,13 @@ function DocumentExplorer({
     if (defaultValue && selectedNode && listRef) {
       const index = nodes.findIndex((node) => node.id === selectedNode.id);
       if (index > 0) {
-        setTimeout(() => listRef.current?.scrollToItem(index, "center"), 50);
+        setTimeout(
+          () => listRef.current?.scrollToRow({ index, align: "center" }),
+          50
+        );
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultValue]);
   const baseDepth = nodes.reduce(
     (min, node) => (node.depth ? Math.min(min, node.depth) : min),
@@ -171,7 +176,7 @@ function DocumentExplorer({
     (baseDepth === Infinity ? 0 : baseDepth) + (showDocuments ? 0 : 1);
 
   const scrollNodeIntoView = React.useCallback((node: number) => {
-    listRef.current?.scrollToItem(node, "smart");
+    listRef.current?.scrollToRow({ index: node, align: "smart" });
   }, []);
 
   const handleSearch = (ev: React.ChangeEvent<HTMLInputElement>) => {
@@ -180,37 +185,49 @@ function DocumentExplorer({
 
   const isExpanded = (node: number) => includes(expandedNodes, nodes[node].id);
 
-  const preserveScrollOffset = (itemCount: number) => {
-    if (listRef.current) {
-      const { height, itemSize } = listRef.current.props;
-      const { scrollOffset } = listRef.current.state as {
-        scrollOffset: number;
-      };
-      const itemsHeight = itemCount * itemSize;
-      const offset = itemsHeight < Number(height) ? 0 : scrollOffset;
-      setTimeout(() => listRef.current?.scrollTo(offset), 0);
-    }
-  };
-
   const collapse = (node: number) => {
     const descendantIds = descendants(nodes[node]).map((des) => des.id);
+    const ancestorIds = ancestors(nodes[node]).map((anc) => anc.id);
     setExpandedNodes(
       difference(expandedNodes, [...descendantIds, nodes[node].id])
     );
-
-    // remove children
-    const newNodes = filter(nodes, (n) => !includes(descendantIds, n.id));
-    preserveScrollOffset(newNodes.length);
+    setDeepExpandedNodes(
+      difference(deepExpandedNodes, [
+        ...ancestorIds,
+        ...descendantIds,
+        nodes[node].id,
+      ])
+    );
   };
 
-  const expand = (node: number) => {
-    setExpandedNodes(concat(expandedNodes, nodes[node].id));
-
-    // add children
-    const newNodes = nodes.slice();
-    newNodes.splice(node + 1, 0, ...descendants(nodes[node], 1));
-    preserveScrollOffset(newNodes.length);
+  const expand = (node: number, deep = false) => {
+    if (deep) {
+      setExpandedNodes(
+        union(expandedNodes, [
+          nodes[node].id,
+          ...expandableDescendantIds(nodes[node]),
+        ])
+      );
+      setDeepExpandedNodes(union(deepExpandedNodes, [nodes[node].id]));
+    } else {
+      setExpandedNodes(concat(expandedNodes, nodes[node].id));
+    }
   };
+
+  // Expand descendants of alt-clicked nodes that load after the click.
+  React.useEffect(() => {
+    if (!deepExpandedNodes.length) {
+      return;
+    }
+    const ids = flatten(items.map(flattenTree))
+      .filter((item) => deepExpandedNodes.includes(item.id))
+      .flatMap(expandableDescendantIds);
+
+    setExpandedNodes((prev) => {
+      const missing = difference(ids, prev);
+      return missing.length ? concat(prev, missing) : prev;
+    });
+  }, [items, deepExpandedNodes]);
 
   React.useEffect(() => {
     collections.orderedData
@@ -236,14 +253,14 @@ function DocumentExplorer({
     nodes[node].children.length > 0 ||
     (showDocuments !== false && nodes[node].type === "collection");
 
-  const toggleCollapse = (node: number) => {
+  const toggleCollapse = (node: number, deep = false) => {
     if (!hasChildren(node)) {
       return;
     }
     if (isExpanded(node)) {
       collapse(node);
     } else {
-      expand(node);
+      expand(node, deep);
     }
   };
 
@@ -263,15 +280,7 @@ function DocumentExplorer({
   };
 
   const ListItem = observer(
-    ({
-      index,
-      data,
-      style,
-    }: {
-      index: number;
-      data: NavigationNode[];
-      style: React.CSSProperties;
-    }) => {
+    ({ index, data, style }: RowComponentProps<RowProps>) => {
       const node = data[index];
       const isCollection = node.type === "collection";
       let renderedIcon,
@@ -307,15 +316,17 @@ function DocumentExplorer({
           .join(" / ");
       }
 
-      return searchTerm ? (
+      renderedIcon = renderIcon?.(node) ?? renderedIcon;
+
+      return deferredSearchTerm ? (
         <DocumentExplorerSearchResult
           selected={isSelected(index)}
           active={activeNode === index}
           style={{
             ...style,
-            top: (style.top as number) + VERTICAL_PADDING,
-            left: (style.left as number) + HORIZONTAL_PADDING,
-            width: `calc(${style.width} - ${HORIZONTAL_PADDING * 2}px)`,
+            top: VERTICAL_PADDING,
+            left: HORIZONTAL_PADDING,
+            width: `calc(100% - ${HORIZONTAL_PADDING * 2}px)`,
           }}
           onPointerMove={() => setActiveNode(index)}
           onClick={() => selectNode(nodes[index])}
@@ -328,16 +339,16 @@ function DocumentExplorer({
         <DocumentExplorerNode
           style={{
             ...style,
-            top: (style.top as number) + VERTICAL_PADDING,
-            left: (style.left as number) + HORIZONTAL_PADDING,
-            width: `calc(${style.width} - ${HORIZONTAL_PADDING * 2}px)`,
+            top: VERTICAL_PADDING,
+            left: HORIZONTAL_PADDING,
+            width: `calc(100% - ${HORIZONTAL_PADDING * 2}px)`,
           }}
           onPointerMove={() => setActiveNode(index)}
           onClick={() => selectNode(nodes[index])}
           onDoubleClick={() => submitNode(index)}
           onDisclosureClick={(ev) => {
             ev.stopPropagation();
-            toggleCollapse(index);
+            toggleCollapse(index, ev.altKey);
           }}
           selected={isSelected(index)}
           active={activeNode === index}
@@ -381,13 +392,13 @@ function DocumentExplorer({
         break;
       }
       case "ArrowLeft": {
-        if (!searchTerm && isExpanded(activeNode)) {
+        if (!deferredSearchTerm && isExpanded(activeNode)) {
           toggleCollapse(activeNode);
         }
         break;
       }
       case "ArrowRight": {
-        if (!searchTerm) {
+        if (!deferredSearchTerm) {
           toggleCollapse(activeNode);
           // let the nodes re-render first and then scroll
           setTimeout(() => scrollNodeIntoView(activeNode), 0);
@@ -419,24 +430,15 @@ function DocumentExplorer({
       />
       <ListContainer>
         {nodes.length ? (
-          <AutoSizer>
-            {({ width, height }: { width: number; height: number }) => (
-              <Flex role="listbox" column>
-                <List
-                  ref={listRef}
-                  width={width}
-                  height={height}
-                  itemData={nodes}
-                  itemCount={nodes.length}
-                  itemSize={isMobile ? 48 : 32}
-                  innerElementType={innerElementType}
-                  itemKey={(index, results) => results[index].id}
-                >
-                  {ListItem}
-                </List>
-              </Flex>
-            )}
-          </AutoSizer>
+          <StyledList
+            role="listbox"
+            listRef={listRef}
+            rowCount={nodes.length}
+            rowHeight={isMobile ? 48 : 32}
+            rowComponent={ListItem}
+            rowProps={{ data: nodes }}
+            rowKey={rowKey}
+          />
         ) : (
           <FlexContainer>
             <Text as="p" type="secondary">
@@ -461,6 +463,11 @@ const ListSearch = styled(InputSearch).attrs({ round: true })`
   margin-bottom: 4px;
   padding-left: 24px;
   padding-right: 24px;
+`;
+
+// Rows are offset by the top padding, so the bottom needs room for both.
+const StyledList = styled(List<RowProps>)`
+  padding-bottom: ${VERTICAL_PADDING * 2}px;
 `;
 
 const ListContainer = styled.div`

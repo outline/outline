@@ -1,6 +1,7 @@
 import isEqual from "fast-deep-equal";
 import { orderBy } from "es-toolkit/compat";
 import { observer } from "mobx-react";
+import queryString from "query-string";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useRouteMatch } from "react-router-dom";
@@ -17,7 +18,11 @@ import useKeyDown from "~/hooks/useKeyDown";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
-import { documentPath, matchDocumentHistory } from "~/utils/routeHelpers";
+import {
+  documentHistoryPath,
+  documentPath,
+  matchDocumentHistory,
+} from "~/utils/routeHelpers";
 import { isTruthyQueryValue } from "~/utils/urls";
 import Sidebar from "../SidebarLayout";
 import useMobile from "~/hooks/useMobile";
@@ -113,16 +118,6 @@ function History() {
     }
   }, [selectedRevisionId, updateLocation]);
 
-  const handleCompareToChange = React.useCallback(
-    (value: string) => {
-      setCompareTo(value);
-      updateLocation({
-        compareTo: value === COMPARE_TO_PREVIOUS ? null : value,
-      });
-    },
-    [updateLocation]
-  );
-
   // Ensure that the URL parameter is in sync with the persisted state on mount
   React.useEffect(() => {
     if (defaultShowChanges) {
@@ -174,7 +169,7 @@ function History() {
       .getByDocumentId(document.id)
       .filter((revision: Revision) => revision.id !== latestRevisionId)
       .slice(0, revisionsOffset);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [document, revisions.orderedData, revisionsOffset]);
 
   // The revisions list is lightweight and omits document content, so load the
@@ -203,12 +198,51 @@ function History() {
     (latestRevision.title !== document.title ||
       (!!latestRevision.data && !isEqual(latestRevision.data, document.data)));
 
+  // The entry for the current content, the top revision only once it is known to match.
+  const currentRevisionId =
+    isDocUpdated || !latestRevision?.data || latestRevision.deletedAt
+      ? "latest"
+      : latestRevision.id;
+
+  const handleCompareToChange = React.useCallback(
+    (value: string) => {
+      const changes = {
+        compareTo: value === COMPARE_TO_PREVIOUS ? null : value,
+      };
+      setCompareTo(value);
+
+      if (selectedRevisionId || !document || document.isDeleted) {
+        updateLocation(changes);
+        return;
+      }
+
+      // With no revision selected, compare against the current version.
+      prevSelectedRef.current = currentRevisionId;
+      history.push({
+        pathname: documentHistoryPath(document, currentRevisionId),
+        search: queryString.stringify(
+          { ...queryString.parse(history.location.search), ...changes },
+          { skipNull: true }
+        ),
+        state: { sidebarContext, retainScrollPosition: true },
+      });
+    },
+    [
+      currentRevisionId,
+      document,
+      history,
+      selectedRevisionId,
+      sidebarContext,
+      updateLocation,
+    ]
+  );
+
   const nonRevisionEvents = React.useMemo(
     () =>
       document
         ? events.getByDocumentId(document.id).slice(0, eventsOffset)
         : [],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
     [document, events.orderedData, eventsOffset]
   );
 
@@ -261,7 +295,7 @@ function History() {
         onShowChangesToggle={handleShowChangesToggle}
         items={items}
         document={document}
-        selectedRevisionId={selectedRevisionId}
+        selectedRevisionId={selectedRevisionId ?? currentRevisionId}
         compareTo={compareTo}
         onCompareToChange={handleCompareToChange}
       />

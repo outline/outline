@@ -1,9 +1,8 @@
 import { observer } from "mobx-react";
 import { v4 as uuidv4 } from "uuid";
 import { runInAction } from "mobx";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { MentionType } from "@shared/types";
 import {
@@ -26,15 +25,20 @@ import {
   groupMentionItem,
   userMentionItem,
 } from "~/editor/menus/mention";
+import useDebouncedValue from "~/hooks/useDebouncedValue";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import useUserLocale from "~/hooks/useUserLocale";
+import { useLocationSelector } from "~/hooks/useLocationSelector";
 import type Model from "~/models/base/Model";
 import { client } from "~/utils/ApiClient";
 import { useEditor } from "./EditorContext";
 import type { Props as SuggestionsMenuProps } from "./SuggestionsMenu";
 import SuggestionsMenu from "./SuggestionsMenu";
 import SuggestionsMenuItem from "./SuggestionsMenuItem";
+
+/** The time in milliseconds the search must stay the same before it is sent. */
+const RequestDelay = 100;
 
 type Props = Omit<
   SuggestionsMenuProps<MentionMenuItem>,
@@ -53,8 +57,9 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
   const { auth, documents, users, collections, groups } = useStores();
   const { props: editorProps } = useEditor();
   const actorId = auth.currentUserId;
-  const location = useLocation();
-  const documentId = parseDocumentSlug(location.pathname);
+  const documentId = useLocationSelector((location) =>
+    parseDocumentSlug(location.pathname)
+  );
   const userLocale = useUserLocale();
   const maxResultsInSection = search ? 25 : 5;
 
@@ -121,12 +126,23 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
     ];
   }
 
+  // Results from the store show at once, the server is only asked for more
+  // when the user stops typing.
+  const requestSearch = useDebouncedValue(search, RequestDelay);
+  const latestRequestId = useRef(0);
+
   const { loading, request } = useRequest(
     useCallback(async () => {
+      const requestId = ++latestRequestId.current;
       const res = await client.post("/suggestions.mention", {
-        query: search,
-        limit: maxResultsInSection,
+        query: requestSearch,
+        limit: requestSearch ? 25 : 5,
       });
+
+      // A newer request was sent while this one was in progress.
+      if (requestId !== latestRequestId.current) {
+        return;
+      }
 
       runInAction(() => {
         res.data.documents.map(documents.add);
@@ -142,7 +158,7 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
             ...Object.entries<number>(res.data.familiarity ?? {}),
           ])
       );
-    }, [search, documents, users, collections, groups, maxResultsInSection])
+    }, [requestSearch, documents, users, collections, groups])
   );
 
   // Suggestions that the current user is familiar with, for example a member of
@@ -184,6 +200,8 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
         .concat(
           collections
             .findByQuery(search, { maxResults: maxResultsInSection, weight })
+            // A personal collection has no page for a mention to link to.
+            .filter((collection) => !collection.isPersonal)
             .map((collection) => collectionMentionItem(collection, actorId))
         )
         .concat(
@@ -220,7 +238,7 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
           const user = users.get(item.attrs.modelId);
           toast.message(
             t(
-              "{{ userName }} won't be notified, as they do not have access to this document",
+              "{{ userName }} won’t be notified, as they do not have access to this document",
               {
                 userName: item.attrs.label,
               }
@@ -235,7 +253,7 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
         const group = groups.get(item.attrs.modelId);
         toast.message(
           t(
-            `Members of "{{ groupName }}" that have access to this document will be notified`,
+            "Members of “{{ groupName }}” with access to this document will be notified",
             {
               groupName: item.attrs.label,
             }

@@ -3,7 +3,7 @@ import styled from "styled-components";
 
 type Props = {
   isActiveDrop: boolean;
-  innerRef: React.Ref<HTMLDivElement>;
+  innerRef?: React.Ref<HTMLDivElement>;
   position?: "top";
   /** Inline-start offset of the visible line in pixels, to match a tree depth. */
   indent?: number;
@@ -53,7 +53,7 @@ const Cursor = styled.div<{
   background: transparent;
   ${(props) => (props.position === "top" ? "top: -7px;" : "bottom: -7px;")}
 
-  ::after {
+  &::after {
     background: ${(props) => props.theme.accent};
     position: absolute;
     top: 6px;

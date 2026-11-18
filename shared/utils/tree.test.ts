@@ -1,5 +1,10 @@
 import type { NavigationNode } from "../types";
-import { ancestors, descendants, flattenTree } from "./tree";
+import {
+  ancestors,
+  descendants,
+  flattenExpandedTree,
+  flattenTree,
+} from "./tree";
 
 const buildNode = (
   id: string,
@@ -138,5 +143,96 @@ describe("#descendants", () => {
 
   it("should return an empty list for a leaf node", () => {
     expect(descendants(buildNode("leaf"))).toEqual([]);
+  });
+});
+
+describe("#flattenExpandedTree", () => {
+  // a
+  // ├── b
+  // │   ├── c
+  // │   └── d
+  // └── e
+  // f
+  const nodes = [
+    buildNode("a", [
+      buildNode("b", [buildNode("c"), buildNode("d")]),
+      buildNode("e"),
+    ]),
+    buildNode("f"),
+  ];
+
+  const flatten = (
+    expandedIds: string[],
+    getChildren?: (node: NavigationNode) => NavigationNode[]
+  ) =>
+    flattenExpandedTree({
+      nodes,
+      depth: 2,
+      parentId: "root",
+      isExpanded: (id) => expandedIds.includes(id),
+      getChildren,
+    });
+
+  it("should return only the root nodes when nothing is expanded", () => {
+    const flattened = flatten([]);
+
+    expect(flattened.map((item) => item.node.id)).toEqual(["a", "f"]);
+    expect(flattened[0]).toMatchObject({
+      depth: 2,
+      index: 0,
+      parentId: "root",
+      hasChildren: true,
+    });
+    expect(flattened[1]).toMatchObject({ index: 1, hasChildren: false });
+  });
+
+  it("should include the children of expanded nodes in display order", () => {
+    const flattened = flatten(["a", "b"]);
+
+    expect(
+      flattened.map((item) => [item.node.id, item.depth, item.parentId])
+    ).toEqual([
+      ["a", 2, "root"],
+      ["b", 3, "a"],
+      ["c", 4, "b"],
+      ["d", 4, "b"],
+      ["e", 3, "a"],
+      ["f", 2, "root"],
+    ]);
+  });
+
+  it("should skip the children of a collapsed node", () => {
+    const flattened = flatten(["b"]);
+
+    expect(flattened.map((item) => item.node.id)).toEqual(["a", "f"]);
+  });
+
+  it("should give the last child the ancestors that end with it", () => {
+    const flattened = flatten(["a", "b"]);
+    const trailing = Object.fromEntries(
+      flattened.map((item) => [
+        item.node.id,
+        item.trailingAncestors.map((ancestor) => ancestor.node.id),
+      ])
+    );
+
+    expect(trailing).toEqual({
+      a: [],
+      b: [],
+      c: [],
+      d: ["b"],
+      e: ["a"],
+      f: [],
+    });
+  });
+
+  it("should use the children returned by getChildren", () => {
+    const draft = buildNode("draft");
+    const flattened = flatten(["f"], (node) =>
+      node.id === "f" ? [draft] : node.children
+    );
+
+    expect(flattened.map((item) => item.node.id)).toEqual(["a", "f", "draft"]);
+    expect(flattened[1].hasChildren).toBe(true);
   });
 });

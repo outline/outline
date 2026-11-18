@@ -1,38 +1,135 @@
 import Koa from "koa";
 import bodyParser from "koa-body";
-import Router from "koa-router";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
-import { ErrorCode } from "@modelcontextprotocol/sdk/types.js";
+import Router from "@koa/router";
+import { Readable } from "node:stream";
+import type { Context, Next } from "koa";
+import {
+  createMcpHandler,
+  type McpServerFactory,
+  ProtocolErrorCode,
+} from "@modelcontextprotocol/server";
 import { toError } from "@shared/utils/error";
 import { TeamPreference } from "@shared/types";
-import { iconNames } from "@shared/utils/IconNames";
-import { NotFoundError } from "@server/errors";
 import env from "@server/env";
+import { NotFoundError } from "@server/errors";
 import Logger from "@server/logging/Logger";
+import { createMcpServer } from "@server/mcp";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import requestTracer from "@server/middlewares/requestTracer";
+import type { User } from "@server/models";
 import { UserFlag } from "@server/models/User";
-import { AuthenticationType } from "@server/types";
+import { AuthenticationType, type APIContext } from "@server/types";
+import { OAuthHelper } from "@server/utils/oauth/OAuthHelper";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
-import { attachmentTools } from "@server/tools/attachments";
-import { collectionTools } from "@server/tools/collections";
-import { commentTools } from "@server/tools/comments";
-import { documentTools } from "@server/tools/documents";
-import { fetchTool } from "@server/tools/fetch";
-import { templateTools } from "@server/tools/templates";
-import { userTools } from "@server/tools/users";
-import { iconNamesResourceUri } from "@server/tools/util";
-import { version } from "../../../package.json";
 
 const app = new Koa();
 const router = new Router();
 
+// Connection-level headers that Node must set itself, see RFC 9110 §7.6.1.
+const hopByHopHeaders = new Set([
+  "connection",
+  "keep-alive",
+  "proxy-connection",
+  "te",
+  "trailer",
+  "transfer-encoding",
+  "upgrade",
+]);
+
+interface McpAuthExtra {
+  user: User;
+  scope: string[];
+  ip: string;
+  origin: string;
+}
+
+/**
+ * Reports transport errors. These are client-side 4xx conditions (bad Accept
+ * header, etc) that the SDK already answers, so warn keeps visibility without
+ * reporting client mistakes to Sentry.
+ *
+ * @param error - the error to report.
+ */
+function handleTransportError(error: Error) {
+  // Clients probe with their latest version and fall back on this error.
+  if (error.message.includes("Unsupported protocol version")) {
+    return;
+  }
+  Logger.warn("MCP transport error", error);
+}
+
+/**
+ * Builds a fresh MCP server for one request, from the auth info set by the route.
+ *
+ * @param context - the request context with the auth info.
+ * @returns a configured MCP server.
+ */
+const createServer: McpServerFactory = ({ authInfo }) => {
+  const extra = authInfo?.extra as McpAuthExtra | undefined;
+  if (!extra) {
+    throw new Error("MCP request is missing auth info");
+  }
+  return createMcpServer(
+    extra.origin,
+    extra.scope,
+    extra.user.team.guidanceMCP ?? undefined
+  );
+};
+
+// Plain JSON replies for 2026-era clients, which reverse proxies handle more
+// reliably than SSE. The SDK still replies to 2025-era clients over SSE.
+const mcpHandler = createMcpHandler(createServer, {
+  responseMode: "json",
+  onerror: handleTransportError,
+});
+
+/**
+ * Rejects browser requests from origins other than the app or the team's own
+ * subdomain or custom domain. Requests without an Origin header pass.
+ *
+ * @param ctx - the authenticated Koa context.
+ * @param next - the next middleware.
+ */
+async function validateOrigin(ctx: APIContext, next: Next) {
+  const { user } = ctx.state.auth;
+  const origin = ctx.get("origin");
+  const allowedOrigins = [
+    new URL(env.URL).origin,
+    new URL(user.team.url).origin,
+  ];
+  if (origin && !allowedOrigins.includes(origin)) {
+    ctx.status = 403;
+    ctx.body = {
+      jsonrpc: "2.0",
+      error: { code: -32000, message: `Invalid Origin: ${origin}` },
+      id: null,
+    };
+    return;
+  }
+  return next();
+}
+
+/**
+ * Converts the Koa request to a web request. The body is not copied, as the
+ * SDK reads the parsed body instead.
+ *
+ * @param ctx - the Koa context.
+ * @returns the web request.
+ */
+function toWebRequest(ctx: Context): Request {
+  const headers = new Headers();
+  for (const [key, value] of Object.entries(ctx.req.headers)) {
+    for (const item of Array.isArray(value) ? value : [value ?? ""]) {
+      headers.append(key, item);
+    }
+  }
+  return new Request(ctx.request.URL, { method: ctx.method, headers });
+}
+
 // RFC 9728 / MCP auth spec: 401 responses from the /mcp endpoint must include
 // a WWW-Authenticate header pointing at the OAuth protected resource metadata
-// document so clients can bootstrap the authorization flow via discovery.
+// document, and the scopes to request, so clients can bootstrap authorization.
 app.use(async (ctx, next) => {
   try {
     await next();
@@ -48,88 +145,17 @@ app.use(async (ctx, next) => {
         (k) => k.toLowerCase() === "www-authenticate"
       );
       if (!hasWwwAuth) {
-        const origin = env.isCloudHosted
-          ? ctx.request.URL.origin
-          : new URL(env.URL).origin;
         headersHost.headers = {
           ...existingHeaders,
-          "WWW-Authenticate": `Bearer resource_metadata="${origin}/.well-known/oauth-protected-resource/mcp"`,
+          "WWW-Authenticate": OAuthHelper.mcpBearerChallenge(
+            OAuthHelper.getIssuer(ctx)
+          ),
         };
       }
     }
     throw err;
   }
 });
-
-const defaultInstructions = `Document markdown content must not begin with a top-level heading (H1) — the title is stored as a separate field, so set it via the title parameter and start the content with body text or a lower-level heading instead.
-
-Document and collection markdown support @mentions using the syntax: @[Display Name](mention://user/userId). For example: @[John Doe](mention://user/c9a1b2e3-...). Use the "list_users" tool to find user IDs.
-
-Read images and attachments with the "fetch" tool by setting resource to "attachment" and passing either the attachment ID or an /api/attachments.redirect?id=... URL; the tool will return a signed URL for download.
-
-Base64-encoded images are supported in document content for all formats. When creating a document from HTML that includes images or videos, pass the markup with format "html" — remote URLs and base64 media are imported as attachments automatically. Do not convert such HTML to markdown, and do not upload the HTML file itself as an attachment.
-
-When asked to create a document that follows a template, use the "list_templates" tool to find a matching template; each result already includes the template body as markdown. To use it unchanged, pass its ID as templateId to "create_document" and the new document is pre-filled from it. To adapt it first, modify the returned body and pass the result as the text parameter to "create_document". Either way no separate fetch is needed.`;
-
-/**
- * Creates a fresh MCP server instance with tools filtered by the OAuth
- * scopes granted to the current token.
- *
- * @param scopes - the OAuth scopes granted to the access token.
- * @param guidance - optional workspace guidance to append to default instructions.
- * @returns a configured McpServer ready to be connected to a transport.
- */
-function createMcpServer(scopes: string[], guidance?: string): McpServer {
-  const instructions = guidance
-    ? `${defaultInstructions}\n\n${guidance}`
-    : defaultInstructions;
-
-  const server = new McpServer(
-    {
-      name: "outline",
-      version,
-    },
-    {
-      capabilities: {
-        tools: {},
-        resources: {},
-      },
-      instructions,
-    }
-  );
-
-  // Exposed as a resource rather than inlined into every icon field's schema,
-  // so the full list is fetched on demand instead of shipped with tools/list.
-  server.registerResource(
-    "icons",
-    iconNamesResourceUri,
-    {
-      title: "Icon names",
-      description:
-        "The names of the icons available for document and collection icons.",
-      mimeType: "application/json",
-    },
-    (uri) => ({
-      contents: [
-        {
-          uri: uri.href,
-          mimeType: "application/json",
-          text: JSON.stringify(iconNames),
-        },
-      ],
-    })
-  );
-
-  attachmentTools(server, scopes);
-  collectionTools(server, scopes);
-  commentTools(server, scopes);
-  documentTools(server, scopes);
-  fetchTool(server, scopes);
-  templateTools(server, scopes);
-  userTools(server, scopes);
-
-  return server;
-}
 
 router.post(
   "/",
@@ -141,6 +167,7 @@ router.post(
       AuthenticationType.API,
     ],
   }),
+  validateOrigin,
   async (ctx) => {
     const { user, token, scope } = ctx.state.auth;
 
@@ -151,38 +178,35 @@ router.post(
     user.setFlag(UserFlag.MCP);
     await user.save({ hooks: false });
 
-    const server = createMcpServer(
-      scope ?? [],
-      user.team.guidanceMCP ?? undefined
-    );
-    const transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: undefined,
-    });
-
-    // onerror fires for client-side 4xx conditions (bad Accept header, etc)
-    // which the transport already answers with an HTTP error — warn keeps
-    // visibility without reporting client mistakes to Sentry.
-    transport.onerror = (error) => {
-      Logger.warn("MCP transport error", error);
+    const extra: McpAuthExtra = {
+      user,
+      scope: scope ?? [],
+      ip: ctx.request.ip,
+      origin: OAuthHelper.getIssuer(ctx),
     };
-
-    await server.connect(transport);
-
-    // Attach auth info to the raw request so the MCP transport
-    // passes it through as `extra.authInfo` to tool handlers.
-    (ctx.req as typeof ctx.req & { auth: AuthInfo }).auth = {
-      token,
-      clientId: "",
-      scopes: scope ?? [],
-      extra: { user, scope: scope ?? [], ip: ctx.request.ip },
+    const options = {
+      authInfo: {
+        token,
+        clientId: "",
+        scopes: scope ?? [],
+        extra: { ...extra },
+      },
+      parsedBody: ctx.request.body,
     };
+    const request = toWebRequest(ctx);
 
-    ctx.respond = false;
-
-    // The SDK's handleRequest answers known protocol failures itself (4xx with a
-    // JSON-RPC body) via the transport. Anything that escapes here is unexpected.
+    // The SDK answers known protocol failures itself with a 4xx and a
+    // JSON-RPC body. Anything that escapes here is unexpected.
     try {
-      await transport.handleRequest(ctx.req, ctx.res, ctx.request.body);
+      const response = await mcpHandler.fetch(request, options);
+
+      ctx.status = response.status;
+      response.headers.forEach((value, key) => {
+        if (!hopByHopHeaders.has(key)) {
+          ctx.set(key, value);
+        }
+      });
+      ctx.body = response.body ? Readable.from(response.body) : "";
     } catch (error) {
       Logger.error(
         "MCP request handling failed",
@@ -191,21 +215,15 @@ router.post(
         ctx.req
       );
 
-      if (!ctx.res.headersSent) {
-        ctx.res.writeHead(500, { "Content-Type": "application/json" });
-        ctx.res.end(
-          JSON.stringify({
-            jsonrpc: "2.0",
-            error: {
-              code: ErrorCode.InternalError,
-              message: "Internal server error",
-            },
-            id: null,
-          })
-        );
-      } else {
-        ctx.res.end();
-      }
+      ctx.status = 500;
+      ctx.body = {
+        jsonrpc: "2.0",
+        error: {
+          code: ProtocolErrorCode.InternalError,
+          message: "Internal server error",
+        },
+        id: null,
+      };
     }
   }
 );
@@ -224,7 +242,7 @@ router.delete("/", async (ctx) => {
 
 // Clients probing for a transport we do not implement, such as the legacy
 // HTTP+SSE endpoints, must not fall through to the application shell
-router.all("*", async (ctx) => {
+router.all("{/*path}", async (ctx) => {
   ctx.status = 404;
   ctx.body = { error: "Not found. MCP requests must be sent to /mcp." };
 });

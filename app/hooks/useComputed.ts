@@ -12,7 +12,7 @@ export function useComputed<T>(
   inputs: DependencyList = []
 ): T {
   // The dependency list is supplied by the caller so it cannot be verified here.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // oxlint-disable-next-line react-hooks/exhaustive-deps
   const value = useMemo(() => computed(callback), inputs);
   return value.get();
 }

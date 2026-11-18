@@ -9,6 +9,7 @@ import {
   buildApiKey,
   buildOAuthAuthentication,
 } from "@server/test/factories";
+import { buildMockContext } from "@server/test/support";
 import { AuthenticationType } from "@server/types";
 import auth from "./authentication";
 
@@ -19,14 +20,13 @@ describe("Authentication middleware", () => {
       const user = await buildUser();
       const authMiddleware = auth();
       await authMiddleware(
-        {
-          // @ts-expect-error mock request
+        buildMockContext({
           request: {
             get: vi.fn(() => `Bearer ${user.getSessionToken()}`),
           },
           state,
           cache: {},
-        },
+        }),
         vi.fn()
       );
       expect(state.auth.user.id).toEqual(user.id);
@@ -39,14 +39,13 @@ describe("Authentication middleware", () => {
 
       try {
         await authMiddleware(
-          {
-            // @ts-expect-error mock request
+          buildMockContext({
             request: {
               get: vi.fn(() => `Bearer ${user.getSessionToken()}error`),
             },
             state,
             cache: {},
-          },
+          }),
           vi.fn()
         );
       } catch (e) {
@@ -63,14 +62,13 @@ describe("Authentication middleware", () => {
 
       try {
         await authMiddleware(
-          {
-            // @ts-expect-error mock request
+          buildMockContext({
             request: {
               get: vi.fn(() => `Bearer ${user.getSessionToken()}`),
             },
             state,
             cache: {},
-          },
+          }),
           vi.fn()
         );
       } catch (e) {
@@ -86,14 +84,13 @@ describe("Authentication middleware", () => {
       const authMiddleware = auth();
       const key = await buildApiKey({ userId: user.id });
       await authMiddleware(
-        {
-          // @ts-expect-error mock request
+        buildMockContext({
           request: {
             get: vi.fn(() => `Bearer ${key.value}`),
           },
           state,
           cache: {},
-        },
+        }),
         vi.fn()
       );
       expect(state.auth.user.id).toEqual(user.id);
@@ -108,16 +105,15 @@ describe("Authentication middleware", () => {
       });
 
       await authMiddleware(
-        {
+        buildMockContext({
           originalUrl: "/api/auth.info",
-          // @ts-expect-error mock request
           request: {
             url: "/auth.info",
             get: vi.fn(() => `Bearer ${key.value}`),
           },
           state,
           cache: {},
-        },
+        }),
         vi.fn()
       );
       expect(state.auth.user.id).toEqual(user.id);
@@ -134,16 +130,15 @@ describe("Authentication middleware", () => {
 
       try {
         await authMiddleware(
-          {
+          buildMockContext({
             originalUrl: "/api/documents.create",
-            // @ts-expect-error mock request
             request: {
               url: "/documents.create",
               get: vi.fn(() => `Bearer ${key.value}`),
             },
             state,
             cache: {},
-          },
+          }),
           vi.fn()
         );
         throw new Error("Expected error to be thrown");
@@ -162,14 +157,13 @@ describe("Authentication middleware", () => {
 
       try {
         await authMiddleware(
-          {
-            // @ts-expect-error mock request
+          buildMockContext({
             request: {
               get: vi.fn(() => `Bearer ${randomString(38)}`),
             },
             state,
             cache: {},
-          },
+          }),
           vi.fn()
         );
       } catch (e) {
@@ -189,16 +183,15 @@ describe("Authentication middleware", () => {
       });
 
       await authMiddleware(
-        {
+        buildMockContext({
           originalUrl: "/api/users.info",
-          // @ts-expect-error mock request
           request: {
             url: "/users.info",
             get: vi.fn(() => `Bearer ${authentication.accessToken}`),
           },
           state,
           cache: {},
-        },
+        }),
         vi.fn()
       );
       expect(state.auth.user.id).toEqual(user.id);
@@ -215,16 +208,15 @@ describe("Authentication middleware", () => {
 
       try {
         await authMiddleware(
-          {
+          buildMockContext({
             originalUrl: "/api/documents.create",
-            // @ts-expect-error mock request
             request: {
               url: "/documents.create",
               get: vi.fn(() => `Bearer ${authentication.accessToken}`),
             },
             state,
             cache: {},
-          },
+          }),
           vi.fn()
         );
       } catch (e) {
@@ -244,11 +236,10 @@ describe("Authentication middleware", () => {
       });
       try {
         await authMiddleware(
-          {
+          buildMockContext({
             originalUrl: "/api/users.info",
             request: {
               url: "/users.info",
-              // @ts-expect-error mock request
               get: vi.fn(() => null),
               body: {
                 token: authentication.accessToken,
@@ -256,7 +247,7 @@ describe("Authentication middleware", () => {
             },
             state,
             cache: {},
-          },
+          }),
           vi.fn()
         );
       } catch (e) {
@@ -273,14 +264,13 @@ describe("Authentication middleware", () => {
 
     try {
       await authMiddleware(
-        {
-          // @ts-expect-error mock request
+        buildMockContext({
           request: {
             get: vi.fn(() => "error"),
           },
           state,
           cache: {},
-        },
+        }),
         vi.fn()
       );
     } catch (e) {
@@ -295,18 +285,16 @@ describe("Authentication middleware", () => {
     const user = await buildUser();
     const authMiddleware = auth();
     await authMiddleware(
-      {
+      buildMockContext({
         request: {
-          // @ts-expect-error mock request
           get: vi.fn(() => null),
         },
-        // @ts-expect-error mock cookies
         cookies: {
           get: vi.fn(() => user.getSessionToken()),
         },
         state,
         cache: {},
-      },
+      }),
       vi.fn()
     );
     expect(state.auth.user.id).toEqual(user.id);
@@ -319,9 +307,8 @@ describe("Authentication middleware", () => {
 
     await expect(
       authMiddleware(
-        {
+        buildMockContext({
           request: {
-            // @ts-expect-error mock request
             get: vi.fn(() => null),
             query: {
               token: user.getSessionToken(),
@@ -329,7 +316,7 @@ describe("Authentication middleware", () => {
           },
           state,
           cache: {},
-        },
+        }),
         vi.fn()
       )
     ).rejects.toThrow(
@@ -344,9 +331,8 @@ describe("Authentication middleware", () => {
 
     await expect(
       authMiddleware(
-        {
+        buildMockContext({
           request: {
-            // @ts-expect-error mock request
             get: vi.fn(() => null),
             body: {
               token: user.getSessionToken(),
@@ -354,7 +340,7 @@ describe("Authentication middleware", () => {
           },
           state,
           cache: {},
-        },
+        }),
         vi.fn()
       )
     ).rejects.toThrow(
@@ -362,25 +348,47 @@ describe("Authentication middleware", () => {
     );
   });
 
-  it("should allow passing transfer token as a GET param", async () => {
+  it("should not accept transfer token as a GET param", async () => {
     const state = {} as DefaultState;
     const user = await buildUser();
     const authMiddleware = auth();
-    await authMiddleware(
-      {
-        request: {
-          // @ts-expect-error mock request
-          get: vi.fn(() => null),
-          query: {
-            token: user.getTransferToken(),
+
+    await expect(
+      authMiddleware(
+        buildMockContext({
+          request: {
+            get: vi.fn(() => null),
+            query: {
+              token: user.getTransferToken(),
+            },
           },
-        },
-        state,
-        cache: {},
-      },
-      vi.fn()
+          state,
+          cache: {},
+        }),
+        vi.fn()
+      )
+    ).rejects.toThrow(
+      "Session token must be passed in the cookie or Authorization header"
     );
-    expect(state.auth.user.id).toEqual(user.id);
+  });
+
+  it("should not accept transfer token in the Authorization header", async () => {
+    const state = {} as DefaultState;
+    const user = await buildUser();
+    const authMiddleware = auth();
+
+    await expect(
+      authMiddleware(
+        buildMockContext({
+          request: {
+            get: vi.fn(() => `Bearer ${user.getTransferToken()}`),
+          },
+          state,
+          cache: {},
+        }),
+        vi.fn()
+      )
+    ).rejects.toThrow("Invalid token");
   });
 
   it("should return an error for suspended users", async () => {
@@ -395,14 +403,13 @@ describe("Authentication middleware", () => {
 
     try {
       await authMiddleware(
-        {
-          // @ts-expect-error mock request
+        buildMockContext({
           request: {
             get: vi.fn(() => `Bearer ${user.getSessionToken()}`),
           },
           state,
           cache: {},
-        },
+        }),
         vi.fn()
       );
     } catch (err) {
@@ -425,14 +432,13 @@ describe("Authentication middleware", () => {
 
     try {
       await authMiddleware(
-        {
-          // @ts-expect-error mock request
+        buildMockContext({
           request: {
             get: vi.fn(() => `Bearer ${user.getSessionToken()}`),
           },
           state,
           cache: {},
-        },
+        }),
         vi.fn()
       );
     } catch (err) {
@@ -455,8 +461,7 @@ describe("Authentication middleware", () => {
         skip: (ctx) => !!ctx.query.sig,
       });
       await authMiddleware(
-        {
-          // @ts-expect-error mock request
+        buildMockContext({
           request: {
             get: vi.fn(() => `Bearer ${apiKey.value}`),
           },
@@ -464,7 +469,7 @@ describe("Authentication middleware", () => {
           originalUrl: "/api/files.get?sig=signature",
           state,
           cache: {},
-        },
+        }),
         next
       );
       expect(next).toHaveBeenCalled();
@@ -480,15 +485,14 @@ describe("Authentication middleware", () => {
         skip: (ctx) => !!ctx.query.sig,
       });
       await authMiddleware(
-        {
-          // @ts-expect-error mock request
+        buildMockContext({
           request: {
             get: vi.fn(() => `Bearer ${user.getSessionToken()}`),
           },
           query: {},
           state,
           cache: {},
-        },
+        }),
         next
       );
       expect(next).toHaveBeenCalled();

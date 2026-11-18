@@ -1,0 +1,33 @@
+name: Draft release
+
+# Creates a draft GitHub release for each version tag pushed by `yarn release`,
+# so the release is authored by github-actions rather than a maintainer. Edit
+# the generated notes and publish the draft from the releases page.
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions: {}
+
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          args=(--draft --verify-tag --generate-notes --title "$TAG")
+
+          # Tags such as v1.9.2-0 are prereleases.
+          if [[ "$TAG" == *-* ]]; then
+            args+=(--prerelease)
+          fi
+
+          gh release create "$TAG" "${args[@]}"

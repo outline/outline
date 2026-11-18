@@ -152,7 +152,7 @@ function Notifications({ onRequestClose, ref }: Props) {
               items={filteredNotifications}
               empty={
                 <EmptyNotifications>
-                  {t("You're all caught up")}.
+                  {t("You’re all caught up")}.
                 </EmptyNotifications>
               }
               renderItem={(item) => (

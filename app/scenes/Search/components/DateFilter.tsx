@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type { DateFilter as TDateFilter } from "@shared/types";
 import FilterOptions from "~/components/FilterOptions";
+import { useDateOptions } from "../filterOptions";
 
 type Props = {
   /** The selected date filter */
@@ -12,30 +13,10 @@ type Props = {
 
 const DateFilter = ({ dateFilter, onSelect }: Props) => {
   const { t } = useTranslation();
+  const source = useDateOptions();
   const options = useMemo(
-    () => [
-      {
-        key: "",
-        label: t("All time"),
-      },
-      {
-        key: "day",
-        label: t("Past day"),
-      },
-      {
-        key: "week",
-        label: t("Past week"),
-      },
-      {
-        key: "month",
-        label: t("Past month"),
-      },
-      {
-        key: "year",
-        label: t("Past year"),
-      },
-    ],
-    [t]
+    () => [{ key: "", label: t("All time") }, ...source.options],
+    [source.options, t]
   );
 
   return (

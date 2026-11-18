@@ -116,6 +116,6 @@ export default function Encrypted(target: object, propertyKey: string) {
         throw err;
       }
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TS rejects PropertyDescriptor return for legacy decorator; descriptor is consumed by Sequelize at runtime.
+    // oxlint-disable-next-line @typescript-eslint/no-explicit-any -- TS rejects PropertyDescriptor return for legacy decorator; descriptor is consumed by Sequelize at runtime.
   } as any;
 }

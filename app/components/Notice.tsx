@@ -39,13 +39,12 @@ const Title = styled.span`
   font-size: 16px;
 `;
 
-const Container = styled(Text)`
+const Container = styled(Text).attrs({ size: "small" })`
   background: ${s("sidebarBackground")};
   color: ${s("textTertiary")};
   padding: 10px 12px;
   border-radius: 4px;
   position: relative;
-  font-size: 14px;
   margin: 1em 0;
 
   svg {

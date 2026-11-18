@@ -1,5 +1,4 @@
 import * as React from "react";
-import type * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import styled from "styled-components";
 import Scrollable from "~/components/Scrollable";
 import {
@@ -21,6 +20,7 @@ import type {
   MenuItem,
   MenuItemWithChildren,
 } from "~/types";
+import { MenuFilter, MenuFilterEmpty, useMenuFilter } from "./MenuFilter";
 import { toMenuItems, toMobileMenuItems } from "./transformer";
 import { observer } from "mobx-react";
 import { useComputed } from "~/hooks/useComputed";
@@ -46,9 +46,7 @@ type Props = {
   onOpen?: () => void;
   /** Callback when menu is closed */
   onClose?: () => void;
-  // TODO: Invert the dependency chain by forwarding dropdown ref and props to Tooltip component
-  ref?: React.Ref<React.ComponentRef<typeof TooltipPrimitive.Trigger>>;
-} & React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Trigger>;
+} & Omit<React.ComponentProps<typeof MenuTrigger>, "children">;
 
 export const DropdownMenu = observer(function DropdownMenu({
   ref,
@@ -68,6 +66,13 @@ export const DropdownMenu = observer(function DropdownMenu({
   const actionContext = useActionContext({
     isMenu: true,
   });
+  const {
+    query,
+    setQuery,
+    handleKeyDownCapture,
+    handleEscapeKeyDown,
+    reset: resetFilter,
+  } = useMenuFilter();
 
   const menuItems = useComputed(() => {
     if (!open) {
@@ -96,12 +101,13 @@ export const DropdownMenu = observer(function DropdownMenu({
     (open: boolean) => {
       setOpen(open);
       if (open) {
+        resetFilter();
         onOpen?.();
       } else {
         onClose?.();
       }
     },
-    [onOpen, onClose]
+    [onOpen, onClose, resetFilter]
   );
 
   const enablePointerEvents = React.useCallback(() => {
@@ -133,7 +139,7 @@ export const DropdownMenu = observer(function DropdownMenu({
     );
   }
 
-  const content = toMenuItems(menuItems);
+  const content = toMenuItems(menuItems, query);
 
   return (
     <MenuProvider variant="dropdown">
@@ -147,9 +153,12 @@ export const DropdownMenu = observer(function DropdownMenu({
           onAnimationStart={disablePointerEvents}
           onAnimationEnd={enablePointerEvents}
           onCloseAutoFocus={preventDefault}
+          onEscapeKeyDown={handleEscapeKeyDown}
+          onKeyDownCapture={handleKeyDownCapture}
         >
-          {content}
-          {append}
+          <MenuFilter query={query} onChange={setQuery} />
+          {content ?? (query ? <MenuFilterEmpty /> : null)}
+          {query ? null : append}
         </MenuContent>
       </Menu>
     </MenuProvider>
@@ -229,7 +238,7 @@ function MobileDropdown({
         onAnimationStart={disablePointerEvents}
         onAnimationEnd={enablePointerEvents}
       >
-        <DrawerTitle>{ariaLabel}</DrawerTitle>
+        <DrawerTitle hidden>{ariaLabel}</DrawerTitle>
         <StyledScrollable hiddenScrollbars>
           {content}
           {!submenuName ? append : null}

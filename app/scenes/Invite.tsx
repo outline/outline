@@ -128,13 +128,13 @@ function Invite({ onSubmit }: Props) {
         content={
           <>
             {collections.nonPrivate.map((collection) => (
-              <li key={collection.id}>{collection.name}</li>
+              <li key={collection.id}>{collection.displayName}</li>
             ))}
           </>
         }
       >
         <strong>
-          <Trans>{{ collectionCount }} collections</Trans>
+          {t("{{ count }} collection", { count: collectionCount })}
         </strong>
       </Tooltip>
       .{" "}
@@ -194,7 +194,7 @@ function Invite({ onSubmit }: Props) {
             {collectionAccessNote}
             {can.update && (
               <Trans>
-                As an admin you can also{" "}
+                As an admin, you can also{" "}
                 <Link to="/settings/authentication">enable email sign-in</Link>.
               </Trans>
             )}
@@ -262,7 +262,7 @@ function Invite({ onSubmit }: Props) {
             data-event-category="invite"
             data-event-action="sendInvites"
           >
-            {isSaving ? `${t("Inviting")}…` : t("Send Invites")}
+            {isSaving ? `${t("Inviting")}…` : t("Send invites")}
           </Button>
         </Flex>
       </Flex>

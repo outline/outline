@@ -371,13 +371,14 @@ export class CanCan {
   // Index for fast lookups: Map<model, Map<action, Ability[]>>
   private abilities: Map<Constructor, Map<string, Ability[]>> = new Map();
 
-  private get = <T extends object>(obj: T, key: keyof T) =>
-    "get" in obj && typeof obj.get === "function" ? obj.get(key) : obj[key];
+  private get = (obj: object, key: string): unknown =>
+    "get" in obj && typeof obj.get === "function"
+      ? obj.get(key)
+      : Reflect.get(obj, key);
 
-  private isPartiallyEqual = <T extends object>(target: T, obj: T) =>
-    Object.keys(obj).every(
-      // @ts-expect-error TODO
-      (key: keyof T) => this.get(target, key) === obj[key]
+  private isPartiallyEqual = (target: object, obj: object) =>
+    Object.entries(obj).every(
+      ([key, value]) => this.get(target, key) === value
     );
 
   private getConditionFn =

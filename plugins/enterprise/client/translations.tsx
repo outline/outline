@@ -4,7 +4,7 @@ export const Translations = () => (
   <>
     <Trans defaults={`New attribute`} />
     <Trans defaults={`Paper size`} />
-    <Trans defaults={`Ask AI "{{question}}"`} />
+    <Trans defaults="Ask AI “{{ question }}”" />
     <Trans defaults={`Are you sure you want to delete?`} />
     <Trans
       defaults={`Deleting this version of the document will permanently and irrevocably remove it from the history.`}
@@ -28,10 +28,10 @@ export const Translations = () => (
     />
     <Trans defaults={`Can view only what is explicitly shared`} />
     <Trans
-      defaults={`SAML assertion was invalid or missing fields, please check your configuration`}
+      defaults={`SAML assertion was invalid or missing fields – please check your configuration`}
     />
     <Trans
-      defaults={`AI generated answer based on related documents in your workspace`}
+      defaults={`AI-generated answer based on related documents in your workspace`}
     />
     <Trans defaults={`References`} />
     <Trans
@@ -43,7 +43,7 @@ export const Translations = () => (
       defaults={`In a Confluence space, navigate to <em>Space Settings -> Manage space -> Export space</em> and choose to export as HTML with the "Normal Export" option.`}
     />
     <Trans
-      defaults={`Drag and drop the zip file from Confluence's HTML export option, or click to upload`}
+      defaults={`Drag and drop the zip file from Confluence’s HTML export option, or click to upload`}
     />
     <Trans defaults={`Guests`} />
     <Trans defaults={`New Attribute`} />
@@ -74,7 +74,7 @@ export const Translations = () => (
     <Trans defaults={`Could not load events`} />
     <Trans defaults={`Audit Log`} />
     <Trans
-      defaults={`The audit log details the history of security related and other events across your knowledge base.`}
+      defaults={`The audit log details the history of security-related and other events across your knowledge base.`}
     />
     <Trans defaults={`IP address`} />
     <Trans defaults={`Actor`} />
@@ -89,24 +89,24 @@ export const Translations = () => (
     <Trans defaults={`Date archived`} />
     <Trans defaults={`Could not load collections`} />
     <Trans
-      defaults={`Manage the permissions and settings of all collections in the knowledge base. As a workspace admin you can also administer private collections.`}
+      defaults={`Manage the permissions and settings of all collections in the knowledge base. As a workspace admin, you can also administer private collections.`}
     />
     <Trans
-      defaults={`Automatically index and search document content from {{appName}} inside <4>Glean</4> in realtime.`}
+      defaults={`Automatically index and search document content from {{appName}} inside <4>Glean</4> in real time.`}
     />
     <Trans defaults={`API Endpoint`} />
     <Trans defaults={`API Secret`} />
     <Trans defaults={`Datasource`} />
     <Trans
-      defaults={`Details of the current {{appName}} license. To arrange contract renewal as expiry or seat limits approach or increase licensed seats please contact your account manager or email <4>priority@getoutline.com</4>.`}
+      defaults={`Details of the current {{appName}} license. To arrange contract renewal as expiry or seat limits approach, or to increase licensed seats, please contact your account manager or email <4>priority@getoutline.com</4>.`}
     />
     <Trans
-      defaults={`Sorry, an answer could not be found in the collection, try widening your search.`}
+      defaults={`Sorry, an answer could not be found in the collection. Try widening your search.`}
     />
     <Trans
-      defaults={`Sorry, an answer could not be found in the workspace, try widening your search.`}
+      defaults={`Sorry, an answer could not be found in the workspace. Try widening your search.`}
     />
     <Trans defaults={`Looking for answers`} />
-    <Trans defaults={`Answer to "{{ query }}"`} />
+    <Trans defaults="Answer to “{{ query }}”" />
   </>
 );

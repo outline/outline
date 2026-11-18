@@ -1,7 +1,14 @@
 import { randomUUID } from "node:crypto";
 import path from "node:path";
-import { FileOperationFormat } from "@shared/types";
+import { EmptyResultError } from "sequelize";
 import {
+  FileOperationFormat,
+  FileOperationState,
+  FileOperationType,
+} from "@shared/types";
+import { createContext } from "@server/context";
+import {
+  buildCollection,
   buildFileOperation,
   buildTeam,
   buildUser,
@@ -10,6 +17,46 @@ import { ValidateKey } from "@server/validation";
 import FileOperation from "./FileOperation";
 
 describe("FileOperation", () => {
+  describe("createExport", () => {
+    it("should create a team export with the requested options", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+
+      const fileOperation = await FileOperation.createExport(
+        createContext({ user }),
+        { team, includeAttachments: false, includePrivate: false }
+      );
+
+      expect(fileOperation.type).toBe(FileOperationType.Export);
+      expect(fileOperation.state).toBe(FileOperationState.Creating);
+      expect(fileOperation.format).toBe(FileOperationFormat.MarkdownZip);
+      expect(fileOperation.key).toContain(`uploads/${team.id}/`);
+      expect(fileOperation.options).toEqual({
+        includeAttachments: false,
+        includePrivate: false,
+      });
+      expect(fileOperation.user.id).toBe(user.id);
+    });
+
+    it("should set the collection association for a collection export", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({ teamId: team.id });
+
+      const fileOperation = await FileOperation.createExport(
+        createContext({ user }),
+        { team, collection }
+      );
+
+      expect(fileOperation.collectionId).toBe(collection.id);
+      expect(fileOperation.collection?.id).toBe(collection.id);
+      expect(fileOperation.options).toEqual({
+        includeAttachments: true,
+        includePrivate: true,
+      });
+    });
+  });
+
   describe("getExportKey", () => {
     it("should write to the uploads bucket", () => {
       const teamId = randomUUID();
@@ -27,6 +74,19 @@ describe("FileOperation", () => {
         )
       );
       expect(ValidateKey.isValid(key)).toBe(true);
+    });
+
+    it("should truncate a long name", () => {
+      const key = FileOperation.getExportKey({
+        name: "a".repeat(255),
+        teamId: randomUUID(),
+        format: FileOperationFormat.MarkdownZip,
+      });
+
+      expect(key.length).toBeLessThanOrEqual(255);
+      expect(key.endsWith(`/${"a".repeat(100)}-export.markdown.zip`)).toBe(
+        true
+      );
     });
 
     it("should not allow the name to traverse to another bucket", () => {
@@ -70,6 +130,12 @@ describe("FileOperation", () => {
           rejectOnEmpty: error,
         })
       ).rejects.toThrow(error);
+    });
+
+    it("should throw when rejectOnEmpty is set and the id is not a string", async () => {
+      await expect(
+        FileOperation.findByPk(123, { rejectOnEmpty: true })
+      ).rejects.toThrow(EmptyResultError);
     });
   });
 });

@@ -7,6 +7,7 @@ import { CSRF } from "@shared/constants";
 import { Client } from "@shared/types";
 import { errToString } from "@shared/utils/error";
 import ButtonLarge from "~/components/ButtonLarge";
+import ButtonLink from "~/components/ButtonLink";
 import PluginIcon from "~/components/PluginIcon";
 import useQuery from "~/hooks/useQuery";
 import { client } from "~/utils/ApiClient";
@@ -14,6 +15,8 @@ import Desktop from "~/utils/Desktop";
 import { getCSRFToken } from "~/utils/csrf";
 
 type Props = React.ComponentProps<typeof ButtonLarge>;
+
+const verifyAuthenticationPath = "/auth/passkeys.verifyAuthentication";
 
 /**
  * Flattens a nested object into form field entries using bracket notation
@@ -48,12 +51,38 @@ function flattenFormFields(
 }
 
 /**
+ * Submits the passkey authentication response with fetch and then opens the
+ * page that the server redirects to. The desktop app opens navigations to
+ * /auth/ paths in the system browser, so a native form submit cannot be used.
+ *
+ * @param fields The form fields to submit.
+ * @throws if the server rejects the authentication response.
+ */
+async function submitInApp(fields: Record<string, string>) {
+  const response = await fetch(verifyAuthenticationPath, {
+    method: "POST",
+    body: new URLSearchParams(fields),
+    credentials: "same-origin",
+    redirect: "follow",
+  });
+
+  if (!response.ok || !response.redirected) {
+    const body: { message?: string } = await response.json().catch(() => ({}));
+    throw new Error(body.message || response.statusText);
+  }
+
+  window.location.href = response.url;
+}
+
+/**
  * Renders the "Continue with Passkey" login option and runs the WebAuthn
  * authentication ceremony.
  *
- * In the desktop app the ceremony cannot run inside Electron's Chromium, so the
- * flow is opened in the system browser and the resulting session is returned to
- * the app via the outline:// deep link, mirroring the SSO desktop flow.
+ * In the desktop app the ceremony runs inside the app when it supports a
+ * platform authenticator. Otherwise, or if the user chooses a passkey that is
+ * not stored in the app, the flow is opened in the system browser and the
+ * resulting session is returned to the app via the outline:// deep link,
+ * mirroring the SSO desktop flow.
  */
 export function PasskeyAuthenticationProvider(props: Props) {
   const { t } = useTranslation();
@@ -65,6 +94,13 @@ export function PasskeyAuthenticationProvider(props: Props) {
   );
   const [isAuthenticating, setIsAuthenticating] = React.useState(false);
   const [hasError, setHasError] = React.useState(false);
+  const [isSupportedInApp, setIsSupportedInApp] = React.useState(false);
+
+  React.useEffect(() => {
+    if (Desktop.isElectron()) {
+      void Desktop.isPasskeySupported().then(setIsSupportedInApp);
+    }
+  }, []);
 
   // True when this page was opened in the system browser from the desktop app
   // to complete a passkey login (see the /auth/passkey route). In that case the
@@ -91,18 +127,22 @@ export function PasskeyAuthenticationProvider(props: Props) {
       );
       const { challengeId, ...optionsData } = resp.data;
       const authResp = await startAuthentication(optionsData);
+      const formFields = flattenFormFields({
+        ...authResp,
+        challengeId,
+        [CSRF.fieldName]: getCSRFToken(),
+        client: verifyClient,
+      });
+
+      if (Desktop.isElectron()) {
+        await submitInApp(formFields);
+        return;
+      }
 
       // Render the authentication response as hidden inputs; the effect below
       // submits the form natively once they're in the DOM so the browser
       // follows the redirect and applies cookies.
-      setFields(
-        flattenFormFields({
-          ...authResp,
-          challengeId,
-          [CSRF.fieldName]: getCSRFToken(),
-          client: verifyClient,
-        })
-      );
+      setFields(formFields);
     } catch (err) {
       toast.error(errToString(err));
       // Re-enable the button so the user can retry; on success the form submits
@@ -128,14 +168,19 @@ export function PasskeyAuthenticationProvider(props: Props) {
     }
   }, [isDesktopRedirect, runAuthentication]);
 
+  // Opens the flow in the system browser, which returns to the app via the
+  // outline:// deep link like SSO login.
+  const openInBrowser = () => {
+    window.location.href = `/auth/passkey?client=${Client.Desktop}`;
+  };
+
   const handleSubmit = (event: React.SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    // The WebAuthn ceremony cannot run inside Electron's Chromium as it lacks
-    // platform authenticator support. Open the flow in the system browser,
-    // which returns to the app via the outline:// deep link like SSO login.
-    if (Desktop.isElectron()) {
-      window.location.href = `/auth/passkey?client=${Client.Desktop}`;
+    // Older desktop apps and devices without a platform authenticator cannot
+    // run the WebAuthn ceremony inside the app.
+    if (Desktop.isElectron() && !isSupportedInApp) {
+      openInBrowser();
       return;
     }
 
@@ -147,7 +192,7 @@ export function PasskeyAuthenticationProvider(props: Props) {
       <Form
         ref={formRef}
         method="POST"
-        action="/auth/passkeys.verifyAuthentication"
+        action={verifyAuthenticationPath}
         onSubmit={handleSubmit}
       >
         {fields &&
@@ -172,12 +217,23 @@ export function PasskeyAuthenticationProvider(props: Props) {
           </ButtonLarge>
         )}
       </Form>
+      {isSupportedInApp && hasError && (
+        <Fallback type="button" onClick={openInBrowser}>
+          {t("Use a passkey from your browser")}
+        </Fallback>
+      )}
     </Wrapper>
   );
 }
 
 const Wrapper = styled.div`
   width: 100%;
+`;
+
+const Fallback = styled(ButtonLink)`
+  display: block;
+  margin: 12px auto 0;
+  font-size: 14px;
 `;
 
 const Form = styled.form`

@@ -6,7 +6,7 @@ export const CollectionsSection = ({ t }: ActionContext) => t("Collections");
 
 export const ActiveCollectionSection = ({ t, stores }: ActionContext) => {
   const activeCollection = stores.collections.active;
-  return `${t("Collection")} · ${activeCollection?.name}`;
+  return `${t("Collection")} · ${activeCollection?.displayName}`;
 };
 
 ActiveCollectionSection.priority = 0.8;
@@ -30,7 +30,7 @@ DocumentsSection.priority = 0.8;
 
 export const ActiveDocumentSection = ({ t, stores }: ActionContext) => {
   const activeDocument = stores.documents.active;
-  return `${t("Document")} · ${activeDocument?.titleWithDefault}`;
+  return `${t("Document")} · ${activeDocument?.displayTitle}`;
 };
 
 ActiveDocumentSection.priority = 0.9;
@@ -39,7 +39,7 @@ export const TemplateSection = ({ t }: ActionContext) => t("Template");
 
 export const ActiveTemplateSection = ({ t, stores }: ActionContext) => {
   const activeTemplate = stores.templates.active;
-  return `${t("Template")} · ${activeTemplate?.titleWithDefault}`;
+  return `${t("Template")} · ${activeTemplate?.displayTitle}`;
 };
 
 ActiveTemplateSection.priority = 0.9;

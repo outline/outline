@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { URL } from "node:url";
-import { subMinutes } from "date-fns";
+import { addDays, subMinutes } from "date-fns";
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import { type FindOptions, type SaveOptions } from "sequelize";
 import { Op } from "sequelize";
@@ -27,13 +27,14 @@ import {
 import slugify from "slugify";
 import { isEmail } from "validator";
 import { TeamPreferenceDefaults, colorPalette } from "@shared/constants";
-import type { TeamPreferences } from "@shared/types";
-import { TeamPreference, UserRole } from "@shared/types";
+import type { Plan, TeamPreferences } from "@shared/types";
+import { PlanFeature, TeamPreference, UserRole } from "@shared/types";
 import {
   getBaseDomain,
   parseDomain,
   RESERVED_SUBDOMAINS,
 } from "@shared/utils/domains";
+import { PlanHelper } from "@shared/utils/PlanHelper";
 import { attachmentRedirectRegex } from "@shared/utils/ProsemirrorHelper";
 import { parseEmail } from "@shared/utils/email";
 import { TeamValidation } from "@shared/validations";
@@ -63,6 +64,10 @@ export enum TeamFlag {
 }
 
 const avatarRedirectPattern = new RegExp(attachmentRedirectRegex.source, "i");
+
+const maxSubdomainLength = env.isCloudHosted
+  ? TeamValidation.maxSubdomainLength
+  : TeamValidation.maxSubdomainSelfHostedLength;
 
 @Scopes(() => ({
   withDomains: {
@@ -103,14 +108,8 @@ class Team extends ParanoidModel<
   @Unique
   @Length({
     min: TeamValidation.minSubdomainLength,
-    max: env.isCloudHosted
-      ? TeamValidation.maxSubdomainLength
-      : TeamValidation.maxSubdomainSelfHostedLength,
-    msg: `subdomain must be between ${TeamValidation.minSubdomainLength} and ${
-      env.isCloudHosted
-        ? TeamValidation.maxSubdomainLength
-        : TeamValidation.maxSubdomainSelfHostedLength
-    } characters`,
+    max: maxSubdomainLength,
+    msg: `subdomain must be between ${TeamValidation.minSubdomainLength} and ${maxSubdomainLength} characters`,
   })
   @Is({
     args: [/^[a-z\d-]+$/, "i"],
@@ -265,6 +264,37 @@ class Team extends ParanoidModel<
   }
 
   /**
+   * Returns the plan that the team is on.
+   */
+  get plan(): Plan {
+    return PlanHelper.defaultPlan;
+  }
+
+  /**
+   * Returns the features that the team is entitled to use.
+   */
+  get entitlements(): PlanFeature[] {
+    return PlanHelper.getFeatures(this.plan);
+  }
+
+  /**
+   * Returns the expiry for a share created now, if the team has a default.
+   */
+  get defaultShareExpiresAt(): Date | undefined {
+    const days = this.getPreference(TeamPreference.DefaultShareExpiryDays);
+
+    if (
+      typeof days !== "number" ||
+      days === 0 ||
+      !this.entitlements.includes(PlanFeature.AdvancedSecurity)
+    ) {
+      return undefined;
+    }
+
+    return addDays(new Date(), days);
+  }
+
+  /**
    * Returns whether the team has email login enabled. For self-hosted installs
    * this also considers whether SMTP connection details have been configured.
    *
@@ -275,10 +305,9 @@ class Team extends ParanoidModel<
   }
 
   get url() {
-    const url = new URL(env.URL);
-
     // custom domain
     if (this.domain) {
+      const url = new URL(env.URL);
       return `${url.protocol}//${this.domain}${url.port ? `:${url.port}` : ""}`;
     }
 
@@ -286,6 +315,7 @@ class Team extends ParanoidModel<
       return env.URL;
     }
 
+    const url = new URL(env.URL);
     url.host = `${this.subdomain}.${getBaseDomain()}`;
     return url.href.replace(/\/$/, "");
   }
@@ -523,15 +553,15 @@ class Team extends ParanoidModel<
   static async savePreviousSubdomain(model: Team) {
     const previousSubdomain = model.previous("subdomain");
     if (previousSubdomain && previousSubdomain !== model.subdomain) {
-      model.previousSubdomains = model.previousSubdomains || [];
+      const previousSubdomains = model.previousSubdomains || [];
 
-      if (!model.previousSubdomains.includes(previousSubdomain)) {
-        // Add the previous subdomain to the list of previous subdomains
-        // upto a maximum of 3 previous subdomains
-        model.previousSubdomains.push(previousSubdomain);
-        if (model.previousSubdomains.length > 3) {
-          model.previousSubdomains.shift();
-        }
+      if (!previousSubdomains.includes(previousSubdomain)) {
+        // Assign a new array, Sequelize does not detect in-place mutation.
+        // Keep up to a maximum of 3 previous subdomains.
+        model.previousSubdomains = [
+          ...previousSubdomains,
+          previousSubdomain,
+        ].slice(-3);
       }
     }
 
@@ -623,7 +653,8 @@ class Team extends ParanoidModel<
   /**
    * Find a subdomain that is not yet in use, derived from the requested value.
    * A trailing top-level domain is removed and the remainder is slugified,
-   * a numeric suffix is appended until a free subdomain is found.
+   * a numeric suffix is appended until a free subdomain is found. The result
+   * is truncated to fit the maximum subdomain length.
    *
    * @param requested - The preferred subdomain or team name.
    * @param options - Additional find options to pass to the query.
@@ -644,7 +675,10 @@ class Team extends ParanoidModel<
         ? "team"
         : normalized;
 
-    let subdomain = base;
+    const withSuffix = (suffix: string) =>
+      `${base.slice(0, maxSubdomainLength - suffix.length).replace(/-+$/, "")}${suffix}`;
+
+    let subdomain = withSuffix("");
     let append = 0;
 
     for (;;) {
@@ -658,7 +692,7 @@ class Team extends ParanoidModel<
         return subdomain;
       }
 
-      subdomain = `${base}${++append}`;
+      subdomain = withSuffix(String(++append));
     }
   }
 

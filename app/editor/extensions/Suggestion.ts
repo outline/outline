@@ -76,7 +76,8 @@ export default class Suggestion<
         this.state,
         this.openRegex,
         this.enabledInMarks,
-        this.triggerLength
+        this.triggerLength,
+        this.options.allowSpaces
       ),
     ];
   }

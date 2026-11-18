@@ -1,8 +1,8 @@
-import { Node } from "prosemirror-model";
-import { schema, serializer } from "@server/editor";
+import { serializer } from "@server/editor";
 import { Document } from "@server/models";
 import type { DocumentEvent } from "@server/types";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import { iso6393To1 } from "@shared/utils/language";
 import { BaseTask } from "./base/BaseTask";
 
 export default class DocumentUpdateTextTask extends BaseTask<DocumentEvent> {
@@ -12,21 +12,21 @@ export default class DocumentUpdateTextTask extends BaseTask<DocumentEvent> {
       return;
     }
 
-    const node = Node.fromJSON(schema, document.content);
-    document.text = serializer.serialize(node);
+    const text = serializer.serialize(DocumentHelper.toProsemirror(document));
 
     // Loaded lazily to keep the language-detection corpus off the startup path —
     // only this worker task needs it.
-    const [{ franc }, { iso6393To1 }] = await Promise.all([
-      import("franc"),
-      import("iso-639-3"),
-    ]);
+    const { franc } = await import("franc");
 
     const language = franc(DocumentHelper.toPlainText(document), {
       minLength: 50,
     });
-    document.language = iso6393To1[language];
 
-    await document.save({ silent: true });
+    // Write only the derived columns so that concurrent collaborative saves are
+    // not overwritten, the update hooks would also increment revisionCount.
+    await Document.update(
+      { text, language: iso6393To1(language) ?? null },
+      { where: { id: document.id }, hooks: false, silent: true }
+    );
   }
 }

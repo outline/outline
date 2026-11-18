@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { Toaster } from "sonner";
+import { Toaster, type ToasterProps } from "sonner";
 import styled, { useTheme } from "styled-components";
 import useStores from "~/hooks/useStores";
 import type { ResolvedTheme } from "~/stores/UiStore";
@@ -10,8 +10,7 @@ function Toasts() {
 
   return (
     <StyledToaster
-      // @ts-expect-error styled-components overrides sonner's theme prop with DefaultTheme
-      theme={ui.resolvedTheme as ResolvedTheme}
+      resolvedTheme={ui.resolvedTheme as ResolvedTheme}
       closeButton
       toastOptions={{
         duration: 5000,
@@ -27,7 +26,15 @@ function Toasts() {
   );
 }
 
-const StyledToaster = styled(Toaster)`
+// styled-components reserves the `theme` prop, so it is passed under another name.
+function ThemedToaster({
+  resolvedTheme,
+  ...rest
+}: Omit<ToasterProps, "theme"> & { resolvedTheme: ResolvedTheme }) {
+  return <Toaster {...rest} theme={resolvedTheme} />;
+}
+
+const StyledToaster = styled(ThemedToaster)`
   [data-close-button] {
     cursor: var(--pointer);
     opacity: 0;

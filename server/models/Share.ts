@@ -49,6 +49,36 @@ import Length from "./validators/Length";
   ],
 }))
 @Scopes(() => ({
+  // A function so that the current time is read for each query.
+  notExpired: () => ({
+    where: {
+      [Op.or]: [
+        { expiresAt: { [Op.is]: null } },
+        { expiresAt: { [Op.gt]: new Date() } },
+      ],
+    },
+  }),
+  withDrafts: {
+    include: [
+      {
+        association: "user",
+        paranoid: false,
+      },
+      {
+        association: "collection",
+        required: false,
+      },
+      {
+        model: Document.scope("withDrafts"),
+        as: "document",
+        required: false,
+      },
+      {
+        association: "team",
+        required: true,
+      },
+    ],
+  },
   withCollectionPermissions: (userId: string) => ({
     include: [
       {
@@ -56,6 +86,7 @@ import Length from "./validators/Length";
           "id",
           "name",
           "permission",
+          "ownerId",
           "sharing",
           "urlId",
           "teamId",
@@ -81,6 +112,7 @@ import Length from "./validators/Length";
               "id",
               "name",
               "permission",
+              "ownerId",
               "urlId",
               "sharing",
               "teamId",
@@ -119,6 +151,11 @@ class Share extends IdModel<
 
   @Column(DataType.DATE)
   lastAccessedAt: Date | null;
+
+  /** The time after which the public link stops working, if any. */
+  @AllowNull
+  @Column(DataType.DATE)
+  expiresAt: Date | null;
 
   /** Total count of times the shared link has been accessed */
   @Default(0)
@@ -199,7 +236,8 @@ class Share extends IdModel<
   // static methods
 
   /**
-   * Finds published, non-revoked shares for the given document(s) within a team.
+   * Finds published, non-revoked, unexpired shares for the given document(s)
+   * within a team.
    *
    * @param teamId - the team the documents belong to.
    * @param documentIds - a single document ID or an array of document IDs.
@@ -213,7 +251,8 @@ class Share extends IdModel<
   }
 
   /**
-   * Finds published, non-revoked shares for the given collection(s) within a team.
+   * Finds published, non-revoked, unexpired shares for the given collection(s)
+   * within a team.
    *
    * @param teamId - the team the collections belong to.
    * @param collectionIds - a single collection ID or an array of collection IDs.
@@ -230,6 +269,10 @@ class Share extends IdModel<
 
   get isRevoked() {
     return !!this.revokedAt;
+  }
+
+  get isExpired() {
+    return !!this.expiresAt && this.expiresAt <= new Date();
   }
 
   get canonicalUrl() {
@@ -297,7 +340,7 @@ class Share extends IdModel<
       return Promise.resolve([]);
     }
 
-    return this.unscoped().findAll({
+    return this.scope("notExpired").findAll({
       where: {
         teamId,
         published: true,

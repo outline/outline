@@ -1,4 +1,5 @@
 import queryString from "query-string";
+import { sharedModelPath as sharedModelPathBase } from "@shared/utils/routeHelpers";
 import type Collection from "~/models/Collection";
 import type Comment from "~/models/Comment";
 import type Document from "~/models/Document";
@@ -187,7 +188,7 @@ export function updateDocumentPath(oldUrl: string, document: Document): string {
   // Update url to match the current one
   return oldUrl.replace(
     new RegExp("/doc/([0-9a-zA-Z-_~]*-[a-zA-z0-9]{10,15})"),
-    document.url
+    document.path
   );
 }
 
@@ -299,11 +300,7 @@ export function searchPath({
  * @returns the path to the shared model.
  */
 export function sharedModelPath(shareId: string, modelPath?: string) {
-  if (shareId === env.ROOT_SHARE_ID) {
-    return modelPath ? modelPath : "/";
-  }
-
-  return modelPath ? `/s/${shareId}${modelPath}` : `/s/${shareId}`;
+  return sharedModelPathBase(shareId, modelPath, env.ROOT_SHARE_ID);
 }
 
 /**

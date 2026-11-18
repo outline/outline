@@ -9,9 +9,10 @@ import {
   createFilterSchema,
   DURATION_BY_DATE_FILTER,
   RANGE_OPERATORS,
+  statusToFilter,
 } from "@shared/helpers/FilterHelper";
 import type { DateFilter, StatusFilter } from "@shared/types";
-import { StatusFilter as StatusFilterEnum, UserRole } from "@shared/types";
+import { UserRole } from "@shared/types";
 import { Collection } from "@server/models";
 import type User from "@server/models/User";
 import { authorize } from "@server/policies";
@@ -314,29 +315,6 @@ interface LegacyParams {
   statusFilter?: StatusFilter[];
 }
 
-function statusToFilter(status: StatusFilter): Filter {
-  if (status === StatusFilterEnum.Archived) {
-    return { field: "archivedAt", operator: "isNotNull" };
-  }
-  if (status === StatusFilterEnum.Published) {
-    return {
-      operator: "AND",
-      filters: [
-        { field: "archivedAt", operator: "isNull" },
-        { field: "publishedAt", operator: "isNotNull" },
-      ],
-    };
-  }
-  // Draft
-  return {
-    operator: "AND",
-    filters: [
-      { field: "archivedAt", operator: "isNull" },
-      { field: "publishedAt", operator: "isNull" },
-    ],
-  };
-}
-
 /**
  * Translate deprecated top-level params into an equivalent filter expression.
  * Callers pass only the subset of params their route accepts; each one becomes
@@ -453,24 +431,29 @@ export function expandDocumentIdInFilter(
  *
  * @param user the current user.
  * @param filter the filter to authorize.
+ * @param options collections already loaded for the user, used instead of
+ * fetching them again.
  * @throws if the user lacks read access to any referenced collection.
  */
 export async function authorizeFilterFields(
   user: User,
-  filter: Filter
+  filter: Filter,
+  options: { collections?: Collection[] } = {}
 ): Promise<void> {
   const collectionIds = collectEqValues(filter, "collectionId");
   if (collectionIds.length === 0) {
     return;
   }
 
-  const collections = await Promise.all(
-    Array.from(new Set(collectionIds)).map((id) =>
-      Collection.findByPk(id, { userId: user.id })
-    )
+  const loaded = options.collections ?? [];
+  const loadedIds = new Set(loaded.map((collection) => collection.id));
+  const fetched = await Promise.all(
+    Array.from(new Set(collectionIds))
+      .filter((id) => !loadedIds.has(id))
+      .map((id) => Collection.findByPk(id, { userId: user.id }))
   );
 
-  for (const collection of collections) {
+  for (const collection of [...loaded, ...fetched]) {
     authorize(user, "readDocument", collection);
   }
 }

@@ -47,19 +47,7 @@ export default class RevisionsStore extends Store<Revision> {
    */
   fetchLatest = async (documentId: string): Promise<Revision> => {
     const id = RevisionHelper.latestId(documentId);
-    const inflight = this.requests.get(id);
-    if (inflight) {
-      return inflight;
-    }
-
-    const promise = this.requestLatest(documentId);
-    this.requests.set(id, promise);
-
-    try {
-      return await promise;
-    } finally {
-      this.requests.delete(id);
-    }
+    return this.fetches.run(id, () => this.requestLatest(documentId));
   };
 
   private async requestLatest(documentId: string): Promise<Revision> {

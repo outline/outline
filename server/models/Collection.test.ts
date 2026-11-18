@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
+import { EmptyResultError } from "sequelize";
 import { randomString } from "@shared/random";
-import slugify from "@shared/utils/slugify";
+import slugify from "@server/utils/slugify";
 import { createContext } from "@server/context";
 import {
   buildUser,
@@ -82,7 +83,7 @@ describe("getDocumentParents", () => {
     expect(result ? result[0] : undefined).toBe(parent.id);
   });
 
-  it("should return array of parent document ids", async () => {
+  it("should return empty array for a root document", async () => {
     const parent = await buildDocument();
     const document = await buildDocument();
     const collection = await buildCollection({
@@ -568,6 +569,23 @@ describe("#findByPk", () => {
         rejectOnEmpty: error,
       })
     ).rejects.toThrow(error);
+  });
+
+  it("should throw when rejectOnEmpty is set and the id is malformed", async () => {
+    await expect(
+      Collection.findByPk("not a valid id", { rejectOnEmpty: true })
+    ).rejects.toThrow(EmptyResultError);
+
+    const error = new Error("does not exist");
+    await expect(
+      Collection.findByPk("not a valid id", { rejectOnEmpty: error })
+    ).rejects.toThrow(error);
+  });
+
+  it("should throw when rejectOnEmpty is set and the id is not a string", async () => {
+    await expect(
+      Collection.findByPk(123, { rejectOnEmpty: true })
+    ).rejects.toThrow(EmptyResultError);
   });
 
   it("should not return documentStructure by default", async () => {

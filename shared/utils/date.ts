@@ -1,4 +1,3 @@
-/* oxlint-disable import/no-duplicates */
 import type { Locale } from "date-fns";
 import {
   addSeconds,
@@ -23,6 +22,7 @@ import { ca } from "date-fns/locale/ca";
 import { cs } from "date-fns/locale/cs";
 import { da } from "date-fns/locale/da";
 import { de } from "date-fns/locale/de";
+import { el } from "date-fns/locale/el";
 import { enGB } from "date-fns/locale/en-GB";
 import { enUS } from "date-fns/locale/en-US";
 import { es } from "date-fns/locale/es";
@@ -305,6 +305,7 @@ const locales = {
   cs_CZ: cs,
   da_DK: da,
   de_DE: de,
+  el_GR: el,
   en_GB: enGB,
   en_US: enUS,
   es_ES: es,
@@ -367,6 +368,16 @@ const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
 const isoDateTimeRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 
 /**
+ * Whether a string is a date-only ISO value (yyyy-MM-dd).
+ *
+ * @param value The string to check.
+ * @returns true when the value is a date-only ISO string.
+ */
+export function isISODate(value: string): boolean {
+  return isoDateRegex.test(value);
+}
+
+/**
  * Whether a date mention's stored ISO value carries a time component.
  *
  * @param iso The stored ISO string.
@@ -394,6 +405,47 @@ export function parseISODate(iso: string): Date | null {
   return isValid(date) ? date : null;
 }
 
+/**
+ * Converts a user language preference such as "en_US" into the BCP 47 tag
+ * understood by the platform's Intl formatters. Without a language the label
+ * falls back to English, matching the translation fallback.
+ */
+function languageTag(language?: keyof typeof locales | null): string {
+  return language ? unicodeCLDRtoBCP47(language) : "en-US";
+}
+
+const dateOptions: Intl.DateTimeFormatOptions = {
+  month: "long",
+  day: "numeric",
+};
+const yearOptions: Intl.DateTimeFormatOptions = {
+  ...dateOptions,
+  year: "numeric",
+};
+const timeOptions: Intl.DateTimeFormatOptions = {
+  hour: "numeric",
+  minute: "2-digit",
+};
+
+const formatters = new Map<string, Intl.DateTimeFormat>();
+
+/**
+ * Returns a cached Intl formatter for the language and options, as constructing
+ * one is comparatively expensive and mentions are formatted frequently.
+ */
+function dateFormatter(
+  tag: string,
+  options: Intl.DateTimeFormatOptions
+): Intl.DateTimeFormat {
+  const key = `${tag}:${Object.keys(options).sort().join(",")}`;
+  let formatter = formatters.get(key);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat(tag, options);
+    formatters.set(key, formatter);
+  }
+  return formatter;
+}
+
 const separators = new Map<string, string>();
 
 /**
@@ -401,11 +453,7 @@ const separators = new Map<string, string>();
  * formatted datetime, e.g. " at " in English or " um " in German. It is read
  * from the platform's own formatter so the label needs no translation.
  */
-function dateTimeSeparator(language?: keyof typeof locales | null): string {
-  // Without a language the date and time halves fall back to date-fns' English
-  // locale, so the separator must be English too rather than the platform's.
-  const tag = language ? language.replace("_", "-") : "en-US";
-
+function dateTimeSeparator(tag: string): string {
   let separator = separators.get(tag);
   if (separator !== undefined) {
     return separator;
@@ -413,36 +461,29 @@ function dateTimeSeparator(language?: keyof typeof locales | null): string {
 
   separator = " ";
 
-  if (typeof Intl !== "undefined") {
-    const sample = new Date(2000, 11, 25, 13, 0);
-    const parts = new Intl.DateTimeFormat(tag, {
-      dateStyle: "long",
-      timeStyle: "short",
-    }).formatToParts(sample);
+  const sample = new Date(2000, 11, 25, 13, 0);
+  const parts = dateFormatter(tag, {
+    ...yearOptions,
+    ...timeOptions,
+  }).formatToParts(sample);
 
-    const timeIndex = parts.findIndex((part) =>
-      ["hour", "minute", "dayPeriod"].includes(part.type)
-    );
-    const preceding = parts[timeIndex - 1];
-    if (preceding?.type === "literal") {
-      // The literal can begin with a suffix belonging to the date itself (the
-      // "日" in Japanese, the " р." in Ukrainian). It shows up as the trailing
-      // literal of the date-only format, so it can be stripped off.
-      const dateParts = new Intl.DateTimeFormat(tag, {
-        dateStyle: "long",
-      }).formatToParts(sample);
-      const dateSuffix = dateParts[dateParts.length - 1];
+  const timeIndex = parts.findIndex((part) =>
+    ["hour", "minute", "dayPeriod"].includes(part.type)
+  );
+  const preceding = parts[timeIndex - 1];
+  if (preceding?.type === "literal") {
+    // The literal can begin with a suffix belonging to the date itself (the
+    // "日" in Japanese, the " р." in Ukrainian). It shows up as the trailing
+    // literal of the date-only format, so it can be stripped off.
+    const dateParts = dateFormatter(tag, yearOptions).formatToParts(sample);
+    const dateSuffix = dateParts[dateParts.length - 1];
 
-      let value = preceding.value;
-      if (
-        dateSuffix?.type === "literal" &&
-        value.startsWith(dateSuffix.value)
-      ) {
-        value = value.slice(dateSuffix.value.length);
-      }
-      const whitespace = value.search(/\s/);
-      separator = whitespace === -1 ? " " : value.slice(whitespace);
+    let value = preceding.value;
+    if (dateSuffix?.type === "literal" && value.startsWith(dateSuffix.value)) {
+      value = value.slice(dateSuffix.value.length);
     }
+    const whitespace = value.search(/\s/);
+    separator = whitespace === -1 ? " " : value.slice(whitespace);
   }
 
   separators.set(tag, separator);
@@ -450,23 +491,12 @@ function dateTimeSeparator(language?: keyof typeof locales | null): string {
 }
 
 /**
- * Combines the readable date and time halves of a label with the separator
- * appropriate for the locale.
- */
-function joinDateAndTime(
-  dateString: string,
-  timeString: string,
-  language?: keyof typeof locales | null
-): string {
-  return `${dateString}${dateTimeSeparator(language)}${timeString}`;
-}
-
-/**
  * Formats a date mention's stored ISO value into an absolute, localized,
  * human-readable label. The year is omitted within the current year (e.g.
- * "January 2nd") and included otherwise (e.g. "February 3rd, 2024"). The time
- * is appended when the value is time-specific (e.g. "January 2nd at 1:00 PM").
- * Suitable for plaintext and markdown serialization.
+ * "January 2") and included otherwise (e.g. "February 3, 2024"). The time is
+ * appended when the value is time-specific (e.g. "January 2 at 1:00 PM"). The
+ * word order, numerals and connector all follow the locale. Suitable for
+ * plaintext and markdown serialization.
  *
  * @param iso The stored ISO string.
  * @param language The user's language preference.
@@ -480,23 +510,74 @@ export function dateToReadable(
   if (!date) {
     return iso;
   }
-  const locale = dateLocale(language);
-  const dateString = isSameYear(date, new Date())
-    ? format(date, "MMMM do", { locale })
-    : format(date, "MMMM do, yyyy", { locale });
+
+  const tag = languageTag(language);
+  const options = isSameYear(date, new Date()) ? dateOptions : yearOptions;
 
   if (!hasTimeComponent(iso)) {
-    return dateString;
+    return dateFormatter(tag, options).format(date);
   }
-  return joinDateAndTime(dateString, format(date, "p", { locale }), language);
+  return dateFormatter(tag, { ...options, ...timeOptions }).format(date);
+}
+
+/**
+ * Formats an ISO value into an exact, localized timestamp that always includes
+ * the year, seconds and time zone (e.g. "Nov 5, 2026, 7:48:12 PM EST"), for
+ * contexts such as audit trails where the moment must be unambiguous. The word
+ * order, numerals and hour cycle follow the language, the time zone is local.
+ *
+ * @param iso The ISO string.
+ * @param language The user's language preference.
+ * @returns the localized timestamp, or the original string when invalid.
+ */
+export function dateToTimestamp(
+  iso: string,
+  language?: keyof typeof locales | null
+): string {
+  const date = new Date(iso);
+  if (isNaN(date.getTime())) {
+    return iso;
+  }
+
+  return dateFormatter(languageTag(language), {
+    dateStyle: "medium",
+    timeStyle: "long",
+  }).format(date);
+}
+
+/**
+ * Formats a range of days into a localized label, collapsing the parts that are
+ * shared between the two dates (e.g. "Nov 2 – 3, 2026"). A range that is only
+ * bounded on one side is labelled with its single date.
+ *
+ * @param start The first day of the range.
+ * @param end The last day of the range.
+ * @param language The user's language preference.
+ * @returns the localized label.
+ */
+export function dateRangeToReadable(
+  start: Date | null,
+  end: Date | null,
+  language?: keyof typeof locales | null
+): string {
+  const formatter = dateFormatter(languageTag(language), {
+    dateStyle: "medium",
+  });
+
+  if (start && end) {
+    return formatter.formatRange(start, end);
+  }
+
+  const date = start ?? end;
+  return date ? formatter.format(date) : "";
 }
 
 /**
  * Formats a date mention's stored ISO value into a relative, localized,
  * human-readable label with increasing granularity. Returns "Today",
- * "Tomorrow" or "Yesterday" where applicable, "January 2nd" within the
- * current year, and "February 3rd, 2024" otherwise. The time is appended when
- * the value is time-specific (e.g. "Tomorrow at 1:00 PM").
+ * "Tomorrow" or "Yesterday" where applicable, and otherwise the same absolute
+ * label as `dateToReadable`. The time is appended when the value is
+ * time-specific (e.g. "Tomorrow at 1:00 PM").
  *
  * @param iso The stored ISO string.
  * @param t The translation function.
@@ -513,23 +594,22 @@ export function dateToRelativeReadable(
     return iso;
   }
 
-  const locale = dateLocale(language);
-  let dateString;
-
+  let relative;
   if (isToday(date)) {
-    dateString = t("Today");
+    relative = t("Today");
   } else if (isTomorrow(date)) {
-    dateString = t("Tomorrow");
+    relative = t("Tomorrow");
   } else if (isYesterday(date)) {
-    dateString = t("Yesterday");
-  } else if (isSameYear(date, new Date())) {
-    dateString = format(date, "MMMM do", { locale });
+    relative = t("Yesterday");
   } else {
-    dateString = format(date, "MMMM do, yyyy", { locale });
+    return dateToReadable(iso, language);
   }
 
   if (!hasTimeComponent(iso)) {
-    return dateString;
+    return relative;
   }
-  return joinDateAndTime(dateString, format(date, "p", { locale }), language);
+
+  const tag = languageTag(language);
+  const time = dateFormatter(tag, timeOptions).format(date);
+  return `${relative}${dateTimeSeparator(tag)}${time}`;
 }

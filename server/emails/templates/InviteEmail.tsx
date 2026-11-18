@@ -64,7 +64,7 @@ export default class InviteEmail extends BaseEmail<Props, void> {
     return `
 ${this.t("Join {{ teamName }} on {{ appName }}", { teamName, appName: env.APP_NAME })}
 
-${actorName} ${actorEmail ? `(${actorEmail})` : ""} ${this.t("has invited you to join {{ appName }}, a place for your team to build and share knowledge.", { appName: env.APP_NAME })}
+${actorName}${actorEmail ? ` (${actorEmail})` : ""} ${this.t("has invited you to join {{ appName }}, a place for your team to build and share knowledge.", { appName: env.APP_NAME })}
 
 ${this.t("Join now")}: ${teamUrl}
 `;
@@ -85,7 +85,8 @@ ${this.t("Join now")}: ${teamUrl}
             })}
           </Heading>
           <p>
-            {actorName} {actorEmail ? `(${actorEmail})` : ""}{" "}
+            {actorName}
+            {actorEmail ? ` (${actorEmail})` : ""}{" "}
             {this.t(
               "has invited you to join {{ appName }}, a place for your team to build and share knowledge.",
               { appName: env.APP_NAME }

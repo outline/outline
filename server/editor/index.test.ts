@@ -1,6 +1,6 @@
 import { parser, serializer } from ".";
 
-test("renders an empty doc", () => {
+it("renders an empty doc", () => {
   const ast = parser.parse("");
 
   expect(ast?.toJSON()).toEqual({
@@ -9,7 +9,7 @@ test("renders an empty doc", () => {
   });
 });
 
-test("parses lowercase alpha lists", () => {
+it("parses lowercase alpha lists", () => {
   const ast = parser.parse("a. First item\nb. Second item");
 
   expect(ast?.toJSON()).toEqual({
@@ -43,7 +43,7 @@ test("parses lowercase alpha lists", () => {
   });
 });
 
-test("parses uppercase alpha lists", () => {
+it("parses uppercase alpha lists", () => {
   const ast = parser.parse("A. First item\nB. Second item");
 
   expect(ast?.toJSON()).toEqual({
@@ -77,7 +77,7 @@ test("parses uppercase alpha lists", () => {
   });
 });
 
-test("parses alpha lists with blank lines (issue example)", () => {
+it("parses alpha lists with blank lines (issue example)", () => {
   const markdown = `## 3. Step Three
 
 a. Do this.
@@ -98,7 +98,7 @@ b. Do that.`;
   expect(orderedList?.content).toHaveLength(2);
 });
 
-test("preserves numeric lists", () => {
+it("preserves numeric lists", () => {
   const ast = parser.parse("1. First item\n2. Second item");
 
   expect(ast?.toJSON()).toEqual({
@@ -132,14 +132,14 @@ test("preserves numeric lists", () => {
   });
 });
 
-test("serializes lowercase alpha lists back to markdown", () => {
+it("serializes lowercase alpha lists back to markdown", () => {
   const ast = parser.parse("a. First item\nb. Second item");
   const output = serializer.serialize(ast);
 
   expect(output.trim()).toBe("a. First item\nb. Second item");
 });
 
-test("serializes uppercase alpha lists back to markdown", () => {
+it("serializes uppercase alpha lists back to markdown", () => {
   const ast = parser.parse("A. First item\nB. Second item");
   const output = serializer.serialize(ast);
 

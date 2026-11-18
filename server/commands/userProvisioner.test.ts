@@ -103,6 +103,34 @@ describe("userProvisioner", () => {
     expect(isNewUser).toEqual(false);
   });
 
+  it("should match an existing user by email case-insensitively", async () => {
+    const team = await buildTeam();
+    const teamAuthProviders = await team.$get("authenticationProviders");
+    const authenticationProvider = teamAuthProviders[0];
+
+    const existing = await buildUser({
+      email: "Alice@example.com",
+      teamId: team.id,
+      authentications: [],
+    });
+
+    const result = await userProvisioner(ctx, {
+      name: "Alice",
+      email: "aLICE@EXAMPLE.com",
+      emailVerified: true,
+      teamId: team.id,
+      authentication: {
+        authenticationProviderId: authenticationProvider.id,
+        providerId: randomUUID(),
+        accessToken: "123",
+        scopes: ["read"],
+      },
+    });
+
+    expect(result.user.id).toEqual(existing.id);
+    expect(result.isNewUser).toEqual(false);
+  });
+
   it("should not match an existing user by email when email is unverified", async () => {
     const team = await buildTeam();
     const teamAuthProviders = await team.$get("authenticationProviders");
@@ -385,7 +413,7 @@ describe("userProvisioner", () => {
 
     const result = await userProvisioner(ctx, {
       name: invite.name,
-      email: "external@ExamPle.com", // ensure that email is case insensistive
+      email: "external@ExamPle.com", // ensure that email is case insensitive
       emailVerified: true,
       teamId: invite.teamId,
     });

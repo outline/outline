@@ -154,7 +154,7 @@ export const TemplateForm = observer(function TemplateForm_({
         void saveRef.current();
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 
@@ -194,7 +194,7 @@ export const TemplateForm = observer(function TemplateForm_({
           onChange={handleChange}
           readOnly={readOnly}
           canUpdate={can.update}
-          autoFocus={template.createdAt === template.updatedAt}
+          autoFocus={template.isJustCreated}
           template
         />
       </React.Suspense>

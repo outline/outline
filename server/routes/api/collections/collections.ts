@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { randomUUID } from "node:crypto";
 import { truncate } from "es-toolkit/compat";
 import type { WhereOptions } from "sequelize";
@@ -14,7 +14,6 @@ import {
 } from "@shared/types";
 import { ImportValidation } from "@shared/validations";
 import collectionDuplicator from "@server/commands/collectionDuplicator";
-import collectionExporter from "@server/commands/collectionExporter";
 import teamUpdater from "@server/commands/teamUpdater";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -30,6 +29,7 @@ import {
   Attachment,
   Document,
   Import,
+  FileOperation,
 } from "@server/models";
 import {
   buildWhere,
@@ -246,27 +246,25 @@ router.post(
       Collection.findByPk(id, { userId: user.id, transaction }),
       Group.findByPk(groupId, { transaction }),
     ]);
-    authorize(user, "update", collection);
+    authorize(user, "manageUsers", collection);
     authorize(user, "read", group);
 
-    let membership = await GroupMembership.findOne({
-      where: {
-        collectionId: id,
-        groupId,
-      },
-      lock: transaction.LOCK.UPDATE,
-      ...ctx.context,
-    });
+    let membership = await GroupMembership.findOneForUpdate(
+      { collectionId: id, groupId },
+      { transaction }
+    );
 
     if (membership) {
-      membership.permission = permission;
-      await membership.save(ctx.context);
+      if (permission !== undefined) {
+        membership.permission = permission;
+        await membership.save(ctx.context);
+      }
     } else {
       membership = await GroupMembership.create(
         {
           collectionId: id,
           groupId,
-          permission,
+          permission: permission ?? CollectionPermission.ReadWrite,
           createdById: user.id,
         },
         ctx.context
@@ -302,7 +300,7 @@ router.post(
         transaction,
       }),
     ]);
-    authorize(user, "update", collection);
+    authorize(user, "manageUsers", collection);
     authorize(user, "read", group);
 
     const [membership] = await collection.$get("groupMemberships", {
@@ -312,7 +310,7 @@ router.post(
 
     if (!membership) {
       ctx.throw(
-        InvalidRequestError("This Group is not a part of the collection")
+        InvalidRequestError("This group is not a part of the collection")
       );
     }
 
@@ -404,21 +402,19 @@ router.post(
       Collection.findByPk(id, { userId: actor.id, transaction }),
       User.findByPk(userId, { transaction }),
     ]);
-    authorize(actor, "update", collection);
+    authorize(actor, "manageUsers", collection);
     authorize(actor, "read", user);
 
-    let membership = await UserMembership.findOne({
-      where: {
-        collectionId: id,
-        userId,
-      },
-      lock: transaction.LOCK.UPDATE,
-      ...ctx.context,
-    });
+    let membership = await UserMembership.findOneForUpdate(
+      { collectionId: id, userId },
+      { transaction }
+    );
 
     if (membership) {
-      membership.permission = permission || user.defaultCollectionPermission;
-      await membership.save(ctx.context);
+      if (permission !== undefined) {
+        membership.permission = permission;
+        await membership.save(ctx.context);
+      }
     } else {
       membership = await UserMembership.create(
         {
@@ -454,7 +450,7 @@ router.post(
       Collection.findByPk(id, { userId: actor.id, transaction }),
       User.findByPk(userId, { transaction }),
     ]);
-    authorize(actor, "update", collection);
+    authorize(actor, "manageUsers", collection);
     authorize(actor, "read", user);
 
     const [membership] = await collection.$get("memberships", {
@@ -552,13 +548,11 @@ router.post(
     });
     authorize(user, "export", collection);
 
-    const fileOperation = await collectionExporter({
+    const fileOperation = await FileOperation.createExport(ctx, {
       collection,
       team,
-      user,
       format,
       includeAttachments,
-      ctx,
     });
 
     ctx.body = {
@@ -583,13 +577,11 @@ router.post(
     const team = await Team.findByPk(user.teamId, { transaction });
     authorize(user, "createExport", team);
 
-    const fileOperation = await collectionExporter({
-      user,
+    const fileOperation = await FileOperation.createExport(ctx, {
       team,
       format,
       includeAttachments,
       includePrivate,
-      ctx,
     });
 
     ctx.body = {
@@ -654,16 +646,14 @@ router.post(
     // we're making this collection have no default access, ensure that the
     // current user has an admin membership so that at least they can manage it.
     if (
+      permission !== undefined &&
       permission !== CollectionPermission.ReadWrite &&
       collection.permission === CollectionPermission.ReadWrite
     ) {
-      let membership = await UserMembership.findOne({
-        where: {
-          collectionId: collection.id,
-          userId: user.id,
-        },
-        transaction,
-      });
+      const membership = await UserMembership.findOneForUpdate(
+        { collectionId: collection.id, userId: user.id },
+        { transaction }
+      );
 
       if (!membership) {
         await UserMembership.create(
@@ -681,50 +671,21 @@ router.post(
       }
     }
 
-    let privacyChanged = false;
-    let sharingChanged = false;
+    collection.fill({
+      name: name?.trim(),
+      description,
+      content: data,
+      icon,
+      color,
+      permission,
+      sharing,
+      sort,
+      commenting,
+      templateManagement,
+    });
 
-    if (name !== undefined) {
-      collection.name = name.trim();
-    }
-
-    if (description !== undefined) {
-      collection.description = description;
-    }
-
-    if (data !== undefined) {
-      collection.content = data;
-    }
-
-    if (icon !== undefined) {
-      collection.icon = icon;
-    }
-
-    if (color !== undefined) {
-      collection.color = color;
-    }
-
-    if (permission !== undefined) {
-      privacyChanged = permission !== collection.permission;
-      collection.permission = permission ? permission : null;
-    }
-
-    if (sharing !== undefined) {
-      sharingChanged = sharing !== collection.sharing;
-      collection.sharing = sharing;
-    }
-
-    if (sort !== undefined) {
-      collection.sort = sort;
-    }
-
-    if (commenting !== undefined) {
-      collection.commenting = commenting;
-    }
-
-    if (templateManagement !== undefined) {
-      collection.templateManagement = templateManagement;
-    }
+    const privacyChanged = collection.changed("permission");
+    const sharingChanged = collection.changed("sharing");
 
     await collection.saveWithCtx(ctx);
 
@@ -811,6 +772,10 @@ router.post(
     // are not a member of, so they must be able to see them listed.
     if (!user.isAdmin || !(includeListOnly || includeArchived)) {
       where[Op.and].push({ id: collectionIds });
+    } else {
+      where[Op.and].push({
+        ownerId: { [Op.or]: [{ [Op.is]: null }, { [Op.eq]: user.id }] },
+      });
     }
 
     if (filter) {
@@ -818,18 +783,13 @@ router.post(
     }
 
     const [collections, total] = await Promise.all([
-      Collection.scope(
-        includeArchived
-          ? [
-              {
-                method: ["withMembership", user.id],
-              },
-              "withArchivedBy",
-            ]
-          : {
-              method: ["withMembership", user.id],
-            }
-      ).findAll({
+      Collection.scope([
+        // Named scopes replace the default scope, so it must be applied
+        // explicitly to keep the documentStructure column out of the result.
+        "defaultScope",
+        { method: ["withMembership", user.id] },
+        ...(includeArchived ? ["withArchivedBy"] : []),
+      ]).findAll({
         where,
         order: [
           Sequelize.literal('"collection"."index" collate "C"'),

@@ -1,6 +1,9 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { Op } from "sequelize";
 import { Sequelize } from "sequelize-typescript";
+import { Second } from "@shared/utils/time";
+import { withinTimeLimit } from "@shared/utils/timers";
+import { addTags, getRootSpanFromRequestContext } from "@server/logging/tracer";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import { Group, User } from "@server/models";
@@ -22,6 +25,9 @@ import * as T from "./schema";
 
 const router = new Router();
 
+/** The time each section of the suggestions may take before it is left out. */
+const sectionTimeLimit = Second.ms;
+
 router.post(
   "suggestions.mention",
   auth(),
@@ -40,6 +46,7 @@ router.post(
         return { users: [], familiarity: {} };
       }
 
+      const canReadEmails = can(actor, "readEmail", actor.team);
       const groupIds = await actor.groupIds();
       const users = await User.findAll({
         where: {
@@ -50,9 +57,13 @@ router.post(
           [Op.and]: query
             ? {
                 [Op.or]: [
-                  Sequelize.literal(
-                    `unaccent(LOWER(email)) like unaccent(LOWER(:query))`
-                  ),
+                  ...(canReadEmails
+                    ? [
+                        Sequelize.literal(
+                          `unaccent(LOWER(email)) like unaccent(LOWER(:query))`
+                        ),
+                      ]
+                    : []),
                   Sequelize.literal(
                     `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
                   ),
@@ -75,23 +86,51 @@ router.post(
       };
     };
 
+    const timedOut: string[] = [];
+    const withinLimit = <T>(
+      section: string,
+      run: () => Promise<T>,
+      fallback: T
+    ) =>
+      withinTimeLimit(run, sectionTimeLimit, fallback, () => {
+        timedOut.push(section);
+      });
+
+    // Presentation is part of each section, as presenters can also query.
     const [documents, { users, familiarity }, groups, collections] =
       await Promise.all([
-        SearchProviderManager.getProvider().searchTitlesForUser(actor, {
-          query,
-          offset,
-          limit,
-          filter: {
-            operator: "AND",
-            filters: [
-              { field: "archivedAt", operator: "isNull" },
-              { field: "publishedAt", operator: "isNotNull" },
-            ],
-          },
-        }),
-        suggestUsers(),
-        can(actor, "listGroups", actor.team)
-          ? Group.findAll({
+        withinLimit(
+          "documents",
+          async () =>
+            presentDocuments(
+              ctx,
+              await SearchProviderManager.getProvider().searchTitlesForUser(
+                actor,
+                {
+                  query,
+                  offset,
+                  limit,
+                  filter: {
+                    operator: "AND",
+                    filters: [
+                      { field: "archivedAt", operator: "isNull" },
+                      { field: "publishedAt", operator: "isNotNull" },
+                    ],
+                  },
+                }
+              )
+            ),
+          []
+        ),
+        withinLimit("users", suggestUsers, { users: [], familiarity: {} }),
+        withinLimit(
+          "groups",
+          async () => {
+            if (!can(actor, "listGroups", actor.team)) {
+              return [];
+            }
+
+            const found = await Group.findAll({
               where: {
                 teamId: actor.teamId,
                 disableMentions: false,
@@ -102,29 +141,49 @@ router.post(
                   : {},
               },
               order: [["name", "ASC"]],
-              replacements: { query: QueryHelper.likeContains(query ?? "") },
+              replacements: {
+                query: QueryHelper.likeContains(query ?? ""),
+              },
               offset,
               limit,
-            })
-          : [],
-        SearchProviderManager.getProvider().searchCollectionsForUser(actor, {
-          query,
-          offset,
-          limit,
-        }),
+            });
+            return Promise.all(found.map((group) => presentGroup(group)));
+          },
+          []
+        ),
+        withinLimit(
+          "collections",
+          () =>
+            SearchProviderManager.getProvider().searchCollectionsForUser(
+              actor,
+              {
+                query,
+                offset,
+                limit,
+              }
+            ),
+          []
+        ),
       ]);
+
+    if (timedOut.length) {
+      addTags(
+        { "suggestions.timedOut": timedOut.join(",") },
+        getRootSpanFromRequestContext(ctx)
+      );
+    }
 
     ctx.body = {
       pagination: ctx.state.pagination,
       data: {
-        documents: await presentDocuments(ctx, documents),
+        documents,
         users: users.map((user) =>
           presentUser(user, {
             includeEmail: !!can(actor, "readEmail", user),
             includeDetails: !!can(actor, "readDetails", user),
           })
         ),
-        groups: await Promise.all(groups.map((group) => presentGroup(group))),
+        groups,
         collections,
         familiarity,
       },

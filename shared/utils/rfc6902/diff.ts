@@ -1,6 +1,5 @@
-import { isEqual } from "es-toolkit/compat";
 import type { Pointer } from "./pointer";
-import { hasOwn, objectType } from "./util";
+import { hasOwn, isJSONEqual, objectType } from "./util";
 
 /**
  * All diff* functions should return a list of operations, often empty.
@@ -255,7 +254,7 @@ export function diffArrays<T>(
   while (
     start < input_length &&
     start < output_length &&
-    isEqual(input[start], output[start])
+    isJSONEqual(input[start], output[start])
   ) {
     start++;
   }
@@ -264,7 +263,7 @@ export function diffArrays<T>(
   let input_end = input_length;
   let output_end = output_length;
   while (input_end > start && output_end > start) {
-    if (isEqual(input[input_end - 1], output[output_end - 1])) {
+    if (isJSONEqual(input[input_end - 1], output[output_end - 1])) {
       input_end--;
       output_end--;
     } else {
@@ -310,7 +309,7 @@ export function diffArrays<T>(
           cost: memo[i][j - 1].cost + 1,
         };
       } else {
-        if (isEqual(input[inputIdx], output[outputIdx])) {
+        if (isJSONEqual(input[inputIdx], output[outputIdx])) {
           memoized = memo[i - 1][j - 1];
         } else {
           const remove_prev = memo[i - 1][j];

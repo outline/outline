@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 
 export { GroupMembersPopover } from "./GroupMembersPopover";
 
-// TODO: Temp until Button/NudeButton styles are normalized
+// Highlights nude buttons within sharing popovers on hover or while expanded.
 export const Wrapper = styled.div`
   ${NudeButton}:${hover},
   ${NudeButton}[aria-expanded="true"] {
@@ -28,6 +28,17 @@ export const StyledInfoIcon = styled(InfoIcon).attrs({
   vertical-align: bottom;
   margin-right: 2px;
   flex-shrink: 0;
+`;
+
+export const ShareNotice = styled(Flex).attrs({
+  align: "flex-start",
+  gap: 4,
+})`
+  padding-bottom: 4px;
+
+  &:not(:last-child) {
+    margin-bottom: 4px;
+  }
 `;
 
 export const ShareLinkInput = styled(Input)`

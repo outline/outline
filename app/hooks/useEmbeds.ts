@@ -5,6 +5,7 @@ import embeds from "@shared/editor/embeds";
 import { IntegrationType, TeamPreference } from "@shared/types";
 import type Integration from "~/models/Integration";
 import Logger from "~/utils/Logger";
+import { Hook, PluginManager } from "~/utils/PluginManager";
 import useCurrentTeam from "./useCurrentTeam";
 import useStores from "./useStores";
 
@@ -34,6 +35,8 @@ export default function useEmbeds(loadIfMissing = false) {
     }
   }, [integrations, loadIfMissing]);
 
+  // Plugins may register instance URL resolvers after integrations load.
+  const pluginsLoaded = PluginManager.isLoaded;
   const disabledEmbeds =
     (team?.getPreference(TeamPreference.DisabledEmbeds) as string[]) || [];
 
@@ -46,13 +49,16 @@ export default function useEmbeds(loadIfMissing = false) {
 
         if (integration?.settings) {
           e.settings = integration.settings;
+          e.instanceUrl = PluginManager.getHooks(Hook.InstanceUrl)
+            .find((hook) => hook.value.service === e.name)
+            ?.value.url(integration.settings);
         }
 
         e.disabled = disabledEmbeds.includes(e.id);
 
         return e;
       }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [integrations.orderedData, team?.preferences]
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
+    [integrations.orderedData, team?.preferences, pluginsLoaded]
   );
 }

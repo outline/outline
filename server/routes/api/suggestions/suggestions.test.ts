@@ -1,10 +1,13 @@
+import { EmailDisplay, TeamPreference } from "@shared/types";
 import {
   buildGroup,
   buildGroupUser,
   buildGuestUser,
+  buildTeam,
   buildUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
+import SearchProviderManager from "@server/utils/SearchProviderManager";
 
 const server = getTestServer();
 
@@ -92,6 +95,47 @@ describe("#suggestions.mention", () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.users).toEqual([]);
+  });
+
+  it("should not match the query against emails when emailDisplay is none", async () => {
+    const team = await buildTeam();
+    team.setPreference(TeamPreference.EmailDisplay, EmailDisplay.None);
+    await team.save();
+    const user = await buildUser({ teamId: team.id });
+    await buildUser({
+      teamId: team.id,
+      name: "Jane Doe",
+      email: "secret.jane@example.com",
+    });
+
+    const res = await server.post("/api/suggestions.mention", user, {
+      body: { query: "secret.jane" },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.users).toEqual([]);
+  });
+
+  it("should return the other sections when a section is too slow", async () => {
+    const user = await buildUser();
+    const other = await buildUser({ teamId: user.teamId, name: "Elizabeth" });
+    const spy = vi
+      .spyOn(SearchProviderManager.getProvider(), "searchTitlesForUser")
+      .mockReturnValue(new Promise(() => undefined));
+
+    try {
+      const res = await server.post("/api/suggestions.mention", user);
+      const body = await res.json();
+
+      expect(res.status).toEqual(200);
+      expect(body.data.documents).toEqual([]);
+      expect(body.data.users.map((u: { id: string }) => u.id)).toContain(
+        other.id
+      );
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   it("should require authentication", async () => {

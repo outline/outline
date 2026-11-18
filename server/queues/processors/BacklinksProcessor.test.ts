@@ -1,11 +1,46 @@
+import { randomUUID } from "node:crypto";
+import type { ProsemirrorData } from "@shared/types";
+import { MentionType } from "@shared/types";
 import { parser } from "@server/editor";
 import { Relationship } from "@server/models";
+import type { Document } from "@server/models";
 import { RelationshipType } from "@server/models/Relationship";
 import { buildDocument, buildTeam } from "@server/test/factories";
 
 import BacklinksProcessor from "./BacklinksProcessor";
 
 const ip = "127.0.0.1";
+
+const mention = (target: Document): ProsemirrorData => ({
+  type: "mention",
+  attrs: {
+    id: randomUUID(),
+    type: MentionType.Document,
+    modelId: target.id,
+    label: target.title,
+  },
+});
+
+const link = (target: Document): ProsemirrorData => ({
+  type: "text",
+  text: target.title,
+  marks: [{ type: "link", attrs: { href: target.url } }],
+});
+
+const paragraphs = (nodes: ProsemirrorData[]): ProsemirrorData => ({
+  type: "doc",
+  content: nodes.map((node) => ({ type: "paragraph", content: [node] })),
+});
+
+const publish = (document: Document) =>
+  new BacklinksProcessor().perform({
+    name: "documents.publish",
+    documentId: document.id,
+    collectionId: document.collectionId!,
+    teamId: document.teamId,
+    actorId: document.createdById,
+    ip,
+  });
 
 describe("documents.publish", () => {
   it("should create new backlink records", async () => {
@@ -91,6 +126,27 @@ describe("documents.publish", () => {
       },
     });
     expect(backlinks.length).toBe(0);
+  });
+  it("should create one backlink per target for mixed UUID and slug links", async () => {
+    const team = await buildTeam();
+    const first = await buildDocument({ teamId: team.id });
+    const second = await buildDocument({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      content: paragraphs([mention(first), link(first), link(second)]),
+    });
+
+    await publish(document);
+
+    const backlinks = await Relationship.findAll({
+      where: {
+        reverseDocumentId: document.id,
+        type: RelationshipType.Backlink,
+      },
+    });
+    expect(backlinks.map((b) => b.documentId).sort()).toEqual(
+      [first.id, second.id].sort()
+    );
   });
 });
 

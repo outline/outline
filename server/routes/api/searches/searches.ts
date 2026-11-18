@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";

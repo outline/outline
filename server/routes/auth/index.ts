@@ -2,16 +2,16 @@ import passport from "@outlinewiki/koa-passport";
 import { addMonths } from "date-fns";
 import Koa from "koa";
 import bodyParser from "koa-body";
-import Router from "koa-router";
+import Router from "@koa/router";
 import { AuthenticationError } from "@server/errors";
 import authMiddleware from "@server/middlewares/authentication";
 import coalesceBody from "@server/middlewares/coaleseBody";
 import { Collection, Team, View } from "@server/models";
 import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
-import type { AppState, AppContext, APIContext } from "@server/types";
-import { AuthenticationType } from "@server/types";
+import type { AppState, AppContext } from "@server/types";
 import { verifyCSRFToken } from "@server/middlewares/csrf";
-import { getJWTPayload } from "@server/utils/jwt";
+import { clearCSRFCookie } from "@server/utils/csrf";
+import { getUserForJWT } from "@server/utils/jwt";
 
 const app = new Koa<AppState, AppContext>();
 const router = new Router();
@@ -20,74 +20,76 @@ router.use(passport.initialize());
 
 // dynamically register available authentication provider routes
 void (async () => {
-  for (const provider of AuthenticationHelper.providers) {
-    const resolvedRouter = await provider.value.router;
+  const resolvedRouters = await Promise.all(
+    AuthenticationHelper.providers.map((provider) =>
+      Promise.resolve(provider.value.router)
+    )
+  );
+
+  // The OAuth actor must come from the browser session, not a link.
+  router.use(authMiddleware({ optional: true, transports: ["cookie"] }));
+  for (const resolvedRouter of resolvedRouters) {
     if (resolvedRouter) {
-      router.use(
-        "/",
-        authMiddleware({ optional: true }),
-        resolvedRouter.routes()
-      );
+      router.use("/", resolvedRouter.routes());
     }
   }
 })();
 
-router.get(
-  "/redirect",
-  authMiddleware({ type: AuthenticationType.APP }),
-  async (ctx: APIContext) => {
-    const { user, service } = ctx.state.auth;
-
-    const payload = getJWTPayload(ctx.state.auth.token);
-    if (payload.type !== "transfer") {
-      throw AuthenticationError("Cannot extend token");
-    }
-
-    const expires = addMonths(new Date(), 3);
-    const jwtToken = user.getSessionToken(expires, service);
-
-    // ensure that the lastActiveAt on user is updated to prevent replay requests
-    await user.updateActiveAt(ctx, true);
-
-    ctx.cookies.set("accessToken", jwtToken, {
-      sameSite: "lax",
-      expires,
-    });
-    const [team, collection, view] = await Promise.all([
-      Team.findByPk(user.teamId),
-      Collection.findFirstCollectionForUser(user),
-      View.findOne({
-        where: {
-          userId: user.id,
-        },
-      }),
-    ]);
-
-    const defaultCollectionId = team?.defaultCollectionId;
-
-    if (defaultCollectionId) {
-      const collection = await Collection.findOne({
-        where: {
-          id: defaultCollectionId,
-          teamId: team.id,
-        },
-      });
-
-      if (collection) {
-        ctx.redirect(`${team.url}${collection.path}`);
-        return;
-      }
-    }
-
-    const hasViewedDocuments = !!view;
-
-    ctx.redirect(
-      !hasViewedDocuments && collection
-        ? `${team?.url}${collection.path}/recent`
-        : `${team?.url}/home`
-    );
+router.get("/redirect", async (ctx: AppContext) => {
+  const { token } = ctx.request.query;
+  if (typeof token !== "string") {
+    throw AuthenticationError("Missing token");
   }
-);
+
+  // Transfer tokens are only accepted here, to be exchanged for a session.
+  const { user, service } = await getUserForJWT(token, ["transfer"]);
+
+  const expires = addMonths(new Date(), 3);
+  const jwtToken = user.getSessionToken(expires, service);
+
+  // ensure that the lastActiveAt on user is updated to prevent replay requests
+  await user.updateActiveAt(ctx, true);
+
+  ctx.cookies.set("accessToken", jwtToken, {
+    sameSite: "lax",
+    expires,
+  });
+  clearCSRFCookie(ctx);
+  const [team, collection, view] = await Promise.all([
+    Team.findByPk(user.teamId),
+    Collection.findFirstCollectionForUser(user),
+    View.findOne({
+      where: {
+        userId: user.id,
+      },
+    }),
+  ]);
+
+  const defaultCollectionId = team?.defaultCollectionId;
+
+  if (defaultCollectionId) {
+    const collection = await Collection.findOne({
+      where: {
+        id: defaultCollectionId,
+        teamId: team.id,
+        ownerId: null,
+      },
+    });
+
+    if (collection) {
+      ctx.redirect(`${team.url}${collection.path}`);
+      return;
+    }
+  }
+
+  const hasViewedDocuments = !!view;
+
+  ctx.redirect(
+    !hasViewedDocuments && collection
+      ? `${team?.url}${collection.path}/recent`
+      : `${team?.url}/home`
+  );
+});
 
 app.use(bodyParser());
 app.use(coalesceBody());

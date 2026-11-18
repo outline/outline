@@ -35,6 +35,12 @@ class Import extends Model {
   @observable
   documentCount: number;
 
+  /** The existing collection to import into, if any. */
+  collectionId: string | null;
+
+  /** The existing document to import under, if any. */
+  documentId: string | null;
+
   /** The user who created the import. */
   @Relation(() => User, {})
   createdBy: User;

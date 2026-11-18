@@ -1,9 +1,5 @@
 import type { Endpoints } from "@octokit/types";
-import type {
-  InstallationNewPermissionsAcceptedEvent,
-  InstallationRepositoriesEvent,
-  RepositoryRenamedEvent,
-} from "@octokit/webhooks-types";
+import type { components } from "@octokit/openapi-webhooks-types";
 import type { IssueSource } from "@shared/schema";
 import type { IntegrationType } from "@shared/types";
 import { IntegrationService } from "@shared/types";
@@ -12,6 +8,14 @@ import { Integration, IntegrationAuthentication } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import { BaseIssueProvider } from "@server/utils/BaseIssueProvider";
 import { GitHub } from "./github";
+
+type InstallationNewPermissionsAcceptedEvent =
+  components["schemas"]["webhook-installation-new-permissions-accepted"];
+type InstallationRepositoriesEvent =
+  | components["schemas"]["webhook-installation-repositories-added"]
+  | components["schemas"]["webhook-installation-repositories-removed"];
+type RepositoryRenamedEvent =
+  components["schemas"]["webhook-repository-renamed"];
 
 // This is needed to handle Octokit paginate response type mismatch.
 type ReposForInstallation =
@@ -127,7 +131,7 @@ export class GitHubIssueProvider extends BaseIssueProvider {
           required: true,
         },
         transaction,
-        lock: transaction.LOCK.UPDATE,
+        lock: { level: transaction.LOCK.NO_KEY_UPDATE, of: Integration },
       });
       const authentication = integration.authentication;
 
@@ -153,6 +157,14 @@ export class GitHubIssueProvider extends BaseIssueProvider {
     const installationId = event.installation.id;
     const account = event.installation.account;
 
+    // Only user and organization accounts own repositories.
+    if (!account || !("login" in account)) {
+      Logger.warn(
+        `GitHub installation_repositories event without user or organization account; installationId: ${installationId}`
+      );
+      return;
+    }
+
     await sequelize.transaction(async (transaction) => {
       const integration = await Integration.findOne({
         where: {
@@ -160,7 +172,7 @@ export class GitHubIssueProvider extends BaseIssueProvider {
           "settings.github.installation.id": installationId,
         },
         transaction,
-        lock: transaction.LOCK.UPDATE,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
       });
 
       if (!integration) {
@@ -229,7 +241,7 @@ export class GitHubIssueProvider extends BaseIssueProvider {
           "settings.github.installation.id": installationId,
         },
         transaction,
-        lock: transaction.LOCK.UPDATE,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
       });
 
       if (!integration) {

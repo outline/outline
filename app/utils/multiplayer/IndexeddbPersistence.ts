@@ -1,5 +1,6 @@
 import * as Y from "yjs";
 import Logger from "~/utils/Logger";
+import { isExpectedIndexedDBError } from "~/utils/indexedDB";
 
 /**
  * Persists a Y.Doc to IndexedDB so documents can be loaded instantly from the
@@ -224,7 +225,7 @@ export class IndexeddbPersistence {
     this.stopped = true;
     this.db = null;
 
-    if (!this.destroyed) {
+    if (!this.destroyed && !isExpectedIndexedDBError(error)) {
       Logger.warn("Local document persistence stopped", { error });
     }
     this.stopListeners.forEach((listener) => listener());

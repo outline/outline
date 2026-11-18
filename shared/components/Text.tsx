@@ -1,11 +1,56 @@
 import styled, { css } from "styled-components";
 import { ellipsis } from "../styles";
+import { breakpoint } from "../styles/breakpoint";
+
+type TextSize = "xlarge" | "large" | "medium" | "small" | "xsmall";
+
+const fontSizes: Record<TextSize, number> = {
+  xlarge: 26,
+  large: 18,
+  medium: 16,
+  small: 14,
+  xsmall: 13,
+};
+
+const mobileSizes: Partial<Record<TextSize, TextSize>> = {
+  medium: "large",
+  small: "medium",
+  xsmall: "small",
+};
+
+/**
+ * Returns the font-size styles for a text size variant. Smaller variants are
+ * bumped up to the next size on mobile.
+ *
+ * @param size the size variant, or undefined to inherit.
+ * @returns the font-size styles.
+ */
+export const textSizeStyles = (size?: TextSize) => {
+  if (!size) {
+    return css`
+      font-size: inherit;
+    `;
+  }
+
+  const mobileSize = mobileSizes[size];
+
+  return css`
+    font-size: ${fontSizes[size]}px;
+
+    ${
+      mobileSize &&
+      breakpoint("mobile", "tablet")`
+      font-size: ${fontSizes[mobileSize]}px;
+    `
+    }
+  `;
+};
 
 type Props = {
   /** The type of text to render */
   type?: "secondary" | "tertiary" | "danger";
   /** The size of the text */
-  size?: "xlarge" | "large" | "medium" | "small" | "xsmall";
+  size?: TextSize;
   /** The direction of the text (defaults to ltr) */
   dir?: "ltr" | "rtl" | "auto";
   /** Whether the text should be selectable (defaults to false) */
@@ -35,29 +80,20 @@ const Text = styled.span<Props>`
         : props.type === "danger"
           ? props.theme.brand.red
           : props.theme.text};
-  font-size: ${(props) =>
-    props.size === "xlarge"
-      ? "26px"
-      : props.size === "large"
-        ? "18px"
-        : props.size === "medium"
-          ? "16px"
-          : props.size === "small"
-            ? "14px"
-            : props.size === "xsmall"
-              ? "13px"
-              : "inherit"};
+  ${(props) => textSizeStyles(props.size)}
 
   ${(props) =>
     props.weight &&
     css`
-      font-weight: ${props.weight === "xbold"
-        ? 600
-        : props.weight === "bold"
-          ? 500
-          : props.weight === "normal"
-            ? 400
-            : "inherit"};
+      font-weight: ${
+        props.weight === "xbold"
+          ? 600
+          : props.weight === "bold"
+            ? 500
+            : props.weight === "normal"
+              ? 400
+              : "inherit"
+      };
     `}
 
   font-style: ${(props) => (props.italic ? "italic" : "normal")};

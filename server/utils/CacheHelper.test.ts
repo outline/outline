@@ -1,5 +1,6 @@
 import Redis from "@server/storage/redis";
 import { CacheHelper } from "./CacheHelper";
+import { MutexLock } from "./MutexLock";
 
 describe("CacheHelper", () => {
   beforeEach(async () => {
@@ -109,6 +110,35 @@ describe("CacheHelper", () => {
         await CacheHelper.getDataOrSet("test:retry", callback, 60)
       ).toEqual("value");
       expect(calls).toEqual(2);
+    });
+  });
+
+  describe("getDataOrSet when Redis is unavailable", () => {
+    const { status } = Redis.ephemeralClient;
+
+    afterEach(() => {
+      Redis.ephemeralClient.status = status;
+      vi.restoreAllMocks();
+    });
+
+    it("should return the callback result without taking a lock", async () => {
+      Redis.ephemeralClient.status = "reconnecting";
+      vi.spyOn(Redis.ephemeralClient, "get").mockRejectedValue(
+        new Error("Stream isn't writeable")
+      );
+      vi.spyOn(Redis.ephemeralClient, "set").mockRejectedValue(
+        new Error("Stream isn't writeable")
+      );
+      const acquire = vi.spyOn(MutexLock, "acquire");
+
+      const result = await CacheHelper.getDataOrSet(
+        "test:unavailable",
+        async () => "value",
+        60
+      );
+
+      expect(result).toEqual("value");
+      expect(acquire).not.toHaveBeenCalled();
     });
   });
 

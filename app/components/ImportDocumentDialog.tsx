@@ -5,7 +5,7 @@ import Dropzone from "react-dropzone";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import {
   DropzoneContainer,
   dropzoneIcon,
@@ -92,7 +92,7 @@ export const ImportDocumentDialog = observer(function ImportDocumentDialog({
   return (
     <Columns gap={20}>
       <Dropzone
-        accept={documents.importFileTypesString}
+        accept={documents.importFileTypesAccept}
         onDropAccepted={handleDropAccepted}
         onDropRejected={handleDropRejected}
         multiple

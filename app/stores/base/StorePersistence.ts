@@ -1,6 +1,10 @@
 import { debounce } from "es-toolkit/compat";
 import type Model from "~/models/base/Model";
 import Logger from "~/utils/Logger";
+import {
+  isConnectionClosedError,
+  isExpectedIndexedDBError,
+} from "~/utils/indexedDB";
 import type Store from "./Store";
 
 /** Bump to discard previously persisted data when the format changes. */
@@ -263,8 +267,8 @@ export default class StorePersistence<T extends Model> {
 
   /**
    * Logs an operation that failed against the database. The browser closes
-   * connections at times the page does not control, such as when the tab is
-   * frozen or discarded, so those failures are expected and are not reported.
+   * connections, fills the disk, or deletes the database at times the page
+   * does not control, so those failures are expected and are not reported.
    *
    * @param message a description of the operation that failed.
    * @param err the error that was thrown.
@@ -272,7 +276,7 @@ export default class StorePersistence<T extends Model> {
   private report = (message: string, err: unknown) => {
     const extra = { database: this.name, error: err };
 
-    if (isConnectionClosedError(err)) {
+    if (isExpectedIndexedDBError(err)) {
       Logger.debug("store", message, extra);
       return;
     }
@@ -295,20 +299,6 @@ export default class StorePersistence<T extends Model> {
   private disabled = false;
 
   private hydrating = false;
-}
-
-/**
- * Whether an error was caused by the connection to the database closing, in
- * which case the operation did not run and can safely be retried.
- *
- * @param err the error to check.
- * @returns true if the connection was closed.
- */
-function isConnectionClosedError(err: unknown): boolean {
-  return (
-    err instanceof DOMException &&
-    (err.name === "InvalidStateError" || err.name === "AbortError")
-  );
 }
 
 /**

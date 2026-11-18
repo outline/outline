@@ -6,7 +6,8 @@ import { DialogTitle } from "~/components/DialogTitle";
 import useStores from "~/hooks/useStores";
 import * as Scenes from "~/routes/scenes";
 import { trashPath } from "~/utils/routeHelpers";
-import { type DragObject, useDropRef } from "../hooks/useDragAndDrop";
+import { useDropRef } from "~/components/DragAndDrop";
+import type { DragObject } from "../hooks/useDragAndDrop";
 import SidebarLink from "./SidebarLink";
 
 function TrashLink() {

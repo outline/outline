@@ -6,6 +6,7 @@ import {
   useLayoutEffect,
   useMemo,
   useEffect,
+  useEffectEvent,
   useRef,
   type Ref,
 } from "react";
@@ -17,16 +18,15 @@ import { EditorUpdateError } from "@shared/collaboration/CloseEvents";
 import History from "@shared/editor/extensions/History";
 import EDITOR_VERSION from "@shared/editor/version";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
-import { supportsPassiveListener } from "@shared/utils/browser";
 import type { Props as EditorProps } from "~/components/Editor";
 import { useDocumentContext } from "~/components/DocumentContext";
 import Editor from "~/components/Editor";
 import type { Editor as SharedEditor } from "~/editor";
 import MultiplayerExtension from "~/editor/extensions/Multiplayer";
+import { MultiplayerUndo } from "~/editor/extensions/MultiplayerUndo";
 import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useIdle from "~/hooks/useIdle";
-import useIsMounted from "~/hooks/useIsMounted";
 import usePageVisibility from "~/hooks/usePageVisibility";
 import useStores from "~/hooks/useStores";
 import type { AwarenessChangeEvent } from "~/types";
@@ -64,7 +64,6 @@ function MultiplayerEditor({ onSynced, ref, ...props }: Props) {
   const token = auth.collaborationToken;
   const isIdle = useIdle();
   const isVisible = usePageVisibility();
-  const isMounted = useIsMounted();
 
   // Provider initialization must be within useLayoutEffect rather than useState
   // or useMemo as both of these are ran twice in React StrictMode resulting in
@@ -111,11 +110,7 @@ function MultiplayerEditor({ onSynced, ref, ...props }: Props) {
 
     window.addEventListener("click", finishObserving);
     window.addEventListener("wheel", finishObserving);
-    window.addEventListener(
-      "scroll",
-      syncScrollPosition,
-      supportsPassiveListener ? { passive: true } : false
-    );
+    window.addEventListener("scroll", syncScrollPosition, { passive: true });
 
     provider.on("authenticationFailed", () => {
       provider.shouldConnect = false;
@@ -157,9 +152,7 @@ function MultiplayerEditor({ onSynced, ref, ...props }: Props) {
     const showCursorNames = () => {
       setShowCursorNames(true);
       setTimeout(() => {
-        if (isMounted()) {
-          setShowCursorNames(false);
-        }
+        setShowCursorNames(false);
       }, 2000);
       provider.off("awarenessChange", showCursorNames);
     };
@@ -251,7 +244,7 @@ function MultiplayerEditor({ onSynced, ref, ...props }: Props) {
     };
     // `token` is intentionally omitted, it is only read when establishing the
     // connection and a refreshed token must not tear down the provider.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [
     history,
     t,
@@ -261,7 +254,6 @@ function MultiplayerEditor({ onSynced, ref, ...props }: Props) {
     presence,
     ydoc,
     currentUser.id,
-    isMounted,
     auth,
   ]);
 
@@ -279,8 +271,8 @@ function MultiplayerEditor({ onSynced, ref, ...props }: Props) {
       return props.extensions;
     }
 
-    // The Yjs undo manager (added by the Multiplayer extension below) is the
-    // sole source of undo/redo history when collaborating.
+    // The Yjs undo manager (added by MultiplayerUndo below) is the sole source
+    // of undo/redo history when collaborating.
     return [
       ...(props.extensions || []).filter(
         (extension) => extension !== History && !(extension instanceof History)
@@ -290,16 +282,16 @@ function MultiplayerEditor({ onSynced, ref, ...props }: Props) {
         provider: remoteProvider,
         document: ydoc,
       }),
+      MultiplayerUndo,
     ];
   }, [remoteProvider, user, ydoc, props.extensions]);
 
-  // Read through a ref so the callback runs once per sync, not per identity.
-  const onSyncedRef = useRef(onSynced);
-  onSyncedRef.current = onSynced;
+  // Run the callback once per sync, not per identity change.
+  const onSyncedEvent = useEffectEvent(() => onSynced?.());
 
   useEffect(() => {
     if ((!hasLocalPersistence || isLocalSynced) && isRemoteSynced) {
-      void onSyncedRef.current?.();
+      void onSyncedEvent();
     }
   }, [hasLocalPersistence, isLocalSynced, isRemoteSynced]);
 

@@ -5,7 +5,6 @@ import "react";
 declare module "react" {
   namespace JSX {
     interface IntrinsicElements {
-      "zapier-app-directory": any;
       "em-emoji": any;
     }
   }

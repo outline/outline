@@ -98,7 +98,7 @@ function DomainManagement({ onSuccess }: Props) {
             onChange={createOnDomainChangedHandler(index)}
           />
           <Remove>
-            <Tooltip content={t("Remove domain")} placement="top">
+            <Tooltip content={t("Remove domain")}>
               <NudeButton onClick={() => handleRemoveDomain(index)}>
                 <CloseIcon />
               </NudeButton>

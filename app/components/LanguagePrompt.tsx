@@ -50,7 +50,7 @@ export default function LanguagePrompt() {
               await user.save({ language });
             }}
           >
-            {t("Change Language")}
+            {t("Change language")}
           </Link>{" "}
           &middot;{" "}
           <Link onClick={() => ui.set({ languagePromptDismissed: true })}>

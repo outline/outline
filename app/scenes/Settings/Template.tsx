@@ -81,7 +81,7 @@ const TemplateSetting = observer(function Template_({ template }: Props) {
       ...(collection
         ? [
             createInternalLinkAction({
-              name: collection.name,
+              name: collection.displayName,
               section: NavigationSection,
               icon: <CollectionIcon collection={collection} />,
               to: collectionPath(collection),

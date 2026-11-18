@@ -1,9 +1,13 @@
 import { selectedRect } from "prosemirror-tables";
 import * as React from "react";
 import type { EditorView } from "prosemirror-view";
-import { ColumnSelection } from "@shared/editor/selection/ColumnSelection";
-import { RowSelection } from "@shared/editor/selection/RowSelection";
-import { isTableSelected } from "@shared/editor/queries/table";
+import {
+  getColumnBounds,
+  getColumnIndex,
+  getRowBounds,
+  getRowIndex,
+  isTableSelected,
+} from "@shared/editor/queries/table";
 import { useEditor } from "./EditorContext";
 
 type Side = "top" | "bottom" | "left" | "right";
@@ -49,7 +53,6 @@ type Anchor = {
  */
 function getAnchor(view: EditorView, rtl: boolean): Anchor | null {
   const { state } = view;
-  const { selection } = state;
 
   if (isTableSelected(state)) {
     const rect = selectedRect(state);
@@ -70,13 +73,10 @@ function getAnchor(view: EditorView, rtl: boolean): Anchor | null {
     };
   }
 
-  if (selection instanceof ColumnSelection && selection.isColSelection()) {
-    const rect = selectedRect(state);
-    const cell = (
-      view.domAtPos(rect.tableStart).node as HTMLElement
-    ).querySelector(`tr > *:nth-child(${rect.left + 1})`);
-    if (cell instanceof HTMLElement) {
-      const bounds = cell.getBoundingClientRect();
+  const colIndex = getColumnIndex(state);
+  if (colIndex !== undefined) {
+    const bounds = getColumnBounds(view, colIndex);
+    if (bounds) {
       // A strip just above the column's top edge (the grip), spanning the
       // column width so the menu centers on the column.
       return {
@@ -87,18 +87,15 @@ function getAnchor(view: EditorView, rtl: boolean): Anchor | null {
         side: "top",
         align: "center",
         sideOffset: GRIP_SIDE_OFFSET,
-        key: `col-${rect.tableStart}-${rect.left}`,
+        key: `col-${selectedRect(state).tableStart}-${colIndex}`,
       };
     }
   }
 
-  if (selection instanceof RowSelection && selection.isRowSelection()) {
-    const rect = selectedRect(state);
-    const cell = (
-      view.domAtPos(rect.tableStart).node as HTMLElement
-    ).querySelector(`tr:nth-child(${rect.top + 1}) > *`);
-    if (cell instanceof HTMLElement) {
-      const bounds = cell.getBoundingClientRect();
+  const rowIndex = getRowIndex(state);
+  if (rowIndex !== undefined) {
+    const bounds = getRowBounds(view, rowIndex);
+    if (bounds) {
       // A strip just outside the row's grip edge (left, or right in RTL),
       // spanning the row height so the menu centers on the row.
       return {
@@ -109,7 +106,7 @@ function getAnchor(view: EditorView, rtl: boolean): Anchor | null {
         side: rtl ? "right" : "left",
         align: "center",
         sideOffset: GRIP_SIDE_OFFSET,
-        key: `row-${rect.tableStart}-${rect.top}`,
+        key: `row-${selectedRect(state).tableStart}-${rowIndex}`,
       };
     }
   }

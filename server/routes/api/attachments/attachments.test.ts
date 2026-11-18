@@ -10,6 +10,7 @@ import {
   buildCollection,
   buildAttachment,
   buildDocument,
+  buildTemplate,
   buildViewer,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
@@ -165,6 +166,81 @@ describe("#attachments.create", () => {
         },
       });
       expect(res.status).toEqual(200);
+    });
+
+    it("should allow attachment creation for templates the user can manage", async () => {
+      const user = await buildAdmin();
+      const template = await buildTemplate({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+
+      const res = await server.post("/api/attachments.create", user, {
+        body: {
+          name: "test.png",
+          contentType: "image/png",
+          size: 1000,
+          documentId: template.id,
+          preset: AttachmentPreset.DocumentAttachment,
+        },
+      });
+      expect(res.status).toEqual(200);
+    });
+
+    it("should not allow attachment creation for templates the user cannot manage", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        permission: CollectionPermission.ReadWrite,
+      });
+      const template = await buildTemplate({
+        teamId: user.teamId,
+        collectionId: collection.id,
+      });
+
+      const res = await server.post("/api/attachments.create", user, {
+        body: {
+          name: "test.png",
+          contentType: "image/png",
+          size: 1000,
+          documentId: template.id,
+          preset: AttachmentPreset.DocumentAttachment,
+        },
+      });
+      expect(res.status).toEqual(403);
+    });
+
+    it("should create a private document attachment when S3 object ACLs are disabled", async () => {
+      const original = env.AWS_S3_ACL;
+      env.AWS_S3_ACL = "";
+
+      try {
+        const user = await buildUser();
+        const document = await buildDocument({
+          teamId: user.teamId,
+          userId: user.id,
+        });
+
+        const res = await server.post("/api/attachments.create", user, {
+          body: {
+            name: "test.png",
+            contentType: "image/png",
+            size: 1000,
+            documentId: document.id,
+            preset: AttachmentPreset.DocumentAttachment,
+          },
+        });
+
+        expect(res.status).toEqual(200);
+        const body = await res.json();
+        const attachment = await Attachment.findByPk(body.data.attachment.id, {
+          rejectOnEmpty: true,
+        });
+        expect(attachment.acl).toBe("private");
+        expect(body.data.form).toBeDefined();
+      } finally {
+        env.AWS_S3_ACL = original;
+      }
     });
 
     it("should return PUT data when AWS_S3_UPLOAD_METHOD is put", async () => {
@@ -578,6 +654,22 @@ describe("#attachments.redirect", () => {
       redirect: "manual",
     });
     expect(res.status).toEqual(302);
+  });
+
+  it("should not cache the redirect for longer than the signed URL is valid", async () => {
+    const user = await buildUser();
+    const attachment = await buildAttachment({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post("/api/attachments.redirect", user, {
+      body: {
+        id: attachment.id,
+      },
+      redirect: "manual",
+    });
+    expect(res.status).toEqual(302);
+    expect(res.headers.get("Cache-Control")).toEqual("max-age=150, immutable");
   });
 
   it("should return a redirect for the attachment if id supplied via query params", async () => {

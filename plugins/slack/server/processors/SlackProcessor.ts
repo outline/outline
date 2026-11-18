@@ -22,12 +22,36 @@ export default class SlackProcessor extends BaseProcessor {
     "integrations.create",
   ];
 
+  /**
+   * Only queue document events when the team has a Slack post integration
+   * subscribed to the event.
+   *
+   * @param event The event about to be queued.
+   * @returns true if the event may need to be posted to Slack.
+   */
+  static async shouldQueue(event: Event): Promise<boolean> {
+    if (event.name === "integrations.create") {
+      return true;
+    }
+
+    const eventName =
+      event.name === "revisions.create" ? "documents.update" : event.name;
+    const integrations = await Integration.findEnabledByTeamIdAndService(
+      event.teamId,
+      IntegrationService.Slack
+    );
+
+    return integrations.some(
+      (integration) =>
+        integration.type === IntegrationType.Post &&
+        !!integration.events?.includes(eventName)
+    );
+  }
+
   async perform(event: Event) {
     switch (event.name) {
       case "documents.publish":
       case "revisions.create":
-        // wait a few seconds to give the document summary chance to be generated
-        await sleep(5000);
         return this.documentUpdated(event);
 
       case "integrations.create":
@@ -85,11 +109,9 @@ export default class SlackProcessor extends BaseProcessor {
     if (event.name === "documents.publish" && event.data?.source === "import") {
       return;
     }
-    const [document, team] = await Promise.all([
-      Document.findByPk(event.documentId),
-      Team.findByPk(event.teamId),
-    ]);
-    if (!document || !team) {
+
+    const document = await Document.findByPk(event.documentId);
+    if (!document) {
       return;
     }
 
@@ -124,10 +146,22 @@ export default class SlackProcessor extends BaseProcessor {
     if (!integration) {
       return;
     }
-    let text = `${document.updatedBy.name} updated "${document.titleWithDefault}"`;
+
+    // wait a few seconds to give the document summary chance to be generated
+    await sleep(5000);
+
+    const [latest, team] = await Promise.all([
+      Document.findByPk(event.documentId),
+      Team.findByPk(event.teamId),
+    ]);
+    if (!latest?.publishedAt || !team) {
+      return;
+    }
+
+    let text = `${latest.updatedBy.name} updated "${latest.displayTitle}"`;
 
     if (event.name === "documents.publish") {
-      text = `${document.createdBy.name} published "${document.titleWithDefault}"`;
+      text = `${latest.createdBy.name} published "${latest.displayTitle}"`;
     }
 
     await fetch(integration.settings.url, {
@@ -138,7 +172,7 @@ export default class SlackProcessor extends BaseProcessor {
       body: JSON.stringify({
         text,
         attachments: [
-          presentMessageAttachment(document, team, document.collection),
+          presentMessageAttachment(latest, team, latest.collection),
         ],
       }),
     });

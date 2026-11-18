@@ -273,17 +273,24 @@ class ApiClient {
           : `Bad gateway response from ${path} with empty body`
       );
 
+      // Cloudflare Zero Trust proxies on the customer's network add this header
+      // to their own error pages, so the failure is outside of our control.
+      if (response.headers.has("cf-team")) {
+        throw err;
+      }
+
       Logger.error(
         "BadGatewayError",
         err,
         {
+          path,
           url: urlToFetch,
           requestTime: Math.round(timeEnd - timeStart),
           responseText: text,
           responseHeaders: Object.fromEntries(response.headers.entries()),
         },
-        // Grouped by endpoint, as the stack trace is identical for every 502.
-        ["BadGatewayError", path]
+        // Grouped together, as the message varies by endpoint and response body.
+        ["BadGatewayError"]
       );
       throw err;
     }
@@ -364,7 +371,12 @@ class ApiClient {
       return new NotFoundError(message);
     }
 
-    if (status === 503) {
+    // A proxy on the client's network requires authentication.
+    if (status === 407) {
+      return new NetworkError(message);
+    }
+
+    if (status === 503 || status === 504) {
       return new ServiceUnavailableError(message);
     }
 
@@ -515,11 +527,24 @@ class ApiClient {
    * Dispatches the requests collected during a batch, splitting them into
    * serial `/batch` calls that respect the server's per-batch limit, and
    * settles each caller's promise with its corresponding sub-response — shaped
-   * like a standard API envelope so callers need no special handling.
+   * like a standard API envelope so callers need no special handling. A lone
+   * request is sent directly to its own endpoint.
    *
    * @param queue The requests collected during a batch.
    */
   private flushBatch = async (queue: BatchedRequest[]): Promise<void> => {
+    if (queue.length === 1) {
+      const [request] = queue;
+      try {
+        request.resolve(
+          await this.deduplicate(`/${request.method}`, "POST", request.body)
+        );
+      } catch (err) {
+        request.reject(err);
+      }
+      return;
+    }
+
     for (const group of chunk(queue, BatchMaxRequests)) {
       try {
         const res = await this.fetch<{ data: BatchSubResponse[] }>(

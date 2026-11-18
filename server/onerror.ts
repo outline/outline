@@ -1,17 +1,25 @@
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
-import formidable from "formidable";
+import { errors as formidableErrors } from "formidable";
 import type Koa from "koa";
 import { escape, isNil, snakeCase } from "es-toolkit/compat";
 import env from "@server/env";
 import {
   ClientClosedRequestError,
+  DatabaseReadOnlyError,
   InternalError,
+  InvalidRequestError,
   RequestTimeoutError,
+  ServiceUnavailableError,
 } from "@server/errors";
+import Metrics from "@server/logging/Metrics";
 import { requestErrorHandler } from "@server/logging/sentry";
-import { isQueryCanceledError } from "@server/storage/database";
+import {
+  isDatabaseReadOnlyError,
+  isDatabaseUnavailableError,
+  isQueryCanceledError,
+} from "@server/storage/database";
 import type { AppContext } from "@server/types";
 
 let errorHtmlCache: Buffer | undefined;
@@ -27,8 +35,8 @@ export default function onerror(app: Koa) {
     err = wrapInNativeError(err);
 
     // Client aborted errors are a 500 by default, but 499 is more appropriate
-    if (err instanceof formidable.errors.FormidableError) {
-      if (err.internalCode === 1002) {
+    if (err instanceof formidableErrors.default) {
+      if (err.code === formidableErrors.aborted) {
         err = ClientClosedRequestError();
       }
     } else if (
@@ -44,6 +52,14 @@ export default function onerror(app: Koa) {
       err = ClientClosedRequestError();
     } else if (isQueryCanceledError(err)) {
       err = RequestTimeoutError();
+    } else if (isDatabaseReadOnlyError(err)) {
+      Metrics.increment("database.read_only", { source: "http" });
+      err = DatabaseReadOnlyError();
+    } else if (isDatabaseUnavailableError(err)) {
+      Metrics.increment("database.unavailable", { source: "http" });
+      err = ServiceUnavailableError();
+    } else if (isDecompressionError(err)) {
+      err = InvalidRequestError("Request body could not be decompressed");
     }
 
     // Push only errors explicitly marked for Sentry reporting.
@@ -114,6 +130,20 @@ export default function onerror(app: Koa) {
   return app;
 }
 
+/**
+ * Checks if an error was raised by zlib for malformed or truncated input.
+ *
+ * @param err the error to check.
+ * @returns true if the compressed data is invalid.
+ */
+function isDecompressionError(err: Error & { code?: unknown }) {
+  return (
+    err.code === "Z_DATA_ERROR" ||
+    err.code === "Z_BUF_ERROR" ||
+    (typeof err.code === "string" && err.code.startsWith("ERR__ERROR_FORMAT_"))
+  );
+}
+
 // oxlint-disable-next-line @typescript-eslint/no-explicit-any
 function wrapInNativeError(err: any): Error {
   // When dealing with cross-globals a normal `instanceof` check doesn't work properly.
@@ -130,7 +160,6 @@ function wrapInNativeError(err: any): Error {
   if (typeof err === "object") {
     try {
       errMsg = JSON.stringify(err);
-      // oxlint-disable-next-line no-empty
     } catch (_err) {
       // Ignore
     }

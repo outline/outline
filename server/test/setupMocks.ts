@@ -51,7 +51,6 @@ vi.mock("dd-trace", async () => {
   return { default: mod.mockTracer, ...mod };
 });
 vi.mock("franc", () => import("../__mocks__/franc"));
-vi.mock("iso-639-3", () => import("../__mocks__/iso-639-3"));
 vi.mock(
   "request-filtering-agent",
   () => import("../__mocks__/request-filtering-agent")

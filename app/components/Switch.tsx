@@ -2,6 +2,7 @@ import * as RadixSwitch from "@radix-ui/react-switch";
 import { darken } from "polished";
 import * as React from "react";
 import styled from "styled-components";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { s } from "@shared/styles";
 import { LabelText } from "~/components/Input";
 import Text from "~/components/Text";
@@ -67,7 +68,7 @@ function Switch({
       className={label ? undefined : className}
       {...props}
     >
-      <StyledSwitchThumb width={width} height={height} />
+      <StyledSwitchThumb />
     </StyledSwitchRoot>
   );
 
@@ -128,15 +129,16 @@ const Label = styled.label<{
 
 const HOVER_EXTRA = 3;
 
-const StyledSwitchThumb = styled(RadixSwitch.Thumb)<{
-  width: number;
-  height: number;
-}>`
+/** Minimum switch size on mobile, so that small switches stay usable by touch. */
+const MOBILE_MIN_WIDTH = 32;
+const MOBILE_MIN_HEIGHT = 18;
+
+const StyledSwitchThumb = styled(RadixSwitch.Thumb)`
   display: block;
-  width: ${(props) => props.height - 8}px;
-  height: ${(props) => props.height - 8}px;
+  width: calc(var(--switch-height) - 8px);
+  height: calc(var(--switch-height) - 8px);
   background-color: white;
-  border-radius: ${(props) => (props.height - 8) / 2}px;
+  border-radius: calc((var(--switch-height) - 8px) / 2);
   transition:
     transform 0.2s,
     width 0.2s;
@@ -144,11 +146,11 @@ const StyledSwitchThumb = styled(RadixSwitch.Thumb)<{
   will-change: transform, width;
 
   &[data-state="checked"] {
-    transform: translateX(${(props) => props.width - props.height}px);
+    transform: translateX(calc(var(--switch-width) - var(--switch-height)));
   }
 
   [dir="rtl"] &[data-state="checked"] {
-    transform: translateX(${(props) => -(props.width - props.height)}px);
+    transform: translateX(calc(var(--switch-height) - var(--switch-width)));
   }
 `;
 
@@ -156,16 +158,24 @@ const StyledSwitchRoot = styled(RadixSwitch.Root)<{
   width: number;
   height: number;
 }>`
+  --switch-width: ${(props) => Math.max(props.width, MOBILE_MIN_WIDTH)}px;
+  --switch-height: ${(props) => Math.max(props.height, MOBILE_MIN_HEIGHT)}px;
+
   position: relative;
-  width: ${(props) => props.width}px;
-  height: ${(props) => props.height}px;
+  width: var(--switch-width);
+  height: var(--switch-height);
   background-color: ${(props) => props.theme.slate};
-  border-radius: ${(props) => props.height}px;
+  border-radius: var(--switch-height);
   border: none;
   cursor: var(--pointer);
   transition: background-color 0.2s;
   padding: 0 4px;
   flex-shrink: 0;
+
+  ${(props) => breakpoint("tablet")`
+    --switch-width: ${props.width}px;
+    --switch-height: ${props.height}px;
+  `}
 
   &:focus {
     box-shadow: 0 0 1px ${s("accent")};
@@ -190,12 +200,12 @@ const StyledSwitchRoot = styled(RadixSwitch.Root)<{
   }
 
   &:hover:not(:disabled) ${StyledSwitchThumb} {
-    width: ${(props) => props.height - 8 + HOVER_EXTRA}px;
+    width: calc(var(--switch-height) - 8px + ${HOVER_EXTRA}px);
   }
 
   &:hover:not(:disabled)[data-state="checked"] ${StyledSwitchThumb} {
     transform: translateX(
-      ${(props) => props.width - props.height - HOVER_EXTRA}px
+      calc(var(--switch-width) - var(--switch-height) - ${HOVER_EXTRA}px)
     );
   }
 
@@ -203,7 +213,7 @@ const StyledSwitchRoot = styled(RadixSwitch.Root)<{
   &:hover:not(:disabled)[data-state="checked"]
   ${StyledSwitchThumb} {
     transform: translateX(
-      ${(props) => -(props.width - props.height - HOVER_EXTRA)}px
+      calc(var(--switch-height) - var(--switch-width) + ${HOVER_EXTRA}px)
     );
   }
 `;

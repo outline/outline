@@ -80,7 +80,7 @@ export const restoreRevision = createInternalLinkAction({
     }
 
     return {
-      pathname: document.url,
+      pathname: document.path,
       state: { restore: true, revisionId },
     };
   },

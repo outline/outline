@@ -1,5 +1,6 @@
 import { chunk, compact } from "es-toolkit/compat";
 import * as React from "react";
+import type { ListImperativeAPI } from "react-window";
 import styled from "styled-components";
 import { IconType } from "@shared/types";
 import { IconLibrary } from "@shared/utils/IconLibrary";
@@ -50,6 +51,8 @@ type Props = {
   height: number;
   /** Data to be displayed in the grid */
   data: DataNode[];
+  /** Value of the currently selected icon or emoji */
+  selected?: string | null;
   /** Content to display when search results are empty */
   empty?: React.ReactNode;
   /** Callback when an icon is selected */
@@ -58,14 +61,15 @@ type Props = {
   onIconActive?: (icon: IconNode) => void;
   /** Callback when whether the grid has content below the fold changes */
   onOverflowChange?: (hasMoreBelow: boolean) => void;
-  /** Ref to the scrolling container */
-  ref?: React.Ref<HTMLDivElement>;
+  /** Ref to the virtualized list */
+  ref?: React.Ref<ListImperativeAPI>;
 };
 
 function GridTemplate({
   width,
   height,
   data,
+  selected,
   empty,
   onIconSelect,
   onIconActive,
@@ -77,6 +81,26 @@ function GridTemplate({
   const iconSize = isMobile ? ICON_SIZE_MOBILE : ICON_SIZE_DESKTOP;
   // 24px padding for the Grid Container
   const itemsPerRow = Math.max(1, Math.floor((width - 24) / buttonSize));
+
+  const [lastClicked, setLastClicked] = React.useState<{
+    category: DataNode["category"];
+    value: string;
+  }>();
+
+  // Highlight the selection in only one category: the one it was clicked in,
+  // otherwise the first category that contains it.
+  const containsSelected = (node: DataNode) =>
+    node.icons.some((icon) => valueOf(icon) === selected);
+  const selectedCategory = selected
+    ? (
+        data.find(
+          (node) =>
+            lastClicked?.value === selected &&
+            node.category === lastClicked.category &&
+            containsSelected(node)
+        ) ?? data.find(containsSelected)
+      )?.category
+    : undefined;
 
   const gridItems = compact(
     data.flatMap((node) => {
@@ -100,12 +124,19 @@ function GridTemplate({
 
       const items = node.icons.map((item) => {
         const handleActive = () => onIconActive?.(item);
+        const handleSelect = (id: string, value: string) => {
+          setLastClicked({ category: node.category, value });
+          onIconSelect({ id, value });
+        };
+        const isSelected =
+          node.category === selectedCategory && valueOf(item) === selected;
 
         if (item.type === IconType.SVG) {
           return (
             <IconButton
               key={item.name}
-              onClick={() => onIconSelect({ id: item.name, value: item.name })}
+              onClick={() => handleSelect(item.name, item.name)}
+              aria-current={isSelected ? "true" : undefined}
               onMouseEnter={handleActive}
               onFocus={handleActive}
               style={{ "--delay": `${item.delay}ms` } as React.CSSProperties}
@@ -124,7 +155,8 @@ function GridTemplate({
         return (
           <IconButton
             key={item.id}
-            onClick={() => onIconSelect({ id: item.id, value: item.value })}
+            onClick={() => handleSelect(item.id, item.value)}
+            aria-current={isSelected ? "true" : undefined}
             onMouseEnter={handleActive}
             onFocus={handleActive}
           >
@@ -160,6 +192,9 @@ function GridTemplate({
     />
   );
 }
+
+const valueOf = (icon: IconNode) =>
+  icon.type === IconType.SVG ? icon.name : icon.value;
 
 const CategoryName = styled(Text)`
   grid-column: 1 / -1;

@@ -1,3 +1,4 @@
+import { useKBar } from "kbar";
 import { NewDocumentIcon, ShapesIcon } from "outline-icons";
 import { useEffect, useMemo } from "react";
 import Icon from "@shared/components/Icon";
@@ -12,16 +13,22 @@ import { newDocumentPath } from "~/utils/routeHelpers";
 
 const useTemplatesAction = () => {
   const { templates } = useStores();
+  const { showing } = useKBar((state) => ({
+    showing: state.visualState !== "hidden",
+  }));
 
+  // Templates are only needed once the command bar is opened.
   useEffect(() => {
-    void templates.fetchAll();
-  }, [templates]);
+    if (showing) {
+      void templates.fetchAllIfNeeded();
+    }
+  }, [showing, templates]);
 
   const actions = useMemo(
     () =>
       templates.alphabetical.map((template) =>
         createInternalLinkAction({
-          name: template.titleWithDefault,
+          name: template.displayTitle,
           analyticsName: "New document",
           section: template.isWorkspaceTemplate
             ? TeamSection

@@ -1,7 +1,15 @@
 import { baseKeymap, chainCommands } from "prosemirror-commands";
 import { NodeSelection, TextSelection } from "prosemirror-state";
 import { createEditorState, codeBlock, doc, p } from "@shared/test/editor";
-import { enterInCode, indentInCode, outdentInCode } from "./codeFence";
+import {
+  arrowLeftInCode,
+  backspaceInCode,
+  deleteInCode,
+  enterInCode,
+  indentInCode,
+  outdentInCode,
+  splitCodeBlockOnTripleBackticks,
+} from "./codeFence";
 
 /**
  * Helper that runs a command against a code block document with the given
@@ -25,6 +33,29 @@ function runInCodeBlock(
   });
 
   return result.doc.firstChild?.textContent;
+}
+
+/**
+ * Helper that runs a command against a code block document with a cursor at
+ * the given position and returns the resulting cursor position.
+ */
+function selectionAfter(
+  code: string,
+  pos: number,
+  command: typeof outdentInCode
+) {
+  const testDoc = doc([codeBlock(code)]);
+  let state = createEditorState(testDoc);
+  state = state.apply(
+    state.tr.setSelection(TextSelection.create(state.doc, pos))
+  );
+
+  let result = state;
+  const handled = command(state, (tr) => {
+    result = state.apply(tr);
+  });
+
+  return { handled, from: result.selection.from };
 }
 
 /**
@@ -160,5 +191,133 @@ describe("enterInCode", () => {
     expect(state.doc.child(1).textContent).toBe("graph TD; A-->B");
     expect(state.doc.lastChild?.type.name).toBe("paragraph");
     expect(state.doc.childCount).toBe(3);
+  });
+});
+
+describe("backspaceInCode", () => {
+  it("deletes an empty last line", () => {
+    const text = runInCodeBlock("hello\n", 7, 7, backspaceInCode);
+    expect(text).toBe("hello");
+  });
+
+  it("deletes an empty line between lines", () => {
+    const text = runInCodeBlock("hello\n\nworld", 8, 8, backspaceInCode);
+    expect(text).toBe("hello\nworld");
+  });
+
+  it("joins a line with the line above", () => {
+    const text = runInCodeBlock("hello\nworld", 7, 7, backspaceInCode);
+    expect(text).toBe("helloworld");
+  });
+
+  it("does not handle a character that is not a line break", () => {
+    const testDoc = doc([codeBlock("hello")]);
+    let state = createEditorState(testDoc);
+    state = state.apply(
+      state.tr.setSelection(TextSelection.create(state.doc, 6))
+    );
+    expect(backspaceInCode(state)).toBe(false);
+  });
+});
+
+describe("deleteInCode", () => {
+  it("deletes an empty last line", () => {
+    const text = runInCodeBlock("hello\n", 6, 6, deleteInCode);
+    expect(text).toBe("hello");
+  });
+
+  it("joins a line with the line below", () => {
+    const text = runInCodeBlock("hello\nworld", 6, 6, deleteInCode);
+    expect(text).toBe("helloworld");
+  });
+
+  it("does not handle a character that is not a line break", () => {
+    const testDoc = doc([codeBlock("hello")]);
+    let state = createEditorState(testDoc);
+    state = state.apply(
+      state.tr.setSelection(TextSelection.create(state.doc, 1))
+    );
+    expect(deleteInCode(state)).toBe(false);
+  });
+});
+
+describe("arrowLeftInCode", () => {
+  it("moves to the end of the line above", () => {
+    expect(selectionAfter("hello\nworld", 7, arrowLeftInCode)).toEqual({
+      handled: true,
+      from: 6,
+    });
+  });
+
+  it("moves out of an empty line", () => {
+    expect(selectionAfter("hello\n\nworld", 8, arrowLeftInCode)).toEqual({
+      handled: true,
+      from: 7,
+    });
+  });
+
+  it("does not handle a character that is not a line break", () => {
+    expect(selectionAfter("hello\nworld", 8, arrowLeftInCode).handled).toBe(
+      false
+    );
+  });
+
+  it("does not handle the start of the block", () => {
+    expect(selectionAfter("hello", 1, arrowLeftInCode).handled).toBe(false);
+  });
+});
+
+describe("splitCodeBlockOnTripleBackticks", () => {
+  /**
+   * Runs the command with the cursor at the end of the given code and returns
+   * the text of each resulting block.
+   */
+  function splitAtEnd(code: string) {
+    const testDoc = doc([codeBlock(code, "javascript")]);
+    let state = createEditorState(testDoc);
+    state = state.apply(
+      state.tr.setSelection(TextSelection.create(state.doc, code.length + 1))
+    );
+
+    let result = state;
+    const handled = splitCodeBlockOnTripleBackticks(state, (tr) => {
+      result = state.apply(tr);
+    });
+    expect(splitCodeBlockOnTripleBackticks(state)).toBe(handled);
+
+    const blocks: { type: string; text: string; language: string }[] = [];
+    result.doc.forEach((node) => {
+      blocks.push({
+        type: node.type.name,
+        text: node.textContent,
+        language: node.attrs.language,
+      });
+    });
+
+    return { handled, blocks };
+  }
+
+  it("removes only the typed backticks when splitting", () => {
+    expect(splitAtEnd("hello``")).toEqual({
+      handled: true,
+      blocks: [
+        { type: "code_block", text: "hello", language: "javascript" },
+        { type: "code_block", text: "", language: "javascript" },
+      ],
+    });
+  });
+
+  it("keeps a single character before the backticks", () => {
+    const { handled, blocks } = splitAtEnd("a``");
+    expect(handled).toBe(true);
+    expect(blocks.map((block) => block.text)).toEqual(["a", ""]);
+  });
+
+  it("does not split when the backticks are at the start of the block", () => {
+    expect(splitAtEnd("``").handled).toBe(false);
+  });
+
+  it("does not split without two preceding backticks", () => {
+    expect(splitAtEnd("hello`").handled).toBe(false);
   });
 });

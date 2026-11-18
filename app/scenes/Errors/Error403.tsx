@@ -83,7 +83,7 @@ const Error403 = ({ documentId }: Props) => {
         ) : (
           <Empty size="large">
             {t(
-              "It doesn't look like you have permission to access this document. You can request access."
+              "It doesn’t look like you have permission to access this document. You can request access."
             )}
           </Empty>
         )}
