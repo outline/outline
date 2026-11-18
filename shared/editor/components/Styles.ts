@@ -2778,14 +2778,15 @@ table .${EditorStyleHelper.table} > .${EditorStyleHelper.tableScrollable} > tabl
   }
 }
 
-${
-  props.readOnly
-    ? `
 th:hover > .${EditorStyleHelper.tableFilterButton},
 .${EditorStyleHelper.tableFilterButton}:focus-visible {
   display: block;
 }
 
+// Without hover, readers have no column menu to filter from.
+${
+  props.readOnly
+    ? `
 @media (hover: none) {
   .${EditorStyleHelper.tableFilterButton} {
     display: block;
