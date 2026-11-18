@@ -2768,7 +2768,8 @@ table .${EditorStyleHelper.table} > .${EditorStyleHelper.tableScrollable} > tabl
   }
 
   &:hover,
-  &:focus-visible {
+  &:focus-visible,
+  &.expanded {
     background: ${props.theme.backgroundSecondary};
   }
 
