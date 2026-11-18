@@ -37,7 +37,7 @@ function SettingsSidebar() {
     // Locked upsell items sort to the end of their group.
     sortBy(
       configs.filter((item) =>
-        item.group === t("Integrations") && item.pluginId
+        item.group === t("Integrations") && item.pluginId && !item.upsell
           ? integrations.findByService(item.pluginId)
           : true
       ),

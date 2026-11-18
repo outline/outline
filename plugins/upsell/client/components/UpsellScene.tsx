@@ -1,6 +1,7 @@
 import { StarredIcon } from "outline-icons";
 import type * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { Plan } from "@shared/types";
 import type { PlanFeature } from "@shared/types";
@@ -41,14 +42,8 @@ export function UpsellScene({ title, icon, description, feature }: Props) {
   const planName = usePlanName(plan);
 
   return (
-    <Scene
-      title={title}
-      textTitle={title}
-      icon={icon}
-    >
-      <Title>
-        {title}
-      </Title>
+    <Scene title={title} textTitle={title} icon={icon}>
+      <Title>{title}</Title>
       <Text as="p" type="secondary">
         {description}
       </Text>
@@ -67,9 +62,7 @@ export function UpsellScene({ title, icon, description, feature }: Props) {
           </Text>
         </CalloutText>
         {isCloudHosted ? (
-          <Button
-            to="/settings/billing"
-          >
+          <Button as={Link} to="/settings/billing">
             {t("View plans")}
           </Button>
         ) : (

@@ -265,6 +265,11 @@ const useSettingsConfig = () => {
     // Plugins
     PluginManager.getHooks(Hook.Settings).forEach((plugin) => {
       const group = plugin.value.group ?? "Integrations";
+
+      // Upsell pages are hidden once the workspace has the feature.
+      const isEntitled = plugin.value.upsell
+        ? team.hasEntitlement(plugin.value.upsell)
+        : false;
       const insertIndex = plugin.value.after
         ? items.findIndex((i) => i.name === t(plugin.value.after!)) + 1
         : items.findIndex((i) => i.group === t(group));
@@ -279,9 +284,11 @@ const useSettingsConfig = () => {
         description: plugin.value.description,
         component: plugin.value.component.Component,
         preload: plugin.value.component.preload,
-        enabled: plugin.value.enabled
-          ? plugin.value.enabled(team, user)
-          : can.update,
+        enabled:
+          !isEntitled &&
+          (plugin.value.enabled
+            ? plugin.value.enabled(team, user)
+            : can.update),
         icon: plugin.value.icon,
         upsell: plugin.value.upsell,
       } as ConfigItem);
