@@ -129,7 +129,22 @@ export const TableFilterMenu = observer(function TableFilterMenu() {
     [view]
   );
 
-  const anchorRef = React.useMemo(() => ({ current: cell }), [cell]);
+  // The menu hangs from the filter button, which ProseMirror can redraw while
+  // the menu is open, so the button is found again on each measure.
+  const anchorRef = React.useMemo(
+    () => ({
+      current: cell
+        ? {
+            getBoundingClientRect: () =>
+              (
+                cell.querySelector(`.${EditorStyleHelper.tableFilterButton}`) ??
+                cell
+              ).getBoundingClientRect(),
+          }
+        : null,
+    }),
+    [cell]
+  );
 
   // The menu sits below the header cell, so the column name is only announced.
   const columnName = cell?.textContent?.trim();
@@ -145,7 +160,7 @@ export const TableFilterMenu = observer(function TableFilterMenu() {
           <PopoverContent
             width={300}
             style={MenuStyle}
-            align="start"
+            align="end"
             aria-label={
               columnName
                 ? t("Filter {{ columnName }}", { columnName })
