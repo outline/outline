@@ -1,9 +1,10 @@
 import { CollectionIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
+import { PlanFeature } from "@shared/types";
 import { UpsellScene } from "./components/UpsellScene";
 
 /**
- * Upsell placeholder for the Enterprise-only collection management page, which
+ * Upsell placeholder for the paid collection management page, which
  * lets workspace admins administer the permissions and settings of every
  * collection, including private ones.
  *
@@ -14,29 +15,12 @@ export default function Collections() {
 
   return (
     <UpsellScene
-      title={t("Collections")}
+      feature={PlanFeature.ContentManagement}
+      title={t("Content")}
       icon={<CollectionIcon />}
       description={t(
         "Manage the permissions and settings of all collections in the knowledge base. As a workspace admin you can also administer private collections."
       )}
-      features={[
-        {
-          name: "collections-administer-private",
-          label: t("Administer private collections"),
-          description: t(
-            "View and manage collections that have not been explicitly shared with you."
-          ),
-          control: "none",
-        },
-        {
-          name: "collections-bulk-permissions",
-          label: t("Bulk permissions"),
-          description: t(
-            "Review and update sharing and access for every collection from one place."
-          ),
-          control: "none",
-        },
-      ]}
     />
   );
 }

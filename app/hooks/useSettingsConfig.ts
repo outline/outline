@@ -20,6 +20,7 @@ import {
 } from "outline-icons";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import type { PlanFeature } from "@shared/types";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import { createLazyComponent as lazy } from "~/components/LazyLoad";
 import { Hook, PluginManager } from "~/utils/PluginManager";
@@ -64,6 +65,8 @@ export type ConfigItem = {
   enabled: boolean;
   group: string;
   pluginId?: string;
+  /** The plan feature this page advertises, when the page is an upsell. */
+  upsell?: PlanFeature;
 };
 
 const useSettingsConfig = () => {
@@ -280,6 +283,7 @@ const useSettingsConfig = () => {
           ? plugin.value.enabled(team, user)
           : can.update,
         icon: plugin.value.icon,
+        upsell: plugin.value.upsell,
       } as ConfigItem);
     });
 

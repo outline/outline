@@ -22,10 +22,8 @@ import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import SettingRow from "./components/SettingRow";
 import { SettingsSection } from "./components/SettingsSection";
-import { UpsellSettingRow } from "./components/UpsellSettingRow";
 import { setPostLoginPath } from "~/hooks/useLastVisitedPath";
 import { getRedirectUrl, toRelative } from "~/utils/urls";
-import isCloudHosted from "~/utils/isCloudHosted";
 import { settingsPath } from "~/utils/routeHelpers";
 import DomainManagement from "./components/DomainManagement";
 import Button from "~/components/Button";
@@ -373,37 +371,10 @@ function Authentication() {
             }}
           />
         </SettingRow>
-        {!isCloudHosted && (
-          <>
-            <UpsellSettingRow
-              name="twoFactorRequired"
-              label={t("Two-factor authentication")}
-              description={t(
-                "Require members to configure two-factor authentication to access the workspace."
-              )}
-            />
-            <UpsellSettingRow
-              name="sessionTimeout"
-              label={t("Automatic sign-out")}
-              description={t(
-                "Automatically sign out members after a configurable period of inactivity."
-              )}
-            />
-          </>
-        )}
       </SettingsSection>
 
       <SettingsSection title={t("Restrictions")}>
         <DomainManagement onSuccess={showSuccessMessage} />
-        {!isCloudHosted && (
-          <UpsellSettingRow
-            name="ipAllowlist"
-            label={t("IP allowlist")}
-            description={t(
-              "Restrict workspace access to an approved list of IP addresses or ranges."
-            )}
-          />
-        )}
       </SettingsSection>
     </Scene>
   );

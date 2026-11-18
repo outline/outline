@@ -1,84 +1,78 @@
 import { StarredIcon } from "outline-icons";
-import * as React from "react";
+import type * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { Plan } from "@shared/types";
+import type { PlanFeature } from "@shared/types";
 import { s } from "@shared/styles";
+import { breakpoint } from "@shared/styles/breakpoint";
+import { PlanHelper } from "@shared/utils/PlanHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
-import env from "~/env";
-import { EnterpriseBadge } from "~/scenes/Settings/components/EnterpriseBadge";
-import { UpsellSettingRow } from "~/scenes/Settings/components/UpsellSettingRow";
+import isCloudHosted from "~/utils/isCloudHosted";
+import { usePlanName } from "~/hooks/usePlanName";
 
-/** A single Enterprise-only setting to preview within an upsell page. */
-export type UpsellFeature = {
-  /** A unique name used to associate the row's label. */
-  name: string;
-  /** The label of the setting. */
-  label: React.ReactNode;
-  /** An optional description of what the setting does. */
-  description?: React.ReactNode;
-  /** The kind of locked control to preview (default: "switch"). */
-  control?: "switch" | "none";
-};
-
-type Props = {
+interface Props {
   /** The title of the settings page. */
   title: string;
   /** The icon displayed alongside the title. */
   icon: React.ReactNode;
   /** A short description of the feature being advertised. */
   description: React.ReactNode;
-  /** A preview of the Enterprise-only settings unlocked by this feature. */
-  features?: UpsellFeature[];
-};
+  /** The plan feature that unlocks this page. */
+  feature: PlanFeature;
+}
 
 /**
- * A placeholder settings page that advertises an Enterprise-only feature. It
- * renders the same chrome as a real settings page, a short pitch, a call to
- * action to upgrade, and an optional preview of the locked settings.
+ * A placeholder settings page that advertises a feature from a higher plan. It
+ * renders the same chrome as a real settings page, a short pitch, and a call
+ * to action to upgrade.
  *
- * @param props - The component props.
- * @returns The rendered upsell scene.
+ * @param props - the component props.
+ * @returns the rendered upsell scene.
  */
-export function UpsellScene({ title, icon, description, features }: Props) {
+export function UpsellScene({ title, icon, description, feature }: Props) {
   const { t } = useTranslation();
-  const appName = env.APP_NAME;
+  const plan = PlanHelper.getMinimumPlan(feature) ?? Plan.Enterprise;
+  const planName = usePlanName(plan);
 
   return (
     <Scene
-      title={
-        <>
-          {title} <EnterpriseBadge />
-        </>
-      }
+      title={title}
       textTitle={title}
       icon={icon}
     >
-      <Heading>
-        {title} <EnterpriseBadge />
-      </Heading>
+      <Title>
+        {title}
+      </Title>
       <Text as="p" type="secondary">
         {description}
       </Text>
 
-      <Callout column gap={12}>
-        <Flex align="center" gap={8}>
-          <StarredIcon />
+      <Callout align="center" gap={12}>
+        <StarredIcon />
+        <CalloutText column gap={4} auto>
           <Text as="span" weight="bold">
-            {t("Available in the Enterprise edition")}
+            {t("Available on {{ planName }}", { planName })}
           </Text>
-        </Flex>
-        <Text as="p" type="secondary">
-          <Trans>
-            This feature is part of the Enterprise edition of {{ appName }}.
-            Upgrade your workspace to unlock it for your team.
-          </Trans>
-        </Text>
-        <Flex gap={8}>
+          <Text as="span" type="secondary">
+            <Trans>
+              This feature is included in {{ planName }} and above. Upgrade your
+              workspace to unlock it for your team.
+            </Trans>
+          </Text>
+        </CalloutText>
+        {isCloudHosted ? (
+          <Button
+            to="/settings/billing"
+          >
+            {t("View plans")}
+          </Button>
+        ) : (
           <Button
             as="a"
             href={UrlHelper.pricing}
@@ -87,40 +81,45 @@ export function UpsellScene({ title, icon, description, features }: Props) {
           >
             {t("View plans")}
           </Button>
-          <Button
-            as="a"
-            href={UrlHelper.contact}
-            target="_blank"
-            rel="noopener noreferrer"
-            neutral
-          >
-            {t("Contact sales")}
-          </Button>
-        </Flex>
+        )}
       </Callout>
-
-      {features && features.length > 0 && (
-        <>
-          {features.map((feature, index) => (
-            <UpsellSettingRow
-              key={feature.name}
-              name={feature.name}
-              label={feature.label}
-              description={feature.description}
-              control={feature.control}
-              border={index !== features.length - 1}
-            />
-          ))}
-        </>
-      )}
     </Scene>
   );
 }
 
+const Title = styled(Heading)`
+  gap: 12px;
+`;
+
 const Callout = styled(Flex)`
-  margin: 1em 0 1.5em;
-  padding: 16px;
+  margin: 24px 0 8px;
+  padding: 20px 24px 20px 20px;
   border-radius: 8px;
   border: 1px solid ${s("divider")};
   background: ${s("backgroundSecondary")};
+
+  > svg {
+    flex-shrink: 0;
+    align-self: flex-start;
+    color: ${s("accent")};
+  }
+
+  > a {
+    flex-shrink: 0;
+  }
+
+  /* On small screens the button moves below the text, aligned with it. */
+  ${breakpoint("mobile", "tablet")`
+    flex-wrap: wrap;
+
+    > a {
+      margin-left: 36px;
+    }
+  `};
+`;
+
+const CalloutText = styled(Flex)`
+  ${breakpoint("mobile", "tablet")`
+    flex-basis: calc(100% - 36px);
+  `};
 `;

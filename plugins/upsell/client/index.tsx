@@ -6,49 +6,51 @@ import {
 } from "outline-icons";
 import { createLazyComponent } from "~/components/LazyLoad";
 import { Hook, PluginManager } from "~/utils/PluginManager";
+import { PlanFeature } from "@shared/types";
 import config from "../plugin.json";
 
 PluginManager.add([
   {
     ...config,
     id: "upsell-audit-log",
-    name: "Audit Log",
+    name: "Audit log",
     type: Hook.Settings,
     value: {
       group: "Workspace",
       after: "Security",
       icon: HistoryIcon,
-      description:
-        "Track security and activity events across your workspace. Available in the Enterprise edition.",
+      description: "Track security and activity events across your workspace.",
       component: createLazyComponent(() => import("./AuditLog")),
+      upsell: PlanFeature.AuditLog,
     },
   },
   {
     ...config,
     id: "upsell-collections",
-    name: "Collections",
+    name: "Content",
     type: Hook.Settings,
     value: {
       group: "Workspace",
       after: "Groups",
       icon: CollectionIcon,
       description:
-        "Manage permissions and settings for every collection, including private ones. Available in the Enterprise edition.",
+        "Manage permissions and settings for every collection, including private ones.",
       component: createLazyComponent(() => import("./Collections")),
+      upsell: PlanFeature.ContentManagement,
     },
   },
   {
     ...config,
     id: "upsell-data-attributes",
-    name: "Data Attributes",
+    name: "Data attributes",
     type: Hook.Settings,
     value: {
       group: "Workspace",
       after: "Templates",
       icon: BuildingBlocksIcon,
-      description:
-        "Define custom properties and metadata for documents. Available in the Enterprise edition.",
+      description: "Define custom properties and metadata for documents.",
       component: createLazyComponent(() => import("./DataAttributes")),
+      upsell: PlanFeature.DataAttributes,
     },
   },
   {
@@ -60,8 +62,9 @@ PluginManager.add([
       group: "Integrations",
       icon: SearchIcon,
       description:
-        "Index and search your workspace content inside Glean enterprise search. Available in the Enterprise edition.",
+        "Index and search your workspace content inside Glean enterprise search.",
       component: createLazyComponent(() => import("./Glean")),
+      upsell: PlanFeature.PremiumIntegrations,
     },
   },
 ]);

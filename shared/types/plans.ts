@@ -12,6 +12,8 @@ export enum Plan {
 export enum PlanFeature {
   /** Access to the workspace audit log. */
   AuditLog = "auditLog",
+  /** Access to workspace document and search insights. */
+  Insights = "insights",
   /** Advanced security controls. */
   AdvancedSecurity = "advancedSecurity",
   /** Inviting guest users. */
@@ -30,4 +32,6 @@ export enum PlanFeature {
   CustomDomain = "customDomain",
   /** SAML authentication provider */
   SAML = "saml",
+  /** Structured data attributes on documents. */
+  DataAttributes = "dataAttributes",
 }

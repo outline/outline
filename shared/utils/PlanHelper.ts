@@ -22,16 +22,18 @@ export class PlanHelper {
   /** The features that are included in each plan. */
   public static readonly features: Record<Plan, PlanFeature[]> = {
     [Plan.Community]: [],
-    [Plan.Standard]: [
-      PlanFeature.ContentManagement,
-      PlanFeature.Guests,
-      PlanFeature.AIAnswers,
-    ],
+    [Plan.Standard]: [PlanFeature.Guests],
     [Plan.Business]: Object.values(PlanFeature),
     [Plan.Enterprise]: Object.values(PlanFeature),
-    [Plan.Legacy]: Object.values(PlanFeature).filter(
-      (feature) => feature !== PlanFeature.GroupSync
-    ),
+    [Plan.Legacy]: [
+      PlanFeature.AuditLog,
+      PlanFeature.AdvancedSecurity,
+      PlanFeature.Guests,
+      PlanFeature.ApiKeyManagement,
+      PlanFeature.ContentManagement,
+      PlanFeature.AIAnswers,
+      PlanFeature.CustomDomain,
+    ],
   };
 
   /**
