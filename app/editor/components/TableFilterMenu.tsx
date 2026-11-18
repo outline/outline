@@ -169,7 +169,7 @@ export const TableFilterMenu = observer(function TableFilterMenu() {
             onInteractOutside={handleInteractOutside}
             onCloseAutoFocus={handleCloseAutoFocus}
           >
-            <TableFilterForm target={open} />
+            <TableFilterForm key={`${open.pos}:${open.column}`} target={open} />
           </PopoverContent>
         </Popover>
       )}
@@ -193,6 +193,7 @@ const TableFilterForm = observer(function TableFilterForm({
     null
   );
   const focusTextOnClose = React.useRef(false);
+  const discardText = React.useRef(false);
 
   // Narrow reads, so that the menu only renders when this table changes.
   const table = useComputed(() => {
@@ -271,6 +272,9 @@ const TableFilterForm = observer(function TableFilterForm({
     const isSameKind =
       isListOperator(operator) === isListOperator(filter.operator) &&
       isTextOperator(operator) === isTextOperator(filter.operator);
+    // Leaving a text condition drops text that is not yet applied, and a new
+    // text field starts without it.
+    discardText.current = !isSameKind && isTextOperator(filter.operator);
     update({
       ...filter,
       operator,
@@ -306,6 +310,7 @@ const TableFilterForm = observer(function TableFilterForm({
   };
 
   const handleClear = () => {
+    discardText.current = true;
     update(undefined);
   };
 
@@ -345,6 +350,7 @@ const TableFilterForm = observer(function TableFilterForm({
           ref={textInputRef}
           value={filter.values[0] ?? ""}
           onChange={handleTextChange}
+          discard={discardText}
         />
       )}
       {hasValues &&
@@ -416,15 +422,22 @@ const TableFilterForm = observer(function TableFilterForm({
 type FilterTextInputProps = {
   /** The text of the filter. */
   value: string;
-  /** Called with the text once the reader stops typing. */
+  /** Called with the text once the reader stops typing, or the field closes. */
   onChange: (text: string) => void;
+  /** Set to true to drop text that is not yet applied when the field closes. */
+  discard: React.RefObject<boolean>;
   ref?: React.Ref<HTMLInputElement | HTMLTextAreaElement>;
 };
 
 /** The time to wait after the last key press before the table is filtered. */
 const TextFilterWait = 200;
 
-function FilterTextInput({ value, onChange, ref }: FilterTextInputProps) {
+function FilterTextInput({
+  value,
+  onChange,
+  discard,
+  ref,
+}: FilterTextInputProps) {
   const { t } = useTranslation();
   const [text, setText] = React.useState(value);
   const debouncedText = useDebouncedValue(text, TextFilterWait);
@@ -434,9 +447,19 @@ function FilterTextInput({ value, onChange, ref }: FilterTextInputProps) {
     }
   });
 
+  // Closing the menu removes the field before the wait ends, so the last text
+  // is applied then, unless it was cleared.
+  const handleClose = React.useEffectEvent(() => {
+    if (!discard.current && text !== value) {
+      onChange(text);
+    }
+  });
+
   React.useEffect(() => {
     handleDebouncedChange(debouncedText);
   }, [debouncedText]);
+
+  React.useEffect(() => () => handleClose(), []);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setText(event.target.value);

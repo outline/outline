@@ -529,11 +529,11 @@ export default class TableHeader extends Node {
                 const colIndex = Number(
                   targetGripColumn.getAttribute("data-index")
                 );
-                focusEditor(view);
                 selectColumn(colIndex, event.metaKey || event.shiftKey)(
                   view.state,
                   view.dispatch
                 );
+                focusEditor(view);
 
                 // Setup drag tracking for potential drag operation
                 setupColumnDragTracking(view, targetGripColumn, colIndex);

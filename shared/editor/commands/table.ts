@@ -27,6 +27,7 @@ import { parseDate } from "../../utils/date";
 import { isIPv4Address, parseIPv4 } from "../../utils/ip";
 import { chainTransactions } from "../lib/chainTransactions";
 import {
+  getFilteredTableRows,
   openTableFilterMenu,
   remapTableColumnFilters,
 } from "../plugins/TableFilterPlugin";
@@ -614,8 +615,12 @@ export function deleteRows(): Command {
     }
 
     const rect = selectedRect(state);
-    const rows = getAllSelectedRows(state);
-    if (rows.length >= rect.map.height) {
+
+    // A selection across rows that a filter hides does not delete them, as the
+    // reader cannot see them.
+    const filtered = getFilteredTableRows(state, rect.tableStart - 1);
+    const rows = getAllSelectedRows(state).filter((row) => !filtered.has(row));
+    if (!rows.length || rows.length >= rect.map.height) {
       return false;
     }
 

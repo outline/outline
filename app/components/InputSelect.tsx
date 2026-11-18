@@ -234,6 +234,7 @@ function MobileSelect(props: MobileSelectProps) {
     optionsHaveIcon,
     displayValue: _displayValue,
     resolvedDisplayValue,
+    onCloseAutoFocus,
     ...triggerProps
   } = props;
 
@@ -328,6 +329,7 @@ function MobileSelect(props: MobileSelectProps) {
           aria-label={label}
           onAnimationStart={disablePointerEvents}
           onAnimationEnd={enablePointerEvents}
+          onCloseAutoFocus={onCloseAutoFocus}
         >
           <DrawerTitle hidden={!label}>{label}</DrawerTitle>
           <StyledScrollable hiddenScrollbars>

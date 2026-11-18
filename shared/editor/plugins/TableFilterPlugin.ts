@@ -8,14 +8,15 @@ import { isRemoteTransaction } from "../lib/multiplayer";
 import { cellWidget } from "../lib/table";
 import {
   getHiddenTableRows,
+  getTableHeaders,
   isEqualTableFilters,
   isTableFilterActive,
   isTableFilterable,
+  mapTableColumnsByHeader,
   parseTableFilters,
   remapTableFilters,
 } from "../lib/tableFilter";
 import { findChildren } from "../queries/findChildren";
-import { findParentNodeClosestToPos } from "../queries/findParentNode";
 import { isInlineTransaction } from "../queries/isInlineTransaction";
 import { hasTableRole } from "../queries/table";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
@@ -68,8 +69,8 @@ type TableFilterAction =
 
 /** The inputs and outputs of a build of table decorations. */
 interface BuildContext {
-  /** The position of the row that holds the selection. */
-  selectionRow: number | null;
+  /** The positions of the rows that hold the selection. */
+  selectionRows: ReadonlySet<number>;
   /** The filters of the current reader. */
   local: ReadonlyMap<number, TableFilter[]>;
   /** The column whose filter menu is open. */
@@ -153,6 +154,38 @@ export function closeTableFilterMenu(tr: Transaction): Transaction {
 }
 
 /**
+ * Get the rows of a table that filters hide from the current reader.
+ *
+ * @param state the editor state.
+ * @param pos the position of the table.
+ * @returns the indexes of the hidden rows.
+ */
+export function getFilteredTableRows(
+  state: EditorState,
+  pos: number
+): Set<number> {
+  const rows = new Set<number>();
+  const table = state.doc.nodeAt(pos);
+  const decorations = tableFilterPluginKey.getState(state)?.decorations;
+  if (!table || !decorations) {
+    return rows;
+  }
+
+  const filtered = decorations.find(
+    pos + 1,
+    pos + table.nodeSize - 1,
+    (spec) => !!spec.filtered
+  );
+  table.forEach((_row, offset, index) => {
+    const rowPos = pos + 1 + offset;
+    if (filtered.some((decoration) => decoration.from === rowPos)) {
+      rows.add(index);
+    }
+  });
+  return rows;
+}
+
+/**
  * A plugin that hides the rows of tables that do not meet their filters. The
  * filters saved on a table apply for everyone, and each reader can change them
  * for themselves without changing the document.
@@ -164,7 +197,7 @@ export class TableFilterPlugin extends Plugin<TableFilterPluginState> {
       state: {
         init: (_, state) => {
           const context: BuildContext = {
-            selectionRow: getSelectionRow(state),
+            selectionRows: getSelectionRows(state),
             local: new Map(),
             open: null,
             decorations: [],
@@ -231,24 +264,48 @@ function apply(
     const isRemote = isRemoteTransaction(tr, state);
     const mapPos = createPositionMapper(tr, isRemote);
 
-    // Undo and remote edits can change the columns without a remap, so the
-    // filters of the reader no longer match their columns.
-    local = mapKeys(local, mapPos, (pos, next) => {
+    const isStructural = isRemote || !isInlineTransaction(tr, hasTableRole);
+
+    // Undo and remote edits can move columns without a remap, so the columns
+    // of the filters of the reader are found again by their header.
+    const mapColumns = (pos: number, next: number) => {
       const before = tr.before.nodeAt(pos);
       const after = tr.doc.nodeAt(next);
-      return (
-        action?.type === "remap" ||
+      return action?.type === "remap" ||
+        !isStructural ||
         !before ||
         !after ||
-        TableMap.get(before).width === TableMap.get(after).width
-      );
-    });
+        before === after
+        ? undefined
+        : mapTableColumnsByHeader(before, after);
+    };
 
-    const openPos = open ? mapPos(open.pos) : undefined;
-    open = open && openPos !== undefined ? { ...open, pos: openPos } : null;
+    if (local.size) {
+      const next = new Map<number, TableFilter[]>();
+      local.forEach((filters, pos) => {
+        const mapped = mapPos(pos);
+        if (mapped === undefined) {
+          return;
+        }
+        const mapColumn = mapColumns(pos, mapped);
+        next.set(
+          mapped,
+          mapColumn ? remapTableFilters(filters, mapColumn) : filters
+        );
+      });
+      local = next;
+    }
+
+    if (open) {
+      const pos = mapPos(open.pos);
+      const mapColumn =
+        pos === undefined ? undefined : mapColumns(open.pos, pos);
+      const column = mapColumn ? mapColumn(open.column) : open.column;
+      open = pos !== undefined && column !== undefined ? { pos, column } : null;
+    }
     changed = changed === null ? null : (mapPos(changed) ?? null);
 
-    if (isRemote || !isInlineTransaction(tr, hasTableRole)) {
+    if (isStructural) {
       rebuildAll = true;
     } else {
       decorations = decorations.map(tr.mapping, tr.doc);
@@ -310,20 +367,22 @@ function apply(
     }
   }
 
-  // The row that holds the selection is never hidden, so that a row does not
-  // disappear while it is edited.
+  // The rows that hold the selection are never hidden, so that a row does
+  // not disappear while it is edited.
   if (!rebuildAll && summaries.size && (tr.selectionSet || tr.docChanged)) {
-    const oldRow = getSelectionRow(oldState);
-    const newRow = getSelectionRow(state);
-    const mappedOldRow = oldRow === null ? null : tr.mapping.map(oldRow);
+    const oldRows = [...getSelectionRows(oldState)].map((row) =>
+      tr.mapping.map(row)
+    );
+    const newRows = getSelectionRows(state);
+    const changedRows = [
+      ...oldRows.filter((row) => !newRows.has(row)),
+      ...[...newRows].filter((row) => !oldRows.includes(row)),
+    ];
 
-    if (mappedOldRow !== newRow) {
-      for (const row of [mappedOldRow, newRow]) {
-        const pos =
-          row === null ? undefined : findTable(state.doc.resolve(row))?.pos;
-        if (pos !== undefined && summaries.has(pos)) {
-          stale.add(pos);
-        }
+    for (const row of changedRows) {
+      const pos = findTable(state.doc.resolve(row))?.pos;
+      if (pos !== undefined && summaries.has(pos)) {
+        stale.add(pos);
       }
     }
   }
@@ -333,7 +392,7 @@ function apply(
   }
 
   const context: BuildContext = {
-    selectionRow: getSelectionRow(state),
+    selectionRows: getSelectionRows(state),
     local,
     open,
     decorations: [],
@@ -395,7 +454,7 @@ function buildTable(node: Node, pos: number, context: BuildContext) {
     return;
   }
 
-  const { selectionRow, local, open, decorations, summaries } = context;
+  const { selectionRows, local, open, decorations, summaries } = context;
   const map = TableMap.get(node);
   const tableStart = pos + 1;
   const saved = parseTableFilters(node.attrs.filters);
@@ -434,7 +493,7 @@ function buildTable(node: Node, pos: number, context: BuildContext) {
     if (index === 0) {
       return;
     }
-    if (hidden.has(index) && rowPos !== selectionRow) {
+    if (hidden.has(index) && !selectionRows.has(rowPos)) {
       decorations.push(
         Decoration.node(
           rowPos,
@@ -600,33 +659,41 @@ function buildButton(className: string, onClick: () => void) {
   return button;
 }
 
-function getSelectionRow(state: EditorState): number | null {
-  return (
-    findParentNodeClosestToPos(
-      state.selection.$head,
-      (node) => node.type.spec.tableRole === "row"
-    )?.pos ?? null
-  );
+function getSelectionRows(state: EditorState): Set<number> {
+  const rows = new Set<number>();
+  const { $head } = state.selection;
+  for (let depth = $head.depth; depth > 0; depth--) {
+    if ($head.node(depth).type.spec.tableRole === "row") {
+      rows.add($head.before(depth));
+    }
+  }
+  return rows;
 }
 
 /**
  * Create a function that maps the position of a table through a transaction.
  * Remote transactions replace the whole document, so a table is found by its
- * order in the document instead.
+ * headers and its order among the tables with the same headers instead.
  */
 function createPositionMapper(
   tr: Transaction,
   isRemote: boolean
 ): (pos: number) => number | undefined {
   if (isRemote) {
-    const isTable = (node: Node) => node.type.spec.tableRole === "table";
-    let before: number[] | undefined;
-    let after: number[] | undefined;
+    let before: TableIdentity[] | undefined;
+    let after: TableIdentity[] | undefined;
     return (pos) => {
-      before ??= findChildren(tr.before, isTable).map((child) => child.pos);
-      after ??= findChildren(tr.doc, isTable).map((child) => child.pos);
-      const index = before.indexOf(pos);
-      return index === -1 ? undefined : after[index];
+      before ??= getTableIdentities(tr.before);
+      after ??= getTableIdentities(tr.doc);
+      const table = before.find((identity) => identity.pos === pos);
+      if (!table) {
+        return undefined;
+      }
+
+      const index = before
+        .filter((identity) => identity.key === table.key)
+        .indexOf(table);
+      return after.filter((identity) => identity.key === table.key)[index]?.pos;
     };
   }
 
@@ -638,10 +705,27 @@ function createPositionMapper(
   };
 }
 
+interface TableIdentity {
+  /** The position of the table. */
+  pos: number;
+  /** The headers of the table. */
+  key: string;
+}
+
+function getTableIdentities(doc: Node): TableIdentity[] {
+  return findChildren(
+    doc,
+    (node) => node.type.spec.tableRole === "table",
+    true
+  ).map(({ node, pos }) => ({
+    pos,
+    key: JSON.stringify(getTableHeaders(node)),
+  }));
+}
+
 function mapKeys<T>(
   map: ReadonlyMap<number, T>,
-  mapPos: (pos: number) => number | undefined,
-  keep: (pos: number, next: number) => boolean = () => true
+  mapPos: (pos: number) => number | undefined
 ): ReadonlyMap<number, T> {
   if (!map.size) {
     return map;
@@ -650,7 +734,7 @@ function mapKeys<T>(
   const next = new Map<number, T>();
   map.forEach((value, pos) => {
     const mapped = mapPos(pos);
-    if (mapped !== undefined && keep(pos, mapped)) {
+    if (mapped !== undefined) {
       next.set(mapped, value);
     }
   });

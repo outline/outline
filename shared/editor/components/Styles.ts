@@ -2737,8 +2737,12 @@ table .${EditorStyleHelper.table} > .${EditorStyleHelper.tableScrollable} > tabl
   display: none;
 }
 
+// Buttons without a filter are transparent rather than hidden, so that they
+// stay in the tab order and are announced by screen readers.
 .${EditorStyleHelper.tableFilterButton} {
-  display: none;
+  display: block;
+  opacity: 0;
+  pointer-events: none;
   position: absolute;
   top: 50%;
   inset-inline-end: 4px;
@@ -2757,7 +2761,7 @@ table .${EditorStyleHelper.table} > .${EditorStyleHelper.tableScrollable} > tabl
     content: "";
     position: absolute;
     inset: 2px;
-    background-color: ${props.theme.text};
+    background-color: currentColor;
     mask: url("data:image/svg+xml;base64,${btoa(
       '<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="7" width="14" height="2" rx="1"/><rect x="7.5" y="11" width="9" height="2" rx="1"/><rect x="10" y="15" width="4" height="2" rx="1"/></svg>'
     )}") center / contain no-repeat;
@@ -2768,9 +2772,15 @@ table .${EditorStyleHelper.table} > .${EditorStyleHelper.tableScrollable} > tabl
     background: ${props.theme.backgroundSecondary};
   }
 
+  &.active::before {
+    background-color: ${props.theme.text};
+  }
+
   &.active,
-  &.expanded {
-    display: block;
+  &.expanded,
+  &:focus-visible {
+    opacity: 1;
+    pointer-events: auto;
   }
 
   @media print {
@@ -2778,9 +2788,9 @@ table .${EditorStyleHelper.table} > .${EditorStyleHelper.tableScrollable} > tabl
   }
 }
 
-th:hover > .${EditorStyleHelper.tableFilterButton},
-.${EditorStyleHelper.tableFilterButton}:focus-visible {
-  display: block;
+th:hover > .${EditorStyleHelper.tableFilterButton} {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 // Without hover, readers have no column menu to filter from.
@@ -2789,7 +2799,8 @@ ${
     ? `
 @media (hover: none) {
   .${EditorStyleHelper.tableFilterButton} {
-    display: block;
+    opacity: 1;
+    pointer-events: auto;
   }
 }
 `

@@ -26,7 +26,7 @@ function DrawerContent(
     ref?: React.Ref<React.ComponentRef<typeof DrawerPrimitive.Content>>;
   }
 ) {
-  const { ref, children, ...rest } = props;
+  const { ref, children, onCloseAutoFocus, ...rest } = props;
   const [measureRef, bounds] = useMeasure();
 
   return (
@@ -34,7 +34,11 @@ function DrawerContent(
       <DrawerPrimitive.Overlay asChild>
         <Overlay />
       </DrawerPrimitive.Overlay>
-      <DrawerPrimitive.Content ref={ref} asChild>
+      <DrawerPrimitive.Content
+        ref={ref}
+        asChild
+        onCloseAutoFocus={onCloseAutoFocus}
+      >
         <StyledContent
           animate={
             bounds.height

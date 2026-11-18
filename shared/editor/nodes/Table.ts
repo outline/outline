@@ -44,7 +44,6 @@ import {
 } from "../commands/table";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { FixTablesPlugin } from "../plugins/FixTablesPlugin";
-import { TableFilterPlugin } from "../plugins/TableFilterPlugin";
 import { TableColumnResizePlugin } from "../plugins/TableColumnResizePlugin";
 import { TableLayoutPlugin } from "../plugins/TableLayoutPlugin";
 import tablesRule from "../rules/tables";
@@ -181,7 +180,6 @@ export default class Table extends Node {
       new TableColumnResizePlugin(),
       new FixTablesPlugin(),
       new TableLayoutPlugin(),
-      new TableFilterPlugin(),
     ];
   }
 }

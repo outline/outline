@@ -43,10 +43,26 @@ export function toFilterKey(value: string): string {
  * @returns the text of the cell.
  */
 export function getCellValue(cell: Node): string {
-  return cell
-    .textBetween(0, cell.content.size, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+  const parts: string[] = [];
+  cell.descendants((node) => {
+    if (node.isText) {
+      parts.push(node.text ?? "");
+      return false;
+    }
+
+    // Inline atoms such as emoji can have no text content, so they are read
+    // from their leaf text.
+    const { leafText } = node.type.spec;
+    if (node.isInline && leafText && !node.textContent) {
+      parts.push(leafText(node));
+      return false;
+    }
+    if (node.isBlock && parts.length) {
+      parts.push(" ");
+    }
+    return true;
+  });
+  return parts.join("").replace(/\s+/g, " ").trim();
 }
 
 /**
@@ -166,8 +182,9 @@ export function isEqualTableFilters(a: TableFilter[], b: TableFilter[]) {
 }
 
 /**
- * Whether a table can be filtered. The first row is the header, so a table
- * needs another row, and cells that span rows cannot be hidden on their own.
+ * Whether a table can be filtered. The table needs a header row with one cell
+ * for each column and at least one other row, and cells that span rows cannot
+ * be hidden on their own.
  *
  * @param table the table node.
  * @returns true if the table can be filtered.
@@ -179,13 +196,67 @@ export function isTableFilterable(table: Node): boolean {
 
   for (let row = 0; row < table.childCount; row++) {
     const cells = table.child(row);
-    for (let cell = 0; cell < cells.childCount; cell++) {
-      if (cells.child(cell).attrs.rowspan > 1) {
+    for (let index = 0; index < cells.childCount; index++) {
+      const cell = cells.child(index);
+      if (cell.attrs.rowspan > 1) {
+        return false;
+      }
+      if (
+        row === 0 &&
+        (cell.type.spec.tableRole !== "header_cell" || cell.attrs.colspan > 1)
+      ) {
         return false;
       }
     }
   }
   return true;
+}
+
+/**
+ * Get the text of each header cell of a table, by column.
+ *
+ * @param table the table node.
+ * @returns the text of the header of each column.
+ */
+export function getTableHeaders(table: Node): string[] {
+  const map = TableMap.get(table);
+  return Array.from({ length: map.width }, (_, column) => {
+    const cell = table.nodeAt(map.map[column]);
+    return cell ? toFilterKey(getCellValue(cell)) : "";
+  });
+}
+
+/**
+ * Create a function that finds where a column of a table went after a change
+ * that may have moved, added or removed columns, by matching header text.
+ *
+ * @param before the table before the change.
+ * @param after the table after the change.
+ * @returns returns the new index of a column, or undefined if it is not found.
+ */
+export function mapTableColumnsByHeader(
+  before: Node,
+  after: Node
+): (column: number) => number | undefined {
+  const old = getTableHeaders(before);
+  const next = getTableHeaders(after);
+  if (old.length === next.length && old.every((key, i) => key === next[i])) {
+    return (column) => column;
+  }
+
+  return (column) => {
+    const key = old[column];
+    const matches = next.flatMap((k, i) => (k === key ? [i] : []));
+    if (matches.length === 1 && old.filter((k) => k === key).length === 1) {
+      return matches[0];
+    }
+
+    // A header whose text changed stays at its index, if nothing moved there.
+    if (column < next.length && !old.includes(next[column])) {
+      return column;
+    }
+    return undefined;
+  };
 }
 
 /**

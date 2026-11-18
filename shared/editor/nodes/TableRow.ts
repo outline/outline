@@ -387,8 +387,8 @@ export default class TableRow extends Node {
               if (tableGrip) {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                focusEditor(view);
                 selectTable()(view.state, view.dispatch);
+                focusEditor(view);
                 return true;
               }
 
@@ -402,11 +402,11 @@ export default class TableRow extends Node {
                 const rowIndex = Number(
                   targetGripRow.getAttribute("data-index")
                 );
-                focusEditor(view);
                 selectRow(rowIndex, event.metaKey || event.shiftKey)(
                   view.state,
                   view.dispatch
                 );
+                focusEditor(view);
 
                 // Setup drag tracking for potential drag operation
                 setupRowDragTracking(view, targetGripRow, rowIndex);
