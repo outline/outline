@@ -17,6 +17,7 @@ import Flex from "~/components/Flex";
 import Header from "~/components/Header";
 import {
   AppearanceAction,
+  SearchAction,
   SubscribeAction,
 } from "~/components/Sharing/components/Actions";
 import AuthenticatedIsland from "~/components/Sharing/components/AuthenticatedIsland";
@@ -151,6 +152,7 @@ function SharedDocumentHeader({ document }: Props) {
             <SubscribeAction shareId={shareId} documentId={document.id} />
           )}
           <AppearanceAction />
+          {hasSidebar && <SearchAction />}
           <AuthenticatedIsland
             document={document}
             share={share}
