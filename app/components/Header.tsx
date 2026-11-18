@@ -197,7 +197,6 @@ const Breadcrumbs = styled("div")`
   display: flex;
 
   ${breakpoint("mobile", "tablet")`
-    min-width: auto;
     gap: 8px;
 
     && [data-variant] {
