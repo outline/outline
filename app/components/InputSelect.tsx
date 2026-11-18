@@ -77,6 +77,8 @@ type Props = Omit<React.HTMLAttributes<HTMLButtonElement>, "onChange"> & {
   help?: string;
   /** Render function to override the selected value shown in the trigger. Receives the currently selected option, or undefined when none is selected. */
   displayValue?: (selectedOption: Item | undefined) => React.ReactNode;
+  /** Called when the menu closes and focus would return to the trigger. Call preventDefault on the event to focus another element. */
+  onCloseAutoFocus?: (event: Event) => void;
   ref?: React.Ref<HTMLButtonElement>;
 } & TriggerButtonProps;
 
@@ -91,6 +93,7 @@ export function InputSelect(props: Props) {
     short,
     help,
     displayValue,
+    onCloseAutoFocus,
     ...triggerProps
   } = props;
 
@@ -202,6 +205,7 @@ export function InputSelect(props: Props) {
           aria-label={label}
           onAnimationStart={disablePointerEvents}
           onAnimationEnd={enablePointerEvents}
+          onCloseAutoFocus={onCloseAutoFocus}
         >
           {options.map(renderOption)}
         </InputSelectContent>

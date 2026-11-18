@@ -197,6 +197,15 @@ export class EditorStyleHelper {
   /** Drag indicator on bottom side of cell */
   static readonly tableDragIndicatorBottom = "table-drag-indicator-bottom";
 
+  /** Table row hidden by a filter */
+  static readonly tableRowFiltered = "table-row-filtered";
+
+  /** Button in a header cell that opens the column filter */
+  static readonly tableFilterButton = "table-filter-button";
+
+  /** Bar below a filtered table with the filter summary */
+  static readonly tableFilterBar = "table-filter-bar";
+
   // Drag and drop
 
   /** Line that shows where dragged content will be dropped */

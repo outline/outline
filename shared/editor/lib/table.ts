@@ -3,11 +3,12 @@ import { TableMap, type MutableAttrs } from "prosemirror-tables";
 import { Decoration, type EditorView } from "prosemirror-view";
 import { isBrowser } from "../../utils/browser";
 import { isNearWhite, toHexColor, validateColorHex } from "../../utils/color";
-import type { TableLayout, NodeAttrMark } from "../types";
+import type { TableFilter, TableLayout, NodeAttrMark } from "../types";
 import { readableColor } from "polished";
 
 export interface TableAttrs {
   layout: TableLayout | null;
+  filters: TableFilter[] | null;
 }
 
 export interface CellAttrs {
@@ -385,6 +386,18 @@ export function cellWidget(
   spec?: Parameters<typeof Decoration.widget>[2]
 ): Decoration {
   return Decoration.widget(cellPos + 1, toDOM, { ...spec, side: -1 });
+}
+
+/**
+ * Focus the editor if it does not have focus, for controls such as the table
+ * grips that stay visible while focus is elsewhere.
+ *
+ * @param view The editor view.
+ */
+export function focusEditor(view: EditorView): void {
+  if (!view.hasFocus()) {
+    view.focus();
+  }
 }
 
 const spanTrackers = new WeakMap<globalThis.Node, () => void>();

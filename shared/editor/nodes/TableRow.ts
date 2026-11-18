@@ -4,6 +4,7 @@ import { isInTable, moveTableRow, selectedRect } from "prosemirror-tables";
 import Node from "./Node";
 import { cn } from "../styles/utils";
 import {
+  focusEditor,
   cellWidget,
   getCellSpan,
   setSpanPosition,
@@ -386,6 +387,7 @@ export default class TableRow extends Node {
               if (tableGrip) {
                 event.preventDefault();
                 event.stopImmediatePropagation();
+                focusEditor(view);
                 selectTable()(view.state, view.dispatch);
                 return true;
               }
@@ -400,6 +402,7 @@ export default class TableRow extends Node {
                 const rowIndex = Number(
                   targetGripRow.getAttribute("data-index")
                 );
+                focusEditor(view);
                 selectRow(rowIndex, event.metaKey || event.shiftKey)(
                   view.state,
                   view.dispatch
