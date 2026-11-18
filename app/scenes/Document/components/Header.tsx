@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { TableOfContentsIcon, EditIcon } from "outline-icons";
+import { DoneIcon, TableOfContentsIcon, EditIcon } from "outline-icons";
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -95,6 +95,8 @@ function DocumentHeader({
   // apply a template there is still the option to replace it until the user
   // navigates away from the doc
   const [wasNew] = useState(document.isPersistedOnce);
+
+  const saveLabel = isDraft ? t("Save draft") : t("Done editing");
 
   const handleSave = useCallback(() => {
     onSave({
@@ -220,17 +222,18 @@ function DocumentHeader({
           {isEditing && (
             <Action>
               <Tooltip
-                content={isDraft ? t("Save draft") : t("Done editing")}
+                content={saveLabel}
                 shortcut={`${metaDisplay}+enter`}
                 side="bottom"
               >
                 <Button
                   onClick={handleSave}
                   disabled={savingIsDisabled}
-                  neutral={isDraft}
-                  hideIcon
+                  neutral={isDraft || isMobile}
+                  icon={isMobile ? <DoneIcon /> : undefined}
+                  aria-label={isMobile ? saveLabel : undefined}
                 >
-                  {isDraft ? t("Save draft") : t("Done editing")}
+                  {isMobile ? null : saveLabel}
                 </Button>
               </Tooltip>
             </Action>

@@ -228,6 +228,10 @@ const Actions = styled(Flex)`
     gap: 0;
     margin-inline-start: auto;
 
+    /* Leaves room for the menu button; actions past the start edge are clipped. */
+    max-width: calc(100% - ${MOBILE_TOUCH_TARGET + 8}px);
+    overflow: hidden;
+
     &:not(:empty) {
       ${mobilePill}
       padding-inline: 10px;
