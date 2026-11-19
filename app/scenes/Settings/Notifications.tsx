@@ -20,6 +20,7 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import { NotificationEventType } from "@shared/types";
+import { errToString } from "@shared/utils/error";
 import Heading from "~/components/Heading";
 import Notice from "~/components/Notice";
 import Scene from "~/components/Scene";
@@ -243,11 +244,27 @@ function Notifications() {
         user.notificationSettings = updated;
       });
 
-      // Sequential, as each request saves the full settings object.
-      for (const eventType of changed) {
-        await user.setNotificationEventType(eventType, checked);
+      const unsaved = new Set(changed);
+
+      try {
+        // Sequential, as each request saves the full settings object.
+        for (const eventType of changed) {
+          await user.setNotificationEventType(eventType, checked);
+          unsaved.delete(eventType);
+        }
+        showSuccessMessage();
+      } catch (err) {
+        toast.error(errToString(err));
+
+        // Restore the events that were not saved.
+        runInAction(() => {
+          const updated = { ...user.notificationSettings };
+          for (const eventType of unsaved) {
+            updated[eventType] = !checked;
+          }
+          user.notificationSettings = updated;
+        });
       }
-      showSuccessMessage();
     },
     [user, showSuccessMessage]
   );
