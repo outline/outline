@@ -185,6 +185,28 @@ describe("#save", () => {
     expect(rows.searchVector).toMatch(/'origin':\d+C/);
     expect(rows.searchVector).toContain(tokens[0]);
   });
+
+  it("should index text whose shorter prefix still exceeds the tsvector limit", async () => {
+    const document = await buildDocument({ title: "Original" });
+    const tokens: string[] = [];
+    for (let i = 0; i < 120_000; i++) {
+      tokens.push(
+        String.fromCharCode(19_968 + (i % 20_000)) +
+          String.fromCharCode(19_968 + Math.floor(i / 20_000))
+      );
+    }
+    document.title = "Unique tokens";
+    document.text = tokens.join(" ");
+    await document.save();
+
+    const [rows] = await sequelize.query<{ searchVector: string }>(
+      `SELECT "searchVector" FROM documents WHERE id = :id`,
+      { replacements: { id: document.id }, type: QueryTypes.SELECT }
+    );
+    expect(rows.searchVector).toContain("'uniqu':1A");
+    expect(rows.searchVector).toMatch(/'origin':\d+C/);
+    expect(rows.searchVector).toContain(`'${tokens[0]}'`);
+  });
 });
 
 describe("#findAllChildDocumentIds", () => {
