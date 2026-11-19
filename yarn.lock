@@ -10556,10 +10556,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fuzzy-search@npm:^3.2.1":
-  version: 3.2.1
-  resolution: "fuzzy-search@npm:3.2.1"
-  checksum: 10c0/603dc9b8c0ac0b861b65ed80be64f78b08b5b86b281cfb9fd2ef7c0cc181c671cdc63f201e43f21f096dd2e42ddd482d8629d5261afe9d86acc6957e64ca1f8a
+"fuzzy-search@npm:^3.3.0":
+  version: 3.3.0
+  resolution: "fuzzy-search@npm:3.3.0"
+  checksum: 10c0/46c2a96df4de0b5cc2eafa1874f5b46e6cd86acd9a92fd8346d6bc790aa353291547574204c242fee81d2b0fe20008f4980778a61b46a67268c218d6d2915399
   languageName: node
   linkType: hard
 
@@ -14222,7 +14222,7 @@ __metadata:
     franc: "npm:^6.2.0"
     fs-extra: "npm:^11.4.1"
     fuse.js: "npm:^7.5.0"
-    fuzzy-search: "npm:^3.2.1"
+    fuzzy-search: "npm:^3.3.0"
     glob: "npm:^14.0.2"
     helmet: "npm:^8.3.0"
     hot-shots: "npm:^12.1.0"
