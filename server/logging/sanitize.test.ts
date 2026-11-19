@@ -133,6 +133,32 @@ describe("sanitize", () => {
     });
   });
 
+  it("should filter sensitive fields when toJSON returns the same value", () => {
+    const model = {
+      id: "1",
+      token: "secret",
+      toJSON() {
+        return this;
+      },
+    };
+    expect(JSON.stringify(sanitize({ model }))).toEqual(
+      JSON.stringify({ model: { id: "1", token: "[Filtered]" } })
+    );
+  });
+
+  it("should not call toJSON on its own result", () => {
+    const model = {
+      id: "1",
+      token: "secret",
+      toJSON() {
+        return { ...this };
+      },
+    };
+    expect(JSON.stringify(sanitize({ model }))).toEqual(
+      JSON.stringify({ model: { id: "1", token: "[Filtered]" } })
+    );
+  });
+
   it("should keep values at the maximum depth", () => {
     expect(sanitize({ a: { b: { c: { d: "value" } } } })).toEqual({
       a: { b: { c: { d: "value" } } },

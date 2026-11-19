@@ -21,27 +21,32 @@ export function sanitize<T>(input: T, level = 0): T {
 
   // Sanitize the serialized form of values such as dates, URLs and models,
   // as this is what appears in the log output.
-  if (hasToJSON(input)) {
-    const json: unknown = input.toJSON();
-    return (json === input ? json : sanitize(json, level)) as T;
-  }
+  const value: unknown = hasToJSON(input) ? input.toJSON() : input;
+  return sanitizeValue(value, level) as T;
+}
 
-  if (!isObject(input)) {
+/**
+ * Sanitizes a value without calling its toJSON method, as JSON serialization
+ * only calls it once.
+ *
+ * @param input the value to sanitize.
+ * @param level the current nesting level.
+ * @returns the sanitized value.
+ */
+function sanitizeValue(input: unknown, level: number): unknown {
+  if (typeof input !== "object" || input === null) {
     return input;
   }
 
   if (level > 3) {
-    // oxlint-disable-next-line @typescript-eslint/no-explicit-any
-    return "[…]" as any as T;
+    return "[…]";
   }
 
   if (isArray(input)) {
-    // oxlint-disable-next-line @typescript-eslint/no-explicit-any
-    return input.map((item) => sanitize(item, level + 1)) as any as T;
+    return input.map((item) => sanitize(item, level + 1));
   }
 
-  // oxlint-disable-next-line @typescript-eslint/no-explicit-any
-  const output: Record<string, any> = { ...input };
+  const output: Record<string, unknown> = { ...input };
 
   for (const key of Object.keys(output)) {
     output[key] = isSensitiveField(key)
@@ -49,12 +54,9 @@ export function sanitize<T>(input: T, level = 0): T {
       : sanitize(output[key], level + 1);
   }
 
-  return output as T;
+  return output;
 }
 
-/**
- * Field names that are filtered, in lowercase without separators.
- */
 const sensitiveFields = new Set([
   "accesstoken",
   "refreshtoken",
