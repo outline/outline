@@ -137,6 +137,24 @@ describe("#oauth.register", () => {
     });
   });
 
+  it("should accept a client_name that contains a URL", async () => {
+    const res = await server.post("/oauth/register", {
+      body: {
+        client_name: "DCR config for Client (https://example.com/mcp)",
+        redirect_uris: ["https://example.com/callback"],
+      },
+      headers: {
+        host: `${subdomain}.outline.dev`,
+      },
+    });
+
+    expect(res.status).toEqual(201);
+    const body = await res.json();
+    expect(body.client_name).toEqual(
+      "DCR config for Client (https://example.com/mcp)"
+    );
+  });
+
   it("should accept registration without client_name", async () => {
     const res = await server.post("/oauth/register", {
       body: {
