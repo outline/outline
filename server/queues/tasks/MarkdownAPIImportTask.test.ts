@@ -19,6 +19,7 @@ import {
 } from "@server/test/factories";
 import { withAPIContext } from "@server/test/support";
 import MarkdownImportsProcessor from "../processors/MarkdownImportsProcessor";
+import UploadAttachmentsForImportTask from "./UploadAttachmentsForImportTask";
 import MarkdownAPIImportTask, {
   rewriteAttachmentPaths,
   rewriteInternalLinks,
@@ -477,6 +478,33 @@ describe("MarkdownAPIImportTask document export archives", () => {
     expect(
       collections.find((c) => c.name === "Parent")?.description
     ).toBeFalsy();
+  });
+
+  it("downloads only remote and base64 attachments", async () => {
+    const admin = await buildAdmin();
+    const schedule = vi
+      .spyOn(UploadAttachmentsForImportTask.prototype, "schedule")
+      .mockResolvedValue(undefined as never);
+    const remoteUrl = "https://example.com/remote.png";
+    const base64Url = "data:image/png;base64,cGl4ZWxz";
+
+    const { documents } = await importArchive(admin, {
+      "Images.md": [
+        "# Images",
+        "![missing](missing_assets/photo.png)",
+        `![remote](${remoteUrl})`,
+        `![inline](${base64Url})`,
+      ].join("\n\n"),
+    });
+
+    expect(documents[0].text).toContain("missing_assets/photo.png");
+    const uploads = schedule.mock.calls.filter(
+      (_call, index) =>
+        schedule.mock.contexts[index] instanceof UploadAttachmentsForImportTask
+    );
+    expect(uploads).toHaveLength(1);
+    const urls = uploads[0][0].map((item) => item.url);
+    expect(urls.sort()).toEqual([base64Url, remoteUrl].sort());
   });
 
   it("deletes the children of an archived document when the import is deleted", async () => {

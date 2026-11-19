@@ -22,7 +22,7 @@ import {
   ImportTaskState,
 } from "@shared/types";
 import { toError } from "@shared/utils/error";
-import { isExternalUrl } from "@shared/utils/urls";
+import { isBase64Url, isExternalUrl, isUrl } from "@shared/utils/urls";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
 import Logger from "@server/logging/Logger";
@@ -427,7 +427,7 @@ export default abstract class APIImportTask<
         return { url, name: name.length !== 0 ? name : node.type.name };
       }),
       "url"
-    ).filter((item) => isExternalUrl(item.url));
+    ).filter((item) => isDownloadableUrl(item.url));
 
     // Nothing remote to download — content already points at internal
     // attachments (e.g. a Markdown zip's local files resolved to redirect
@@ -558,4 +558,17 @@ export default abstract class APIImportTask<
       },
     };
   }
+}
+
+/**
+ * Whether the url points to content that can be downloaded into an attachment.
+ *
+ * @param url the url of an image, video, or attachment node.
+ * @returns true if the url is a remote absolute url or base64 data.
+ */
+function isDownloadableUrl(url: string) {
+  return (
+    isExternalUrl(url) &&
+    (!!isBase64Url(url) || isUrl(url, { requireHostname: true }))
+  );
 }
