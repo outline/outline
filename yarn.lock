@@ -1608,10 +1608,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@css-inline/css-inline-wasm@npm:^0.23.1":
-  version: 0.23.1
-  resolution: "@css-inline/css-inline-wasm@npm:0.23.1"
-  checksum: 10c0/37cecc378164d46251fb8eb9d48b38719b64e5b7f82112eb811c17e86b99aba66420eaf6ed548589d965270c3c5f479cc1ad79ccc9cb4ea29f611f1cd0bcf9ff
+"@css-inline/css-inline-wasm@npm:^0.23.2":
+  version: 0.23.2
+  resolution: "@css-inline/css-inline-wasm@npm:0.23.2"
+  checksum: 10c0/08554a813a38fd6a332bbd6b1c27e67b7864c26458ea1ec81bc164c960926cb17e4b8c1d890a199ded695f3681e21b1c5f91ac92601ae575774620a3d12387c4
   languageName: node
   linkType: hard
 
@@ -14010,7 +14010,7 @@ __metadata:
     "@bull-board/api": "npm:^6.21.3"
     "@bull-board/koa": "npm:^6.21.3"
     "@bull-board/ui": "npm:^6.21.3"
-    "@css-inline/css-inline-wasm": "npm:^0.23.1"
+    "@css-inline/css-inline-wasm": "npm:^0.23.2"
     "@dnd-kit/core": "npm:^6.3.1"
     "@dnd-kit/modifiers": "npm:^9.0.0"
     "@dnd-kit/sortable": "npm:^10.0.0"
