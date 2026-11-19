@@ -185,7 +185,7 @@
     "nodemailer": "^10.3.1",
     "octokit": "^5.0.5",
     "outline-icons": "^4.6.0",
-    "pako": "^3.0.2",
+    "pako": "^3.0.3",
     "passport": "^0.7.0",
     "passport-google-oauth2": "^0.2.0",
     "passport-oauth2": "^1.8.0",

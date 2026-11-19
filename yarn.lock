@@ -14193,7 +14193,7 @@ __metadata:
     oxfmt: "npm:0.73.0"
     oxlint: "npm:1.90.0"
     oxlint-tsgolint: "npm:7.0.2006"
-    pako: "npm:^3.0.2"
+    pako: "npm:^3.0.3"
     passport: "npm:^0.7.0"
     passport-google-oauth2: "npm:^0.2.0"
     passport-oauth2: "npm:^1.8.0"
@@ -14627,10 +14627,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pako@npm:^3.0.2":
-  version: 3.0.2
-  resolution: "pako@npm:3.0.2"
-  checksum: 10c0/6de8283193fff07382134f1cdcd387b3bc43f2b4d1a04ed086f98183fe0b4fb7a282cd4b58397593794bba2c9d42fd008285344ba086c1f8fde49cd436587d3d
+"pako@npm:^3.0.3":
+  version: 3.0.3
+  resolution: "pako@npm:3.0.3"
+  checksum: 10c0/556ce60a9232817719a5f80ba77c9facc5741007a27e369305c6c4c3e0f32d700bd394f1d303d29032871b5dde81e3f74574a5834bfafa005f019e964d731dac
   languageName: node
   linkType: hard
 
