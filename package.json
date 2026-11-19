@@ -305,7 +305,7 @@
     "@types/react": "19.3.0",
     "@types/react-dom": "^19.3.0",
     "@types/react-router-dom": "^5.3.3",
-    "@types/readable-stream": "^4.0.24",
+    "@types/readable-stream": "^4.0.25",
     "@types/redis-info": "^3.0.3",
     "@types/resolve-path": "^1.4.3",
     "@types/semver": "^7.8.0",

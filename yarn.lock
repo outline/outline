@@ -6711,12 +6711,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/readable-stream@npm:^4.0.24":
-  version: 4.0.24
-  resolution: "@types/readable-stream@npm:4.0.24"
+"@types/readable-stream@npm:^4.0.25":
+  version: 4.0.25
+  resolution: "@types/readable-stream@npm:4.0.25"
   dependencies:
     "@types/node": "npm:*"
-  checksum: 10c0/12498861c5868d6b887bf60e0d32d85db6c65730ecc7db0e7c15ab92942f6e107af276e23e4a7ebac6ed018f7ec43517fdf4fee4f1a279196752fe0e59b6aadc
+  checksum: 10c0/dde5e05df207e1d2e05af52c7fcf0e14d12524c73961489264d6bdf2784b5905176d1f5bcaca7828be3b2827e0f2873513146597a55beb06e9e7e153c72bebae
   languageName: node
   linkType: hard
 
@@ -14099,7 +14099,7 @@ __metadata:
     "@types/react": "npm:19.3.0"
     "@types/react-dom": "npm:^19.3.0"
     "@types/react-router-dom": "npm:^5.3.3"
-    "@types/readable-stream": "npm:^4.0.24"
+    "@types/readable-stream": "npm:^4.0.25"
     "@types/redis-info": "npm:^3.0.3"
     "@types/resolve-path": "npm:^1.4.3"
     "@types/semver": "npm:^7.8.0"
