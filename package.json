@@ -165,7 +165,7 @@
     "kbar": "^1.0.0",
     "koa": "^3.0.3",
     "koa-body": "^8.0.1",
-    "koa-compress": "^5.2.2",
+    "koa-compress": "^5.3.0",
     "koa-helmet": "^9.0.0",
     "koa-logger": "^3.2.1",
     "koa-mount": "^4.2.0",
