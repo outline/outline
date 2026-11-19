@@ -3,6 +3,8 @@ import { styleText } from "node:util";
 import type { Transaction } from "sequelize";
 import { isEmpty } from "es-toolkit/compat";
 import { toError, errToString } from "@shared/utils/error";
+import { Second } from "@shared/utils/time";
+import { sleep } from "@shared/utils/timers";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import AuthenticationProvider from "@server/models/AuthenticationProvider";
@@ -23,10 +25,7 @@ import { ShutdownHelper } from "@server/utils/ShutdownHelper";
 async function checkPendingMigrations() {
   let lock: Transaction | undefined;
   try {
-    // The advisory lock is held by this transaction until it ends, while the
-    // migrations themselves run on other connections.
-    lock = await sequelize.transaction();
-    await LockHelper.acquire(sequelize, "migrations", lock);
+    lock = await acquireMigrationsLock();
 
     const pending = await migrations.pending();
     if (!isEmpty(pending)) {
@@ -62,6 +61,41 @@ async function checkPendingMigrations() {
     await lock?.rollback().catch((err) => {
       Logger.warn("Failed to release migrations lock", toError(err));
     });
+  }
+}
+
+/**
+ * Acquires the migrations lock, waiting while another instance holds it. The
+ * lock is held by the returned transaction until it ends, while the migrations
+ * themselves run on other connections.
+ *
+ * @returns the transaction that holds the lock.
+ */
+async function acquireMigrationsLock(): Promise<Transaction> {
+  let isWaiting = false;
+
+  for (;;) {
+    const transaction = await sequelize.transaction();
+    try {
+      if (await LockHelper.tryAcquire(sequelize, "migrations", transaction)) {
+        return transaction;
+      }
+    } catch (err) {
+      await transaction.rollback();
+      throw err;
+    }
+
+    // Poll instead of blocking, a blocked statement holds a snapshot that
+    // CREATE INDEX CONCURRENTLY in the lock holder's migrations waits on.
+    await transaction.rollback();
+    if (!isWaiting) {
+      isWaiting = true;
+      Logger.info(
+        "database",
+        "Waiting for another instance to run migrations…"
+      );
+    }
+    await sleep(Second.ms);
   }
 }
 
