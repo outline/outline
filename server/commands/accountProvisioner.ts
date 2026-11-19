@@ -103,17 +103,34 @@ async function accountProvisioner(
   const actor = ctx.state.auth?.user;
 
   // If the user is already logged in and is an admin of the team then we
-  // allow them to connect a new authentication provider.
+  // allow them to connect or reconnect an authentication provider.
   if (actor && actor.teamId === teamParams.teamId && actor.isAdmin) {
     const team = actor.team;
-    const authenticationProvider = await AuthenticationProvider.findOne({
+    const providers = await AuthenticationProvider.findAll({
       where: {
-        ...authenticationProviderParams,
+        name: authenticationProviderParams.name,
         teamId: team.id,
       },
     });
+    const isConnected = providers.some(
+      (provider) =>
+        provider.providerId === authenticationProviderParams.providerId
+    );
 
-    if (!authenticationProvider) {
+    if (!isConnected && providers.length === 1) {
+      // Update in place so that existing user authentications stay linked.
+      await sequelize.transaction((transaction) =>
+        providers[0].updateWithCtx(
+          createContext({
+            user: actor,
+            authType: ctx.context.auth?.type,
+            ip: ctx.context.ip,
+            transaction,
+          }),
+          { providerId: authenticationProviderParams.providerId }
+        )
+      );
+    } else if (!isConnected) {
       await team.$create<AuthenticationProvider>(
         "authenticationProvider",
         authenticationProviderParams
