@@ -48,6 +48,8 @@ interface NotificationGroup {
   id: string;
   /** The section heading. */
   title: string;
+  /** A summary of the notification types in the group. */
+  description: string;
   /** Whether the group is shown. Defaults to true. */
   visible?: boolean;
   /** The options in the group. */
@@ -62,6 +64,9 @@ function Notifications() {
     {
       id: "documents",
       title: t("Documents"),
+      description: t(
+        "Documents that are published, updated, or shared with you, and access requests"
+      ),
       options: [
         {
           events: [NotificationEventType.PublishDocument],
@@ -98,8 +103,34 @@ function Notifications() {
       ],
     },
     {
+      id: "collections",
+      title: t("Collections"),
+      description: t("New collections and access to collections"),
+      options: [
+        {
+          events: [NotificationEventType.CreateCollection],
+          icon: <CollectionIcon />,
+          title: t("Collection created"),
+          description: t(
+            "Receive a notification whenever a new collection is created"
+          ),
+        },
+        {
+          events: [NotificationEventType.AddUserToCollection],
+          icon: <CollectionIcon />,
+          title: t("Invited to collection"),
+          description: t(
+            "Receive a notification when you are given access to a collection"
+          ),
+        },
+      ],
+    },
+    {
       id: "comments",
       title: t("Comments and mentions"),
+      description: t(
+        "New comments, mentions of you or your groups, resolved threads, and reactions"
+      ),
       options: [
         {
           events: [NotificationEventType.CreateComment],
@@ -152,23 +183,10 @@ function Notifications() {
     {
       id: "workspace",
       title: t("Workspace"),
+      description: t(
+        "Group membership, accepted invites, and completed exports"
+      ),
       options: [
-        {
-          events: [NotificationEventType.CreateCollection],
-          icon: <CollectionIcon />,
-          title: t("Collection created"),
-          description: t(
-            "Receive a notification whenever a new collection is created"
-          ),
-        },
-        {
-          events: [NotificationEventType.AddUserToCollection],
-          icon: <CollectionIcon />,
-          title: t("Invited to collection"),
-          description: t(
-            "Receive a notification when you are given access to a collection"
-          ),
-        },
         {
           events: [NotificationEventType.AddUserToGroup],
           icon: <GroupIcon />,
@@ -198,6 +216,9 @@ function Notifications() {
     {
       id: "product",
       title: t("Product updates"),
+      description: t(
+        "Tips on getting started and announcements of new features"
+      ),
       visible: isCloudHosted,
       options: [
         {
@@ -325,15 +346,24 @@ function Notifications() {
 
       {visibleGroups.map((group) => {
         const groupEvents = group.options.flatMap((option) => option.events);
+        const groupChecked = isSubscribed(groupEvents);
+        const isMixed =
+          !groupChecked &&
+          groupEvents.some((eventType) =>
+            user.subscribedToEventType(eventType)
+          );
 
         return (
           <SettingsSection
             key={group.id}
             title={group.title}
+            description={group.description}
+            collapsible
+            defaultOpen={isMixed}
             action={
               <Switch
                 aria-label={group.title}
-                checked={isSubscribed(groupEvents)}
+                checked={groupChecked}
                 onChange={handleChange(groupEvents)}
               />
             }
