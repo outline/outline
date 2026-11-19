@@ -820,7 +820,8 @@ width: 100%;
     }
   }
 
-  &:${hover} {
+  &:${hover},
+  &[${EditorStyleHelper.mentionMenuTarget}] {
     cursor: default;
     background: ${props.theme.mentionHoverBackground};
   }
@@ -873,7 +874,8 @@ width: 100%;
     cursor: pointer;
     vertical-align: top;
 
-    &:${hover} {
+    &:${hover},
+    &[${EditorStyleHelper.mentionMenuTarget}] {
       background: ${props.theme.backgroundSecondary};
     }
 

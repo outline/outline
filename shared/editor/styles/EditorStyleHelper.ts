@@ -81,6 +81,11 @@ export class EditorStyleHelper {
   /** Line number shown in the gutter at the start of each code block line */
   static readonly codeBlockLineNumber = "code-block-line-number";
 
+  // Mentions
+
+  /** Attribute on a mention while its hover menu button is shown */
+  static readonly mentionMenuTarget = "data-menu-target";
+
   // Diffs
 
   static readonly diffInsertion = "diff-insertion";
