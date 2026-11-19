@@ -31,6 +31,7 @@ import { ConnectedIcon } from "~/components/Icons/ConnectedIcon";
 import { client } from "~/utils/ApiClient";
 import { useTheme } from "styled-components";
 import { VStack } from "~/components/primitives/VStack";
+import { AuthenticationProviderMenu } from "~/menus/AuthenticationProviderMenu";
 
 function Authentication() {
   const { authenticationProviders, dialogs } = useStores();
@@ -228,23 +229,21 @@ function Authentication() {
                 <Flex align="center" gap={12}>
                   {provider.isConnected ? (
                     <VStack align="start">
-                      <Button
-                        icon={
-                          provider.isEnabled ? (
-                            <ConnectedIcon />
-                          ) : (
-                            <ConnectedIcon color={theme.textSecondary} />
-                          )
-                        }
-                        onClick={() =>
-                          !provider.isEnabled
-                            ? handleToggleProvider(provider, true)
-                            : handleRemoveProvider(provider)
-                        }
-                        neutral
-                      >
-                        {provider.isEnabled ? t("Connected") : t("Disabled")}
-                      </Button>
+                      {provider.isEnabled ? (
+                        <AuthenticationProviderMenu
+                          provider={provider}
+                          onReconnect={handleConnectProvider}
+                          onDisconnect={handleRemoveProvider}
+                        />
+                      ) : (
+                        <Button
+                          icon={<ConnectedIcon color={theme.textSecondary} />}
+                          onClick={() => handleToggleProvider(provider, true)}
+                          neutral
+                        >
+                          {t("Disabled")}
+                        </Button>
+                      )}
                       <Text type="tertiary" size="small">
                         {provider.providerId}
                       </Text>
