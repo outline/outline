@@ -2359,6 +2359,16 @@ table {
     border-bottom-right-radius: ${EditorStyleHelper.blockRadius};
   }
 
+  // When filters hide the last row, the last visible row rounds the corners.
+  tr:not(.${EditorStyleHelper.tableRowFiltered}):not(:has(~ tr:not(.${EditorStyleHelper.tableRowFiltered}))) {
+    > [data-first-column] {
+      border-bottom-left-radius: ${EditorStyleHelper.blockRadius};
+    }
+    > [data-last-column] {
+      border-bottom-right-radius: ${EditorStyleHelper.blockRadius};
+    }
+  }
+
   td .component-embed {
     padding: 4px 0;
   }
@@ -2721,6 +2731,121 @@ table {
 
 table .${EditorStyleHelper.table} > .${EditorStyleHelper.tableScrollable} > table > tbody > tr:first-child > th {
   animation: none;
+}
+
+.${EditorStyleHelper.tableRowFiltered} {
+  display: none;
+}
+
+// Buttons without a filter are transparent rather than hidden, so that they
+// stay in the tab order and are announced by screen readers.
+.${EditorStyleHelper.tableFilterButton} {
+  display: block;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  inset-inline-end: 4px;
+  translate: 0 -50%;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: ${props.theme.backgroundSecondary};
+  color: inherit;
+  cursor: var(--pointer);
+  z-index: 1;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    background-color: currentColor;
+    mask: url("data:image/svg+xml;base64,${btoa(
+      '<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="7" width="14" height="2" rx="1"/><rect x="7.5" y="11" width="9" height="2" rx="1"/><rect x="10" y="15" width="4" height="2" rx="1"/></svg>'
+    )}") center / contain no-repeat;
+  }
+
+  &.active::before {
+    background-color: ${props.theme.text};
+  }
+
+  &.active,
+  &.expanded,
+  &:focus-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  @media print {
+    display: none !important;
+  }
+}
+
+th:hover > .${EditorStyleHelper.tableFilterButton} {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+// Without hover, readers have no column menu to filter from.
+${
+  props.readOnly
+    ? `
+@media (hover: none) {
+  .${EditorStyleHelper.tableFilterButton} {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+`
+    : ""
+}
+
+th:has(> .${EditorStyleHelper.tableFilterButton}.active) {
+  padding-inline-end: 28px;
+}
+
+.${EditorStyleHelper.tableFilterBar} {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin-top: 4px;
+  font-size: 14px;
+  color: ${props.theme.textTertiary};
+  user-select: none;
+
+  button {
+    padding: 0 4px;
+    border: 0;
+    border-radius: 4px;
+    background: none;
+    font: inherit;
+    color: ${props.theme.textSecondary};
+    cursor: var(--pointer);
+
+    &:hover,
+    &:focus-visible {
+      color: ${props.theme.text};
+      background: ${props.theme.backgroundSecondary};
+    }
+  }
+
+  ${
+    props.readOnly
+      ? `
+  &.inactive,
+  .save {
+    display: none;
+  }
+  `
+      : ""
+  }
+
+  @media print {
+    display: none;
+  }
 }
 
 .${EditorStyleHelper.tableStickyHeader} {

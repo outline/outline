@@ -10,6 +10,7 @@ import {
   trackSpanPosition,
   untrackSpanPosition,
 } from "../lib/table";
+import { focusEditor } from "../lib/focusEditor";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { type Decoration, DecorationSet } from "prosemirror-view";
 import type { EditorView } from "prosemirror-view";
@@ -387,6 +388,7 @@ export default class TableRow extends Node {
                 event.preventDefault();
                 event.stopImmediatePropagation();
                 selectTable()(view.state, view.dispatch);
+                focusEditor(view);
                 return true;
               }
 
@@ -404,6 +406,7 @@ export default class TableRow extends Node {
                   view.state,
                   view.dispatch
                 );
+                focusEditor(view);
 
                 // Setup drag tracking for potential drag operation
                 setupRowDragTracking(view, targetGripRow, rowIndex);
