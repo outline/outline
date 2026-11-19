@@ -3,6 +3,7 @@ import config from "../plugin.json";
 import GoogleClient from "./google";
 import router from "./auth/google";
 import env from "./env";
+import { GmailEmailProvider } from "./GmailEmailProvider";
 
 const enabled = !!env.GOOGLE_CLIENT_ID && !!env.GOOGLE_CLIENT_SECRET;
 
@@ -17,6 +18,20 @@ if (enabled) {
         allowEmailMatch: true,
         oauthClient: () => new GoogleClient(),
       },
+    },
+  ]);
+}
+
+const emailEnabled =
+  !!env.GOOGLE_MAIL_CLIENT_EMAIL && !!env.GOOGLE_MAIL_PRIVATE_KEY;
+
+if (emailEnabled) {
+  PluginManager.add([
+    {
+      name: config.name,
+      description: "Adds Gmail as an email provider.",
+      type: Hook.EmailProvider,
+      value: new GmailEmailProvider(),
     },
   ]);
 }
