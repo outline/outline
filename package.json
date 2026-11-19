@@ -126,7 +126,7 @@
     "copy-to-clipboard": "^3.3.3",
     "core-js": "^3.51.0",
     "date-fns": "^4.4.0",
-    "dd-trace": "^5.131.1",
+    "dd-trace": "^5.135.0",
     "diff": "^9.0.0",
     "email-providers": "^2.27.0",
     "emoji-regex": "^10.6.0",

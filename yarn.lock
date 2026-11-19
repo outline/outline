@@ -3485,7 +3485,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@opentelemetry/api@npm:>=1.0.0 <1.10.0, @opentelemetry/api@npm:>=1.9.1 <1.10.0, @opentelemetry/api@npm:^1.3.0":
+"@opentelemetry/api@npm:>=1.4.1 <1.10.0, @opentelemetry/api@npm:>=1.9.1 <1.10.0, @opentelemetry/api@npm:^1.3.0":
   version: 1.9.1
   resolution: "@opentelemetry/api@npm:1.9.1"
   checksum: 10c0/c608485fc8b5a91e1f7e05e843b45b509307456b31cd2ad365933d90813e40ebfedf179f1451c762037e82d7c76aa8500e95d2da3609f640a1206cde5322cd14
@@ -8900,9 +8900,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dd-trace@npm:^5.131.1":
-  version: 5.132.0
-  resolution: "dd-trace@npm:5.132.0"
+"dd-trace@npm:^5.135.0":
+  version: 5.135.0
+  resolution: "dd-trace@npm:5.135.0"
   dependencies:
     "@datadog/libdatadog": "npm:^0.21.0"
     "@datadog/libdatadog-extras": "npm:^0.21.0"
@@ -8911,10 +8911,10 @@ __metadata:
     "@datadog/native-metrics": "npm:4.0.0"
     "@datadog/pprof": "npm:5.20.0"
     "@datadog/wasm-js-rewriter": "npm:5.0.4"
-    "@opentelemetry/api": "npm:>=1.0.0 <1.10.0"
+    "@opentelemetry/api": "npm:>=1.4.1 <1.10.0"
     "@opentelemetry/api-logs": "npm:<1.0.0"
     dc-polyfill: "npm:^0.1.11"
-    import-in-the-middle: "npm:3.5.1"
+    import-in-the-middle: "npm:3.5.3"
     opentracing: "npm:>=0.14.7"
     oxc-parser: "npm:^0.132.0"
   dependenciesMeta:
@@ -8938,7 +8938,7 @@ __metadata:
       optional: true
     oxc-parser:
       optional: true
-  checksum: 10c0/7ba1b243647d0830aa9b30778d8afb0304330425cbba9e2558c8103ebc61fb69451be4e48a1de873fb132e86f0fa9003ca0226a80c1b2c37ca97b37ff4d99a16
+  checksum: 10c0/e268dc11e1e1903be715145949f9761fc6bdbe144b56abba56e88c05fe9219f6df8679c5e881b490776018556c60847ee9fc0ddfcab673df68cc0f72fd26031b
   languageName: node
   linkType: hard
 
@@ -9658,6 +9658,13 @@ __metadata:
   version: 3.0.2
   resolution: "es-module-lexer@npm:3.0.2"
   checksum: 10c0/b04a0a5f5c2785e3edd53dcb5e4e9cfb7b8523d4cf9bf8b3abd6e1aaa7c4401f9d9174fb9a3c9374f0b4ca7f75487c3ff9b97f39f341507afa8ddf49ba37c56b
+  languageName: node
+  linkType: hard
+
+"es-module-lexer@npm:^3.0.3":
+  version: 3.0.5
+  resolution: "es-module-lexer@npm:3.0.5"
+  checksum: 10c0/846a0fbe10fc0bf510995dbfa5bc48d78f9cb15ee3249a03d4c7f4f35e61924bef8602e82f08735e1d172e26df6bc4acc1d7ea2e96666eb654a55436b9b618e3
   languageName: node
   linkType: hard
 
@@ -11296,7 +11303,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"import-in-the-middle@npm:3.5.1, import-in-the-middle@npm:^3.0.0":
+"import-in-the-middle@npm:3.5.3":
+  version: 3.5.3
+  resolution: "import-in-the-middle@npm:3.5.3"
+  dependencies:
+    cjs-module-lexer: "npm:^2.2.0"
+    es-module-lexer: "npm:^3.0.3"
+    module-details-from-path: "npm:^1.0.4"
+  checksum: 10c0/f342bb5b83d2c7e2e7c3f87832f6ee020c15b0c478895e4a597524d7827a51e206acba2755fedc346026eb9d7748bc89c7eda7b289a10e13a84f9f35eb60ea34
+  languageName: node
+  linkType: hard
+
+"import-in-the-middle@npm:^3.0.0":
   version: 3.5.1
   resolution: "import-in-the-middle@npm:3.5.1"
   dependencies:
@@ -14124,7 +14142,7 @@ __metadata:
     copy-to-clipboard: "npm:^3.3.3"
     core-js: "npm:^3.51.0"
     date-fns: "npm:^4.4.0"
-    dd-trace: "npm:^5.131.1"
+    dd-trace: "npm:^5.135.0"
     diff: "npm:^9.0.0"
     discord-api-types: "npm:^0.38.48"
     email-providers: "npm:^2.27.0"
