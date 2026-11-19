@@ -8676,6 +8676,34 @@ describe("#documents.users", () => {
     expect(memberIds).toContain(bret.id);
     expect(memberIds).toContain(ken.id);
   });
+
+  it("should not allow guests to list users", async () => {
+    const owner = await buildUser();
+    const guest = await buildGuestUser({ teamId: owner.teamId });
+    const collection = await buildCollection({
+      teamId: owner.teamId,
+      userId: owner.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const document = await buildDocument({
+      collectionId: collection.id,
+      userId: owner.id,
+      teamId: owner.teamId,
+    });
+    await UserMembership.create({
+      userId: guest.id,
+      documentId: document.id,
+      permission: DocumentPermission.Read,
+      createdById: owner.id,
+    });
+
+    const res = await server.post("/api/documents.users", guest, {
+      body: {
+        id: document.id,
+      },
+    });
+    expect(res.status).toBe(403);
+  });
 });
 
 describe("document permission management authorization", () => {
