@@ -647,3 +647,19 @@ describe("#removeUrlPathSuffix", () => {
     ).toBe("/doc/my-doc-abc123");
   });
 });
+
+describe("containsUrl", () => {
+  it("should return true for text that contains a URL", () => {
+    expect(urlsUtils.containsUrl("https://example.com")).toBe(true);
+    expect(urlsUtils.containsUrl("Client (https://example.com/mcp)")).toBe(
+      true
+    );
+    expect(urlsUtils.containsUrl("visit www.example.com now")).toBe(true);
+  });
+
+  it("should return false for text without a URL", () => {
+    expect(urlsUtils.containsUrl("")).toBe(false);
+    expect(urlsUtils.containsUrl("Acme Inc")).toBe(false);
+    expect(urlsUtils.containsUrl("https:")).toBe(false);
+  });
+});

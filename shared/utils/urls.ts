@@ -439,6 +439,16 @@ export function getUrls(text: string) {
 }
 
 /**
+ * Determine if the given text includes something that looks like a URL.
+ *
+ * @param text the text to check.
+ * @returns true if the text contains a URL, false otherwise.
+ */
+export function containsUrl(text: string) {
+  return /(www\.|file:|http:|https:)[^\s]+[\w]/.test(text);
+}
+
+/**
  * Adds the port that the application is publicly reachable on to a url that
  * does not specify one. A proxy commonly forwards a Host header without the
  * public port, so urls derived from an incoming request would otherwise point
