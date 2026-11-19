@@ -9,6 +9,8 @@ interface Props {
   title: React.ReactNode;
   /** Optional text shown below the heading. */
   description?: React.ReactNode;
+  /** An optional control shown on the right of the heading. */
+  action?: React.ReactNode;
   /** Whether the section holds destructive actions. */
   danger?: boolean;
   /** The rows in the section, usually SettingRow components. */
@@ -24,6 +26,7 @@ interface Props {
 export function SettingsSection({
   title,
   description,
+  action,
   danger,
   children,
 }: Props) {
@@ -31,7 +34,10 @@ export function SettingsSection({
 
   return (
     <Section aria-labelledby={titleId}>
-      <Title id={titleId}>{title}</Title>
+      <Header>
+        <Title id={titleId}>{title}</Title>
+        {action}
+      </Header>
       {description && (
         <Description as="p" type="secondary">
           {description}
@@ -48,6 +54,13 @@ const Section = styled.section`
   ${breakpoint("tablet")`
     margin-top: 48px;
   `}
+`;
+
+const Header = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
 `;
 
 const Title = styled.h2`

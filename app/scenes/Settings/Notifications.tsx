@@ -29,147 +29,200 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import { client } from "~/utils/ApiClient";
 import isCloudHosted from "~/utils/isCloudHosted";
 import SettingRow from "./components/SettingRow";
+import { SettingsSection } from "./components/SettingsSection";
+
+interface NotificationOption {
+  /** The event types that the option controls. */
+  events: NotificationEventType[];
+  /** The icon for the option. */
+  icon: React.ReactNode;
+  /** The label for the option. */
+  title: string;
+  /** The description for the option. */
+  description: string;
+}
+
+interface NotificationGroup {
+  /** A stable key for the group. */
+  id: string;
+  /** The section heading. */
+  title: string;
+  /** Whether the group is shown. Defaults to true. */
+  visible?: boolean;
+  /** The options in the group. */
+  options: NotificationOption[];
+}
 
 function Notifications() {
   const user = useCurrentUser();
   const { t } = useTranslation();
 
-  const options = [
+  const groups: NotificationGroup[] = [
     {
-      events: [NotificationEventType.PublishDocument],
-      icon: <PublishIcon />,
-      title: t("Document published"),
-      description: t(
-        "Receive a notification whenever a new document is published"
-      ),
-    },
-    {
-      events: [NotificationEventType.UpdateDocument],
-      icon: <EditIcon />,
-      title: t("Document updated"),
-      description: t(
-        "Receive a notification when a document you are subscribed to is edited"
-      ),
-    },
-    {
-      events: [NotificationEventType.CreateComment],
-      icon: <CommentIcon />,
-      title: t("Comment posted"),
-      description: t(
-        "Receive a notification when a document you are subscribed to or a thread you participated in receives a comment"
-      ),
-    },
-    {
-      events: [
-        NotificationEventType.MentionedInComment,
-        NotificationEventType.MentionedInDocument,
+      id: "documents",
+      title: t("Documents"),
+      options: [
+        {
+          events: [NotificationEventType.PublishDocument],
+          icon: <PublishIcon />,
+          title: t("Document published"),
+          description: t(
+            "Receive a notification whenever a new document is published"
+          ),
+        },
+        {
+          events: [NotificationEventType.UpdateDocument],
+          icon: <EditIcon />,
+          title: t("Document updated"),
+          description: t(
+            "Receive a notification when a document you are subscribed to is edited"
+          ),
+        },
+        {
+          events: [NotificationEventType.AddUserToDocument],
+          icon: <DocumentIcon />,
+          title: t("Invited to document"),
+          description: t(
+            "Receive a notification when a document is shared with you"
+          ),
+        },
+        {
+          events: [NotificationEventType.RequestDocumentAccess],
+          icon: <CheckboxIcon checked />,
+          title: t("Document access requested"),
+          description: t(
+            "Receive a notification when a user requests access to a document you manage"
+          ),
+        },
       ],
-      icon: <EmailIcon />,
-      title: t("Mentioned"),
-      description: t(
-        "Receive a notification when someone mentions you in a document or comment"
-      ),
     },
     {
-      events: [
-        NotificationEventType.GroupMentionedInDocument,
-        NotificationEventType.GroupMentionedInComment,
+      id: "comments",
+      title: t("Comments and mentions"),
+      options: [
+        {
+          events: [NotificationEventType.CreateComment],
+          icon: <CommentIcon />,
+          title: t("Comment posted"),
+          description: t(
+            "Receive a notification when a document you are subscribed to or a thread you participated in receives a comment"
+          ),
+        },
+        {
+          events: [
+            NotificationEventType.MentionedInComment,
+            NotificationEventType.MentionedInDocument,
+          ],
+          icon: <EmailIcon />,
+          title: t("Mentioned"),
+          description: t(
+            "Receive a notification when someone mentions you in a document or comment"
+          ),
+        },
+        {
+          events: [
+            NotificationEventType.GroupMentionedInDocument,
+            NotificationEventType.GroupMentionedInComment,
+          ],
+          icon: <GroupIcon />,
+          title: t("Group mentions"),
+          description: t(
+            "Receive a notification when someone mentions a group you are a member of in a document or comment"
+          ),
+        },
+        {
+          events: [NotificationEventType.ResolveComment],
+          icon: <DoneIcon />,
+          title: t("Resolved"),
+          description: t(
+            "Receive a notification when a comment thread you were involved in is resolved"
+          ),
+        },
+        {
+          events: [NotificationEventType.ReactionsCreate],
+          icon: <SmileyIcon />,
+          title: t("Reaction added"),
+          description: t(
+            "Receive a notification when someone reacts to your comment"
+          ),
+        },
       ],
-      icon: <GroupIcon />,
-      title: t("Group mentions"),
-      description: t(
-        "Receive a notification when someone mentions a group you are a member of in a document or comment"
-      ),
     },
     {
-      events: [NotificationEventType.ResolveComment],
-      icon: <DoneIcon />,
-      title: t("Resolved"),
-      description: t(
-        "Receive a notification when a comment thread you were involved in is resolved"
-      ),
+      id: "workspace",
+      title: t("Workspace"),
+      options: [
+        {
+          events: [NotificationEventType.CreateCollection],
+          icon: <CollectionIcon />,
+          title: t("Collection created"),
+          description: t(
+            "Receive a notification whenever a new collection is created"
+          ),
+        },
+        {
+          events: [NotificationEventType.AddUserToCollection],
+          icon: <CollectionIcon />,
+          title: t("Invited to collection"),
+          description: t(
+            "Receive a notification when you are given access to a collection"
+          ),
+        },
+        {
+          events: [NotificationEventType.AddUserToGroup],
+          icon: <GroupIcon />,
+          title: t("Group membership"),
+          description: t(
+            "Receive a notification when you are added to or removed from a group"
+          ),
+        },
+        {
+          events: [NotificationEventType.InviteAccepted],
+          icon: <UserIcon />,
+          title: t("Invite accepted"),
+          description: t(
+            "Receive a notification when someone you invited creates an account"
+          ),
+        },
+        {
+          events: [NotificationEventType.ExportCompleted],
+          icon: <CheckboxIcon checked />,
+          title: t("Export completed"),
+          description: t(
+            "Receive a notification when an export you requested has been completed"
+          ),
+        },
+      ],
     },
     {
-      events: [NotificationEventType.ReactionsCreate],
-      icon: <SmileyIcon />,
-      title: t("Reaction added"),
-      description: t(
-        "Receive a notification when someone reacts to your comment"
-      ),
-    },
-    {
-      events: [NotificationEventType.CreateCollection],
-      icon: <CollectionIcon />,
-      title: t("Collection created"),
-      description: t(
-        "Receive a notification whenever a new collection is created"
-      ),
-    },
-    {
-      events: [NotificationEventType.InviteAccepted],
-      icon: <UserIcon />,
-      title: t("Invite accepted"),
-      description: t(
-        "Receive a notification when someone you invited creates an account"
-      ),
-    },
-    {
-      events: [NotificationEventType.AddUserToDocument],
-      icon: <DocumentIcon />,
-      title: t("Invited to document"),
-      description: t(
-        "Receive a notification when a document is shared with you"
-      ),
-    },
-    {
-      events: [NotificationEventType.AddUserToCollection],
-      icon: <CollectionIcon />,
-      title: t("Invited to collection"),
-      description: t(
-        "Receive a notification when you are given access to a collection"
-      ),
-    },
-    {
-      events: [NotificationEventType.AddUserToGroup],
-      icon: <GroupIcon />,
-      title: t("Group membership"),
-      description: t(
-        "Receive a notification when you are added to or removed from a group"
-      ),
-    },
-    {
-      events: [NotificationEventType.ExportCompleted],
-      icon: <CheckboxIcon checked />,
-      title: t("Export completed"),
-      description: t(
-        "Receive a notification when an export you requested has been completed"
-      ),
-    },
-    {
-      events: [NotificationEventType.RequestDocumentAccess],
-      icon: <CheckboxIcon checked />,
-      title: t("Document access requested"),
-      description: t(
-        "Receive a notification when a user requests access to a document you manage"
-      ),
-    },
-    {
+      id: "product",
+      title: t("Product updates"),
       visible: isCloudHosted,
-      icon: <AcademicCapIcon />,
-      events: [NotificationEventType.Onboarding],
-      title: t("Getting started"),
-      description: t("Tips on getting started with features and functionality"),
-    },
-    {
-      visible: isCloudHosted,
-      icon: <StarredIcon />,
-      events: [NotificationEventType.Features],
-      title: t("New features"),
-      description: t("Receive an email when new features of note are added"),
+      options: [
+        {
+          icon: <AcademicCapIcon />,
+          events: [NotificationEventType.Onboarding],
+          title: t("Getting started"),
+          description: t(
+            "Tips on getting started with features and functionality"
+          ),
+        },
+        {
+          icon: <StarredIcon />,
+          events: [NotificationEventType.Features],
+          title: t("New features"),
+          description: t(
+            "Receive an email when new features of note are added"
+          ),
+        },
+      ],
     },
   ];
 
-  const visibleOptions = options.filter((o) => o.visible !== false);
+  const visibleGroups = groups.filter((group) => group.visible !== false);
+  const visibleEvents = visibleGroups.flatMap((group) =>
+    group.options.flatMap((option) => option.events)
+  );
 
   const showSuccessMessage = debounce(() => {
     toast.success(t("Notifications saved"));
@@ -177,8 +230,21 @@ function Notifications() {
 
   const handleChange = React.useCallback(
     (eventTypes: NotificationEventType[]) => async (checked: boolean) => {
+      const changed = eventTypes.filter(
+        (eventType) => user.subscribedToEventType(eventType) !== checked
+      );
+
+      // Update all switches at once, before the requests complete.
+      runInAction(() => {
+        const updated = { ...user.notificationSettings };
+        for (const eventType of changed) {
+          updated[eventType] = checked;
+        }
+        user.notificationSettings = updated;
+      });
+
       // Sequential, as each request saves the full settings object.
-      for (const eventType of eventTypes) {
+      for (const eventType of changed) {
         await user.setNotificationEventType(eventType, checked);
       }
       showSuccessMessage();
@@ -190,10 +256,8 @@ function Notifications() {
     async (checked: boolean) => {
       runInAction(() => {
         const updated = { ...user.notificationSettings };
-        for (const option of visibleOptions) {
-          for (const eventType of option.events) {
-            updated[eventType] = checked;
-          }
+        for (const eventType of visibleEvents) {
+          updated[eventType] = checked;
         }
         user.notificationSettings = updated;
       });
@@ -204,12 +268,13 @@ function Notifications() {
       );
       showSuccessMessage();
     },
-    [user, visibleOptions, showSuccessMessage]
+    [user, visibleEvents, showSuccessMessage]
   );
 
-  const allEnabled = visibleOptions.every((o) =>
-    o.events.every((eventType) => user.subscribedToEventType(eventType))
-  );
+  const isSubscribed = (eventTypes: NotificationEventType[]) =>
+    eventTypes.every((eventType) => user.subscribedToEventType(eventType));
+
+  const allEnabled = isSubscribed(visibleEvents);
 
   const showSuccessNotice = window.location.search === "?success";
 
@@ -241,33 +306,46 @@ function Notifications() {
         />
       </SettingRow>
 
-      {options.map((option) => {
-        const [name] = option.events;
-        const checked = option.events.every((eventType) =>
-          user.subscribedToEventType(eventType)
-        );
+      {visibleGroups.map((group) => {
+        const groupEvents = group.options.flatMap((option) => option.events);
 
         return (
-          <SettingRow
-            key={name}
-            visible={option.visible}
-            label={option.title}
-            name={name}
-            description={
-              <Text size="small" type="secondary">
-                {option.description}
-              </Text>
+          <SettingsSection
+            key={group.id}
+            title={group.title}
+            action={
+              <Switch
+                aria-label={group.title}
+                checked={isSubscribed(groupEvents)}
+                onChange={handleChange(groupEvents)}
+              />
             }
-            compact
           >
-            <Switch
-              key={name}
-              id={name}
-              name={name}
-              checked={checked}
-              onChange={handleChange(option.events)}
-            />
-          </SettingRow>
+            {group.options.map((option) => {
+              const [name] = option.events;
+
+              return (
+                <SettingRow
+                  key={name}
+                  label={option.title}
+                  name={name}
+                  description={
+                    <Text size="small" type="secondary">
+                      {option.description}
+                    </Text>
+                  }
+                  compact
+                >
+                  <Switch
+                    id={name}
+                    name={name}
+                    checked={isSubscribed(option.events)}
+                    onChange={handleChange(option.events)}
+                  />
+                </SettingRow>
+              );
+            })}
+          </SettingsSection>
         );
       })}
     </Scene>
