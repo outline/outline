@@ -17,7 +17,8 @@
     "./.oxlint/editor.mjs",
     "./.oxlint/koa.mjs",
     "./.oxlint/react-router.mjs",
-    "./.oxlint/classes.mjs"
+    "./.oxlint/classes.mjs",
+    "./.oxlint/node.mjs"
   ],
   "plugins": ["eslint", "typescript", "unicorn", "oxc", "vitest"],
   "rules": {
@@ -41,6 +42,7 @@
     "koa/no-request-origin": "error",
     "react-router/no-deferred-use-location": "error",
     "classes/no-private-identifier": "error",
+    "node-local/no-url-parse": "error",
     "for-direction": "error",
     "no-async-promise-executor": "error",
     "no-case-declarations": "error",
