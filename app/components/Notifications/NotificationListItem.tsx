@@ -105,16 +105,11 @@ function NotificationListItem({ notification, onNavigate }: Props) {
             )}
             <Text type="tertiary" size="xsmall">
               <Time dateTime={notification.createdAt} addSuffix />{" "}
-              {collection && <>&middot; {collection.displayName}</>}
+              {collection && <>&middot; {collection.displayName} </>}
               {fileOperation && <>&middot; {fileOperation.formatLabel}</>}
             </Text>
             {downloadUrl && (
-              <DownloadButton
-                forwardedAs="span"
-                icon={<DownloadIcon />}
-                aria-hidden
-                neutral
-              >
+              <DownloadButton forwardedAs="span" aria-hidden neutral>
                 {t("Download")}
               </DownloadButton>
             )}
