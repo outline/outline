@@ -72,23 +72,25 @@ function SharePopover({
   >(DocumentPermission.Read);
 
   // Only existing members and admins can be invited as owners, not groups.
+  const isOwnerCandidate = (id: string) => {
+    const pendingUser = users.get(id);
+    return (
+      !!pendingUser &&
+      (pendingUser.isAdmin || pendingUser.isMember) &&
+      !pendingUser.isSuspended
+    );
+  };
   const canInviteOwners =
-    !!can.manageOwners &&
-    pendingIds.every((id) => {
-      const pendingUser = users.get(id);
-      return (
-        !!pendingUser &&
-        (pendingUser.isAdmin || pendingUser.isMember) &&
-        !pendingUser.isSuspended
-      );
-    });
+    !!can.manageOwners && pendingIds.every(isOwnerCandidate);
 
-  // Users can add themselves to a document only as an owner.
+  // Users can add themselves to a document only as an owner, so they cannot
+  // be selected together with anyone that cannot be an owner.
+  const isSelfPending = pendingIds.includes(user.id);
   const canAddSelf =
     !!can.manageOwners &&
     (user.isAdmin || user.isMember) &&
-    !document.ownerIds.includes(user.id);
-  const isSelfPending = pendingIds.includes(user.id);
+    !document.ownerIds.includes(user.id) &&
+    (isSelfPending || pendingIds.every(isOwnerCandidate));
   const invitePermission =
     isSelfPending && canInviteOwners
       ? OwnerSelectValue
@@ -437,6 +439,7 @@ function SharePopover({
           ref={suggestionsRef}
           document={document}
           includeSelf={canAddSelf}
+          ownersOnly={isSelfPending}
           query={query}
           pendingIds={pendingIds}
           addPendingId={handleAddPendingId}

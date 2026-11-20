@@ -10046,7 +10046,13 @@ describe("document owners", () => {
         membership.userId,
         membership.permission,
       ])
-    ).toEqual([[owner.id, DocumentPermission.Admin]]);
+    ).toEqual(
+      expect.arrayContaining([
+        [owner.id, DocumentPermission.Admin],
+        [admin.id, DocumentPermission.Admin],
+      ])
+    );
+    expect(memberships).toHaveLength(2);
   });
 
   it("should add an owner with documents.add_user", async () => {

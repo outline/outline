@@ -304,11 +304,7 @@ export default async function documentCreator(
     reloaded.ownerIds = validatedOwnerIds;
     await reloaded.save({ ...ctx.context, silent: true });
 
-    // The acting user can already manage the document.
-    await reloaded.grantOwnerAccess(
-      ctx,
-      validatedOwnerIds.filter((id) => id !== user.id)
-    );
+    await reloaded.grantOwnerAccess(ctx, validatedOwnerIds);
   }
 
   return reloaded;

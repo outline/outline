@@ -157,11 +157,10 @@ export default async function documentUpdater(
     await document.saveWithCtx(ctx);
   }
 
-  // The acting user can already manage the document.
   if (document.ownerIds !== previousOwnerIds) {
     await document.grantOwnerAccess(
       ctx,
-      difference(document.ownerIds, [...previousOwnerIds, user.id])
+      difference(document.ownerIds, previousOwnerIds)
     );
   }
 

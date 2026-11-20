@@ -36,6 +36,8 @@ type Props = {
   collection?: Collection;
   /** Whether to suggest the current user when sharing a document. */
   includeSelf?: boolean;
+  /** Whether to only suggest users that can be owners, without groups. */
+  ownersOnly?: boolean;
   /** The search query to filter users by. */
   query: string;
   /** A list of pending user ids that have not yet been invited. */
@@ -54,6 +56,7 @@ export const Suggestions = observer(function Suggestions({
   document,
   collection,
   includeSelf,
+  ownersOnly,
   query,
   pendingIds,
   addPendingId,
@@ -104,7 +107,11 @@ export const Suggestions = observer(function Suggestions({
         : collection
           ? users.notInCollection(collection.id, query)
           : users.activeOrInvited
-    ).filter((u) => !u.isSuspended);
+    ).filter((u) => !u.isSuspended && (!ownersOnly || u.isAdmin || u.isMember));
+
+    if (ownersOnly) {
+      return filtered;
+    }
 
     if (isEmail(query) && !users.getByEmail(query)) {
       filtered.push(getSuggestionForEmail(query));
@@ -132,6 +139,7 @@ export const Suggestions = observer(function Suggestions({
     collection?.id,
     user.id,
     includeSelf,
+    ownersOnly,
     query,
     t,
   ]);

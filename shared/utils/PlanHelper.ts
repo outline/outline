@@ -26,7 +26,6 @@ export class PlanHelper {
     [Plan.Business]: Object.values(PlanFeature),
     [Plan.Enterprise]: Object.values(PlanFeature),
     [Plan.Legacy]: [
-      PlanFeature.DocumentOwners,
       PlanFeature.AuditLog,
       PlanFeature.AdvancedSecurity,
       PlanFeature.Guests,
