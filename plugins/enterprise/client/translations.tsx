@@ -17,7 +17,7 @@ export const Translations = () => (
     <Trans defaults={`Failed to save revision`} />
     <Trans defaults={`Invite to document`} />
     <Trans defaults={`Sorry, invalid embed link`} />
-    <Trans defaults={`Data Attributes`} />
+    <Trans defaults={`Data attributes`} />
     <Trans defaults={`Edit attribute`} />
     <Trans defaults={`Property`} />
     <Trans defaults={`Yes`} />
@@ -72,7 +72,7 @@ export const Translations = () => (
     <Trans defaults={`Text`} />
     <Trans defaults={`List`} />
     <Trans defaults={`Could not load events`} />
-    <Trans defaults={`Audit Log`} />
+    <Trans defaults={`Audit log`} />
     <Trans
       defaults={`The audit log details the history of security-related and other events across your knowledge base.`}
     />
