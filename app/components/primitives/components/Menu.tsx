@@ -2,6 +2,7 @@ import { ExpandedIcon } from "outline-icons";
 import { ellipsis } from "polished";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
+import { textSizeStyles } from "@shared/components/Text";
 import { breakpoint } from "@shared/styles/breakpoint";
 import { depths, s, borderRadius } from "@shared/styles";
 import Scrollable from "~/components/Scrollable";
@@ -128,13 +129,20 @@ export const MenuLabel = styled.div`
 `;
 
 export const MenuHeader = styled.h3`
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
+  ${textSizeStyles("small")}
+  font-weight: 500;
   color: ${s("sidebarText")};
-  letter-spacing: 0.04em;
   margin: 1em 12px 0.5em;
   user-select: none;
+
+  // Remove the top margin when nothing is above the header, except in the
+  // mobile drawer, which has less padding.
+  ${breakpoint("tablet")`
+    &:first-child:not([role="group"] > *),
+    [role="group"]:first-child > &:first-child {
+      margin-top: 0;
+    }
+  `}
 `;
 
 export const MenuDisclosure = styled(ExpandedIcon)`
