@@ -437,6 +437,15 @@ class Document extends ArchivableModel<
   @SkipChangeset
   state?: Uint8Array | null;
 
+  /**
+   * The generation of the collaborative state. It increments each time the
+   * state is replaced with a new state that has no edit history.
+   */
+  @Default(0)
+  @Column(DataType.INTEGER)
+  @SkipChangeset
+  stateGeneration: number;
+
   /** Whether this document is part of onboarding. */
   @Default(false)
   @Column(DataType.BOOLEAN)

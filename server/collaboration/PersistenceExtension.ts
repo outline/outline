@@ -6,6 +6,8 @@ import type {
   Extension,
 } from "@hocuspocus/server";
 import * as Y from "yjs";
+import { DocumentReset } from "@shared/collaboration/CloseEvents";
+import { parseDocumentName } from "@shared/collaboration/documentName";
 import { Day } from "@shared/utils/time";
 import { toError } from "@shared/utils/error";
 import Logger from "@server/logging/Logger";
@@ -36,6 +38,7 @@ export default class PersistenceExtension implements Extension {
     ...data
   }: withContext<onLoadDocumentPayload>) {
     const [, documentId] = documentName.split(".");
+    const stateGeneration = parseDocumentName(documentName)?.stateGeneration;
     const fieldName = "default";
 
     // Check if the given field already exists in the given y-doc. This is import
@@ -46,12 +49,18 @@ export default class PersistenceExtension implements Extension {
 
     // First, try to find the document without a lock to check if it has state
     const documentWithoutLock = await Document.unscoped().findOne({
-      attributes: ["state"],
+      attributes: ["state", "stateGeneration"],
       rejectOnEmpty: true,
       where: {
         id: documentId,
       },
     });
+
+    // The generation can change after the connection was accepted. State of
+    // another generation must not load into this room.
+    if (documentWithoutLock.stateGeneration !== stateGeneration) {
+      throw DocumentReset;
+    }
 
     // If the document already has state, we can return it without needing a transaction
     if (documentWithoutLock.state) {
@@ -218,8 +227,9 @@ export default class PersistenceExtension implements Extension {
     }
 
     try {
-      await documentCollaborativeUpdater({
+      const { reset } = await documentCollaborativeUpdater({
         documentId,
+        stateGeneration: parseDocumentName(documentName)?.stateGeneration ?? 0,
         ydoc: snapshot,
         collaborators: {
           ids: sessionCollaboratorIds,
@@ -230,6 +240,14 @@ export default class PersistenceExtension implements Extension {
       });
 
       this.persistFailureCounts.delete(documentName);
+
+      // The state in this room is no longer current, clients must discard it
+      // and connect to the room of the current generation.
+      if (reset) {
+        document
+          .getConnections()
+          .forEach((connection) => connection.close(DocumentReset));
+      }
     } catch (err) {
       const failures = (this.persistFailureCounts.get(documentName) ?? 0) + 1;
       const giveUp = failures >= PersistenceExtension.maxPersistFailures;
