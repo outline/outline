@@ -51,6 +51,7 @@ describe("toMenuItems", () => {
   it("removes a separator above a group", () => {
     const keys = render(undefined, [
       { type: "button", title: "Team", onClick: noop },
+      { type: "separator" },
       {
         type: "group",
         title: "Group",

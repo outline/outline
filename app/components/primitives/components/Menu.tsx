@@ -134,11 +134,13 @@ export const MenuHeader = styled.h3`
   margin: 1em 12px 0.5em;
   user-select: none;
 
-  // Remove the top margin when nothing is above the header, except in the
-  // mobile drawer, which has less padding.
+  // Remove the top margin when nothing visible is above the header, except in
+  // the mobile drawer, which has less padding.
   ${breakpoint("tablet")`
     &:first-child:not([role="group"] > *),
-    [role="group"]:first-child > &:first-child {
+    [data-menu-hidden]:first-child + &,
+    [role="group"]:first-child > &:first-child,
+    [data-menu-hidden]:first-child + [role="group"] > &:first-child {
       margin-top: 0;
     }
   `}
