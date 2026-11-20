@@ -54,6 +54,11 @@ export default class Attachment extends Node {
         height: {
           default: null,
         },
+        // Unset means locked, so only unlocked nodes store a value.
+        lockAspectRatio: {
+          default: null,
+          validate: "boolean|null",
+        },
         contentType: {
           default: null,
           validate: "string|null",
@@ -111,7 +116,7 @@ export default class Attachment extends Node {
       node: ProsemirrorNode;
       getPos: () => number | undefined;
     }) =>
-    ({ width }: { width: number; height?: number }) => {
+    ({ width, height }: { width: number; height?: number }) => {
       if (!node.attrs.preview) {
         return;
       }
@@ -125,10 +130,11 @@ export default class Attachment extends Node {
       }
 
       const $pos = doc.resolve(pos);
-      const dimensions = scalePDFDimensions(
-        resolvePDFDimensions(node.attrs.width, node.attrs.height),
-        width
-      );
+      const current = resolvePDFDimensions(node.attrs.width, node.attrs.height);
+      const dimensions =
+        node.attrs.lockAspectRatio !== false
+          ? scalePDFDimensions(current, width)
+          : { width, height: height ?? current.height };
 
       view.dispatch(tr.setSelection(new NodeSelection($pos)));
       commands["resizeAttachment"](dimensions);
@@ -265,6 +271,25 @@ export default class Attachment extends Node {
           .setNodeMarkup(state.selection.from, undefined, {
             ...attrs,
             preview: !attrs.preview,
+          })
+          .setMeta("addToHistory", true);
+        const $pos = transaction.doc.resolve(state.selection.from);
+        dispatch?.(transaction.setSelection(new NodeSelection($pos)));
+        return true;
+      },
+      toggleAttachmentAspectRatioLock: (): Command => (state, dispatch) => {
+        if (
+          !(state.selection instanceof NodeSelection) ||
+          !state.selection.node.attrs.preview
+        ) {
+          return false;
+        }
+
+        const { attrs } = state.selection.node;
+        const transaction = state.tr
+          .setNodeMarkup(state.selection.from, undefined, {
+            ...attrs,
+            lockAspectRatio: attrs.lockAspectRatio === false ? null : false,
           })
           .setMeta("addToHistory", true);
         const $pos = transaction.doc.resolve(state.selection.from);

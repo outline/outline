@@ -57,7 +57,7 @@ export function MediaDimension({ tooltip }: Props) {
 
   // Only PDFs can be unlocked, other media always render at their natural aspect ratio.
   const canUnlock = nodeType === "attachment";
-  const [isLocked, setIsLocked] = useState(true);
+  const isLocked = !canUnlock || node.attrs.lockAspectRatio !== false;
   const [maxWidth] = useState(() => contentWidth(view.dom));
 
   // Full-width images store their natural width, so the editor width gives their
@@ -211,9 +211,9 @@ export function MediaDimension({ tooltip }: Props) {
   ]);
 
   const handleToggleLock = useCallback(() => {
-    setIsLocked((prev) => !prev);
+    commands["toggleAttachmentAspectRatioLock"]();
     setError({ width: false, height: false });
-  }, []);
+  }, [commands]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -261,7 +261,9 @@ export function MediaDimension({ tooltip }: Props) {
 
       const dimensions =
         nodeType === "attachment"
-          ? scalePDFDimensions({ width, height }, newWidth)
+          ? isLocked
+            ? scalePDFDimensions({ width, height }, newWidth)
+            : { width: newWidth, height: newHeight ?? height }
           : { width: newWidth, height: newHeight };
 
       setLocalDimension({
@@ -275,7 +277,7 @@ export function MediaDimension({ tooltip }: Props) {
     return () => {
       window.removeEventListener("media-drag-resize", handleDragResize);
     };
-  }, [nodeType, width, height]);
+  }, [nodeType, width, height, isLocked]);
 
   // Debounce validation so errors are not shown while typing.
   useEffect(() => {

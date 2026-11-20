@@ -74,6 +74,8 @@ type Params = {
   ref: React.RefObject<HTMLDivElement | null>;
   /** Whether the element should scale symmetrically from the center. Defaults to true. */
   isCentered?: boolean;
+  /** The height to width ratio kept when resizing from a corner. Defaults to the natural ratio. */
+  aspectRatio?: number;
 };
 
 export default function useDragResize(props: Params): ReturnValue {
@@ -86,6 +88,9 @@ export default function useDragResize(props: Params): ReturnValue {
     ref,
     isCentered = true,
   } = props;
+  const aspectRatio =
+    props.aspectRatio ??
+    (naturalWidth ? naturalHeight / naturalWidth : undefined);
 
   // The committed size passed in through props is the source of truth. `draft`
   // holds the size being previewed while resizing and is released once the
@@ -166,8 +171,7 @@ export default function useDragResize(props: Params): ReturnValue {
         "bottomRight",
       ].includes(dragging || "");
 
-      if (isCorner && naturalHeight && naturalWidth) {
-        const aspectRatio = naturalHeight / naturalWidth;
+      if (isCorner && aspectRatio) {
         const hFactor = isCentered ? 0.5 : 1;
         const factor = isCentered ? 2 : 1;
         const dW =
@@ -180,7 +184,6 @@ export default function useDragResize(props: Params): ReturnValue {
         const factor = isCentered ? 2 : 1;
         const newWidth = sizeAtDragStart.width + diffX * factor;
         const constrainedWidth = constrainWidth(newWidth, maxWidth);
-        const aspectRatio = naturalHeight / naturalWidth;
 
         // When dragged to or beyond the editor edge, store the natural width as a
         // sentinel for "full width" so the element stays responsive. Only do this
@@ -192,7 +195,7 @@ export default function useDragResize(props: Params): ReturnValue {
             ? naturalWidth
             : constrainedWidth;
         const nextHeight = isCorner
-          ? naturalWidth
+          ? aspectRatio
             ? Math.round(constrainedWidth * aspectRatio)
             : undefined
           : sizeAtDragStart.height;
@@ -245,7 +248,7 @@ export default function useDragResize(props: Params): ReturnValue {
       maxWidth,
       gridHeightSnap,
       naturalWidth,
-      naturalHeight,
+      aspectRatio,
       minHeight,
       constrainWidth,
       isCentered,
