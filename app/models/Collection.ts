@@ -15,7 +15,10 @@ import {
   NavigationNodeType,
   type ProsemirrorData,
 } from "@shared/types";
-import { sortNavigationNodes } from "@shared/utils/collections";
+import {
+  filterNavigationNodes,
+  sortNavigationNodes,
+} from "@shared/utils/collections";
 import type CollectionsStore from "~/stores/CollectionsStore";
 import type Document from "~/models/Document";
 import { CoalescedFetch } from "~/models/base/CoalescedFetch";
@@ -189,6 +192,22 @@ export default class Collection extends ParanoidModel {
   @computed
   get isManualSort(): boolean {
     return this.sort.field === "index";
+  }
+
+  /**
+   * Returns the document structure without links, for consumers that only
+   * handle documents.
+   *
+   * @returns the document nodes, or undefined if not loaded.
+   */
+  @computed
+  get documentNodes(): NavigationNode[] | undefined {
+    return this.documents
+      ? filterNavigationNodes(
+          this.documents,
+          (node) => node.type !== NavigationNodeType.Link
+        )
+      : undefined;
   }
 
   @computed({ equals: comparer.structural })
@@ -385,7 +404,7 @@ export default class Collection extends ParanoidModel {
       title: this.name,
       color: this.color ?? undefined,
       icon: this.icon ?? undefined,
-      children: this.documents ?? [],
+      children: this.documentNodes ?? [],
       url: this.url,
     };
   }

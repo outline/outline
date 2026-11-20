@@ -2,11 +2,12 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import Icon from "@shared/components/Icon";
-import type { NavigationNode } from "@shared/types";
+import { NavigationNodeType, type NavigationNode } from "@shared/types";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
 import useStores from "~/hooks/useStores";
 import { sharedModelPath } from "~/utils/routeHelpers";
+import { ExternalLink } from "./ExternalLink";
 import { useSidebarExpansion } from "./SidebarExpansionContext";
 import SidebarLink from "./SidebarLink";
 
@@ -149,4 +150,15 @@ function DocumentLink({
   );
 }
 
-export const SharedDocumentLink = observer(DocumentLink);
+const ObservedDocumentLink = observer(DocumentLink);
+
+/**
+ * A row in the sidebar of a public share, for a document or a link.
+ */
+export function SharedDocumentLink(props: Props) {
+  return props.node.type === NavigationNodeType.Link ? (
+    <ExternalLink node={props.node} depth={props.depth} />
+  ) : (
+    <ObservedDocumentLink {...props} />
+  );
+}

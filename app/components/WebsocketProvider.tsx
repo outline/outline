@@ -242,6 +242,12 @@ function useEntityHandlers() {
             const collectionId = collectionDescriptor.id;
             const collection = collections.get(collectionId);
 
+            // Links are also shown in the trees of document memberships, which
+            // do not refresh with the collection.
+            if (/^collections\.\w+_link$/.test(event.event)) {
+              collections.refreshMembershipTrees(collectionId);
+            }
+
             // if we already have the latest version (it was us that performed
             // the change) then we don't need to update anything either.
             if (collection?.updatedAt === collectionDescriptor.updatedAt) {

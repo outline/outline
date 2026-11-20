@@ -28,7 +28,8 @@ const serverSearchDelay = 350;
  * document for document shares – only the latter are searchable.
  */
 const isDocumentNode = (node: NavigationNode) =>
-  node.type !== NavigationNodeType.Collection;
+  node.type !== NavigationNodeType.Collection &&
+  node.type !== NavigationNodeType.Link;
 
 /**
  * Registers search result actions in the command bar scoped to a public share.

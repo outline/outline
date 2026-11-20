@@ -186,6 +186,7 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
   const contextMenuAction = useDocumentMenuAction({
     documentId: document.id,
     onRename: handleRename,
+    isSidebar: true,
   });
 
   const isActive = React.useCallback(
@@ -206,6 +207,7 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
   const menu = (
     <DocumentMenu
       document={document}
+      isSidebar
       onRename={handleRename}
       onOpen={handleMenuOpen}
       onClose={handleMenuClose}
@@ -329,11 +331,13 @@ const StarredCollectionLink = observer(function StarredCollectionLink({
   const contextMenuAction = useCollectionMenuAction({
     collectionId: collection.id,
     onRename: handleRename,
+    isSidebar: true,
   });
 
   const menu = !isDraggingAnyStar ? (
     <CollectionMenu
       collection={collection}
+      isSidebar
       onRename={handleRename}
       onOpen={handleMenuOpen}
       onClose={handleMenuClose}

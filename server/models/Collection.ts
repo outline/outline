@@ -52,7 +52,14 @@ import type {
 } from "@shared/types";
 import { CollectionPermission, NavigationNodeType } from "@shared/types";
 import { UrlHelper } from "@shared/utils/UrlHelper";
-import { sortNavigationNodes } from "@shared/utils/collections";
+import {
+  findNavigationNode,
+  insertNavigationNode,
+  moveNavigationNode,
+  removeNavigationNode,
+  updateNavigationNode,
+  sortNavigationNodes,
+} from "@shared/utils/collections";
 import slugify from "@server/utils/slugify";
 import {
   CollectionValidation,
@@ -1250,6 +1257,9 @@ class Collection extends ParanoidModel<
     const allDocumentIds: string[] = [];
 
     const loopChildren = (node: NavigationNode) => {
+      if (node.type === NavigationNodeType.Link) {
+        return;
+      }
       allDocumentIds.push(node.id);
       (node.children ?? []).forEach((childNode) => {
         loopChildren(childNode);
@@ -1259,6 +1269,113 @@ class Collection extends ParanoidModel<
     this.documentStructure.forEach(loopChildren);
     return allDocumentIds;
   };
+
+  /**
+   * Finds a link node in the documentStructure.
+   *
+   * @param linkId the id of the link node.
+   * @returns the link node and the id of its parent document, or undefined if not found.
+   */
+  findLinkInStructure = (
+    linkId: string
+  ): { node: NavigationNode; parentDocumentId?: string } | undefined => {
+    const result = findNavigationNode(this.documentStructure ?? [], linkId);
+    return result && result.node.type === NavigationNodeType.Link
+      ? { node: result.node, parentDocumentId: result.parentId }
+      : undefined;
+  };
+
+  /**
+   * Adds a link node to the documentStructure.
+   *
+   * @param node the link node to add.
+   * @param parentDocumentId the id of the parent document, or undefined for the root.
+   * @param index the position among the siblings, defaults to the end.
+   * @param options options passed to save.
+   * @returns the updated collection.
+   * @throws ValidationError if the parent document is not found.
+   */
+  addLinkToStructure = (
+    node: NavigationNode,
+    parentDocumentId: string | undefined,
+    index: number | undefined,
+    options?: { transaction?: Transaction | null }
+  ) =>
+    this.saveStructure(
+      insertNavigationNode(
+        this.documentStructure ?? [],
+        node,
+        parentDocumentId,
+        index
+      ),
+      options
+    );
+
+  /**
+   * Updates the title and url of a link node in the documentStructure.
+   *
+   * @param linkId the id of the link node.
+   * @param attributes the attributes to update.
+   * @param options options passed to save.
+   * @returns the updated collection.
+   * @throws ValidationError if the link is not found.
+   */
+  updateLinkInStructure = (
+    linkId: string,
+    attributes: Partial<Pick<NavigationNode, "title" | "url">>,
+    options?: { transaction?: Transaction | null }
+  ) =>
+    this.saveStructure(
+      updateNavigationNode(this.documentStructure ?? [], linkId, (node) => ({
+        ...node,
+        title: attributes.title ?? node.title,
+        url: attributes.url ?? node.url,
+      })),
+      options
+    );
+
+  /**
+   * Moves a link node to a new position in the documentStructure.
+   *
+   * @param linkId the id of the link node.
+   * @param parentDocumentId the id of the new parent document, or undefined for the root.
+   * @param index the position among the new siblings, defaults to the end.
+   * @param options options passed to save.
+   * @returns the updated collection.
+   * @throws ValidationError if the link or parent is not found.
+   */
+  moveLinkInStructure = (
+    linkId: string,
+    parentDocumentId: string | undefined,
+    index: number | undefined,
+    options?: { transaction?: Transaction | null }
+  ) =>
+    this.saveStructure(
+      moveNavigationNode(
+        this.documentStructure ?? [],
+        linkId,
+        parentDocumentId,
+        index
+      ),
+      options
+    );
+
+  /**
+   * Removes a link node from the documentStructure.
+   *
+   * @param linkId the id of the link node.
+   * @param options options passed to save.
+   * @returns the updated collection.
+   * @throws ValidationError if the link is not found.
+   */
+  removeLinkFromStructure = (
+    linkId: string,
+    options?: { transaction?: Transaction | null }
+  ) =>
+    this.saveStructure(
+      removeNavigationNode(this.documentStructure ?? [], linkId)?.nodes,
+      options
+    );
 
   /**
    * Returns a JSON representation of this collection suitable for use in the frontend navigation.
@@ -1274,6 +1391,27 @@ class Collection extends ParanoidModel<
     color: isNil(this.color) ? undefined : this.color,
     children: sortNavigationNodes(this.documentStructure ?? [], this.sort),
   });
+
+  /**
+   * Saves a changed documentStructure.
+   *
+   * @param structure the new structure, or undefined if the change failed.
+   * @param options options passed to save.
+   * @returns the updated collection.
+   * @throws ValidationError if the structure is undefined.
+   */
+  private saveStructure = async (
+    structure: NavigationNode[] | undefined,
+    options?: { transaction?: Transaction | null }
+  ) => {
+    if (!structure) {
+      throw ValidationError("Link or parent document not found");
+    }
+
+    this.documentStructure = structure;
+    this.changed("documentStructure", true);
+    return this.save({ ...options, fields: ["documentStructure"] });
+  };
 }
 
 export default Collection;

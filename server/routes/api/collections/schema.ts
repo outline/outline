@@ -6,10 +6,14 @@ import {
   CollectionStatusFilter,
   FileOperationFormat,
 } from "@shared/types";
-import { DeprecationValidation } from "@shared/validations";
+import { isUrl } from "@shared/utils/urls";
+import {
+  DeprecationValidation,
+  NavigationLinkValidation,
+} from "@shared/validations";
 import { Collection } from "@server/models";
 import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
-import { ValidateColor, ValidateIndex } from "@server/validation";
+import { ValidateColor, ValidateIndex, ValidateURL } from "@server/validation";
 import { BaseSchema, ProsemirrorSchema } from "../schema";
 
 const BaseIdSchema = z.object({
@@ -313,3 +317,75 @@ export const CollectionsMoveSchema = BaseSchema.extend({
 });
 
 export type CollectionsMoveReq = z.infer<typeof CollectionsMoveSchema>;
+
+const LinkTitleSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(NavigationLinkValidation.maxTitleLength);
+
+const LinkUrlSchema = z
+  .string()
+  .trim()
+  .max(NavigationLinkValidation.maxUrlLength)
+  .refine((url) => isUrl(url), { message: ValidateURL.message });
+
+/** Links are changed by collection id, so that it can be compared to the parent's. */
+const LinkCollectionIdSchema = z.object({
+  /** Id of the collection that contains the link. */
+  id: z.uuid(),
+});
+
+export const CollectionsAddLinkSchema = BaseSchema.extend({
+  body: LinkCollectionIdSchema.extend({
+    /** Id of the document to add the link below, if any. */
+    parentDocumentId: z.uuid().nullish(),
+    /** Title of the link. */
+    title: LinkTitleSchema,
+    /** External url that the link points to. */
+    url: LinkUrlSchema,
+    /** Position among the siblings, defaults to the end. */
+    index: z.number().int().gte(0).optional(),
+  }),
+});
+
+export type CollectionsAddLinkReq = z.infer<typeof CollectionsAddLinkSchema>;
+
+export const CollectionsUpdateLinkSchema = BaseSchema.extend({
+  body: LinkCollectionIdSchema.extend({
+    /** Id of the link to update. */
+    linkId: z.uuid(),
+    /** Title of the link. */
+    title: LinkTitleSchema.optional(),
+    /** External url that the link points to. */
+    url: LinkUrlSchema.optional(),
+  }),
+});
+
+export type CollectionsUpdateLinkReq = z.infer<
+  typeof CollectionsUpdateLinkSchema
+>;
+
+export const CollectionsMoveLinkSchema = BaseSchema.extend({
+  body: LinkCollectionIdSchema.extend({
+    /** Id of the link to move. */
+    linkId: z.uuid(),
+    /** Id of the new parent document, or null for the root of the collection. */
+    parentDocumentId: z.uuid().nullish(),
+    /** Position among the new siblings, defaults to the end. */
+    index: z.number().int().gte(0).optional(),
+  }),
+});
+
+export type CollectionsMoveLinkReq = z.infer<typeof CollectionsMoveLinkSchema>;
+
+export const CollectionsRemoveLinkSchema = BaseSchema.extend({
+  body: LinkCollectionIdSchema.extend({
+    /** Id of the link to remove. */
+    linkId: z.uuid(),
+  }),
+});
+
+export type CollectionsRemoveLinkReq = z.infer<
+  typeof CollectionsRemoveLinkSchema
+>;
