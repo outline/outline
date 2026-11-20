@@ -7,7 +7,9 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
 import Tooltip from "~/components/Tooltip";
+import { toggleAspectRatioLock } from "@shared/editor/commands/toggleAspectRatioLock";
 import Input from "~/editor/components/Input";
+import { AspectRatioLockButton } from "./AspectRatioLockButton";
 import ToolbarButton from "./ToolbarButton";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 
@@ -51,6 +53,12 @@ export function MediaLinkEditor({
     dispatch(state.tr.setSelection(selection));
     view.focus();
   }, [view]);
+
+  const handleToggleLock = useCallback(() => {
+    if (node) {
+      toggleAspectRatioLock(node.type)(view.state, view.dispatch);
+    }
+  }, [node, view]);
 
   const openLink = useCallback(() => {
     window.open(url, "_blank");
@@ -115,6 +123,14 @@ export function MediaLinkEditor({
         onKeyDown={handleKeyDown}
         readOnly={!view.editable}
       />
+      {view.editable && node.type.name === "embed" && (
+        <Tooltip content={t("Lock aspect ratio")}>
+          <AspectRatioLockButton
+            isLocked={node.attrs.lockAspectRatio !== false}
+            onClick={handleToggleLock}
+          />
+        </Tooltip>
+      )}
       <Tooltip content={t("Open link")}>
         <ToolbarButton onClick={openLink} disabled={!localUrl}>
           <OpenIcon />

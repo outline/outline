@@ -5,7 +5,8 @@ import { getMatchingEmbed } from "../lib/embeds";
 import type { ComponentProps } from "../types";
 import DisabledEmbed from "./DisabledEmbed";
 import Frame from "./Frame";
-import { ResizeBottom, ResizeLeft, ResizeRight } from "./ResizeHandle";
+import { contentWidth } from "../lib/contentWidth";
+import { ResizeHandles, ResizeLeft, ResizeRight } from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
 
 type Props = ComponentProps & {
@@ -22,32 +23,49 @@ const Embed = (props: Props) => {
   const naturalHeight = 400;
   const isResizable = !!onChangeSize && !embedsDisabled;
 
-  const { width, height, handlePointerDown, dragging } = useDragResize({
-    width: node.attrs.width ?? naturalWidth,
-    height: node.attrs.height ?? naturalHeight,
-    naturalWidth,
-    naturalHeight,
-    onChangeSize,
-    ref,
-  });
+  // A width at the editor edge is stored as unset, so the embed stays full width.
+  const handleChangeSize = React.useCallback(
+    (size: { width: number; height?: number }) => {
+      const max = ref.current ? contentWidth(ref.current) : Infinity;
+      onChangeSize?.({
+        ...size,
+        width: size.width >= max ? naturalWidth : size.width,
+      });
+    },
+    [onChangeSize]
+  );
+
+  const { width, height, handlePointerDown, handleDoubleClick, dragging } =
+    useDragResize({
+      width: node.attrs.width ?? naturalWidth,
+      height: node.attrs.height ?? naturalHeight,
+      naturalWidth,
+      naturalHeight,
+      isLocked: node.attrs.lockAspectRatio !== false,
+      onChangeSize: onChangeSize ? handleChangeSize : undefined,
+      ref,
+    });
 
   const style: React.CSSProperties = {
-    width: width || "100%",
+    width: "100%",
     height: height || 400,
-    maxWidth: "100%",
     pointerEvents: dragging ? "none" : "all",
   };
 
+  // The wrapper takes the width so the resize handles sit on the frame edges.
   return (
-    <FrameWrapper ref={ref} $dragging={!!dragging}>
+    <FrameWrapper
+      ref={ref}
+      $dragging={!!dragging}
+      style={{ width: width || "100%" }}
+    >
       <InnerEmbed style={style} {...props} />
       {isEditable && isResizable && (
-        <>
-          <ResizeBottom
-            onPointerDown={handlePointerDown("bottom")}
-            $dragging={!!dragging}
-          />
-        </>
+        <ResizeHandles
+          onPointerDown={handlePointerDown}
+          onDoubleClick={handleDoubleClick}
+          isVisible={!!dragging}
+        />
       )}
     </FrameWrapper>
   );

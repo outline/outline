@@ -12,11 +12,12 @@ import type { Primitive } from "utility-types";
 import { bytesToHumanReadable, getEventFiles } from "../../utils/files";
 import { sanitizeUrl } from "../../utils/urls";
 import insertFiles from "../commands/insertFiles";
+import { toggleAspectRatioLock } from "../commands/toggleAspectRatioLock";
 import toggleWrap from "../commands/toggleWrap";
 import FileExtension from "../components/FileExtension";
 import Widget from "../components/Widget";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
-import { resolvePDFDimensions, scalePDFDimensions } from "../lib/pdf";
+import { resolvePDFDimensions } from "../lib/pdf";
 import { isPDFAttachment } from "../queries/isPDFAttachment";
 import attachmentsRule from "../rules/links";
 import type { ComponentProps } from "../types";
@@ -130,11 +131,7 @@ export default class Attachment extends Node {
       }
 
       const $pos = doc.resolve(pos);
-      const current = resolvePDFDimensions(node.attrs.width, node.attrs.height);
-      const dimensions =
-        node.attrs.lockAspectRatio !== false
-          ? scalePDFDimensions(current, width)
-          : { width, height: height ?? current.height };
+      const dimensions = resolvePDFDimensions(width, height);
 
       view.dispatch(tr.setSelection(new NodeSelection($pos)));
       commands["resizeAttachment"](dimensions);
@@ -277,25 +274,10 @@ export default class Attachment extends Node {
         dispatch?.(transaction.setSelection(new NodeSelection($pos)));
         return true;
       },
-      toggleAttachmentAspectRatioLock: (): Command => (state, dispatch) => {
-        if (
-          !(state.selection instanceof NodeSelection) ||
-          !state.selection.node.attrs.preview
-        ) {
-          return false;
-        }
-
-        const { attrs } = state.selection.node;
-        const transaction = state.tr
-          .setNodeMarkup(state.selection.from, undefined, {
-            ...attrs,
-            lockAspectRatio: attrs.lockAspectRatio === false ? null : false,
-          })
-          .setMeta("addToHistory", true);
-        const $pos = transaction.doc.resolve(state.selection.from);
-        dispatch?.(transaction.setSelection(new NodeSelection($pos)));
-        return true;
-      },
+      toggleAttachmentAspectRatioLock: (): Command => (state, dispatch) =>
+        state.selection instanceof NodeSelection &&
+        !!state.selection.node.attrs.preview &&
+        toggleAspectRatioLock(type)(state, dispatch),
       resizeAttachment:
         ({ width, height }: { width: number; height?: number }): Command =>
         (state, dispatch) => {

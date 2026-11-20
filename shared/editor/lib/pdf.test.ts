@@ -1,9 +1,4 @@
-import {
-  pdfNaturalHeight,
-  pdfNaturalWidth,
-  resolvePDFDimensions,
-  scalePDFDimensions,
-} from "./pdf";
+import { pdfNaturalHeight, pdfNaturalWidth, resolvePDFDimensions } from "./pdf";
 
 describe("resolvePDFDimensions", () => {
   it("returns the natural dimensions when none are stored", () => {
@@ -24,15 +19,6 @@ describe("resolvePDFDimensions", () => {
     expect(resolvePDFDimensions(384)).toEqual({
       width: 384,
       height: pdfNaturalHeight / 2,
-    });
-  });
-});
-
-describe("scalePDFDimensions", () => {
-  it("keeps the aspect ratio of the given dimensions", () => {
-    expect(scalePDFDimensions({ width: 700, height: 400 }, 350)).toEqual({
-      width: 350,
-      height: 200,
     });
   });
 });

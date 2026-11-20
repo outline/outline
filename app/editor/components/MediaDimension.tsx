@@ -1,8 +1,7 @@
 import type { NodeSelection } from "prosemirror-state";
 import * as Toolbar from "@radix-ui/react-toolbar";
-import { PadlockIcon } from "outline-icons";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import styled, { useTheme } from "styled-components";
+import styled from "styled-components";
 import Flex from "@shared/components/Flex";
 import Text from "@shared/components/Text";
 import { contentWidth } from "@shared/editor/lib/contentWidth";
@@ -10,13 +9,11 @@ import {
   pdfNaturalHeight,
   pdfNaturalWidth,
   resolvePDFDimensions,
-  scalePDFDimensions,
 } from "@shared/editor/lib/pdf";
 import { extraArea } from "@shared/styles";
-import { UnlockedPadlockIcon } from "~/components/Icons/UnlockedPadlockIcon";
 import Input, { NativeInput, Outline } from "~/components/Input";
 import { useEditor } from "./EditorContext";
-import ToolbarButton from "./ToolbarButton";
+import { AspectRatioLockButton } from "./AspectRatioLockButton";
 import Tooltip from "./Tooltip";
 import { useTranslation } from "react-i18next";
 
@@ -40,7 +37,6 @@ interface Props {
 export function MediaDimension({ tooltip }: Props) {
   const isDraggingRef = useRef(false);
   const { t } = useTranslation();
-  const theme = useTheme();
   const { view, commands } = useEditor();
   const { state } = view;
   const { selection } = state;
@@ -261,9 +257,7 @@ export function MediaDimension({ tooltip }: Props) {
 
       const dimensions =
         nodeType === "attachment"
-          ? isLocked
-            ? scalePDFDimensions({ width, height }, newWidth)
-            : { width: newWidth, height: newHeight ?? height }
+          ? resolvePDFDimensions(newWidth, newHeight)
           : { width: newWidth, height: newHeight };
 
       setLocalDimension({
@@ -277,7 +271,7 @@ export function MediaDimension({ tooltip }: Props) {
     return () => {
       window.removeEventListener("media-drag-resize", handleDragResize);
     };
-  }, [nodeType, width, height, isLocked]);
+  }, [nodeType]);
 
   // Debounce validation so errors are not shown while typing.
   useEffect(() => {
@@ -301,8 +295,6 @@ export function MediaDimension({ tooltip }: Props) {
 
     return () => clearTimeout(timeout);
   }, [width, height, localDimension, isOutsideBounds]);
-
-  const lockLabel = t("Lock aspect ratio");
 
   return (
     <StyledFlex align="center">
@@ -334,19 +326,12 @@ export function MediaDimension({ tooltip }: Props) {
         </Flex>
       </Tooltip>
       {canUnlock && (
-        <Tooltip content={lockLabel}>
+        <Tooltip content={t("Lock aspect ratio")}>
           <Toolbar.Button asChild>
-            <LockButton
+            <AspectRatioLockButton
+              isLocked={isLocked}
               onClick={handleToggleLock}
-              aria-label={lockLabel}
-              aria-pressed={isLocked}
-            >
-              {isLocked ? (
-                <PadlockIcon size={18} />
-              ) : (
-                <UnlockedPadlockIcon size={18} color={theme.textTertiary} />
-              )}
-            </LockButton>
+            />
           </Toolbar.Button>
         </Tooltip>
       )}
@@ -378,8 +363,4 @@ const StyledInput = styled(Input)<{ $error?: boolean }>`
 
     ${(props) => props.$error && `color: ${props.theme.danger}`};
   }
-`;
-
-const LockButton = styled(ToolbarButton)`
-  justify-content: center;
 `;

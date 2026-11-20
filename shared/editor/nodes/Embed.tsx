@@ -11,6 +11,7 @@ import { NodeSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import type { Primitive } from "utility-types";
 import { sanitizeUrl } from "../../utils/urls";
+import { toggleAspectRatioLock } from "../commands/toggleAspectRatioLock";
 import EmbedComponent from "../components/Embed";
 import defaultEmbeds from "../embeds";
 import { getMatchingEmbed, transformListToEmbeds } from "../lib/embeds";
@@ -40,6 +41,11 @@ export default class Embed extends Node {
         },
         height: {
           default: null,
+        },
+        // Unset means locked, so only unlocked nodes store a value.
+        lockAspectRatio: {
+          default: null,
+          validate: "boolean|null",
         },
       },
       parseDOM: [
@@ -143,6 +149,7 @@ export default class Embed extends Node {
 
   commands({ type }: { type: NodeType }) {
     return {
+      toggleEmbedAspectRatioLock: (): Command => toggleAspectRatioLock(type),
       embed:
         (attrs: Record<string, Primitive>): Command =>
         (state, dispatch) => {

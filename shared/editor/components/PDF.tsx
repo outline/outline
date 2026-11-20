@@ -2,14 +2,7 @@ import React, { useCallback, useRef } from "react";
 import { useMergeRefs } from "react-merge-refs";
 import styled from "styled-components";
 import useDragResize from "./hooks/useDragResize";
-import {
-  ResizeBottomLeft,
-  ResizeBottomRight,
-  ResizeLeft,
-  ResizeRight,
-  ResizeTopLeft,
-  ResizeTopRight,
-} from "./ResizeHandle";
+import { ResizeHandles, ResizeLeft, ResizeRight } from "./ResizeHandle";
 import type { ComponentProps } from "../types";
 import { isFirefox } from "../../utils/browser";
 import { sanitizeUrl } from "../../utils/urls";
@@ -42,15 +35,17 @@ export default function PdfViewer(props: Props) {
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const dimensions = resolvePDFDimensions(node.attrs.width, node.attrs.height);
 
-  const { width, height, handlePointerDown, dragging } = useDragResize({
-    width: node.attrs.width,
-    height: dimensions.height,
-    naturalWidth: pdfNaturalWidth,
-    naturalHeight: pdfNaturalHeight,
-    aspectRatio: dimensions.height / dimensions.width,
-    onChangeSize,
-    ref,
-  });
+  const { width, height, handlePointerDown, handleDoubleClick, dragging } =
+    useDragResize({
+      width: node.attrs.width,
+      height: dimensions.height,
+      naturalWidth: pdfNaturalWidth,
+      naturalHeight: pdfNaturalHeight,
+      aspectRatio: dimensions.height / dimensions.width,
+      isLocked: node.attrs.lockAspectRatio !== false,
+      onChangeSize,
+      ref,
+    });
 
   // force embed to reload, so the content fits the new size.
   const observeRef = useCallback(
@@ -122,42 +117,19 @@ export default function PdfViewer(props: Props) {
         style={{
           width: "100%",
           height: "auto",
-          aspectRatio:
-            node.attrs.lockAspectRatio !== false
-              ? `${dimensions.width} / ${dimensions.height}`
-              : `${width ?? dimensions.width} / ${height ?? dimensions.height}`,
+          aspectRatio: `${width ?? dimensions.width} / ${height ?? dimensions.height}`,
           pointerEvents:
             !isEditable || (isSelected && !dragging) ? "initial" : "none",
           marginTop: 6,
         }}
       />
       {isEditable && !!props.onChangeSize && (
-        <>
-          <ResizeLeft
-            onPointerDown={handlePointerDown("left")}
-            $dragging={!!(isSelected || dragging)}
-          />
-          <ResizeRight
-            onPointerDown={handlePointerDown("right")}
-            $dragging={!!(isSelected || dragging)}
-          />
-          <ResizeTopLeft
-            onPointerDown={handlePointerDown("topLeft")}
-            $dragging={!!dragging}
-          />
-          <ResizeTopRight
-            onPointerDown={handlePointerDown("topRight")}
-            $dragging={!!dragging}
-          />
-          <ResizeBottomLeft
-            onPointerDown={handlePointerDown("bottomLeft")}
-            $dragging={!!dragging}
-          />
-          <ResizeBottomRight
-            onPointerDown={handlePointerDown("bottomRight")}
-            $dragging={!!dragging}
-          />
-        </>
+        <ResizeHandles
+          onPointerDown={handlePointerDown}
+          onDoubleClick={handleDoubleClick}
+          isVisible={!!(isSelected || dragging)}
+          isInset
+        />
       )}
     </PDFWrapper>
   );
@@ -185,23 +157,6 @@ const PDFWrapper = styled.div<{ $dragging: boolean }>`
     transition-duration: ${(props) => (props.$dragging ? "0ms" : "120ms")};
     transition-timing-function: ease-in-out;
     will-change: ${(props) => (props.$dragging ? "width, height" : "auto")};
-  }
-
-  /* The wrapper clips overflow, so corners sit inside it rather than on the edge. */
-  ${ResizeTopLeft}, ${ResizeTopRight} {
-    top: 0;
-  }
-
-  ${ResizeBottomLeft}, ${ResizeBottomRight} {
-    bottom: 0;
-  }
-
-  ${ResizeTopLeft}, ${ResizeBottomLeft} {
-    left: 0;
-  }
-
-  ${ResizeTopRight}, ${ResizeBottomRight} {
-    right: 0;
   }
 
   &:hover {
