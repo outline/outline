@@ -16,7 +16,7 @@ import toggleWrap from "../commands/toggleWrap";
 import FileExtension from "../components/FileExtension";
 import Widget from "../components/Widget";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
-import { resolvePDFDimensions } from "../lib/pdf";
+import { resolvePDFDimensions, scalePDFDimensions } from "../lib/pdf";
 import { isPDFAttachment } from "../queries/isPDFAttachment";
 import attachmentsRule from "../rules/links";
 import type { ComponentProps } from "../types";
@@ -125,7 +125,10 @@ export default class Attachment extends Node {
       }
 
       const $pos = doc.resolve(pos);
-      const dimensions = resolvePDFDimensions(width);
+      const dimensions = scalePDFDimensions(
+        resolvePDFDimensions(node.attrs.width, node.attrs.height),
+        width
+      );
 
       view.dispatch(tr.setSelection(new NodeSelection($pos)));
       commands["resizeAttachment"](dimensions);

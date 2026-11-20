@@ -10,7 +10,11 @@ import Flex from "../../components/Flex";
 import { s } from "../../styles";
 import { Preview, Subtitle, Title } from "./Widget";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
-import { pdfNaturalHeight, pdfNaturalWidth } from "../lib/pdf";
+import {
+  pdfNaturalHeight,
+  pdfNaturalWidth,
+  resolvePDFDimensions,
+} from "../lib/pdf";
 
 type Props = ComponentProps & {
   /** Icon to display on the left side of the widget */
@@ -29,6 +33,7 @@ export default function PdfViewer(props: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const embedRef = useRef<HTMLEmbedElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const dimensions = resolvePDFDimensions(node.attrs.width, node.attrs.height);
 
   const { width, handlePointerDown, dragging } = useDragResize({
     width: node.attrs.width,
@@ -109,7 +114,7 @@ export default function PdfViewer(props: Props) {
         style={{
           width: "100%",
           height: "auto",
-          aspectRatio: `${pdfNaturalWidth} / ${pdfNaturalHeight}`,
+          aspectRatio: `${dimensions.width} / ${dimensions.height}`,
           pointerEvents:
             !isEditable || (isSelected && !dragging) ? "initial" : "none",
           marginTop: 6,

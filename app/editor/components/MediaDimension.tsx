@@ -1,13 +1,23 @@
 import type { NodeSelection } from "prosemirror-state";
-import { useCallback, useEffect, useRef, useState } from "react";
-import styled from "styled-components";
+import * as Toolbar from "@radix-ui/react-toolbar";
+import { PadlockIcon } from "outline-icons";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import styled, { useTheme } from "styled-components";
 import Flex from "@shared/components/Flex";
 import Text from "@shared/components/Text";
 import { contentWidth } from "@shared/editor/lib/contentWidth";
-import { resolvePDFDimensions } from "@shared/editor/lib/pdf";
+import {
+  pdfNaturalHeight,
+  pdfNaturalWidth,
+  resolvePDFDimensions,
+  scalePDFDimensions,
+} from "@shared/editor/lib/pdf";
 import { extraArea } from "@shared/styles";
+import { UnlockedPadlockIcon } from "~/components/Icons/UnlockedPadlockIcon";
 import Input, { NativeInput, Outline } from "~/components/Input";
 import { useEditor } from "./EditorContext";
+import ToolbarButton from "./ToolbarButton";
+import Tooltip from "./Tooltip";
 import { useTranslation } from "react-i18next";
 
 type Dimension = {
@@ -16,16 +26,21 @@ type Dimension = {
   changed: "width" | "height" | "none";
 };
 
-export function MediaDimension() {
+interface Props {
+  /** Tooltip shown when the dimension inputs are hovered. */
+  tooltip?: string;
+}
+
+/**
+ * Toolbar inputs to change the width and height of the selected media node.
+ *
+ * @param props - the component props.
+ * @returns the dimension inputs.
+ */
+export function MediaDimension({ tooltip }: Props) {
   const isDraggingRef = useRef(false);
-  const boundsRef = useRef<
-    | {
-        width: { min: number; max: number };
-        height: { min: number; max: number };
-      }
-    | undefined
-  >(undefined);
   const { t } = useTranslation();
+  const theme = useTheme();
   const { view, commands } = useEditor();
   const { state } = view;
   const { selection } = state;
@@ -40,6 +55,16 @@ export function MediaDimension() {
       ? resolvePDFDimensions(nodeWidth, nodeHeight)
       : { width: nodeWidth ?? 0, height: nodeHeight ?? 0 };
 
+  // Only PDFs can be unlocked, other media always render at their natural aspect ratio.
+  const canUnlock = nodeType === "attachment";
+  const [isLocked, setIsLocked] = useState(true);
+  const [maxWidth] = useState(() => contentWidth(view.dom));
+
+  // Full-width images store their natural width, so the editor width gives their
+  // aspect ratio. PDFs always store dimensions with a matching ratio.
+  const ratioWidth =
+    nodeType === "attachment" ? width : Math.min(width, maxWidth);
+
   const [localDimension, setLocalDimension] = useState<Dimension>(() => ({
     width: width ? String(width) : "",
     height: height ? String(height) : "",
@@ -50,17 +75,17 @@ export function MediaDimension() {
     height: false,
   });
 
-  if (!boundsRef.current) {
-    const maxWidth = contentWidth(view.dom);
-    const constrainedWidth = Math.min(width, maxWidth); // Ensure media width does not exceed the max width of the editor.
-    const aspectRatio = height / constrainedWidth;
+  const bounds = useMemo(() => {
+    // Unlocked height does not change the width, so limit it with the default page ratio.
+    const aspectRatio = isLocked
+      ? height / ratioWidth
+      : pdfNaturalHeight / pdfNaturalWidth;
 
-    const maxHeight = Math.round(maxWidth * aspectRatio);
-    boundsRef.current = {
+    return {
       width: { min: 50, max: maxWidth },
-      height: { min: 50, max: maxHeight },
+      height: { min: 50, max: Math.round(maxWidth * aspectRatio) },
     };
-  }
+  }, [height, ratioWidth, maxWidth, isLocked]);
 
   const reset = useCallback(() => {
     setLocalDimension({
@@ -72,14 +97,9 @@ export function MediaDimension() {
   }, [width, height]);
 
   const isOutsideBounds = useCallback(
-    (type: "width" | "height", value: number) => {
-      const bounds = boundsRef.current;
-      if (!bounds) {
-        return false;
-      }
-      return value < bounds[type].min || value > bounds[type].max;
-    },
-    []
+    (type: "width" | "height", value: number) =>
+      value < bounds[type].min || value > bounds[type].max,
+    [bounds]
   );
 
   const handleChange = useCallback(
@@ -129,34 +149,34 @@ export function MediaDimension() {
       !localHeightAsNumber ||
       (localWidthAsNumber === width && localHeightAsNumber === height);
 
+    // Check bounds here since the 'onChange' error checker is debounced.
     const isError =
       error.width ||
       error.height ||
       (localDimension.changed === "width" &&
         localWidthAsNumber &&
-        isOutsideBounds("width", localWidthAsNumber)); // check width bounds here since 'onChange' error checker is debounced.
+        isOutsideBounds("width", localWidthAsNumber)) ||
+      (localDimension.changed === "height" &&
+        localHeightAsNumber &&
+        isOutsideBounds("height", localHeightAsNumber));
 
-    if (isUnchanged || isError || !boundsRef.current) {
+    if (isUnchanged || isError) {
       reset();
       return;
     }
 
-    const maxWidth = boundsRef.current.width.max;
-    // For images resized to the full width of the editor, natural width will be shown in the toolbar.
-    // So, we constrain it here for computing aspect ratio.
-    const constrainedWidth = Math.min(width, maxWidth);
-
     const aspectRatio =
       localDimension.changed === "width"
-        ? height / constrainedWidth
-        : constrainedWidth / height;
+        ? height / ratioWidth
+        : ratioWidth / height;
 
+    const isIndependent = canUnlock && !isLocked;
     const finalWidth =
-      localDimension.changed === "width"
+      isIndependent || localDimension.changed === "width"
         ? localWidthAsNumber
         : Math.round(aspectRatio * localHeightAsNumber);
     const finalHeight =
-      localDimension.changed === "height"
+      isIndependent || localDimension.changed === "height"
         ? localHeightAsNumber
         : Math.round(aspectRatio * localWidthAsNumber);
 
@@ -185,7 +205,15 @@ export function MediaDimension() {
     error,
     reset,
     isOutsideBounds,
+    ratioWidth,
+    canUnlock,
+    isLocked,
   ]);
+
+  const handleToggleLock = useCallback(() => {
+    setIsLocked((prev) => !prev);
+    setError({ width: false, height: false });
+  }, []);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -233,7 +261,7 @@ export function MediaDimension() {
 
       const dimensions =
         nodeType === "attachment"
-          ? resolvePDFDimensions(newWidth)
+          ? scalePDFDimensions({ width, height }, newWidth)
           : { width: newWidth, height: newHeight };
 
       setLocalDimension({
@@ -247,7 +275,7 @@ export function MediaDimension() {
     return () => {
       window.removeEventListener("media-drag-resize", handleDragResize);
     };
-  }, [nodeType]);
+  }, [nodeType, width, height]);
 
   // Debounce validation so errors are not shown while typing.
   useEffect(() => {
@@ -272,31 +300,54 @@ export function MediaDimension() {
     return () => clearTimeout(timeout);
   }, [width, height, localDimension, isOutsideBounds]);
 
+  const lockLabel = t("Lock aspect ratio");
+
   return (
     <StyledFlex align="center">
-      <StyledInput
-        label={t("Image width")}
-        labelHidden
-        placeholder={t("Width")}
-        value={localDimension.width}
-        onChange={handleChange("width")}
-        onBlur={handleBlur}
-        onKeyDown={handleKeyDown}
-        $error={error.width}
-      />
-      <Text size="xsmall" type="tertiary">
-        ×
-      </Text>
-      <StyledInput
-        label={t("Image height")}
-        labelHidden
-        placeholder={t("Height")}
-        value={localDimension.height}
-        onChange={handleChange("height")}
-        onBlur={handleBlur}
-        onKeyDown={handleKeyDown}
-        $error={error.height}
-      />
+      <Tooltip content={tooltip}>
+        <Flex align="center">
+          <StyledInput
+            label={t("Image width")}
+            labelHidden
+            placeholder={t("Width")}
+            value={localDimension.width}
+            onChange={handleChange("width")}
+            onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
+            $error={error.width}
+          />
+          <Text size="xsmall" type="tertiary">
+            ×
+          </Text>
+          <StyledInput
+            label={t("Image height")}
+            labelHidden
+            placeholder={t("Height")}
+            value={localDimension.height}
+            onChange={handleChange("height")}
+            onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
+            $error={error.height}
+          />
+        </Flex>
+      </Tooltip>
+      {canUnlock && (
+        <Tooltip content={lockLabel}>
+          <Toolbar.Button asChild>
+            <LockButton
+              onClick={handleToggleLock}
+              aria-label={lockLabel}
+              aria-pressed={isLocked}
+            >
+              {isLocked ? (
+                <PadlockIcon size={18} />
+              ) : (
+                <UnlockedPadlockIcon size={18} color={theme.textTertiary} />
+              )}
+            </LockButton>
+          </Toolbar.Button>
+        </Tooltip>
+      )}
     </StyledFlex>
   );
 }
@@ -325,4 +376,8 @@ const StyledInput = styled(Input)<{ $error?: boolean }>`
 
     ${(props) => props.$error && `color: ${props.theme.danger}`};
   }
+`;
+
+const LockButton = styled(ToolbarButton)`
+  justify-content: center;
 `;

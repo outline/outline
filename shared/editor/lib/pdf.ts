@@ -43,3 +43,20 @@ export function resolvePDFDimensions(
     height: pdfNaturalHeight,
   };
 }
+
+/**
+ * Scales PDF preview dimensions to a new width and keeps their aspect ratio.
+ *
+ * @param dimensions - the current preview dimensions.
+ * @param width - the new preview width.
+ * @returns the scaled PDF preview dimensions.
+ */
+export function scalePDFDimensions(
+  dimensions: PDFDimensions,
+  width: number
+): PDFDimensions {
+  return {
+    width,
+    height: Math.round((width * dimensions.height) / dimensions.width),
+  };
+}
