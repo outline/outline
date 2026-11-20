@@ -1,4 +1,4 @@
-import { NotificationEventType } from "@shared/types";
+import { FileOperationState, NotificationEventType } from "@shared/types";
 import { Minute } from "@shared/utils/time";
 import CollectionCreatedEmail from "@server/emails/templates/CollectionCreatedEmail";
 import CollectionSharedEmail from "@server/emails/templates/CollectionSharedEmail";
@@ -9,7 +9,9 @@ import DocumentAccessRequestEmail from "@server/emails/templates/DocumentAccessR
 import DocumentMentionedEmail from "@server/emails/templates/DocumentMentionedEmail";
 import DocumentPublishedOrUpdatedEmail from "@server/emails/templates/DocumentPublishedOrUpdatedEmail";
 import DocumentSharedEmail from "@server/emails/templates/DocumentSharedEmail";
-import { Notification } from "@server/models";
+import ExportFailureEmail from "@server/emails/templates/ExportFailureEmail";
+import ExportSuccessEmail from "@server/emails/templates/ExportSuccessEmail";
+import { FileOperation, Notification } from "@server/models";
 import type { Event, NotificationEvent } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 import GroupDocumentMentionedEmail from "@server/emails/templates/GroupDocumentMentionedEmail";
@@ -210,6 +212,44 @@ export default class EmailsProcessor extends BaseProcessor {
         ).schedule({
           delay: Minute.ms,
         });
+        return;
+      }
+
+      case NotificationEventType.ExportCompleted: {
+        const fileOperation = notification.fileOperationId
+          ? await FileOperation.unscoped().findByPk(
+              notification.fileOperationId
+            )
+          : null;
+        if (fileOperation?.state === FileOperationState.Complete) {
+          await new ExportSuccessEmail(
+            {
+              to: notification.user.email,
+              language: notification.user.language,
+              userId: notification.userId,
+              id: fileOperation.id,
+              teamUrl: notification.team.url,
+              teamId: notification.teamId,
+            },
+            { notificationId }
+          ).schedule({
+            delay: Minute.ms,
+          });
+        }
+        if (fileOperation?.state === FileOperationState.Error) {
+          await new ExportFailureEmail(
+            {
+              to: notification.user.email,
+              language: notification.user.language,
+              userId: notification.userId,
+              teamUrl: notification.team.url,
+              teamId: notification.teamId,
+            },
+            { notificationId }
+          ).schedule({
+            delay: Minute.ms,
+          });
+        }
         return;
       }
 

@@ -34,6 +34,7 @@ import Team from "./Team";
 import User from "./User";
 import Group from "./Group";
 import AccessRequest from "./AccessRequest";
+import FileOperation from "./FileOperation";
 
 let baseDomain;
 
@@ -98,6 +99,11 @@ let baseDomain;
     },
     {
       association: "group",
+      required: false,
+    },
+    {
+      model: FileOperation,
+      as: "fileOperation",
       required: false,
     },
   ],
@@ -212,6 +218,14 @@ class Notification extends Model<
   @ForeignKey(() => AccessRequest)
   @Column(DataType.UUID)
   accessRequestId: string;
+
+  @BelongsTo(() => FileOperation, "fileOperationId")
+  fileOperation: FileOperation | null;
+
+  @AllowNull
+  @ForeignKey(() => FileOperation)
+  @Column(DataType.UUID)
+  fileOperationId: string | null;
 
   @AfterCreate
   static async createEvent(

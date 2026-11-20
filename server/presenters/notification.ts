@@ -1,5 +1,6 @@
 import type { Notification } from "@server/models";
 import type { APIContext } from "@server/types";
+import presentFileOperation from "./fileOperation";
 import presentGroup from "./group";
 import presentUser from "./user";
 import { presentComment, presentDocument } from ".";
@@ -32,6 +33,10 @@ export default async function presentNotification(
     groupId: notification.groupId,
     group: notification.group
       ? await presentGroup(notification.group)
+      : undefined,
+    fileOperationId: notification.fileOperationId,
+    fileOperation: notification.fileOperation
+      ? presentFileOperation(notification.fileOperation)
       : undefined,
     data: notification.data,
   };
