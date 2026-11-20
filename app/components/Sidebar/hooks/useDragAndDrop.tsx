@@ -2,6 +2,7 @@ import fractionalIndex from "fractional-index";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { PersonalCollectionId } from "@shared/constants";
 import { errToString } from "@shared/utils/error";
 import Icon from "@shared/components/Icon";
 import {
@@ -16,6 +17,7 @@ import type Star from "~/models/Star";
 import UserMembership from "~/models/UserMembership";
 import ConfirmMoveDialog from "~/components/ConfirmMoveDialog";
 import { useDragRef, useDropRef } from "~/components/DragAndDrop";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -327,6 +329,86 @@ export function useDropToChangeCollection(
   }, [isOver, cancelHover]);
 
   return result;
+}
+
+/**
+ * Hook for shared logic that allows dropping documents on the personal section
+ * to move them to the top of the personal collection. The collection is
+ * created by the move when it does not exist yet.
+ *
+ * @param collection The personal collection, if it exists.
+ */
+export function useDropToPersonalCollection(
+  collection: Collection | undefined
+) {
+  const { t } = useTranslation();
+  const { documents, collections, dialogs, policies } = useStores();
+  const team = useCurrentTeam();
+  const canTeam = usePolicy(team);
+  const canCollection = usePolicy(collection);
+  const canCreate = collection
+    ? !!canCollection.createDocument
+    : !!canTeam.createPersonalCollection;
+
+  return useDropRef<DragObject, { isOverPersonal: boolean }>({
+    accept: "document",
+    drop: async (item, monitor) => {
+      // Rows in the section handle their own drops.
+      if (monitor.didDrop() || !monitor.isOver({ shallow: true })) {
+        return;
+      }
+
+      const target = collection ?? {
+        id: PersonalCollectionId,
+        displayName: t("Personal"),
+        permission: undefined,
+      };
+      const prevCollection = collections.get(item.collectionId);
+      const document = documents.get(item.id);
+
+      // A private collection may present its permission as null.
+      if (
+        prevCollection &&
+        (prevCollection.permission ?? null) !== (target.permission ?? null) &&
+        !document?.isDraft
+      ) {
+        dialogs.openModal({
+          title: t("Change permissions?"),
+          content: (
+            <ConfirmMoveDialog item={item} collection={target} index={0} />
+          ),
+        });
+        return;
+      }
+
+      try {
+        await documents.move({
+          documentId: item.id,
+          collectionId: target.id,
+          index: 0,
+        });
+      } catch (err) {
+        if (err instanceof AuthorizationError) {
+          toast.error(
+            t("{{ documentName }} cannot be moved here", {
+              documentName: item.title,
+            })
+          );
+        } else {
+          toast.error(errToString(err));
+        }
+      }
+    },
+    // Documents already at the root of the personal collection have nowhere to move.
+    canDrop: (item) =>
+      canCreate &&
+      (item.collectionId !== collection?.id ||
+        !!documents.get(item.id)?.parentDocumentId) &&
+      !!policies.abilities(item.id).move,
+    collect: (monitor) => ({
+      isOverPersonal: monitor.isOver({ shallow: true }) && monitor.canDrop(),
+    }),
+  });
 }
 
 /**

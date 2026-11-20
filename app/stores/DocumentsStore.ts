@@ -10,6 +10,7 @@ import {
 } from "mobx";
 import { computedFn, now } from "mobx-utils";
 import type { Accept } from "react-dropzone";
+import { PersonalCollectionId } from "@shared/constants";
 import type { DirectionFilter, SortFilter } from "@shared/types";
 import {
   AttachmentPreset,
@@ -587,8 +588,12 @@ export default class DocumentsStore extends Store<Document> {
         index,
       });
       invariant(res?.data, "Data not available");
-      res.data.documents.forEach(this.add);
+      const moved: Document[] = res.data.documents.map(this.add);
       this.addPolicies(res.policies);
+
+      if (collectionId === PersonalCollectionId) {
+        await this.fetchPersonalCollection(moved);
+      }
 
       // The websocket "documents.move" event is only broadcast to the
       // collection channel, so users with document-only access never receive
@@ -611,6 +616,8 @@ export default class DocumentsStore extends Store<Document> {
       title?: string;
       publish?: boolean;
       recursive?: boolean;
+      collectionId?: string | null;
+      parentDocumentId?: string;
     }
   ): Promise<Document[]> => {
     const res = await client.post("/documents.duplicate", {
@@ -620,7 +627,13 @@ export default class DocumentsStore extends Store<Document> {
     invariant(res?.data, "Data should be available");
 
     this.addPolicies(res.policies);
-    return res.data.documents.map(this.add);
+    const duplicated: Document[] = res.data.documents.map(this.add);
+
+    if (options?.collectionId === PersonalCollectionId) {
+      await this.fetchPersonalCollection(duplicated);
+    }
+
+    return duplicated;
   };
 
   @action
@@ -892,4 +905,17 @@ export default class DocumentsStore extends Store<Document> {
     },
     computedFnOptions
   );
+
+  /**
+   * Loads the collection of documents that were placed in the personal
+   * collection by alias, as the request may have created it.
+   *
+   * @param documents The documents returned by the request.
+   */
+  private fetchPersonalCollection = async (documents: Document[]) => {
+    const collectionId = documents[0]?.collectionId;
+    if (collectionId) {
+      await this.rootStore.collections.fetch(collectionId);
+    }
+  };
 }

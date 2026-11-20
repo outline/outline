@@ -13,7 +13,7 @@ type Props = {
   /** The navigation node to move, must represent a document. */
   item: NavigationNode;
   /** The collection to move the document to. */
-  collection: Collection;
+  collection: Pick<Collection, "id" | "displayName" | "permission">;
   /** The parent document to move the document under. */
   parentDocumentId?: string | null;
   /** The index to move the document to. */
