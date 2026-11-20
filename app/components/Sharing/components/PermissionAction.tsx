@@ -6,7 +6,7 @@ import { Inner } from "~/components/Button";
 import ButtonSmall from "~/components/ButtonSmall";
 import Fade from "~/components/Fade";
 import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
-import type { Action, Permission } from "~/types";
+import type { Action, OwnerSelectValue, Permission } from "~/types";
 
 export function PermissionAction({
   permission,
@@ -14,10 +14,18 @@ export function PermissionAction({
   action,
   onChange,
 }: {
-  permission: CollectionPermission | DocumentPermission;
+  permission:
+    | CollectionPermission
+    | DocumentPermission
+    | typeof OwnerSelectValue;
   permissions: Permission[];
   action: Action;
-  onChange: (permission: CollectionPermission | DocumentPermission) => void;
+  onChange: (
+    permission:
+      | CollectionPermission
+      | DocumentPermission
+      | typeof OwnerSelectValue
+  ) => void;
 }) {
   const { t } = useTranslation();
 

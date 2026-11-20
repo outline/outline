@@ -1,10 +1,15 @@
 import { type InferAttributes, QueryTypes, type Transaction } from "sequelize";
 import { SubscriptionType } from "@shared/types";
 import { createContext } from "@server/context";
-import type { Document, User } from "@server/models";
+import type { Collection, Document, User } from "@server/models";
 import { Subscription, Event } from "@server/models";
 import { sequelize } from "@server/storage/database";
-import type { APIContext, DocumentEvent, RevisionEvent } from "@server/types";
+import type {
+  APIContext,
+  CollectionOwnerEvent,
+  DocumentEvent,
+  RevisionEvent,
+} from "@server/types";
 
 type Props = {
   /** The request context, which also contains the user creating the subscription */
@@ -123,7 +128,7 @@ export default async function subscriptionCreator({
 export const subscribeUserToDocument = async (
   user: User,
   document: Document,
-  event: DocumentEvent | RevisionEvent,
+  event: Pick<DocumentEvent | RevisionEvent, "authType" | "ip">,
   options: { transaction?: Transaction } = {}
 ): Promise<void> => {
   const run = (transaction: Transaction) =>
@@ -145,6 +150,35 @@ export const subscribeUserToDocument = async (
   }
 
   await sequelize.transaction(run);
+};
+
+/**
+ * Subscribe a single user to the documents in a collection. An existing
+ * subscription that has been deleted is left as-is so that the user's prior
+ * unsubscribe is respected.
+ *
+ * @param user The user to subscribe.
+ * @param collection The collection to subscribe the user to.
+ * @param event The event that triggered the subscription creation.
+ */
+export const subscribeUserToCollection = async (
+  user: User,
+  collection: Collection,
+  event: Pick<CollectionOwnerEvent, "authType" | "ip">
+): Promise<void> => {
+  await sequelize.transaction((transaction) =>
+    subscriptionCreator({
+      ctx: createContext({
+        user,
+        authType: event.authType,
+        ip: event.ip,
+        transaction,
+      }),
+      collectionId: collection.id,
+      event: SubscriptionType.Document,
+      resubscribe: false,
+    })
+  );
 };
 
 /**

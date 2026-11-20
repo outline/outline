@@ -6,11 +6,14 @@ import type {
   DocumentEvent,
   CommentEvent,
   CollectionUserEvent,
+  CollectionOwnerEvent,
   DocumentUserEvent,
+  DocumentOwnerEvent,
   DocumentGroupEvent,
   CommentReactionEvent,
   GroupUserEvent,
 } from "@server/types";
+import CollectionAddOwnerNotificationsTask from "../tasks/CollectionAddOwnerNotificationsTask";
 import CollectionAddUserNotificationsTask from "../tasks/CollectionAddUserNotificationsTask";
 import CollectionCreatedNotificationsTask from "../tasks/CollectionCreatedNotificationsTask";
 import CommentCreatedNotificationsTask from "../tasks/CommentCreatedNotificationsTask";
@@ -19,6 +22,7 @@ import ReactionCreatedNotificationsTask from "../tasks/ReactionCreatedNotificati
 import ReactionRemovedNotificationsTask from "../tasks/ReactionRemovedNotificationsTask";
 import DocumentAccessRequestNotificationsTask from "../tasks/DocumentAccessRequestNotificationsTask";
 import DocumentAddGroupNotificationsTask from "../tasks/DocumentAddGroupNotificationsTask";
+import DocumentAddOwnerNotificationsTask from "../tasks/DocumentAddOwnerNotificationsTask";
 import DocumentAddUserNotificationsTask from "../tasks/DocumentAddUserNotificationsTask";
 import DocumentPublishedNotificationsTask from "../tasks/DocumentPublishedNotificationsTask";
 import GroupUserNotificationsTask from "../tasks/GroupUserNotificationsTask";
@@ -30,11 +34,13 @@ export default class NotificationsProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = [
     "documents.publish",
     "documents.add_user",
+    "documents.add_owner",
     "documents.add_group",
     "access_requests.create",
     "revisions.create",
     "collections.create",
     "collections.add_user",
+    "collections.add_owner",
     "groups.add_user",
     "groups.remove_user",
     "comments.create",
@@ -49,6 +55,8 @@ export default class NotificationsProcessor extends BaseProcessor {
         return this.documentPublished(event);
       case "documents.add_user":
         return this.documentAddUser(event);
+      case "documents.add_owner":
+        return this.documentAddOwner(event);
       case "documents.add_group":
         return this.documentAddGroup(event);
       case "access_requests.create":
@@ -59,6 +67,8 @@ export default class NotificationsProcessor extends BaseProcessor {
         return this.collectionCreated(event);
       case "collections.add_user":
         return this.collectionAddUser(event);
+      case "collections.add_owner":
+        return this.collectionAddOwner(event);
       case "groups.add_user":
       case "groups.remove_user":
         return this.groupUserChanged(event);
@@ -88,6 +98,13 @@ export default class NotificationsProcessor extends BaseProcessor {
       return;
     }
     await new DocumentAddUserNotificationsTask().schedule(event);
+  }
+
+  async documentAddOwner(event: DocumentOwnerEvent) {
+    if (event.userId === event.actorId) {
+      return;
+    }
+    await new DocumentAddOwnerNotificationsTask().schedule(event);
   }
 
   async documentAddGroup(event: DocumentGroupEvent) {
@@ -126,6 +143,14 @@ export default class NotificationsProcessor extends BaseProcessor {
     }
 
     await new CollectionAddUserNotificationsTask().schedule(event);
+  }
+
+  async collectionAddOwner(event: CollectionOwnerEvent) {
+    if (event.userId === event.actorId) {
+      return;
+    }
+
+    await new CollectionAddOwnerNotificationsTask().schedule(event);
   }
 
   async groupUserChanged(event: GroupUserEvent) {

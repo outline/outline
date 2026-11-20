@@ -85,6 +85,7 @@ async function presentDocument(
     deletedAt: document.deletedAt,
     deletedBy: undefined,
     collaboratorIds: [],
+    ownerIds: [],
     revision: document.revisionCount,
     fullWidth: document.fullWidth,
     preferences: document.preferences,
@@ -122,6 +123,7 @@ async function presentDocument(
     res.createdBy = presentUser(document.createdBy);
     res.updatedBy = presentUser(document.updatedBy);
     res.collaboratorIds = document.collaboratorIds ?? [];
+    res.ownerIds = document.ownerIds ?? [];
     res.templateId = document.templateId;
     res.insightsEnabled = document.insightsEnabled;
     res.popularityScore = document.popularityScore;

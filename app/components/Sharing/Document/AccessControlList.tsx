@@ -85,6 +85,8 @@ export const AccessControlList = observer(
       margin: 24,
     });
 
+    // The current user is listed with the members when they have a membership.
+    const isMember = document.members.some((member) => member.id === user.id);
     const hasMemberships =
       groupMemberships.inDocument(documentId)?.length > 0 ||
       document.members.length > 0;
@@ -149,7 +151,7 @@ export const AccessControlList = observer(
                   subtitle={t("Everyone in the collection")}
                   actions={<AccessTooltip>{t("Can view")}</AccessTooltip>}
                 />
-              ) : (
+              ) : isMember ? null : (
                 <ListItem
                   image={<Avatar model={user} />}
                   title={user.name}
