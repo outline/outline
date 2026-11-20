@@ -43,7 +43,7 @@ export default class Embed extends Node {
         height: {
           default: null,
         },
-        // Unset means locked, so only unlocked nodes store a value.
+        // Unset means the default for the node type, see isAspectRatioLocked.
         lockAspectRatio: {
           default: null,
           validate: "boolean|null",
@@ -251,13 +251,13 @@ export default class Embed extends Node {
   }
 
   /**
-   * Returns the width to store, where a width at the editor edge is stored as
-   * unset so the embed stays full width.
+   * Returns the width to store, where no width or a width at the editor edge
+   * is stored as unset so the embed stays full width.
    *
    * @param width - the resized width.
    * @returns the width to store.
    */
   private storedWidth(width: number) {
-    return width >= contentWidth(this.editor.view.dom) ? null : width;
+    return !width || width >= contentWidth(this.editor.view.dom) ? null : width;
   }
 }

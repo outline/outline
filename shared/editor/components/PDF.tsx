@@ -10,6 +10,7 @@ import Flex from "../../components/Flex";
 import { s } from "../../styles";
 import { Preview, Subtitle, Title } from "./Widget";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
+import { isAspectRatioLocked } from "../queries/isAspectRatioLocked";
 import {
   pdfNaturalHeight,
   pdfNaturalWidth,
@@ -42,7 +43,7 @@ export default function PdfViewer(props: Props) {
       naturalWidth: pdfNaturalWidth,
       naturalHeight: pdfNaturalHeight,
       aspectRatio: dimensions.height / dimensions.width,
-      isLocked: node.attrs.lockAspectRatio !== false,
+      isLocked: isAspectRatioLocked(node),
       onChangeSize,
       ref,
     });

@@ -2,6 +2,7 @@ import * as React from "react";
 import styled from "styled-components";
 import type { EmbedDescriptor } from "../embeds";
 import { getMatchingEmbed } from "../lib/embeds";
+import { isAspectRatioLocked } from "../queries/isAspectRatioLocked";
 import type { ComponentProps } from "../types";
 import DisabledEmbed from "./DisabledEmbed";
 import Frame from "./Frame";
@@ -31,7 +32,7 @@ const Embed = (props: Props) => {
       height: node.attrs.height ?? naturalHeight,
       naturalWidth,
       naturalHeight,
-      isLocked: node.attrs.lockAspectRatio !== false,
+      isLocked: isAspectRatioLocked(node),
       onChangeSize,
       ref,
     });

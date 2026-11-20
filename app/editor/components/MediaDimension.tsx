@@ -1,11 +1,13 @@
 import type { NodeSelection } from "prosemirror-state";
 import * as Toolbar from "@radix-ui/react-toolbar";
+import { clamp } from "es-toolkit";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 import Flex from "@shared/components/Flex";
 import Text from "@shared/components/Text";
 import { embedDefaultHeight } from "@shared/editor/components/Embed";
 import { contentWidth } from "@shared/editor/lib/contentWidth";
+import { isAspectRatioLocked } from "@shared/editor/queries/isAspectRatioLocked";
 import {
   pdfNaturalHeight,
   pdfNaturalWidth,
@@ -37,6 +39,7 @@ interface Props {
  */
 export function MediaDimension({ tooltip }: Props) {
   const isDraggingRef = useRef(false);
+  const isSteppingRef = useRef(false);
   const { t } = useTranslation();
   const { view, commands } = useEditor();
   const { state } = view;
@@ -62,7 +65,7 @@ export function MediaDimension({ tooltip }: Props) {
 
   // Only PDFs and embeds can be unlocked, images and videos keep their natural aspect ratio.
   const canUnlock = nodeType === "attachment" || nodeType === "embed";
-  const isLocked = !canUnlock || node.attrs.lockAspectRatio !== false;
+  const isLocked = !canUnlock || isAspectRatioLocked(node);
 
   // Full-width images store their natural width, so the editor width gives their
   // aspect ratio. PDFs and embeds always store dimensions with a matching ratio.
@@ -139,84 +142,91 @@ export function MediaDimension({ tooltip }: Props) {
     []
   );
 
+  const commit = useCallback(
+    (dimension: Dimension, hasError: boolean) => {
+      const localWidthAsNumber = dimension.width
+          ? parseInt(dimension.width, 10)
+          : undefined,
+        localHeightAsNumber = dimension.height
+          ? parseInt(dimension.height, 10)
+          : undefined;
+
+      const isUnchanged =
+        !localWidthAsNumber ||
+        !localHeightAsNumber ||
+        (localWidthAsNumber === width && localHeightAsNumber === height);
+
+      // Check bounds here since the 'onChange' error checker is debounced.
+      const isError =
+        hasError ||
+        (dimension.changed === "width" &&
+          localWidthAsNumber &&
+          isOutsideBounds("width", localWidthAsNumber)) ||
+        (dimension.changed === "height" &&
+          localHeightAsNumber &&
+          isOutsideBounds("height", localHeightAsNumber));
+
+      if (isUnchanged || isError) {
+        reset();
+        return;
+      }
+
+      const aspectRatio =
+        dimension.changed === "width"
+          ? height / ratioWidth
+          : ratioWidth / height;
+
+      const isIndependent = canUnlock && !isLocked;
+      const finalWidth =
+        isIndependent || dimension.changed === "width"
+          ? localWidthAsNumber
+          : Math.round(aspectRatio * localHeightAsNumber);
+      const finalHeight =
+        isIndependent || dimension.changed === "height"
+          ? localHeightAsNumber
+          : Math.round(aspectRatio * localWidthAsNumber);
+
+      if (nodeType === "image") {
+        commands["resizeImage"]({
+          width: finalWidth,
+          height: finalHeight,
+        });
+      } else if (nodeType === "attachment") {
+        commands["resizeAttachment"]({
+          width: finalWidth,
+          height: finalHeight,
+        });
+      } else if (nodeType === "video") {
+        commands["resizeVideo"]({
+          width: finalWidth,
+          height: finalHeight,
+        });
+      } else if (nodeType === "embed") {
+        commands["resizeEmbed"]({
+          width: finalWidth,
+          height: finalHeight,
+        });
+      }
+    },
+    [
+      commands,
+      width,
+      height,
+      nodeType,
+      reset,
+      isOutsideBounds,
+      ratioWidth,
+      canUnlock,
+      isLocked,
+    ]
+  );
+
   const handleBlur = useCallback(() => {
-    const localWidthAsNumber = localDimension.width
-        ? parseInt(localDimension.width, 10)
-        : undefined,
-      localHeightAsNumber = localDimension.height
-        ? parseInt(localDimension.height, 10)
-        : undefined;
-
-    const isUnchanged =
-      !localWidthAsNumber ||
-      !localHeightAsNumber ||
-      (localWidthAsNumber === width && localHeightAsNumber === height);
-
-    // Check bounds here since the 'onChange' error checker is debounced.
-    const isError =
-      error.width ||
-      error.height ||
-      (localDimension.changed === "width" &&
-        localWidthAsNumber &&
-        isOutsideBounds("width", localWidthAsNumber)) ||
-      (localDimension.changed === "height" &&
-        localHeightAsNumber &&
-        isOutsideBounds("height", localHeightAsNumber));
-
-    if (isUnchanged || isError) {
-      reset();
+    if (isSteppingRef.current) {
       return;
     }
-
-    const aspectRatio =
-      localDimension.changed === "width"
-        ? height / ratioWidth
-        : ratioWidth / height;
-
-    const isIndependent = canUnlock && !isLocked;
-    const finalWidth =
-      isIndependent || localDimension.changed === "width"
-        ? localWidthAsNumber
-        : Math.round(aspectRatio * localHeightAsNumber);
-    const finalHeight =
-      isIndependent || localDimension.changed === "height"
-        ? localHeightAsNumber
-        : Math.round(aspectRatio * localWidthAsNumber);
-
-    if (nodeType === "image") {
-      commands["resizeImage"]({
-        width: finalWidth,
-        height: finalHeight,
-      });
-    } else if (nodeType === "attachment") {
-      commands["resizeAttachment"]({
-        width: finalWidth,
-        height: finalHeight,
-      });
-    } else if (nodeType === "video") {
-      commands["resizeVideo"]({
-        width: finalWidth,
-        height: finalHeight,
-      });
-    } else if (nodeType === "embed") {
-      commands["resizeEmbed"]({
-        width: finalWidth,
-        height: finalHeight,
-      });
-    }
-  }, [
-    commands,
-    width,
-    height,
-    localDimension,
-    nodeType,
-    error,
-    reset,
-    isOutsideBounds,
-    ratioWidth,
-    canUnlock,
-    isLocked,
-  ]);
+    commit(localDimension, error.width || error.height);
+  }, [commit, localDimension, error]);
 
   const handleToggleLock = useCallback(() => {
     commands[
@@ -228,14 +238,43 @@ export function MediaDimension({ tooltip }: Props) {
   }, [commands, nodeType]);
 
   const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === "Enter") {
-        handleBlur();
-      } else if (e.key === "Escape") {
-        reset();
-      }
-    },
-    [handleBlur, reset]
+    (type: "width" | "height") =>
+      (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
+          handleBlur();
+        } else if (e.key === "Escape") {
+          reset();
+        } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+          e.preventDefault();
+
+          // Shift steps by 10, like number inputs in design tools.
+          const step = (e.shiftKey ? 10 : 1) * (e.key === "ArrowUp" ? 1 : -1);
+          const current =
+            parseInt(localDimension[type], 10) ||
+            (type === "width" ? width : height);
+          const next = clamp(
+            current + step,
+            bounds[type].min,
+            bounds[type].max
+          );
+          const dimension: Dimension = {
+            ...localDimension,
+            [type]: String(next),
+            changed: type,
+          };
+
+          setError({ width: false, height: false });
+          setLocalDimension(dimension);
+
+          // Editor commands focus the editor, so return focus to keep stepping.
+          const input = e.currentTarget;
+          isSteppingRef.current = true;
+          commit(dimension, false);
+          input.focus();
+          isSteppingRef.current = false;
+        }
+      },
+    [handleBlur, reset, commit, localDimension, width, height, bounds]
   );
 
   // Sync dimension changes from outside, without clobbering in-progress edits
@@ -323,7 +362,7 @@ export function MediaDimension({ tooltip }: Props) {
             value={localDimension.width}
             onChange={handleChange("width")}
             onBlur={handleBlur}
-            onKeyDown={handleKeyDown}
+            onKeyDown={handleKeyDown("width")}
             $error={error.width}
           />
           <Text size="xsmall" type="tertiary">
@@ -336,7 +375,7 @@ export function MediaDimension({ tooltip }: Props) {
             value={localDimension.height}
             onChange={handleChange("height")}
             onBlur={handleBlur}
-            onKeyDown={handleKeyDown}
+            onKeyDown={handleKeyDown("height")}
             $error={error.height}
           />
         </Flex>

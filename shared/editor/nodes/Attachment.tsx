@@ -55,7 +55,7 @@ export default class Attachment extends Node {
         height: {
           default: null,
         },
-        // Unset means locked, so only unlocked nodes store a value.
+        // Unset means the default for the node type, see isAspectRatioLocked.
         lockAspectRatio: {
           default: null,
           validate: "boolean|null",
