@@ -694,6 +694,40 @@ export function documentTools(server: McpServer, scopes: string[]) {
       },
       withTracing("update_document", async (input, context) => {
         try {
+          if (
+            (input.editMode === undefined ||
+              input.editMode === TextEditMode.Replace) &&
+            input.findText
+          ) {
+            throw ValidationError(
+              'findText cannot be used with replace editMode. Use editMode "patch" instead.'
+            );
+          }
+
+          if (
+            (input.editMode === TextEditMode.Append ||
+              input.editMode === TextEditMode.Prepend) &&
+            !input.text
+          ) {
+            throw ValidationError(
+              "text is required when using append, prepend, or editMode"
+            );
+          }
+
+          if (input.editMode === TextEditMode.Patch) {
+            if (input.text === undefined) {
+              throw ValidationError(
+                "text is required when using patch editMode"
+              );
+            }
+
+            if (!input.findText) {
+              throw ValidationError(
+                "findText is required when using patch editMode"
+              );
+            }
+          }
+
           const ctx = buildAPIContext(context);
           const { user } = ctx.state.auth;
 

@@ -734,6 +734,120 @@ describe("create_document", () => {
 });
 
 describe("update_document", () => {
+  it.each([
+    { input: { findText: "original", text: "replacement" }, field: "findText" },
+    {
+      input: { editMode: "replace", findText: "original", text: "replacement" },
+      field: "findText",
+    },
+    {
+      input: { editMode: "replace", findText: " ", text: "replacement" },
+      field: "findText",
+    },
+    { input: { editMode: "patch", findText: "original" }, field: "text" },
+    { input: { editMode: "patch", text: "replacement" }, field: "findText" },
+    {
+      input: { editMode: "patch", findText: "", text: "replacement" },
+      field: "findText",
+    },
+    { input: { editMode: "append" }, field: "text" },
+    { input: { editMode: "append", text: "" }, field: "text" },
+    { input: { editMode: "prepend" }, field: "text" },
+    { input: { editMode: "prepend", text: "" }, field: "text" },
+  ])("rejects invalid edit parameters: $input", async ({ input, field }) => {
+    const { user, accessToken } = await buildOAuthUser();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      text: "original content",
+    });
+    const { title, text, revisionCount } = document;
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      title: "Must not change",
+      ...input,
+    });
+
+    expect(res?.result?.isError).toBe(true);
+    expect(res?.result?.content?.[0]?.text).toContain(field);
+    expect(res?.result?.content?.[0]?.text).toContain("editMode");
+
+    await document.reload();
+    expect(document.title).toEqual(title);
+    expect(document.text).toEqual(text);
+    expect(document.revisionCount).toEqual(revisionCount);
+  });
+
+  it.each([undefined, "replace"])(
+    "allows an empty findText with editMode %s",
+    async (editMode) => {
+      const { user, accessToken } = await buildOAuthUser();
+      const document = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        text: "original content",
+      });
+
+      const res = await callMcpTool(server, accessToken, "update_document", {
+        id: document.id,
+        editMode,
+        findText: "",
+        text: "replacement content",
+      });
+
+      expect(res?.result?.isError).toBeFalsy();
+      await document.reload();
+      expect(document.text).toEqual("replacement content");
+    }
+  );
+
+  it.each([
+    { editMode: "append", expected: "original contentadded content" },
+    { editMode: "prepend", expected: "added contentoriginal content" },
+  ])(
+    "allows findText with $editMode for REST parity",
+    async ({ editMode, expected }) => {
+      const { user, accessToken } = await buildOAuthUser();
+      const document = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        text: "original content",
+      });
+
+      const res = await callMcpTool(server, accessToken, "update_document", {
+        id: document.id,
+        editMode,
+        findText: "original",
+        text: "added content",
+      });
+
+      expect(res?.result?.isError).toBeFalsy();
+      await document.reload();
+      expect(document.text).toEqual(expected);
+    }
+  );
+
+  it("allows empty patch text to delete the matched content", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      text: "the original sentence",
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      editMode: "patch",
+      findText: "original ",
+      text: "",
+    });
+
+    expect(res?.result?.isError).toBeFalsy();
+    await document.reload();
+    expect(document.text).toEqual("the sentence");
+  });
+
   it("attributes Markdown mentions to the authenticated editor", async () => {
     const { user, accessToken } = await buildOAuthUser();
     const author = await buildUser({ teamId: user.teamId });
