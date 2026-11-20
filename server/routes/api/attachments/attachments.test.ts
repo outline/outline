@@ -1,9 +1,11 @@
 // @vitest-isolate true
 import { randomUUID } from "node:crypto";
+import type { Job } from "bull";
 import { AttachmentPreset, CollectionPermission } from "@shared/types";
 import env from "@server/env";
 import { UserMembership } from "@server/models";
 import Attachment from "@server/models/Attachment";
+import UploadAttachmentFromUrlTask from "@server/queues/tasks/UploadAttachmentFromUrlTask";
 import {
   buildUser,
   buildAdmin,
@@ -512,6 +514,65 @@ describe("#attachments.create", () => {
         expect(res.status).toEqual(403);
       }
     );
+  });
+});
+
+describe("#attachments.createFromUrl", () => {
+  const defaultRequestTimeout = env.REQUEST_TIMEOUT;
+
+  afterEach(() => {
+    env.REQUEST_TIMEOUT = defaultRequestTimeout;
+  });
+
+  /**
+   * Replaces the upload task with a job that settles with the given promise.
+   *
+   * @param result The promise returned by Job.finished.
+   */
+  const mockUploadJob = (result: Promise<object>) =>
+    vi
+      .spyOn(UploadAttachmentFromUrlTask.prototype, "schedule")
+      .mockResolvedValue({ finished: () => result } as Job);
+
+  it("should return the attachment when the upload finishes", async () => {
+    mockUploadJob(Promise.resolve({}));
+    const user = await buildUser();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await server.post("/api/attachments.createFromUrl", user, {
+      body: {
+        url: "https://files.example.com/file.pdf",
+        documentId: document.id,
+        preset: AttachmentPreset.DocumentAttachment,
+      },
+    });
+
+    expect(res.status).toEqual(200);
+    const body = await res.json();
+    expect(body.data.documentId).toEqual(document.id);
+  });
+
+  it("should time out before the request when the upload does not finish", async () => {
+    env.REQUEST_TIMEOUT = 1500;
+    mockUploadJob(new Promise(() => undefined));
+    const user = await buildUser();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await server.post("/api/attachments.createFromUrl", user, {
+      body: {
+        url: "https://files.example.com/file.pdf",
+        documentId: document.id,
+        preset: AttachmentPreset.DocumentAttachment,
+      },
+    });
+
+    expect(res.status).toEqual(503);
   });
 });
 

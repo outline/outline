@@ -3,12 +3,14 @@ import type { Transaction, WhereOptions } from "sequelize";
 import { randomUUID } from "node:crypto";
 import { AttachmentPreset } from "@shared/types";
 import { bytesToHumanReadable, getFileNameFromUrl } from "@shared/utils/files";
+import { Second } from "@shared/utils/time";
 import env from "@server/env";
 import { AttachmentValidation } from "@shared/validations";
 import { createContext } from "@server/context";
 import {
   AuthorizationError,
   InvalidRequestError,
+  RequestTimeoutError,
   ValidationError,
 } from "@server/errors";
 import auth from "@server/middlewares/authentication";
@@ -278,7 +280,19 @@ router.post(
       url,
     });
 
-    const response = await job.finished();
+    let timer: NodeJS.Timeout | undefined;
+    const timeout = new Promise<never>((_resolve, reject) => {
+      timer = setTimeout(
+        () => reject(RequestTimeoutError("Timed out uploading file from URL")),
+        Math.max(env.REQUEST_TIMEOUT - Second.ms, Second.ms)
+      );
+    });
+
+    // Respond before the socket times out, as the job may never finish.
+    const response = await Promise.race([job.finished(), timeout]).finally(() =>
+      clearTimeout(timer)
+    );
+
     if ("error" in response) {
       throw InvalidRequestError(response.error);
     }
