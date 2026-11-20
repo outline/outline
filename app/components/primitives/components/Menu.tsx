@@ -2,7 +2,6 @@ import { ExpandedIcon } from "outline-icons";
 import { ellipsis } from "polished";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
-import { textSizeStyles } from "@shared/components/Text";
 import { breakpoint } from "@shared/styles/breakpoint";
 import { depths, s, borderRadius } from "@shared/styles";
 import Scrollable from "~/components/Scrollable";
@@ -129,7 +128,7 @@ export const MenuLabel = styled.div`
 `;
 
 export const MenuHeader = styled.h3`
-  ${textSizeStyles("small")}
+  font-size: 13px;
   font-weight: 500;
   color: ${s("sidebarText")};
   margin: 1em 12px 0.5em;
