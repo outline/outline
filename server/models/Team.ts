@@ -335,6 +335,36 @@ class Team extends ParanoidModel<
   }
 
   /**
+   * Returns whether credentials of this team may be used on the given host.
+   * On cloud hosted deployments a workspace subdomain only accepts credentials
+   * of the team it resolves to, including previous subdomains of the team.
+   * Other hosts accept credentials of any team.
+   *
+   * @param host The hostname of the request.
+   * @returns True if credentials of this team are accepted on the host.
+   */
+  public async canAuthenticateOnHost(
+    host: string | undefined
+  ): Promise<boolean> {
+    if (!env.isCloudHosted || !host) {
+      return true;
+    }
+
+    const { custom, teamSubdomain } = parseDomain(host);
+    if (custom || !teamSubdomain || teamSubdomain === this.subdomain) {
+      return true;
+    }
+
+    if (!this.previousSubdomains?.includes(teamSubdomain)) {
+      return false;
+    }
+
+    // Another team may have claimed the subdomain since.
+    const hostTeam = await Team.findBySubdomain(teamSubdomain);
+    return hostTeam?.id === this.id;
+  }
+
+  /**
    * Returns a code that can be used to delete the user's team. The code will
    * be rotated when the user signs out.
    *
