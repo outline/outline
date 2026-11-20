@@ -6,8 +6,14 @@ import { FileOperationState, NotificationEventType } from "@shared/types";
 import { Notification } from "@server/models";
 import presentNotification from "@server/presenters/notification";
 import FileStorage from "@server/storage/files";
-import { buildAdmin, buildFileOperation } from "@server/test/factories";
+import {
+  buildAdmin,
+  buildCollection,
+  buildFileOperation,
+  buildUser,
+} from "@server/test/factories";
 import ExportMarkdownZipTask from "./ExportMarkdownZipTask";
+import RevokeUserNotificationsTask from "./RevokeUserNotificationsTask";
 
 describe("ExportTask", () => {
   beforeEach(() => {
@@ -76,6 +82,36 @@ describe("ExportTask", () => {
     });
     expect(notification.fileOperationId).toEqual(fileOperation.id);
     expect(notification.fileOperation?.state).toEqual(FileOperationState.Error);
+  });
+
+  it("should revoke the notification when the user can no longer read the source", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      permission: null,
+    });
+    const fileOperation = await buildFileOperation({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    exportToTempFile();
+
+    await new ExportMarkdownZipTask().perform({
+      fileOperationId: fileOperation.id,
+    });
+    const notification = await Notification.findOne({
+      where: { userId: user.id },
+      rejectOnEmpty: true,
+    });
+    expect(notification.collectionId).toEqual(collection.id);
+
+    await new RevokeUserNotificationsTask().perform({
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    expect(await Notification.findByPk(notification.id)).toBeNull();
   });
 
   it("should not notify a user that is not subscribed", async () => {

@@ -277,6 +277,9 @@ export default abstract class ExportTask extends BaseTask<Props> {
         actorId: user.id,
         teamId: user.teamId,
         fileOperationId: fileOperation.id,
+        // The source lets the notification be revoked if access is lost.
+        documentId: fileOperation.documentId ?? undefined,
+        collectionId: fileOperation.collectionId ?? undefined,
       });
     } catch (error) {
       Logger.error("Failed to create export notification", toError(error), {

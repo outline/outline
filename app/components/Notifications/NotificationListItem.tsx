@@ -141,7 +141,7 @@ function ExportIcon({ state }: { state?: FileOperationState }) {
   if (state === FileOperationState.Complete) {
     return (
       <IconWrapper>
-        <DownloadIcon color={theme.accent} />
+        <DownloadIcon color={theme.textSecondary} />
       </IconWrapper>
     );
   }
