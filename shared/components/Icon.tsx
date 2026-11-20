@@ -2,7 +2,8 @@ import { observer } from "mobx-react";
 import styled from "styled-components";
 import { breakpoint } from "../styles/breakpoint";
 import useContrastColor from "../hooks/useContrastColor";
-import { IconType } from "../types";
+import useStores from "../hooks/useStores";
+import { IconType, TeamPreference } from "../types";
 import { IconLibrary } from "../utils/IconLibrary";
 import { colorPalette } from "../constants";
 import { determineIconType } from "../utils/icon";
@@ -84,8 +85,11 @@ const SVGIcon = observer(
     className,
     forceColor,
   }: Props) => {
+    const { auth } = useStores();
     const contrastColor = useContrastColor();
-    const rawColor = inputColor ?? colorPalette[0];
+    const palette: string[] =
+      auth?.team?.getPreference(TeamPreference.ColorPalette) || colorPalette;
+    const rawColor = inputColor ?? palette[0];
     const color = forceColor ? rawColor : contrastColor(rawColor);
 
     const Component = IconLibrary.getComponent(icon);

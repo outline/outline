@@ -1,4 +1,5 @@
 import { faker } from "@faker-js/faker";
+import { colorPalette, colorPalettes } from "@shared/constants";
 import { TeamDomain } from "@server/models";
 import {
   buildAdmin,
@@ -102,6 +103,45 @@ describe("#team.update", () => {
       body: {
         preferences: {
           invalidPreference: true,
+        },
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should update the color palette preference", async () => {
+    const admin = await buildAdmin();
+    const palette = colorPalettes[1].colors;
+    const res = await server.post("/api/team.update", admin, {
+      body: {
+        preferences: {
+          colorPalette: palette,
+        },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.preferences.colorPalette).toEqual(palette);
+  });
+
+  it("should fail upon sending a color palette of the wrong length", async () => {
+    const admin = await buildAdmin();
+    const res = await server.post("/api/team.update", admin, {
+      body: {
+        preferences: {
+          colorPalette: ["#4E5C6E", "#0366D6"],
+        },
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should fail upon sending a color palette with a non-hex color", async () => {
+    const admin = await buildAdmin();
+    const res = await server.post("/api/team.update", admin, {
+      body: {
+        preferences: {
+          colorPalette: [...colorPalette.slice(0, -1), "red"],
         },
       },
     });

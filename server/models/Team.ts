@@ -26,7 +26,7 @@ import {
 } from "sequelize-typescript";
 import slugify from "slugify";
 import { isEmail } from "validator";
-import { TeamPreferenceDefaults } from "@shared/constants";
+import { TeamPreferenceDefaults, colorPalette } from "@shared/constants";
 import type { Plan, TeamPreferences } from "@shared/types";
 import { PlanFeature, TeamPreference, UserRole } from "@shared/types";
 import {
@@ -379,7 +379,9 @@ class Team extends ParanoidModel<
    * @param preference The team preference to retrieve
    * @returns The preference value if set, else the default value
    */
-  public getPreference = (preference: TeamPreference) =>
+  public getPreference = <T extends keyof TeamPreferences>(
+    preference: T
+  ): TeamPreferences[T] | false =>
     this.preferences?.[preference] ??
     TeamPreferenceDefaults[preference] ??
     false;
@@ -590,6 +592,25 @@ class Team extends ParanoidModel<
       }
     }
   };
+
+  /**
+   * Returns the preset icon colors for the given team, falling back to the
+   * default palette when the team has not chosen one.
+   *
+   * @param teamId the ID of the team.
+   * @param options additional find options to pass to the query.
+   * @returns the list of hex colors in the team's palette.
+   */
+  static async getColorPalette(
+    teamId: string,
+    options?: FindOptions<Team>
+  ): Promise<string[]> {
+    const team = await this.findByPk(teamId, {
+      ...options,
+      attributes: ["id", "preferences"],
+    });
+    return team?.getPreference(TeamPreference.ColorPalette) || colorPalette;
+  }
 
   /**
    * Find a team by its custom domain. The input is normalized by stripping

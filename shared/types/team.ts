@@ -69,6 +69,8 @@ export enum TeamPreference {
   PersonalDocs = "personalDocs",
   /** The number of days until new public share links expire, 0 for no expiry. */
   DefaultShareExpiryDays = "defaultShareExpiryDays",
+  /** The preset colors offered when choosing an icon color. */
+  ColorPalette = "colorPalette",
 }
 
 /** Workspace preference values, keyed by preference. */
@@ -89,4 +91,5 @@ export type TeamPreferences = {
   [TeamPreference.DisabledEmbeds]?: string[];
   [TeamPreference.PersonalDocs]?: boolean;
   [TeamPreference.DefaultShareExpiryDays]?: number;
+  [TeamPreference.ColorPalette]?: string[];
 };

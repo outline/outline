@@ -2,10 +2,10 @@ import { observer } from "mobx-react";
 import { CollectionIcon, PrivateCollectionIcon } from "outline-icons";
 import styled from "styled-components";
 import Icon from "@shared/components/Icon";
-import { colorPalette } from "@shared/constants";
 import useContrastColor from "@shared/hooks/useContrastColor";
 import Avatar from "~/components/Avatar/Avatar";
 import type Collection from "~/models/Collection";
+import useColorPalette from "~/hooks/useColorPalette";
 import useStores from "~/hooks/useStores";
 
 type Props = {
@@ -28,6 +28,7 @@ function ResolvedCollectionIcon({
   className,
 }: Props) {
   const contrastColor = useContrastColor();
+  const colorPalette = useColorPalette();
   const { users } = useStores();
   const owner = collection.ownerId ? users.get(collection.ownerId) : undefined;
 

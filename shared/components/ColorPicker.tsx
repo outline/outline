@@ -15,11 +15,13 @@ type Props = {
   /** The currently active color */
   activeColor?: string | null;
   alpha: boolean;
+  /** Preset hex colors shown as swatches above the text input */
+  presets?: string[];
 };
 
 const DEFAULT_COLOR = "#7e3d3db3";
 
-function ColorPicker({ activeColor, onSelect, alpha }: Props) {
+function ColorPicker({ activeColor, onSelect, alpha, presets }: Props) {
   const [color, setColor] = useState(activeColor || DEFAULT_COLOR);
   const [copied, setCopied] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -50,6 +52,11 @@ function ColorPicker({ activeColor, onSelect, alpha }: Props) {
     applyColor(newColor);
   };
 
+  const handlePresetSelect = (preset: string) => {
+    setColor(preset);
+    applyColor(preset);
+  };
+
   const handleCopy = useCallback(() => {
     copy(color);
     buttonRef.current?.focus();
@@ -71,6 +78,21 @@ function ColorPicker({ activeColor, onSelect, alpha }: Props) {
           onChange={setColor}
           onChangeEnd={applyColor}
         />
+      )}
+
+      {presets && presets.length > 0 && (
+        <Presets>
+          {presets.map((preset) => (
+            <PresetButton
+              key={preset}
+              type="button"
+              aria-label={preset}
+              $active={preset.toLowerCase() === color.toLowerCase()}
+              style={{ background: preset }}
+              onClick={() => handlePresetSelect(preset)}
+            />
+          ))}
+        </Presets>
       )}
 
       <InputRow>
@@ -135,6 +157,30 @@ const StyledHexAlphaColorPicker = styled(HexAlphaColorPicker)`
     border-radius: 4px;
     margin-top: 8px;
     margin-bottom: 8px;
+  }
+`;
+
+const Presets = styled.div`
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  margin-top: 4px;
+`;
+
+const PresetButton = styled.button<{ $active: boolean }>`
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  outline-offset: 1px;
+  outline: ${({ $active, theme }) =>
+    $active ? `2px solid ${theme.textTertiary}` : "none"};
+
+  &:hover,
+  &:focus-visible {
+    outline: 2px solid ${s("textTertiary")};
   }
 `;
 
