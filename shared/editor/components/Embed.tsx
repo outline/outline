@@ -5,9 +5,11 @@ import { getMatchingEmbed } from "../lib/embeds";
 import type { ComponentProps } from "../types";
 import DisabledEmbed from "./DisabledEmbed";
 import Frame from "./Frame";
-import { contentWidth } from "../lib/contentWidth";
 import { ResizeHandles, ResizeLeft, ResizeRight } from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
+
+/** The height of an embed that has not been resized. */
+export const embedDefaultHeight = 400;
 
 type Props = ComponentProps & {
   embeds: EmbedDescriptor[];
@@ -20,20 +22,8 @@ const Embed = (props: Props) => {
   const ref = React.useRef<HTMLDivElement>(null);
   const { node, isEditable, embedsDisabled, onChangeSize } = props;
   const naturalWidth = 0;
-  const naturalHeight = 400;
+  const naturalHeight = embedDefaultHeight;
   const isResizable = !!onChangeSize && !embedsDisabled;
-
-  // A width at the editor edge is stored as unset, so the embed stays full width.
-  const handleChangeSize = React.useCallback(
-    (size: { width: number; height?: number }) => {
-      const max = ref.current ? contentWidth(ref.current) : Infinity;
-      onChangeSize?.({
-        ...size,
-        width: size.width >= max ? naturalWidth : size.width,
-      });
-    },
-    [onChangeSize]
-  );
 
   const { width, height, handlePointerDown, handleDoubleClick, dragging } =
     useDragResize({
@@ -42,13 +32,13 @@ const Embed = (props: Props) => {
       naturalWidth,
       naturalHeight,
       isLocked: node.attrs.lockAspectRatio !== false,
-      onChangeSize: onChangeSize ? handleChangeSize : undefined,
+      onChangeSize,
       ref,
     });
 
   const style: React.CSSProperties = {
     width: "100%",
-    height: height || 400,
+    height: height || embedDefaultHeight,
     pointerEvents: dragging ? "none" : "all",
   };
 

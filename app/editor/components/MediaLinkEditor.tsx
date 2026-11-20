@@ -7,9 +7,10 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
 import Tooltip from "~/components/Tooltip";
-import { toggleAspectRatioLock } from "@shared/editor/commands/toggleAspectRatioLock";
+import * as Toolbar from "@radix-ui/react-toolbar";
 import Input from "~/editor/components/Input";
-import { AspectRatioLockButton } from "./AspectRatioLockButton";
+import { MediaDimension } from "./MediaDimension";
+import ToolbarSeparator from "./ToolbarSeparator";
 import ToolbarButton from "./ToolbarButton";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 
@@ -53,12 +54,6 @@ export function MediaLinkEditor({
     dispatch(state.tr.setSelection(selection));
     view.focus();
   }, [view]);
-
-  const handleToggleLock = useCallback(() => {
-    if (node) {
-      toggleAspectRatioLock(node.type)(view.state, view.dispatch);
-    }
-  }, [node, view]);
 
   const openLink = useCallback(() => {
     window.open(url, "_blank");
@@ -124,12 +119,15 @@ export function MediaLinkEditor({
         readOnly={!view.editable}
       />
       {view.editable && node.type.name === "embed" && (
-        <Tooltip content={t("Lock aspect ratio")}>
-          <AspectRatioLockButton
-            isLocked={node.attrs.lockAspectRatio !== false}
-            onClick={handleToggleLock}
-          />
-        </Tooltip>
+        <>
+          <ToolbarSeparator />
+          <Toolbar.Root asChild>
+            <DimensionGroup>
+              <MediaDimension tooltip={`${t("Width")} × ${t("Height")}`} />
+            </DimensionGroup>
+          </Toolbar.Root>
+          <ToolbarSeparator />
+        </>
       )}
       <Tooltip content={t("Open link")}>
         <ToolbarButton onClick={openLink} disabled={!localUrl}>
@@ -154,6 +152,11 @@ export function MediaLinkEditor({
     </Wrapper>
   );
 }
+
+const DimensionGroup = styled.div`
+  display: flex;
+  align-items: center;
+`;
 
 const Wrapper = styled(Flex)`
   pointer-events: all;

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 import Flex from "@shared/components/Flex";
 import Text from "@shared/components/Text";
+import { embedDefaultHeight } from "@shared/editor/components/Embed";
 import { contentWidth } from "@shared/editor/lib/contentWidth";
 import {
   pdfNaturalHeight,
@@ -46,20 +47,26 @@ export function MediaDimension({ tooltip }: Props) {
   const nodeType = node.type.name;
   const nodeWidth = node.attrs.width as number | null | undefined;
   const nodeHeight = node.attrs.height as number | null | undefined;
+  const [maxWidth] = useState(() => contentWidth(view.dom));
+
+  // Embeds without a stored size fill the editor width at their default height.
   const { width, height } =
     nodeType === "attachment"
       ? resolvePDFDimensions(nodeWidth, nodeHeight)
-      : { width: nodeWidth ?? 0, height: nodeHeight ?? 0 };
+      : nodeType === "embed"
+        ? {
+            width: nodeWidth || maxWidth,
+            height: nodeHeight ?? embedDefaultHeight,
+          }
+        : { width: nodeWidth ?? 0, height: nodeHeight ?? 0 };
 
-  // Only PDFs can be unlocked, other media always render at their natural aspect ratio.
-  const canUnlock = nodeType === "attachment";
+  // Only PDFs and embeds can be unlocked, images and videos keep their natural aspect ratio.
+  const canUnlock = nodeType === "attachment" || nodeType === "embed";
   const isLocked = !canUnlock || node.attrs.lockAspectRatio !== false;
-  const [maxWidth] = useState(() => contentWidth(view.dom));
 
   // Full-width images store their natural width, so the editor width gives their
-  // aspect ratio. PDFs always store dimensions with a matching ratio.
-  const ratioWidth =
-    nodeType === "attachment" ? width : Math.min(width, maxWidth);
+  // aspect ratio. PDFs and embeds always store dimensions with a matching ratio.
+  const ratioWidth = canUnlock ? width : Math.min(width, maxWidth);
 
   const [localDimension, setLocalDimension] = useState<Dimension>(() => ({
     width: width ? String(width) : "",
@@ -72,7 +79,7 @@ export function MediaDimension({ tooltip }: Props) {
   });
 
   const bounds = useMemo(() => {
-    // Unlocked height does not change the width, so limit it with the default page ratio.
+    // Unlocked height does not change the width, so limit it to a full-width page.
     const aspectRatio = isLocked
       ? height / ratioWidth
       : pdfNaturalHeight / pdfNaturalWidth;
@@ -191,6 +198,11 @@ export function MediaDimension({ tooltip }: Props) {
         width: finalWidth,
         height: finalHeight,
       });
+    } else if (nodeType === "embed") {
+      commands["resizeEmbed"]({
+        width: finalWidth,
+        height: finalHeight,
+      });
     }
   }, [
     commands,
@@ -207,9 +219,13 @@ export function MediaDimension({ tooltip }: Props) {
   ]);
 
   const handleToggleLock = useCallback(() => {
-    commands["toggleAttachmentAspectRatioLock"]();
+    commands[
+      nodeType === "embed"
+        ? "toggleEmbedAspectRatioLock"
+        : "toggleAttachmentAspectRatioLock"
+    ]();
     setError({ width: false, height: false });
-  }, [commands]);
+  }, [commands, nodeType]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
