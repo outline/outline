@@ -37,4 +37,9 @@ export function AspectRatioLockButton({ isLocked, ...rest }: Props) {
 
 const LockButton = styled(ToolbarButton)`
   justify-content: center;
+
+  /* The padlock glyph sits above its box center, so align it with the digits. */
+  svg {
+    transform: translateY(1px);
+  }
 `;
