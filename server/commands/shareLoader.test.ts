@@ -347,6 +347,134 @@ describe("shareLoader", () => {
       expect(result.parentShare?.id).toEqual(parentShare.id);
     });
 
+    it("should return parentShare from a grandparent document", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const childDocument = await buildDocument({
+        parentDocumentId: document.id,
+        collectionId: collection.id,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const grandchildDocument = await buildDocument({
+        parentDocumentId: childDocument.id,
+        collectionId: collection.id,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const parentShare = await buildShare({
+        includeChildDocuments: true,
+        userId: user.id,
+        teamId: user.teamId,
+        documentId: document.id,
+      });
+
+      const result = await loadShareWithParent({
+        documentId: grandchildDocument.id,
+        user,
+      });
+
+      expect(result.share).toBeNull();
+      expect(result.parentShare?.id).toEqual(parentShare.id);
+    });
+
+    it("should not return a parent document share for a draft", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const draft = await buildDocument({
+        parentDocumentId: document.id,
+        collectionId: collection.id,
+        publishedAt: null,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      await buildShare({
+        includeChildDocuments: true,
+        userId: user.id,
+        teamId: user.teamId,
+        documentId: document.id,
+      });
+
+      const result = await loadShareWithParent({
+        documentId: draft.id,
+        user,
+      });
+
+      expect(result.share).toBeNull();
+      expect(result.parentShare).toBeNull();
+    });
+
+    it("should not return a parent document share for an archived document", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const archived = await buildDocument({
+        parentDocumentId: document.id,
+        collectionId: collection.id,
+        archivedAt: new Date(),
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      await buildShare({
+        includeChildDocuments: true,
+        userId: user.id,
+        teamId: user.teamId,
+        documentId: document.id,
+      });
+
+      const result = await loadShareWithParent({
+        documentId: archived.id,
+        user,
+      });
+
+      expect(result.share).toBeNull();
+      expect(result.parentShare).toBeNull();
+    });
+
+    it("should return no shares for a top-level document without a share", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+
+      const result = await loadShareWithParent({
+        documentId: document.id,
+        user,
+      });
+
+      expect(result.share).toBeNull();
+      expect(result.parentShare).toBeNull();
+    });
+
     it("should not return parentShare when the user cannot read the document", async () => {
       const admin = await buildUser();
       const member = await buildUser({ teamId: admin.teamId });

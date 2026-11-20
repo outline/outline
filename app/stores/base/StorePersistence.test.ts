@@ -8,6 +8,11 @@ import RootStore from "~/stores/RootStore";
 import StorePersistence from "./StorePersistence";
 
 describe("StorePersistence", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
   it("round-trips models through IndexedDB into a fresh store", async () => {
     const teamId = "team-1";
     const source = new RootStore();
@@ -125,13 +130,14 @@ describe("StorePersistence", () => {
     persistence.persist("doc-1");
     await persistence.flush();
 
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
     const target = new RootStore();
     await target.policies.enablePersistence(teamId);
 
     // Drop the model without notifying persistence, so that any flush scheduled
     // during hydration would delete the persisted record when it fires.
     target.policies.data.delete("doc-1");
-    await new Promise((resolve) => setTimeout(resolve, 1100));
+    await vi.runAllTimersAsync();
 
     const other = new RootStore();
     const otherPersistence = new StorePersistence(other.policies, teamId);
@@ -173,6 +179,7 @@ describe("StorePersistence", () => {
   });
 
   it("does not recreate the database from a pending flush once disabled", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
     const teamId = "team-10";
     const source = new RootStore();
     const persistence = new StorePersistence(source.policies, teamId);
@@ -181,12 +188,16 @@ describe("StorePersistence", () => {
       teamId
     );
 
+    const open = vi.spyOn(indexedDB, "open");
+
     source.policies.add({ id: "doc-1", abilities: { read: true } });
     persistence.persist("doc-1");
 
     // Disabling while a debounced write is still scheduled, as logout does.
     persistence.disable();
-    await new Promise((resolve) => setTimeout(resolve, 1100));
+    await vi.runAllTimersAsync();
+
+    expect(open).not.toHaveBeenCalled();
 
     const databases = await indexedDB.databases();
     expect(databases.map((database) => database.name)).not.toContain(

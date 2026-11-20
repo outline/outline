@@ -828,6 +828,7 @@ router.post(
       includeContent: false,
     });
     authorize(actor, "read", document);
+    authorize(actor, "listUsers", actor.team);
 
     let where: WhereOptions<User> = {
       teamId: document.teamId,

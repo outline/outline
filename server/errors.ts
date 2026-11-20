@@ -251,6 +251,30 @@ export function RequestTimeoutError(
   });
 }
 
+export function ServiceUnavailableError(
+  message = "The service is temporarily unavailable. Try again shortly."
+) {
+  return httpErrors(503, message, {
+    id: "service_unavailable",
+    isReportable: false,
+    headers: {
+      "Retry-After": "30",
+    },
+  });
+}
+
+export function DatabaseReadOnlyError(
+  message = "Changes cannot be saved during maintenance. Try again shortly."
+) {
+  return httpErrors(503, message, {
+    id: "database_read_only",
+    isReportable: false,
+    headers: {
+      "Retry-After": "30",
+    },
+  });
+}
+
 export function ClientClosedRequestError(
   message = "Client closed request before response was received"
 ) {

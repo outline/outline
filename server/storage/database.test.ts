@@ -1,4 +1,4 @@
-import { QueryTypes } from "sequelize";
+import { DatabaseError, QueryTypes } from "sequelize";
 import type { Transaction } from "sequelize";
 import type { Sequelize } from "sequelize-typescript";
 import Document from "@server/models/Document";
@@ -7,7 +7,32 @@ import env from "@server/env";
 import {
   applyStatementTimeoutToTransactions,
   createDatabaseInstance,
+  optionalWrite,
 } from "./database";
+
+const databaseError = (message: string, code?: string) =>
+  new DatabaseError(Object.assign(new Error(message), { sql: "", code }));
+
+describe("optionalWrite", () => {
+  it("should skip a write when the database is read-only", async () => {
+    await expect(
+      optionalWrite(() => Promise.reject(databaseError("", "25006")))
+    ).resolves.toBeUndefined();
+  });
+
+  it("should skip a write when the database is unavailable", async () => {
+    await expect(
+      optionalWrite(() => Promise.reject(databaseError("", "57P03")))
+    ).resolves.toBeUndefined();
+  });
+
+  it("should rethrow other errors", async () => {
+    const error = databaseError("", "22008");
+    await expect(optionalWrite(() => Promise.reject(error))).rejects.toBe(
+      error
+    );
+  });
+});
 
 describe("read replica transactions", () => {
   let replica: Sequelize;

@@ -228,6 +228,10 @@ const Actions = styled(Flex)`
     gap: 0;
     margin-inline-start: auto;
 
+    /* Leaves room for the menu button; actions past the start edge are clipped. */
+    max-width: calc(100% - ${MOBILE_TOUCH_TARGET + 8}px);
+    overflow: hidden;
+
     &:not(:empty) {
       ${mobilePill}
       padding-inline: 10px;
@@ -236,6 +240,15 @@ const Actions = styled(Flex)`
     /* Touch targets overlap so icons sit closer than their 44px hit areas. */
     & > * {
       margin-inline: -4px;
+    }
+
+    /* A single action shows as a circle, like the menu button. */
+    &:has(> :only-child) {
+      padding-inline: 0;
+    }
+
+    & > :only-child {
+      margin-inline: 0;
     }
 
     && [data-variant] {

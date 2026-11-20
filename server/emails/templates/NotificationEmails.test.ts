@@ -1,5 +1,9 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { CollectionPermission, DocumentPermission } from "@shared/types";
+import {
+  CollectionPermission,
+  DocumentPermission,
+  NotificationEventType,
+} from "@shared/types";
 import mailer from "@server/emails/mailer";
 import { UserMembership } from "@server/models";
 import {
@@ -13,6 +17,7 @@ import DocumentAccessRequestEmail from "./DocumentAccessRequestEmail";
 import DocumentMentionedEmail from "./DocumentMentionedEmail";
 import DocumentSharedEmail from "./DocumentSharedEmail";
 import GroupDocumentMentionedEmail from "./GroupDocumentMentionedEmail";
+import InviteAcceptedEmail from "./InviteAcceptedEmail";
 
 const teamUrl = "https://example.outline.dev";
 
@@ -123,6 +128,37 @@ describe("notification emails", () => {
     }).send();
 
     expectUnsubscribe("access_requests.create", user.id);
+  });
+
+  it("should include an unsubscribe link in InviteAcceptedEmail", async () => {
+    const inviter = await buildUser();
+
+    await new InviteAcceptedEmail({
+      to: inviter.email,
+      inviterId: inviter.id,
+      invitedName: "Invited",
+      teamUrl,
+    }).send();
+
+    expectUnsubscribe("emails.invite_accepted", inviter.id);
+  });
+
+  it("should not send InviteAcceptedEmail when the inviter is unsubscribed", async () => {
+    const inviter = await buildUser();
+    inviter.setNotificationEventType(
+      NotificationEventType.InviteAccepted,
+      false
+    );
+    await inviter.save();
+
+    await new InviteAcceptedEmail({
+      to: inviter.email,
+      inviterId: inviter.id,
+      invitedName: "Invited",
+      teamUrl,
+    }).send();
+
+    expect(mailer.sendMail).not.toHaveBeenCalled();
   });
 
   it("should set the language and direction for RTL languages", async () => {

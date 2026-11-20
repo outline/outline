@@ -1,6 +1,6 @@
 import Router from "@koa/router";
 import { errToString } from "@shared/utils/error";
-import { Client, NotificationEventType } from "@shared/types";
+import { Client } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
 import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
 import SigninEmail from "@server/emails/templates/SigninEmail";
@@ -195,7 +195,7 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
     });
 
     const inviter = await user.$get("invitedBy");
-    if (inviter?.subscribedToEventType(NotificationEventType.InviteAccepted)) {
+    if (inviter) {
       await new InviteAcceptedEmail({
         to: inviter.email,
         language: inviter.language,

@@ -19,7 +19,10 @@ interface Props {
   isTemplate: boolean;
 }
 
-/** Delay in ms before the toolbar hides once the pointer leaves the block. */
+/**
+ * Delay in ms before the toolbar hides or moves to another block once the
+ * pointer leaves the block.
+ */
 const hideDelay = 150;
 
 /**
@@ -38,23 +41,39 @@ export const CodeBlockHoverToolbar = observer(function CodeBlockHoverToolbar({
   const isMobile = useMobile();
   const [element, setElement] = React.useState<HTMLElement | null>(null);
   const hideTimeout = React.useRef<ReturnType<typeof setTimeout>>(undefined);
+  const pendingElement = React.useRef<HTMLElement | null | undefined>(
+    undefined
+  );
   const toolbarRef = React.useRef<HTMLDivElement>(null);
 
   const cancelHide = React.useCallback(() => {
     clearTimeout(hideTimeout.current);
+    pendingElement.current = undefined;
   }, []);
 
-  // Hide after a delay so the pointer can cross the gap to the toolbar.
-  const scheduleHide = React.useCallback(() => {
+  // Change the target after a delay so the pointer can cross the gap, or a
+  // neighboring block, to the toolbar.
+  const scheduleChange = React.useCallback((next: HTMLElement | null) => {
+    if (pendingElement.current === next) {
+      return;
+    }
     clearTimeout(hideTimeout.current);
+    pendingElement.current = next;
     hideTimeout.current = setTimeout(() => {
+      pendingElement.current = undefined;
+
       // Keep the toolbar while it holds keyboard focus.
-      if (toolbarRef.current?.contains(document.activeElement)) {
+      if (!next && toolbarRef.current?.contains(document.activeElement)) {
         return;
       }
-      setElement(null);
+      setElement(next);
     }, hideDelay);
   }, []);
+
+  const scheduleHide = React.useCallback(
+    () => scheduleChange(null),
+    [scheduleChange]
+  );
 
   React.useEffect(() => cancelHide, [cancelHide]);
 
@@ -66,11 +85,11 @@ export const CodeBlockHoverToolbar = observer(function CodeBlockHoverToolbar({
           ? event.target.closest<HTMLElement>(`.${EditorStyleHelper.codeBlock}`)
           : null;
 
-      if (block) {
+      if (block && (!element || block === element)) {
         cancelHide();
         setElement(block);
       } else {
-        scheduleHide();
+        scheduleChange(block);
       }
     },
     view.dom

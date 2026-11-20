@@ -25,6 +25,35 @@ export enum TableLayout {
   fullWidth = "full-width",
 }
 
+/** How a table filter compares the cells of a column. */
+export enum TableFilterOperator {
+  /** The cell matches one of the values. */
+  Is = "is",
+  /** The cell matches none of the values. */
+  IsNot = "isNot",
+  /** The cell has no text. */
+  IsEmpty = "isEmpty",
+  /** The cell has text. */
+  IsNotEmpty = "isNotEmpty",
+  /** The cell includes the text. */
+  Contains = "contains",
+  /** The cell does not include the text. */
+  DoesNotContain = "doesNotContain",
+}
+
+/** A condition on one column that rows of a table must meet to be shown. */
+export interface TableFilter {
+  /** The index of the column. */
+  column: number;
+  /** How the cells of the column are compared. */
+  operator: TableFilterOperator;
+  /**
+   * The values to compare cells with. The "is" and "is not" operators use all
+   * of them, and the "contains" and "does not contain" operators use the first.
+   */
+  values: string[];
+}
+
 /** How a selection toolbar menu is presented. */
 export enum MenuType {
   /** A horizontal strip of buttons; nested options open behind a trigger. */

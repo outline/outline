@@ -1,6 +1,7 @@
+import { useKBar } from "kbar";
 import { observer } from "mobx-react";
-import { MoonIcon, SunIcon, SubscribeIcon } from "outline-icons";
-import { useState } from "react";
+import { MoonIcon, SearchIcon, SunIcon, SubscribeIcon } from "outline-icons";
+import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
@@ -11,6 +12,7 @@ import {
 } from "~/components/primitives/Popover";
 import Tooltip from "~/components/Tooltip";
 import { ShareSubscribeForm } from "./ShareSubscribeForm";
+import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import { Theme } from "~/stores/UiStore";
 
@@ -18,9 +20,10 @@ export const AppearanceAction = observer(() => {
   const { t } = useTranslation();
   const { ui } = useStores();
   const { resolvedTheme, themeOverride } = ui;
+  const isMobile = useMobile();
 
   // Hide when theme is locked via query parameter
-  if (themeOverride) {
+  if (themeOverride || isMobile) {
     return null;
   }
 
@@ -49,6 +52,36 @@ export const AppearanceAction = observer(() => {
     </Action>
   );
 });
+
+/**
+ * A header button that opens search on public shares, shown only on mobile
+ * where the sidebar search button is hidden.
+ */
+export function SearchAction() {
+  const { t } = useTranslation();
+  const { query } = useKBar();
+  const isMobile = useMobile();
+
+  const handleClick = useCallback(() => {
+    query.toggle();
+  }, [query]);
+
+  if (!isMobile) {
+    return null;
+  }
+
+  return (
+    <Action>
+      <Button
+        icon={<SearchIcon />}
+        onClick={handleClick}
+        aria-label={t("Search")}
+        neutral
+        borderOnHover
+      />
+    </Action>
+  );
+}
 
 export function SubscribeAction({
   shareId,

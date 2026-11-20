@@ -8,8 +8,6 @@ import { toError } from "@shared/utils/error";
 import type { NavigationNode } from "@shared/types";
 import { FileOperationState, NotificationEventType } from "@shared/types";
 import { bytesToHumanReadable } from "@shared/utils/files";
-import ExportFailureEmail from "@server/emails/templates/ExportFailureEmail";
-import ExportSuccessEmail from "@server/emails/templates/ExportSuccessEmail";
 import env from "@server/env";
 import { ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -19,7 +17,7 @@ import {
   Document,
   Event,
   FileOperation,
-  Team,
+  Notification,
   User,
 } from "@server/models";
 import fileOperationPresenter from "@server/presenters/fileOperation";
@@ -46,10 +44,9 @@ export default abstract class ExportTask extends BaseTask<Props> {
     const fileOperation = await FileOperation.findByPk(fileOperationId, {
       rejectOnEmpty: true,
     });
-    const [team, user] = await Promise.all([
-      Team.findByPk(fileOperation.teamId, { rejectOnEmpty: true }),
-      User.findByPk(fileOperation.userId, { rejectOnEmpty: true }),
-    ]);
+    const user = await User.findByPk(fileOperation.userId, {
+      rejectOnEmpty: true,
+    });
 
     let filePath: string | undefined;
     let readStream: fs.ReadStream | undefined;
@@ -87,30 +84,13 @@ export default abstract class ExportTask extends BaseTask<Props> {
         url,
       });
 
-      if (user.subscribedToEventType(NotificationEventType.ExportCompleted)) {
-        await new ExportSuccessEmail({
-          to: user.email,
-          language: user.language,
-          userId: user.id,
-          id: fileOperation.id,
-          teamUrl: team.url,
-          teamId: team.id,
-        }).schedule();
-      }
+      await this.createNotification(fileOperation, user);
     } catch (error) {
       await this.updateFileOperation(fileOperation, {
         state: FileOperationState.Error,
         error: toError(error),
       });
-      if (user.subscribedToEventType(NotificationEventType.ExportCompleted)) {
-        await new ExportFailureEmail({
-          to: user.email,
-          language: user.language,
-          userId: user.id,
-          teamUrl: team.url,
-          teamId: team.id,
-        }).schedule();
-      }
+      await this.createNotification(fileOperation, user);
       throw error;
     } finally {
       // Destroy the read stream first to release the file handle before deletion
@@ -276,6 +256,36 @@ export default abstract class ExportTask extends BaseTask<Props> {
         );
       }
     );
+  }
+
+  /**
+   * Notify the user that requested the export, in the app and by email. A
+   * failure is logged and does not change the result of the export.
+   *
+   * @param fileOperation The FileOperation that finished.
+   * @param user The user that requested the export.
+   */
+  private async createNotification(fileOperation: FileOperation, user: User) {
+    if (!user.subscribedToEventType(NotificationEventType.ExportCompleted)) {
+      return;
+    }
+
+    try {
+      await Notification.create({
+        event: NotificationEventType.ExportCompleted,
+        userId: user.id,
+        actorId: user.id,
+        teamId: user.teamId,
+        fileOperationId: fileOperation.id,
+        // The source lets the notification be revoked if access is lost.
+        documentId: fileOperation.documentId ?? undefined,
+        collectionId: fileOperation.collectionId ?? undefined,
+      });
+    } catch (error) {
+      Logger.error("Failed to create export notification", toError(error), {
+        fileOperationId: fileOperation.id,
+      });
+    }
   }
 
   /**

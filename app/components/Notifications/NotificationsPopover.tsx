@@ -14,6 +14,7 @@ import {
 } from "~/components/primitives/Popover";
 import useConsumeQueryParam from "~/hooks/useConsumeQueryParam";
 import useMobile from "~/hooks/useMobile";
+import { usePathnameChange } from "~/hooks/usePathnameChange";
 import useStores from "~/hooks/useStores";
 import { isTruthyQueryValue } from "~/utils/urls";
 import Notifications from "./Notifications";
@@ -38,6 +39,9 @@ const NotificationsPopover: React.FC<Props> = ({ children }: Props) => {
   const handleRequestClose = useCallback(() => {
     setOpen(false);
   }, []);
+
+  // Close on navigation because the trigger can be hidden on the new page.
+  usePathnameChange(handleRequestClose, open);
 
   const handleAutoFocus = useCallback((event: Event) => {
     // Prevent focus from moving to the popover content

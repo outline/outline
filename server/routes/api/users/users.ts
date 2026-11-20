@@ -16,7 +16,7 @@ import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { User, Team } from "@server/models";
+import { GroupUser, User, Team } from "@server/models";
 import {
   buildWhere,
   combineFilters,
@@ -413,6 +413,20 @@ async function updateRole(ctx: APIContext<T.UsersChangeRoleReq>) {
   }
 
   await user.updateWithCtx(ctx, { role }, { name });
+
+  // Guests cannot be members of groups, remove any existing memberships
+  if (role === UserRole.Guest) {
+    const groupUsers = await GroupUser.unscoped().findAll({
+      where: { userId: user.id },
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+
+    for (const groupUser of groupUsers) {
+      await groupUser.destroyWithCtx(ctx, { name: "remove_user" });
+    }
+  }
+
   const includeDetails = !!can(actor, "readDetails", user);
 
   ctx.body = {

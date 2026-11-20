@@ -84,7 +84,9 @@ router.get("/locales/:lng.json", async (ctx) => {
 
   const locale = await loadClientLocale(lng);
 
-  ctx.set("Cache-Control", `public, max-age=${7 * Day.seconds}`);
+  // "no-cache" still caches, but the browser must revalidate the ETag before
+  // reuse, as locale URLs do not change between releases.
+  ctx.set("Cache-Control", "public, no-cache");
   ctx.set("ETag", locale.etag);
   ctx.set("Access-Control-Allow-Origin", "*");
   ctx.type = "application/json";
