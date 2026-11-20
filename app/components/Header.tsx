@@ -177,8 +177,6 @@ const fadeStops = (height: number) =>
     )
     .join(", ");
 
-const headerFadeStops = fadeStops(HeaderFadeHeight);
-
 /** Raised capsule that holds header buttons on mobile, like an iOS toolbar. */
 const mobilePill = css`
   background: ${s("menuBackground")};
@@ -344,37 +342,29 @@ const Wrapper = styled(Flex)<WrapperProps>`
     ${(props: WrapperProps & { theme: DefaultTheme }) =>
       !props.$passThrough &&
       `
-      background: transparent;
+      /* iOS reads this color for the status bar. The clip leaves the visible background to the fade. */
+      background: ${props.theme.background};
+      -webkit-background-clip: text;
+      background-clip: text;
       backdrop-filter: none;
 
-      /* The blurred background extends past the header and fades out, so content blends under it. */
+      /* The background extends past the header and fades out, so content blends under it. */
       &::before {
         content: "";
         position: absolute;
         inset: 0 0 -${HeaderFadeHeight / 2}px;
         z-index: -1;
         pointer-events: none;
-        background: ${transparentize(0.2, props.theme.background)};
+        background: ${props.theme.background};
         backdrop-filter: blur(20px);
-        mask-image: linear-gradient(to bottom, ${headerFadeStops});
+        mask-image: linear-gradient(to bottom, ${fadeStops(HeaderFadeHeight)});
       }
 
       /* A stuck tab bar or table header continues the header, so the header is solid above it. */
       body:has([data-stuck]) &::before {
         inset: 0;
-        background: ${props.theme.background};
         backdrop-filter: none;
         mask-image: none;
-      }
-
-      /* iOS blurs the top of an installed web app unless the sticky header has a solid background. */
-      @media (display-mode: standalone) {
-        background: ${props.theme.background};
-
-        &::before {
-          background: ${props.theme.background};
-          mask-image: linear-gradient(to bottom, ${fadeStops(HeaderFadeHeight / 2)});
-        }
       }
       `}
   `};
