@@ -47,12 +47,6 @@ function NotificationListItem({ notification, onNavigate }: Props) {
   const isExport = notification.event === NotificationEventType.ExportCompleted;
   const { fileOperation, downloadUrl } = notification;
 
-  const download = (url: string) => {
-    window.open(url, "_blank");
-    void notification.markAsRead();
-    onNavigate();
-  };
-
   const handleClick: React.MouseEventHandler<HTMLAnchorElement> = (event) => {
     if (event.altKey) {
       event.preventDefault();
@@ -63,23 +57,12 @@ function NotificationListItem({ notification, onNavigate }: Props) {
 
     if (downloadUrl) {
       event.preventDefault();
-      download(downloadUrl);
-      return;
+      window.open(downloadUrl, "_blank");
     }
 
     void notification.markAsRead();
 
     onNavigate();
-  };
-
-  const handleDownload: React.MouseEventHandler<HTMLButtonElement> = (
-    event
-  ) => {
-    event.preventDefault();
-    event.stopPropagation();
-    if (downloadUrl) {
-      download(downloadUrl);
-    }
   };
 
   const actions = React.useMemo(
@@ -127,8 +110,9 @@ function NotificationListItem({ notification, onNavigate }: Props) {
             </Text>
             {downloadUrl && (
               <DownloadButton
+                forwardedAs="span"
                 icon={<DownloadIcon />}
-                onClick={handleDownload}
+                aria-hidden
                 neutral
               >
                 {t("Download")}
@@ -184,6 +168,7 @@ const IconWrapper = styled.div`
   margin-top: 4px;
 `;
 
+// A visual cue only, as a click anywhere on the row downloads the export.
 const DownloadButton = styled(Button)`
   align-self: flex-start;
   margin-top: 8px;

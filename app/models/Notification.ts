@@ -144,7 +144,7 @@ class Notification extends Model {
   /**
    * The file operation that the notification is associated with.
    */
-  @Relation(() => FileOperation, { onDelete: "cascade" })
+  @Relation(() => FileOperation, { onDelete: "ignore" })
   fileOperation?: FileOperation;
 
   commentId?: string;
@@ -271,7 +271,7 @@ class Notification extends Model {
    */
   subject(t: TFunction): string {
     if (this.fileOperationId) {
-      return this.fileOperation?.displayName ?? t("An export");
+      return this.fileOperation?.displayName ?? t("Your");
     }
     if (this.documentId) {
       return this.document?.title ?? t("a document");
