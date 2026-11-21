@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { zodISO8601DurationType } from "@server/utils/zod";
 import { PersonalCollectionId } from "@shared/constants";
 import type { McpServer, CallToolResult } from "@modelcontextprotocol/server";
 import documentCreator, {
@@ -690,15 +691,11 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .describe(
               "Whether the document should occupy full width of the screen."
             ),
-          verificationInterval: z
-            .number()
-            .int()
-            .min(1)
-            .max(3650)
+          verificationInterval: zodISO8601DurationType()
             .nullable()
             .optional()
             .describe(
-              "The number of days after which a verification of this document expires and it must be re-verified. Requires admin access to the document. Set to null to clear the override and inherit the collection or workspace default."
+              'The re-verification cadence for this document as an ISO 8601 duration, e.g. "P30D" for 30 days, "P6M" for 6 months, or "P1Y" for a year. A verification of the document expires after this period and the document must be re-verified. Requires admin access to the document. Set to null to clear the override and inherit the collection or workspace default.'
             ),
         }),
       },

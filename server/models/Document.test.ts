@@ -1177,40 +1177,40 @@ describe("verification", () => {
   describe("#resolveVerificationInterval", () => {
     it("should prefer the document override over all other sources", async () => {
       const team = await buildTeam({
-        preferences: { verificationInterval: 365 },
+        preferences: { verificationInterval: "P365D" },
       });
       const collection = await buildCollection({
         teamId: team.id,
-        verificationInterval: 180,
+        verificationInterval: "P180D",
       });
       const document = await buildDocument({
         teamId: team.id,
         collectionId: collection.id,
-        verificationInterval: 30,
+        verificationInterval: "P30D",
       });
 
-      expect(await document.resolveVerificationInterval()).toEqual(30);
+      expect(await document.resolveVerificationInterval()).toEqual("P30D");
     });
 
     it("should fall back to the collection default", async () => {
       const team = await buildTeam({
-        preferences: { verificationInterval: 365 },
+        preferences: { verificationInterval: "P365D" },
       });
       const collection = await buildCollection({
         teamId: team.id,
-        verificationInterval: 180,
+        verificationInterval: "P180D",
       });
       const document = await buildDocument({
         teamId: team.id,
         collectionId: collection.id,
       });
 
-      expect(await document.resolveVerificationInterval()).toEqual(180);
+      expect(await document.resolveVerificationInterval()).toEqual("P180D");
     });
 
     it("should fall back to the team preference", async () => {
       const team = await buildTeam({
-        preferences: { verificationInterval: 365 },
+        preferences: { verificationInterval: "P365D" },
       });
       const collection = await buildCollection({ teamId: team.id });
       const document = await buildDocument({
@@ -1218,7 +1218,7 @@ describe("verification", () => {
         collectionId: collection.id,
       });
 
-      expect(await document.resolveVerificationInterval()).toEqual(365);
+      expect(await document.resolveVerificationInterval()).toEqual("P365D");
     });
 
     it("should return null when no interval is configured anywhere", async () => {
@@ -1235,7 +1235,7 @@ describe("verification", () => {
       const document = await buildDocument({
         teamId: team.id,
         userId: user.id,
-        verificationInterval: 90,
+        verificationInterval: "P90D",
       });
       const updatedAt = document.updatedAt;
 
@@ -1272,7 +1272,7 @@ describe("verification", () => {
       const document = await buildDocument({
         teamId: team.id,
         userId: user.id,
-        verificationInterval: 90,
+        verificationInterval: "P90D",
       });
 
       await withAPIContext(user, (ctx) => document.verify(ctx));
@@ -1281,7 +1281,7 @@ describe("verification", () => {
       expect(document.verifiedAt).toEqual(null);
       expect(document.verifiedById).toEqual(null);
       expect(document.verificationExpiresAt).toEqual(null);
-      expect(document.verificationInterval).toEqual(90);
+      expect(document.verificationInterval).toEqual("P90D");
     });
   });
 });

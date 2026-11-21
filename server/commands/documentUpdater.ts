@@ -1,5 +1,5 @@
 import type { DocumentPreferences, TextEditMode } from "@shared/types";
-import { Day } from "@shared/utils/time";
+import { addISO8601Duration } from "@shared/utils/date";
 import { DocumentConflictError, ValidationError } from "@server/errors";
 import { Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -27,8 +27,8 @@ type Props = {
   preferences?: DocumentPreferences | null;
   /** Whether insights should be visible on the document */
   insightsEnabled?: boolean;
-  /** Re-verification cadence override in days, null clears the override */
-  verificationInterval?: number | null;
+  /** Re-verification cadence override as an ISO 8601 duration, null clears the override */
+  verificationInterval?: string | null;
   /** The edit mode: "replace", "append", "prepend", or "patch" */
   editMode?: TextEditMode;
   /** The document revision the changes are based on, the update is rejected if it no longer matches */
@@ -102,7 +102,7 @@ export default async function documentUpdater(
         transaction,
       });
       document.verificationExpiresAt = interval
-        ? new Date(document.verifiedAt.getTime() + interval * Day.ms)
+        ? addISO8601Duration(document.verifiedAt, interval)
         : null;
     }
   }

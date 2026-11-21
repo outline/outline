@@ -1,5 +1,6 @@
 import emojiRegex from "emoji-regex";
 import { z } from "zod";
+import { parseISO8601Duration } from "@shared/utils/date";
 import { iconNames } from "@shared/utils/IconNames";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 
@@ -56,6 +57,23 @@ export const zodShareIdType = () =>
   z.union([z.uuid(), z.string().regex(UrlHelper.SHARE_URL_SLUG_REGEX)], {
     error: "Must be a valid UUID or share slug",
   });
+
+/**
+ * Returns a zod schema that validates a positive ISO 8601 duration string,
+ * for example "P30D", "P6M", or "P1Y".
+ *
+ * @returns a zod schema for durations.
+ */
+export const zodISO8601DurationType = () =>
+  z.string().refine(
+    (value) => {
+      const parsed = parseISO8601Duration(value);
+      return !!parsed && Object.values(parsed).some((part) => part > 0);
+    },
+    {
+      error: "Must be a positive ISO 8601 duration, e.g. P30D",
+    }
+  );
 
 /**
  * Returns a zod schema that validates an IANA timezone name.

@@ -3072,7 +3072,7 @@ describe("#collections.update verificationInterval", () => {
     const res = await server.post("/api/collections.update", user, {
       body: {
         id: collection.id,
-        verificationInterval: 90,
+        verificationInterval: "P90D",
       },
     });
     expect(res.status).toEqual(403);
@@ -3089,12 +3089,12 @@ describe("#collections.update verificationInterval", () => {
     const res = await server.post("/api/collections.update", admin, {
       body: {
         id: collection.id,
-        verificationInterval: 90,
+        verificationInterval: "P90D",
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.verificationInterval).toEqual(90);
+    expect(body.data.verificationInterval).toEqual("P90D");
 
     const cleared = await server.post("/api/collections.update", admin, {
       body: {

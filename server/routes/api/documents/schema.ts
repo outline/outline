@@ -13,7 +13,12 @@ import {
 } from "@shared/types";
 import { DeprecationValidation, DocumentValidation } from "@shared/validations";
 import { BaseSchema } from "@server/routes/api/schema";
-import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
+import {
+  zodIconType,
+  zodIdType,
+  zodISO8601DurationType,
+  zodShareIdType,
+} from "@server/utils/zod";
 import { ValidateColor } from "@server/validation";
 
 const documentFilterFields = {
@@ -427,8 +432,8 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     /** Boolean to denote if insights should be visible on the doc */
     insightsEnabled: z.boolean().optional(),
 
-    /** Re-verification cadence override in days; null clears the override */
-    verificationInterval: z.number().int().min(1).max(3650).nullish(),
+    /** Re-verification cadence override as an ISO 8601 duration; null clears the override */
+    verificationInterval: zodISO8601DurationType().nullish(),
 
     /** Boolean to denote if the doc should be published */
     publish: z.boolean().optional(),

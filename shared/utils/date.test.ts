@@ -1,9 +1,11 @@
 import {
+  addISO8601Duration,
   dateRangeToReadable,
   dateToReadable,
   dateToRelativeReadable,
   dateToTimestamp,
   hasTimeComponent,
+  parseISO8601Duration,
   parseISODate,
   toISODate,
   toISODateTime,
@@ -232,5 +234,56 @@ describe("dateRangeToReadable", () => {
 
   it("is empty without bounds", () => {
     expect(dateRangeToReadable(null, null, "en_US")).toEqual("");
+  });
+});
+
+describe("parseISO8601Duration", () => {
+  it("parses date and time components", () => {
+    expect(parseISO8601Duration("P1Y2M3DT4H5M6S")).toEqual({
+      years: 1,
+      months: 2,
+      weeks: 0,
+      days: 3,
+      hours: 4,
+      minutes: 5,
+      seconds: 6,
+    });
+  });
+
+  it("parses the weeks form", () => {
+    expect(parseISO8601Duration("P2W")).toMatchObject({ weeks: 2 });
+  });
+
+  it("negates every part for a leading minus", () => {
+    expect(parseISO8601Duration("-P7D")).toMatchObject({ days: -7 });
+  });
+
+  it("returns null for invalid input", () => {
+    expect(parseISO8601Duration("P")).toEqual(null);
+    expect(parseISO8601Duration("7 days")).toEqual(null);
+    expect(parseISO8601Duration("P1DT")).toEqual(null);
+  });
+});
+
+describe("addISO8601Duration", () => {
+  it("adds the duration to the date", () => {
+    const date = new Date("2026-01-15T00:00:00.000Z");
+    expect(addISO8601Duration(date, "P30D")).toEqual(
+      new Date("2026-02-14T00:00:00.000Z")
+    );
+    expect(addISO8601Duration(date, "P1Y")).toEqual(
+      new Date("2027-01-15T00:00:00.000Z")
+    );
+  });
+
+  it("subtracts a negative duration", () => {
+    const date = new Date("2026-01-15T00:00:00.000Z");
+    expect(addISO8601Duration(date, "-P7D")).toEqual(
+      new Date("2026-01-08T00:00:00.000Z")
+    );
+  });
+
+  it("throws for invalid input", () => {
+    expect(() => addISO8601Duration(new Date(), "nope")).toThrow();
   });
 });

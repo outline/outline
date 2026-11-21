@@ -1725,12 +1725,12 @@ describe("update_document verificationInterval", () => {
 
     const res = await callMcpTool(server, accessToken, "update_document", {
       id: document.id,
-      verificationInterval: 30,
+      verificationInterval: "P30D",
     });
     expect(res?.result?.isError).toBeUndefined();
 
     await document.reload();
-    expect(document.verificationInterval).toEqual(30);
+    expect(document.verificationInterval).toEqual("P30D");
     expect(document.verificationExpiresAt).toEqual(
       new Date(verifiedAt.getTime() + 30 * 24 * 60 * 60 * 1000)
     );
@@ -1750,7 +1750,7 @@ describe("update_document verificationInterval", () => {
 
     const res = await callMcpTool(server, accessToken, "update_document", {
       id: document.id,
-      verificationInterval: 30,
+      verificationInterval: "P30D",
     });
     expect(res?.result?.isError).toBe(true);
 

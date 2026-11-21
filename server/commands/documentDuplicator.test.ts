@@ -43,7 +43,7 @@ describe("documentDuplicator", () => {
       verifiedAt: new Date(),
       verifiedById: user.id,
       verificationExpiresAt: new Date(),
-      verificationInterval: 90,
+      verificationInterval: "P90D",
     });
 
     const response = await withAPIContext(user, (ctx) =>
@@ -57,7 +57,7 @@ describe("documentDuplicator", () => {
     expect(response[0].verifiedAt).toEqual(null);
     expect(response[0].verifiedById).toEqual(null);
     expect(response[0].verificationExpiresAt).toEqual(null);
-    expect(response[0].verificationInterval).toEqual(90);
+    expect(response[0].verificationInterval).toEqual("P90D");
   });
 
   it("should duplicate document with title override", async () => {

@@ -9,6 +9,7 @@ import {
 import { validateColorHex } from "@shared/utils/color";
 import { TeamValidation } from "@shared/validations";
 import { BaseSchema } from "@server/routes/api/schema";
+import { zodISO8601DurationType } from "@server/utils/zod";
 
 export const TeamsUpdateSchema = BaseSchema.extend({
   body: z.object({
@@ -89,13 +90,9 @@ export const TeamsUpdateSchema = BaseSchema.extend({
               error: "must be one of the available expiry periods",
             }
           ),
-        /** Default re-verification cadence for documents, in days; null clears it. */
-        [TeamPreference.VerificationInterval]: z
-          .number()
-          .int()
-          .min(1)
-          .max(3650)
-          .nullable(),
+        /** Default re-verification cadence for documents, as an ISO 8601 duration; null clears it. */
+        [TeamPreference.VerificationInterval]:
+          zodISO8601DurationType().nullable(),
       })
       .partial()
       .optional(),

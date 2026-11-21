@@ -1,5 +1,6 @@
-import type { Locale } from "date-fns";
+import type { Duration, Locale } from "date-fns";
 import {
+  add,
   addSeconds,
   format,
   formatDistanceToNow,
@@ -170,6 +171,54 @@ export function isISO8601Duration(value: string): boolean {
   const hasDate = !!date && date.length > 0;
   const hasTime = !!time && time.length > 1;
   return hasDate || hasTime;
+}
+
+const ISO8601_DURATION_PARSE_RE =
+  /^(-)?P(?:(\d+)W|(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?)$/;
+
+/**
+ * Parse an ISO 8601 duration string into its component parts. The same subset
+ * as `isISO8601Duration` is supported, and a leading `-` negates every part.
+ *
+ * @param value the duration string to parse.
+ * @returns the parsed duration, or null if the string is not a valid ISO 8601 duration.
+ */
+export function parseISO8601Duration(value: string): Duration | null {
+  if (!isISO8601Duration(value)) {
+    return null;
+  }
+  const m = ISO8601_DURATION_PARSE_RE.exec(value);
+  if (!m) {
+    return null;
+  }
+  const sign = m[1] ? -1 : 1;
+  const [, , weeks, years, months, days, hours, minutes, seconds] = m;
+  const num = (part?: string) => (part ? sign * parseInt(part, 10) : 0);
+  return {
+    years: num(years),
+    months: num(months),
+    weeks: num(weeks),
+    days: num(days),
+    hours: num(hours),
+    minutes: num(minutes),
+    seconds: num(seconds),
+  };
+}
+
+/**
+ * Add an ISO 8601 duration to a date.
+ *
+ * @param date the date to add the duration to.
+ * @param duration an ISO 8601 duration string, e.g. "P30D" or "P6M".
+ * @returns a new date offset by the duration.
+ * @throws if the duration is not a valid ISO 8601 duration.
+ */
+export function addISO8601Duration(date: Date, duration: string): Date {
+  const parsed = parseISO8601Duration(duration);
+  if (!parsed) {
+    throw new Error(`Invalid ISO 8601 duration: ${duration}`);
+  }
+  return add(date, parsed);
 }
 
 export function subtractDate(date: Date, period: DateFilter) {

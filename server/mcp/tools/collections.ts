@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { zodISO8601DurationType } from "@server/utils/zod";
 import { Sequelize, Op, type WhereOptions } from "sequelize";
 import type { McpServer } from "@modelcontextprotocol/server";
 import { Collection, Team } from "@server/models";
@@ -270,15 +271,11 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             .describe(
               "The hex color for the collection icon. Set to null to remove."
             ),
-          verificationInterval: z
-            .number()
-            .int()
-            .min(1)
-            .max(3650)
+          verificationInterval: zodISO8601DurationType()
             .nullable()
             .optional()
             .describe(
-              "The number of days after which document verifications in this collection expire and documents must be re-verified. Requires workspace admin access. Set to null to clear and inherit the workspace default."
+              'The default re-verification cadence for documents in this collection as an ISO 8601 duration, e.g. "P30D" for 30 days, "P6M" for 6 months, or "P1Y" for a year. Document verifications expire after this period and documents must be re-verified. Requires workspace admin access. Set to null to clear and inherit the workspace default.'
             ),
         }),
       },

@@ -9997,7 +9997,7 @@ describe("#documents.verify", () => {
     const admin = await buildAdmin();
     const collection = await buildCollection({
       teamId: admin.teamId,
-      verificationInterval: 90,
+      verificationInterval: "P90D",
     });
     const document = await buildDocument({
       teamId: admin.teamId,
@@ -10150,7 +10150,7 @@ describe("#documents.update verificationInterval", () => {
     const res = await server.post("/api/documents.update", user, {
       body: {
         id: document.id,
-        verificationInterval: 30,
+        verificationInterval: "P30D",
       },
     });
     expect(res.status).toEqual(403);
@@ -10180,12 +10180,12 @@ describe("#documents.update verificationInterval", () => {
     const res = await server.post("/api/documents.update", admin, {
       body: {
         id: document.id,
-        verificationInterval: 30,
+        verificationInterval: "P30D",
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.verificationInterval).toEqual(30);
+    expect(body.data.verificationInterval).toEqual("P30D");
     expect(new Date(body.data.verificationExpiresAt)).toEqual(
       new Date(verifiedAt.getTime() + 30 * 24 * 60 * 60 * 1000)
     );
@@ -10197,7 +10197,7 @@ describe("#documents.update verificationInterval", () => {
     const admin = await buildAdmin();
     const collection = await buildCollection({
       teamId: admin.teamId,
-      verificationInterval: 90,
+      verificationInterval: "P90D",
     });
     const verifiedAt = subDays(new Date(), 10);
     const document = await buildDocument({
@@ -10205,7 +10205,7 @@ describe("#documents.update verificationInterval", () => {
       collectionId: collection.id,
       verifiedAt,
       verifiedById: admin.id,
-      verificationInterval: 30,
+      verificationInterval: "P30D",
       verificationExpiresAt: new Date(
         verifiedAt.getTime() + 30 * 24 * 60 * 60 * 1000
       ),

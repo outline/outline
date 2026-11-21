@@ -8,7 +8,12 @@ import {
 } from "@shared/types";
 import { DeprecationValidation } from "@shared/validations";
 import { Collection } from "@server/models";
-import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
+import {
+  zodIconType,
+  zodIdType,
+  zodISO8601DurationType,
+  zodShareIdType,
+} from "@server/utils/zod";
 import { ValidateColor, ValidateIndex } from "@server/validation";
 import { BaseSchema, ProsemirrorSchema } from "../schema";
 
@@ -216,8 +221,8 @@ export const CollectionsUpdateSchema = BaseSchema.extend({
     templateManagement: z
       .enum([CollectionPermission.Admin, CollectionPermission.ReadWrite])
       .optional(),
-    /** Default re-verification cadence for documents in the collection, in days; null clears it */
-    verificationInterval: z.number().int().min(1).max(3650).nullish(),
+    /** Default re-verification cadence for documents in the collection, as an ISO 8601 duration; null clears it */
+    verificationInterval: zodISO8601DurationType().nullish(),
   }).refine(refineBodyContent, bodyContentError),
 });
 

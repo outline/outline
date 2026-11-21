@@ -53,7 +53,7 @@ import type {
 } from "@shared/types";
 import { TeamPreference } from "@shared/types";
 import { DocumentPreferenceDefaults } from "@shared/constants";
-import { Day } from "@shared/utils/time";
+import { addISO8601Duration } from "@shared/utils/date";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import slugify from "@server/utils/slugify";
@@ -474,11 +474,10 @@ class Document extends ArchivableModel<
   @Column(DataType.DATE)
   verificationExpiresAt: Date | null;
 
-  /** Per-document override of the re-verification cadence, in days. Null means inherit. */
-  @IsNumeric
+  /** Per-document override of the re-verification cadence, as an ISO 8601 duration. Null means inherit. */
   @AllowNull
-  @Column(DataType.INTEGER)
-  verificationInterval: number | null;
+  @Column(DataType.STRING)
+  verificationInterval: string | null;
 
   /** An array of user IDs that have edited this document. */
   @Column(DataType.ARRAY(DataType.UUID))
@@ -1564,11 +1563,11 @@ class Document extends ArchivableModel<
    * then team preference.
    *
    * @param options.transaction optional transaction to load associations with.
-   * @returns the interval in days, or null when verification never expires.
+   * @returns the interval as an ISO 8601 duration, or null when verification never expires.
    */
   resolveVerificationInterval = async (options?: {
     transaction?: Transaction | null;
-  }): Promise<number | null> => {
+  }): Promise<string | null> => {
     if (this.verificationInterval) {
       return this.verificationInterval;
     }
@@ -1587,7 +1586,7 @@ class Document extends ArchivableModel<
       this.team ??
       (await this.$get("team", { transaction: options?.transaction }));
     const preference = team?.getPreference(TeamPreference.VerificationInterval);
-    return typeof preference === "number" ? preference : null;
+    return typeof preference === "string" ? preference : null;
   };
 
   /**
@@ -1608,7 +1607,7 @@ class Document extends ArchivableModel<
     this.verifiedById = user.id;
     this.verifiedBy = user;
     this.verificationExpiresAt = interval
-      ? new Date(this.verifiedAt.getTime() + interval * Day.ms)
+      ? addISO8601Duration(this.verifiedAt, interval)
       : null;
 
     // silent so that verifying does not count as an edit of the document

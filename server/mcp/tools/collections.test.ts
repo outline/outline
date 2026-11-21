@@ -304,12 +304,12 @@ describe("update_collection verificationInterval", () => {
 
     const res = await callMcpTool(server, accessToken, "update_collection", {
       id: collection.id,
-      verificationInterval: 90,
+      verificationInterval: "P90D",
     });
     expect(res?.result?.isError).toBeUndefined();
 
     await collection.reload();
-    expect(collection.verificationInterval).toEqual(90);
+    expect(collection.verificationInterval).toEqual("P90D");
 
     const cleared = await callMcpTool(
       server,
@@ -335,7 +335,7 @@ describe("update_collection verificationInterval", () => {
 
     const res = await callMcpTool(server, accessToken, "update_collection", {
       id: collection.id,
-      verificationInterval: 90,
+      verificationInterval: "P90D",
     });
     expect(res?.result?.isError).toBe(true);
 

@@ -39,7 +39,7 @@ module.exports = {
         "documents",
         "verificationInterval",
         {
-          type: Sequelize.INTEGER,
+          type: Sequelize.STRING,
           allowNull: true,
         },
         { transaction }
@@ -48,7 +48,7 @@ module.exports = {
         "collections",
         "verificationInterval",
         {
-          type: Sequelize.INTEGER,
+          type: Sequelize.STRING,
           allowNull: true,
         },
         { transaction }
