@@ -52,7 +52,7 @@ import { collectionIndexing } from "@server/utils/indexing";
 import { QueryHelper } from "@server/storage/QueryHelper";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
-import { InvalidRequestError } from "@server/errors";
+import { AuthorizationError, InvalidRequestError } from "@server/errors";
 
 const router = new Router();
 
@@ -612,6 +612,7 @@ router.post(
       sharing,
       commenting,
       templateManagement,
+      verificationInterval,
       deprecatedReason,
     } = ctx.input.body;
 
@@ -632,6 +633,12 @@ router.post(
       updatingDeprecatedReason ? "updateDeprecatedReason" : "update",
       collection
     );
+
+    // the verification cadence is policy for every document in the
+    // collection, so changing it additionally requires team admin access.
+    if (verificationInterval !== undefined && !user.isAdmin) {
+      throw AuthorizationError();
+    }
 
     if (deprecatedReason !== undefined) {
       authorize(user, "updateDeprecatedReason", collection);
@@ -682,6 +689,7 @@ router.post(
       sort,
       commenting,
       templateManagement,
+      verificationInterval,
     });
 
     const privacyChanged = collection.changed("permission");

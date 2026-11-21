@@ -427,6 +427,9 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     /** Boolean to denote if insights should be visible on the doc */
     insightsEnabled: z.boolean().optional(),
 
+    /** Re-verification cadence override in days; null clears the override */
+    verificationInterval: z.number().int().min(1).max(3650).nullish(),
+
     /** Boolean to denote if the doc should be published */
     publish: z.boolean().optional(),
 
@@ -534,6 +537,18 @@ export const DocumentsDeleteSchema = BaseSchema.extend({
 });
 
 export type DocumentsDeleteReq = z.infer<typeof DocumentsDeleteSchema>;
+
+export const DocumentsVerifySchema = BaseSchema.extend({
+  body: BaseIdSchema,
+});
+
+export type DocumentsVerifyReq = z.infer<typeof DocumentsVerifySchema>;
+
+export const DocumentsUnverifySchema = BaseSchema.extend({
+  body: BaseIdSchema,
+});
+
+export type DocumentsUnverifyReq = z.infer<typeof DocumentsUnverifySchema>;
 
 export const DocumentsUnpublishSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({

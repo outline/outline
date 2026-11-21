@@ -89,6 +89,13 @@ export const TeamsUpdateSchema = BaseSchema.extend({
               error: "must be one of the available expiry periods",
             }
           ),
+        /** Default re-verification cadence for documents, in days; null clears it. */
+        [TeamPreference.VerificationInterval]: z
+          .number()
+          .int()
+          .min(1)
+          .max(3650)
+          .nullable(),
       })
       .partial()
       .optional(),

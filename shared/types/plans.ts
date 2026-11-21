@@ -34,4 +34,6 @@ export enum PlanFeature {
   SAML = "saml",
   /** Structured data attributes on documents. */
   DataAttributes = "dataAttributes",
+  /** Verification of document accuracy with re-verification cadences. */
+  DocumentVerification = "documentVerification",
 }

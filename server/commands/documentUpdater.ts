@@ -1,4 +1,5 @@
 import type { DocumentPreferences, TextEditMode } from "@shared/types";
+import { Day } from "@shared/utils/time";
 import { DocumentConflictError, ValidationError } from "@server/errors";
 import { Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -26,6 +27,8 @@ type Props = {
   preferences?: DocumentPreferences | null;
   /** Whether insights should be visible on the document */
   insightsEnabled?: boolean;
+  /** Re-verification cadence override in days, null clears the override */
+  verificationInterval?: number | null;
   /** The edit mode: "replace", "append", "prepend", or "patch" */
   editMode?: TextEditMode;
   /** The document revision the changes are based on, the update is rejected if it no longer matches */
@@ -60,6 +63,7 @@ export default async function documentUpdater(
     fullWidth,
     preferences,
     insightsEnabled,
+    verificationInterval,
     editMode,
     findText,
     lastRevision,
@@ -86,6 +90,21 @@ export default async function documentUpdater(
       ...document.preferences,
       ...preferences,
     };
+  }
+  if (verificationInterval !== undefined) {
+    document.verificationInterval = verificationInterval;
+
+    // recompute the materialized deadline when currently verified, as the
+    // effective interval may have changed, including falling back through
+    // the collection and team inheritance chain when the override is cleared.
+    if (document.verifiedAt) {
+      const interval = await document.resolveVerificationInterval({
+        transaction,
+      });
+      document.verificationExpiresAt = interval
+        ? new Date(document.verifiedAt.getTime() + interval * Day.ms)
+        : null;
+    }
   }
   if (text !== undefined) {
     document = DocumentHelper.applyMarkdownToDocument(
@@ -135,6 +154,12 @@ export default async function documentUpdater(
   }
 
   const changed = document.changed();
+  const verificationOnly =
+    !!changed &&
+    changed.every(
+      (attr) =>
+        attr === "verificationInterval" || attr === "verificationExpiresAt"
+    );
   const { collection } = document;
 
   if (publish && cId) {
@@ -142,6 +167,10 @@ export default async function documentUpdater(
       document.collectionId = cId;
     }
     await document.publish(ctx, { collectionId: cId });
+  } else if (verificationOnly) {
+    // changing the verification cadence is a policy change, not a content
+    // edit, so it must not update the edit timestamps or the last editor
+    await document.saveWithCtx(ctx, { silent: true });
   } else if (changed) {
     document.lastModifiedById = user.id;
     document.updatedBy = user;

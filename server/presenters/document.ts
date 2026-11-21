@@ -125,6 +125,10 @@ async function presentDocument(
     res.templateId = document.templateId;
     res.insightsEnabled = document.insightsEnabled;
     res.popularityScore = document.popularityScore;
+    res.verifiedAt = document.verifiedAt;
+    res.verifiedById = document.verifiedById;
+    res.verificationExpiresAt = document.verificationExpiresAt;
+    res.verificationInterval = document.verificationInterval;
     if (document.deletedById) {
       const deletedBy =
         document.deletedBy ??

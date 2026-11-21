@@ -2,12 +2,14 @@ import invariant from "invariant";
 import {
   CommentingAccess,
   DocumentPermission,
+  PlanFeature,
   TeamPreference,
 } from "@shared/types";
 import { Document, Revision, User, Team } from "@server/models";
 import { allow, cannot, can } from "./cancan";
 import {
   and,
+  isCloudHosted,
   isCollectionOwner,
   isCollectionWritable,
   isCommentingEnabled,
@@ -15,6 +17,7 @@ import {
   isTeamModel,
   isTeamMutable,
   or,
+  teamHasEntitlement,
 } from "./utils";
 
 allow(User, "createDocument", Team, (actor, document) =>
@@ -115,6 +118,22 @@ allow(User, "publish", Document, (actor, document) =>
     //
     !!document?.isDraft,
     can(actor, "update", document)
+  )
+);
+
+allow(User, ["verify", "unverify"], Document, (actor, document) =>
+  and(
+    isCloudHosted(),
+    teamHasEntitlement(actor.team, PlanFeature.DocumentVerification),
+    isTeamMutable(actor),
+    can(actor, "read", document),
+    !!document?.publishedAt,
+    !document?.template,
+    !!document?.isActive,
+    or(
+      includesMembership(document, [DocumentPermission.Admin]),
+      and(!document?.collection?.isPersonal, isTeamAdmin(actor, document))
+    )
   )
 );
 

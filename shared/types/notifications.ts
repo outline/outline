@@ -25,6 +25,7 @@ export enum NotificationEventType {
   Features = "emails.features",
   ExportCompleted = "emails.export_completed",
   RequestDocumentAccess = "access_requests.create",
+  VerificationExpired = "documents.verification_expired",
 }
 
 /** Channels that a notification can be delivered through. */
@@ -71,6 +72,7 @@ export const NotificationEventDefaults: Record<NotificationEventType, boolean> =
     [NotificationEventType.AddUserToGroup]: true,
     [NotificationEventType.RemoveUserFromGroup]: true,
     [NotificationEventType.RequestDocumentAccess]: true,
+    [NotificationEventType.VerificationExpired]: true,
   };
 
 /** Notices shown to the user from the `notice` query parameter. */

@@ -69,6 +69,8 @@ export enum TeamPreference {
   PersonalDocs = "personalDocs",
   /** The number of days until new public share links expire, 0 for no expiry. */
   DefaultShareExpiryDays = "defaultShareExpiryDays",
+  /** Default re-verification cadence for documents, in days. */
+  VerificationInterval = "verificationInterval",
 }
 
 /** Workspace preference values, keyed by preference. */
@@ -89,4 +91,5 @@ export type TeamPreferences = {
   [TeamPreference.DisabledEmbeds]?: string[];
   [TeamPreference.PersonalDocs]?: boolean;
   [TeamPreference.DefaultShareExpiryDays]?: number;
+  [TeamPreference.VerificationInterval]?: number | null;
 };

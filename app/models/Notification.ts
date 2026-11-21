@@ -56,6 +56,7 @@ class Notification extends Model {
         NotificationEventType.CreateRevision,
         NotificationEventType.AddUserToDocument,
         NotificationEventType.RequestDocumentAccess,
+        NotificationEventType.VerificationExpired,
       ],
       collections: [
         NotificationEventType.CreateCollection,
@@ -348,6 +349,9 @@ class Notification extends Model {
         return this.groupId
           ? settingsPath("groups", this.groupId, "members")
           : "";
+      }
+      case NotificationEventType.VerificationExpired: {
+        return this.document?.path;
       }
       default:
         this.event satisfies never;

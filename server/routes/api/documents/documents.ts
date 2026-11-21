@@ -1473,6 +1473,10 @@ router.post(
       authorize(user, "updateInsights", document);
     }
 
+    if (input.verificationInterval !== undefined) {
+      authorize(user, "verify", document);
+    }
+
     if (publish) {
       await authorizeDocumentPublish(ctx, document, collectionId);
     }
@@ -1658,6 +1662,60 @@ router.post(
     }
 
     await document.archiveWithCtx(ctx);
+
+    ctx.body = {
+      data: await presentDocument(ctx, document),
+      policies: presentPolicies(user, [document]),
+    };
+  }
+);
+
+router.post(
+  "documents.verify",
+  auth(),
+  rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
+  validate(T.DocumentsVerifySchema),
+  transaction(),
+  async (ctx: APIContext<T.DocumentsVerifyReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
+    const document = await Document.findByPk(id, {
+      userId: user.id,
+      rejectOnEmpty: true,
+      transaction,
+    });
+    authorize(user, "verify", document);
+
+    await document.verify(ctx);
+
+    ctx.body = {
+      data: await presentDocument(ctx, document),
+      policies: presentPolicies(user, [document]),
+    };
+  }
+);
+
+router.post(
+  "documents.unverify",
+  auth(),
+  rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
+  validate(T.DocumentsUnverifySchema),
+  transaction(),
+  async (ctx: APIContext<T.DocumentsUnverifyReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
+    const document = await Document.findByPk(id, {
+      userId: user.id,
+      rejectOnEmpty: true,
+      transaction,
+    });
+    authorize(user, "unverify", document);
+
+    await document.unverify(ctx);
 
     ctx.body = {
       data: await presentDocument(ctx, document),
