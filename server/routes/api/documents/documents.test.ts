@@ -1332,6 +1332,92 @@ describe("#documents.list", () => {
   });
 
   describe("filter DSL", () => {
+    it("should filter by verification state and expiry", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const unverified = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      const expired = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        collectionId: collection.id,
+        verifiedAt: subDays(new Date(), 30),
+        verifiedById: user.id,
+        verificationExpiresAt: subDays(new Date(), 1),
+      });
+      const expiring = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        collectionId: collection.id,
+        verifiedAt: new Date(),
+        verifiedById: user.id,
+        verificationExpiresAt: subDays(new Date(), -7),
+      });
+
+      // expired: deadline in the past
+      let res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [
+            { field: "verificationExpiresAt", operator: "lte", value: "P0D" },
+          ],
+        },
+      });
+      let body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.map((d: { id: string }) => d.id)).toEqual([expired.id]);
+
+      // unverified
+      res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [{ field: "verifiedAt", operator: "isNull" }],
+        },
+      });
+      body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.map((d: { id: string }) => d.id)).toEqual([
+        unverified.id,
+      ]);
+
+      // expiring within the next two weeks
+      res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [
+            {
+              field: "verificationExpiresAt",
+              operator: "gte",
+              value: "P0D",
+            },
+            {
+              field: "verificationExpiresAt",
+              operator: "lte",
+              value: "P14D",
+            },
+          ],
+        },
+      });
+      body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.map((d: { id: string }) => d.id)).toEqual([expiring.id]);
+
+      // verified by a specific user
+      res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [{ field: "verifiedById", operator: "eq", value: user.id }],
+        },
+      });
+      body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.map((d: { id: string }) => d.id).sort()).toEqual(
+        [expired.id, expiring.id].sort()
+      );
+    });
+
     it("should match a simple contains leaf case-insensitively", async () => {
       const user = await buildUser();
       await buildDocument({

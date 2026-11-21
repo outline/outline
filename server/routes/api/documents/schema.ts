@@ -26,10 +26,13 @@ const documentFilterFields = {
   updatedAt: "date",
   publishedAt: "date",
   archivedAt: "date",
+  verifiedAt: "date",
+  verificationExpiresAt: "date",
   title: "string",
   templateId: "uuid",
   collectionId: "uuid",
   createdById: { kind: "uuid", operators: ["eq", "in"] },
+  verifiedById: { kind: "uuid", operators: ["eq", "in"] },
   // `userId` maps to the collaboratorIds array column and only supports
   // membership checks.
   userId: { kind: "uuid", operators: ["eq", "in"] },
