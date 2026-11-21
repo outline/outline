@@ -293,3 +293,53 @@ describe("delete_collection", () => {
     }
   );
 });
+
+describe("update_collection verificationInterval", () => {
+  it("sets and clears the cadence as an admin", async () => {
+    const { user, accessToken } = await buildOAuthUser({ role: "admin" });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_collection", {
+      id: collection.id,
+      verificationInterval: 90,
+    });
+    expect(res?.result?.isError).toBeUndefined();
+
+    await collection.reload();
+    expect(collection.verificationInterval).toEqual(90);
+
+    const cleared = await callMcpTool(
+      server,
+      accessToken,
+      "update_collection",
+      {
+        id: collection.id,
+        verificationInterval: null,
+      }
+    );
+    expect(cleared?.result?.isError).toBeUndefined();
+
+    await collection.reload();
+    expect(collection.verificationInterval).toEqual(null);
+  });
+
+  it("does not allow a member to set the cadence", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_collection", {
+      id: collection.id,
+      verificationInterval: 90,
+    });
+    expect(res?.result?.isError).toBe(true);
+
+    await collection.reload();
+    expect(collection.verificationInterval).toEqual(null);
+  });
+});

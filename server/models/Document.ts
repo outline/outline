@@ -636,8 +636,23 @@ class Document extends ArchivableModel<
       model.collaboratorIds.concat(model.lastModifiedById)
     );
 
-    // increment revision
-    model.revisionCount += 1;
+    // increment revision, except for verification state changes, which are
+    // not content edits and must not advance the revision counter used for
+    // edit conflict detection.
+    const changed = model.changed() || [];
+    const verificationOnly =
+      changed.length > 0 &&
+      changed.every((attr) =>
+        [
+          "verifiedAt",
+          "verifiedById",
+          "verificationExpiresAt",
+          "verificationInterval",
+        ].includes(attr)
+      );
+    if (!verificationOnly) {
+      model.revisionCount += 1;
+    }
   }
 
   @BeforeUpdate

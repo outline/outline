@@ -3,6 +3,7 @@ import { DeprecationValidation } from "@shared/validations";
 import {
   CollectionPermission,
   DocumentPermission,
+  Plan,
   Scope,
   TeamPreference,
 } from "@shared/types";
@@ -22,6 +23,7 @@ import {
   Document,
   GroupMembership,
   SearchQuery,
+  Team,
   UserMembership,
 } from "@server/models";
 import { SearchQuerySource } from "@server/models/SearchQuery";
@@ -1598,4 +1600,161 @@ describe("delete_document", () => {
       );
     }
   );
+});
+
+describe("verify_document", () => {
+  beforeEach(() => {
+    vi.spyOn(Team.prototype, "plan", "get").mockReturnValue(Plan.Business);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("verifies a document as an admin", async () => {
+    const { user, accessToken } = await buildOAuthUser({ role: "admin" });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "verify_document", {
+      id: document.id,
+    });
+    expect(res?.result?.isError).toBeUndefined();
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+    expect(data.verifiedAt).toBeTruthy();
+    expect(data.verifiedById).toEqual(user.id);
+
+    await document.reload();
+    expect(document.verifiedAt).toBeTruthy();
+  });
+
+  it("removes the verification with unverify", async () => {
+    const { user, accessToken } = await buildOAuthUser({ role: "admin" });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      verifiedAt: new Date(),
+      verifiedById: user.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "verify_document", {
+      id: document.id,
+      unverify: true,
+    });
+    expect(res?.result?.isError).toBeUndefined();
+
+    await document.reload();
+    expect(document.verifiedAt).toEqual(null);
+    expect(document.verifiedById).toEqual(null);
+  });
+
+  it("does not allow a member to verify", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "verify_document", {
+      id: document.id,
+    });
+    expect(res?.result?.isError).toBe(true);
+  });
+
+  it("does not allow verifying without the plan entitlement", async () => {
+    vi.restoreAllMocks();
+
+    const { user, accessToken } = await buildOAuthUser({ role: "admin" });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "verify_document", {
+      id: document.id,
+    });
+    expect(res?.result?.isError).toBe(true);
+  });
+});
+
+describe("update_document verificationInterval", () => {
+  beforeEach(() => {
+    vi.spyOn(Team.prototype, "plan", "get").mockReturnValue(Plan.Business);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("sets the interval as an admin and recomputes the deadline", async () => {
+    const { user, accessToken } = await buildOAuthUser({ role: "admin" });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const verifiedAt = new Date();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      verifiedAt,
+      verifiedById: user.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      verificationInterval: 30,
+    });
+    expect(res?.result?.isError).toBeUndefined();
+
+    await document.reload();
+    expect(document.verificationInterval).toEqual(30);
+    expect(document.verificationExpiresAt).toEqual(
+      new Date(verifiedAt.getTime() + 30 * 24 * 60 * 60 * 1000)
+    );
+  });
+
+  it("does not allow a member to set the interval", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      verificationInterval: 30,
+    });
+    expect(res?.result?.isError).toBe(true);
+
+    await document.reload();
+    expect(document.verificationInterval).toEqual(null);
+  });
 });

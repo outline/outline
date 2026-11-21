@@ -690,6 +690,16 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .describe(
               "Whether the document should occupy full width of the screen."
             ),
+          verificationInterval: z
+            .number()
+            .int()
+            .min(1)
+            .max(3650)
+            .nullable()
+            .optional()
+            .describe(
+              "The number of days after which a verification of this document expires and it must be re-verified. Requires admin access to the document. Set to null to clear the override and inherit the collection or workspace default."
+            ),
         }),
       },
       withTracing("update_document", async (input, context) => {
@@ -753,6 +763,10 @@ export function documentTools(server: McpServer, scopes: string[]) {
 
             authorize(user, "update", document);
 
+            if (input.verificationInterval !== undefined) {
+              authorize(user, "verify", document);
+            }
+
             // The collection is only used when publishing a draft that has
             // none, so the personal collection is only created in that case.
             let collectionId =
@@ -772,7 +786,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
               collectionId = collection?.id;
             }
 
-            const { revisionCount } = document;
+            const { revisionCount, verificationInterval } = document;
 
             const result = await documentUpdater(ctx, {
               document,
@@ -780,12 +794,16 @@ export function documentTools(server: McpServer, scopes: string[]) {
               collectionId,
             });
 
-            // Every save increments revisionCount, so an unchanged count means
-            // nothing was persisted. Fail loud rather than return a success
-            // the caller would read as a completed write — the request either
-            // carried no recognized fields or values identical to the current
-            // document.
-            return result.revisionCount === revisionCount ? null : result;
+            // Every content save increments revisionCount, so an unchanged
+            // count means nothing was persisted. Fail loud rather than return
+            // a success the caller would read as a completed write — the
+            // request either carried no recognized fields or values identical
+            // to the current document. Verification cadence changes are not
+            // content edits and are detected separately.
+            return result.revisionCount === revisionCount &&
+              result.verificationInterval === verificationInterval
+              ? null
+              : result;
           });
 
           if (!updated) {
@@ -836,6 +854,73 @@ export function documentTools(server: McpServer, scopes: string[]) {
               },
             ],
           } satisfies CallToolResult;
+        } catch (message) {
+          return error(message);
+        }
+      })
+    );
+  }
+
+  if (AuthenticationHelper.canAccess("documents.verify", scopes)) {
+    server.registerTool(
+      "verify_document",
+      {
+        title: "Verify document",
+        description:
+          "Marks a document as verified, vouching that its content is accurate and up to date. When the workspace, collection, or document has a re-verification interval configured, the verification expires after that many days and the document is due to be reviewed again. Requires admin access to the document. Set unverify to true to remove an existing verification instead.",
+        annotations: {
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false,
+          readOnlyHint: false,
+        },
+        inputSchema: z.object({
+          id: z
+            .string()
+            .describe("The unique identifier of the document to verify."),
+          unverify: z
+            .boolean()
+            .optional()
+            .describe(
+              "Set to true to remove the current verification from the document instead of verifying it."
+            ),
+        }),
+      },
+      withTracing("verify_document", async (input, context) => {
+        try {
+          const ctx = buildAPIContext(context);
+          const { user } = ctx.state.auth;
+
+          const document = await sequelize.transaction(async (transaction) => {
+            ctx.state.transaction = transaction;
+            ctx.context.transaction = transaction;
+
+            const doc = await Document.findByPk(input.id, {
+              userId: user.id,
+              rejectOnEmpty: true,
+              transaction,
+            });
+
+            if (input.unverify) {
+              authorize(user, "unverify", doc);
+              return doc.unverify(ctx);
+            }
+
+            authorize(user, "verify", doc);
+            return doc.verify(ctx);
+          });
+
+          return success({
+            success: true,
+            ...pathToUrl(user.team, {
+              id: document.id,
+              title: document.title,
+              url: document.url,
+            }),
+            verifiedAt: document.verifiedAt,
+            verifiedById: document.verifiedById,
+            verificationExpiresAt: document.verificationExpiresAt,
+          });
         } catch (message) {
           return error(message);
         }

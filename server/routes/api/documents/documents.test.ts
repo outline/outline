@@ -55,7 +55,6 @@ import {
 import {
   getTestServer,
   readZipResponse,
-  setSelfHosted,
   withAPIContext,
 } from "@server/test/support";
 
@@ -9905,25 +9904,6 @@ describe("#documents.verify", () => {
 
   it("should require a plan entitled to document verification", async () => {
     vi.restoreAllMocks();
-
-    const admin = await buildAdmin();
-    const collection = await buildCollection({
-      teamId: admin.teamId,
-    });
-    const document = await buildDocument({
-      teamId: admin.teamId,
-      collectionId: collection.id,
-    });
-    const res = await server.post("/api/documents.verify", admin, {
-      body: {
-        id: document.id,
-      },
-    });
-    expect(res.status).toEqual(403);
-  });
-
-  it("should not allow verifying on self-hosted installations", async () => {
-    setSelfHosted();
 
     const admin = await buildAdmin();
     const collection = await buildCollection({

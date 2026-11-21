@@ -2,6 +2,7 @@ import { z } from "zod";
 import { Sequelize, Op, type WhereOptions } from "sequelize";
 import type { McpServer } from "@modelcontextprotocol/server";
 import { Collection, Team } from "@server/models";
+import { AuthorizationError } from "@server/errors";
 import { buildWhere } from "@server/models/helpers/Filters";
 import { sequelize } from "@server/storage/database";
 import { authorize } from "@server/policies";
@@ -269,6 +270,16 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             .describe(
               "The hex color for the collection icon. Set to null to remove."
             ),
+          verificationInterval: z
+            .number()
+            .int()
+            .min(1)
+            .max(3650)
+            .nullable()
+            .optional()
+            .describe(
+              "The number of days after which document verifications in this collection expire and documents must be re-verified. Requires workspace admin access. Set to null to clear and inherit the workspace default."
+            ),
         }),
       },
       withTracing("update_collection", async (input, context) => {
@@ -282,6 +293,12 @@ export function collectionTools(server: McpServer, scopes: string[]) {
           });
           authorize(user, "update", collection);
 
+          // the verification cadence is policy for every document in the
+          // collection, so changing it additionally requires team admin access.
+          if (input.verificationInterval !== undefined && !user.isAdmin) {
+            throw AuthorizationError();
+          }
+
           if (input.name !== undefined) {
             collection.name = input.name.trim();
           }
@@ -293,6 +310,9 @@ export function collectionTools(server: McpServer, scopes: string[]) {
           }
           if (input.color !== undefined) {
             collection.color = input.color;
+          }
+          if (input.verificationInterval !== undefined) {
+            collection.verificationInterval = input.verificationInterval;
           }
 
           // A write that changes nothing must fail loud rather than return a

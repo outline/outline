@@ -9,7 +9,6 @@ import { Document, Revision, User, Team } from "@server/models";
 import { allow, cannot, can } from "./cancan";
 import {
   and,
-  isCloudHosted,
   isCollectionOwner,
   isCollectionWritable,
   isCommentingEnabled,
@@ -123,7 +122,6 @@ allow(User, "publish", Document, (actor, document) =>
 
 allow(User, ["verify", "unverify"], Document, (actor, document) =>
   and(
-    isCloudHosted(),
     teamHasEntitlement(actor.team, PlanFeature.DocumentVerification),
     isTeamMutable(actor),
     can(actor, "read", document),
