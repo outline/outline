@@ -45,6 +45,11 @@ function NotificationListItem({ notification, onNavigate }: Props) {
     notification.accessRequestStatus === "pending";
 
   const isExport = notification.event === NotificationEventType.ExportCompleted;
+  const isVerificationExpired =
+    notification.event === NotificationEventType.VerificationExpired;
+
+  // System notifications have no actor, so the subject leads the sentence.
+  const isSubjectFirst = isExport || isVerificationExpired;
   const { fileOperation, downloadUrl } = notification;
 
   const handleClick: React.MouseEventHandler<HTMLAnchorElement> = (event) => {
@@ -85,11 +90,13 @@ function NotificationListItem({ notification, onNavigate }: Props) {
         <Container gap={8} $unread={!notification.viewedAt}>
           {isExport ? (
             <ExportIcon state={fileOperation?.state} />
+          ) : isVerificationExpired ? (
+            <VerificationExpiredIcon />
           ) : (
             <StyledAvatar model={notification.actor} />
           )}
           <Flex column>
-            {isExport ? (
+            {isSubjectFirst ? (
               <Text as="div" size="small">
                 <Text weight="bold">{notification.subject(t)}</Text>{" "}
                 {notification.eventText(t)}
@@ -130,6 +137,16 @@ function NotificationListItem({ notification, onNavigate }: Props) {
 /**
  * An icon that shows the state of the export in an export notification.
  */
+function VerificationExpiredIcon() {
+  const theme = useTheme();
+
+  return (
+    <IconWrapper>
+      <WarningIcon color={theme.textSecondary} />
+    </IconWrapper>
+  );
+}
+
 function ExportIcon({ state }: { state?: FileOperationState }) {
   const theme = useTheme();
 

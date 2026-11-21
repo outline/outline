@@ -1,4 +1,4 @@
-import { NotificationEventType } from "@shared/types";
+import { NotificationEventType, PlanFeature } from "@shared/types";
 import { Document, Notification, User } from "@server/models";
 import type { DocumentEvent } from "@server/types";
 import { canUserAccessDocument } from "@server/utils/permissions";
@@ -14,6 +14,14 @@ export default class DocumentVerificationExpiredNotificationsTask extends BaseTa
   public async perform(event: DocumentEvent) {
     const document = await Document.findByPk(event.documentId);
     if (!document || !document.verifiedAt || !document.verifiedById) {
+      return;
+    }
+
+    // a team that lost the entitlement, for example by downgrading its plan,
+    // can no longer re-verify, so nagging its verifiers would be pointless.
+    // The audit event alone records the expiry.
+    const team = document.team ?? (await document.$get("team"));
+    if (!team?.entitlements.includes(PlanFeature.DocumentVerification)) {
       return;
     }
 

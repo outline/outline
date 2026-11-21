@@ -236,6 +236,22 @@ export default class WebsocketsProcessor {
         return socketio.to(channels).emit(event.name, data);
       }
 
+      case "documents.verify":
+      case "documents.unverify": {
+        const document = await Document.findByPk(event.documentId);
+        if (!document) {
+          return;
+        }
+        const [data, channels] = await Promise.all([
+          presentDocument(undefined, document),
+          this.getDocumentEventChannels(event, document),
+        ]);
+
+        // Clients merge the generic update payload into their store, which
+        // carries the changed verification fields.
+        return socketio.to(channels).emit("documents.update", data);
+      }
+
       case "documents.move": {
         const documents = await Document.findAll({
           where: {

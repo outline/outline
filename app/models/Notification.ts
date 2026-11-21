@@ -258,6 +258,8 @@ class Notification extends Model {
           return t("requested access to");
         }
         return t("is requesting access to");
+      case NotificationEventType.VerificationExpired:
+        return t("is due to be verified again");
       default:
         return this.event;
     }

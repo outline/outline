@@ -1,6 +1,6 @@
 import { subDays, subHours } from "date-fns";
-import { NotificationEventType } from "@shared/types";
-import { Notification } from "@server/models";
+import { NotificationEventType, Plan } from "@shared/types";
+import { Notification, Team } from "@server/models";
 import type { DocumentEvent } from "@server/types";
 import { buildDocument, buildTeam, buildUser } from "@server/test/factories";
 import DocumentVerificationExpiredNotificationsTask from "./DocumentVerificationExpiredNotificationsTask";
@@ -11,7 +11,12 @@ describe("DocumentVerificationExpiredNotificationsTask", () => {
   let task: DocumentVerificationExpiredNotificationsTask;
 
   beforeEach(() => {
+    vi.spyOn(Team.prototype, "plan", "get").mockReturnValue(Plan.Business);
     task = new DocumentVerificationExpiredNotificationsTask();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   const buildExpiredDocument = async () => {
@@ -58,6 +63,15 @@ describe("DocumentVerificationExpiredNotificationsTask", () => {
       },
     });
     expect(notification?.documentId).toEqual(document.id);
+  });
+
+  it("creates no notification when the team lost the entitlement", async () => {
+    const { verifier, event } = await buildExpiredDocument();
+    vi.spyOn(Team.prototype, "plan", "get").mockReturnValue(Plan.Community);
+
+    await task.perform(event);
+
+    expect(await countNotifications(verifier.id)).toBe(0);
   });
 
   it("creates no notification when the verifier is suspended", async () => {

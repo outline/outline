@@ -66,11 +66,28 @@ module.exports = {
           transaction,
         }
       );
+
+      // The expiry sweep scans by deadline across all teams, which the
+      // team-prefixed index above cannot serve.
+      await queryInterface.addIndex("documents", ["verificationExpiresAt"], {
+        name: "documents_verification_expires_at",
+        where: {
+          verificationExpiresAt: {
+            [Sequelize.Op.ne]: null,
+          },
+        },
+        transaction,
+      });
     });
   },
 
   async down(queryInterface) {
     await queryInterface.sequelize.transaction(async (transaction) => {
+      await queryInterface.removeIndex(
+        "documents",
+        "documents_verification_expires_at",
+        { transaction }
+      );
       await queryInterface.removeIndex(
         "documents",
         "documents_team_id_verification_expires_at",
