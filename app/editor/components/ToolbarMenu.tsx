@@ -198,28 +198,28 @@ function ToolbarMenu(props: Props) {
           );
         }
 
+        if (item.name === "dimensions") {
+          return <MediaDimension key={index} tooltip={item.tooltip} />;
+        }
+
         return (
           <Tooltip
             key={index}
             shortcut={item.shortcut}
             content={item.label === item.tooltip ? undefined : item.tooltip}
           >
-            {item.name === "dimensions" ? (
-              <MediaDimension key={index} />
-            ) : (
-              <Toolbar.Button asChild>
-                <ToolbarButton
-                  data-group={item.group}
-                  onClick={handleClick(item)}
-                  active={isActive && !item.label}
-                  aria-label={item.label ? undefined : item.tooltip}
-                  disabled={item.disabled}
-                >
-                  {item.label && <Label>{item.label}</Label>}
-                  {item.icon}
-                </ToolbarButton>
-              </Toolbar.Button>
-            )}
+            <Toolbar.Button asChild>
+              <ToolbarButton
+                data-group={item.group}
+                onClick={handleClick(item)}
+                active={isActive && !item.label}
+                aria-label={item.label ? undefined : item.tooltip}
+                disabled={item.disabled}
+              >
+                {item.label && <Label>{item.label}</Label>}
+                {item.icon}
+              </ToolbarButton>
+            </Toolbar.Button>
           </Tooltip>
         );
       })}

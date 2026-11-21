@@ -5,7 +5,7 @@ import { sanitizeUrl } from "../../utils/urls";
 import { getDisplayUrl } from "../lib/uploadPlaceholder";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import type { ComponentProps } from "../types";
-import { ResizeLeft, ResizeRight } from "./ResizeHandle";
+import { ResizeHandles, ResizeLeft, ResizeRight } from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
 
 type Props = ComponentProps & {
@@ -80,18 +80,12 @@ export default function Video(props: Props) {
           controls={!dragging}
         />
         {isEditable && isResizable && (
-          <>
-            <ResizeLeft
-              onPointerDown={handlePointerDown("left")}
-              onDoubleClick={handleDoubleClick}
-              $dragging={!!dragging}
-            />
-            <ResizeRight
-              onPointerDown={handlePointerDown("right")}
-              onDoubleClick={handleDoubleClick}
-              $dragging={!!dragging}
-            />
-          </>
+          <ResizeHandles
+            onPointerDown={handlePointerDown}
+            onDoubleClick={handleDoubleClick}
+            isVisible={!!dragging}
+            isInset
+          />
         )}
       </VideoWrapper>
       {children}
