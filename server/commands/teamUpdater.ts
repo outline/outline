@@ -99,6 +99,18 @@ const teamUpdater = async (ctx: APIContext, { params, user, team }: Props) => {
       authorize(user, "setDefaultShareExpiry", team);
     }
 
+    const verificationInterval =
+      preferences[TeamPreference.VerificationInterval];
+
+    // Removing the default stays possible after losing the entitlement.
+    if (
+      verificationInterval &&
+      verificationInterval !==
+        team.getPreference(TeamPreference.VerificationInterval)
+    ) {
+      authorize(user, "setVerificationDefaults", team);
+    }
+
     for (const key of Object.values(TeamPreference)) {
       if (
         has(preferences, key) &&

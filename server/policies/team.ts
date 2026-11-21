@@ -76,6 +76,14 @@ allow(User, "setDefaultShareExpiry", Team, (actor, team) =>
   )
 );
 
+allow(User, "setVerificationDefaults", Team, (actor, team) =>
+  and(
+    //
+    isTeamAdmin(actor, team),
+    teamHasEntitlement(team, PlanFeature.DocumentVerification)
+  )
+);
+
 allow(User, ["createTemplate", "updateTemplate"], Team, (actor, team) =>
   and(
     //

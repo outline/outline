@@ -71,6 +71,70 @@ describe("teamUpdater", () => {
     });
   });
 
+  describe("verification interval", () => {
+    let planSpy: MockInstance<() => Plan>;
+
+    beforeEach(() => {
+      planSpy = vi.spyOn(Team.prototype, "plan", "get");
+    });
+
+    afterEach(() => {
+      planSpy.mockRestore();
+    });
+
+    const update = async (interval: string | null) => {
+      const team = await buildTeam();
+      const user = await buildAdmin({ teamId: team.id });
+      return {
+        team,
+        user,
+        run: () =>
+          withAPIContext(user, (ctx) =>
+            teamUpdater(ctx, {
+              params: {
+                preferences: {
+                  [TeamPreference.VerificationInterval]: interval,
+                },
+              },
+              user,
+              team,
+            })
+          ),
+      };
+    };
+
+    it("should allow setting with the document verification entitlement", async () => {
+      planSpy.mockReturnValue(Plan.Business);
+      const { run } = await update("P90D");
+
+      const updated = await run();
+      await updated.reload();
+      expect(
+        updated.getPreference(TeamPreference.VerificationInterval)
+      ).toEqual("P90D");
+    });
+
+    it("should require the document verification entitlement to set", async () => {
+      planSpy.mockReturnValue(Plan.Community);
+      const { run } = await update("P90D");
+
+      await expect(run()).rejects.toThrow();
+    });
+
+    it("should allow clearing without the entitlement", async () => {
+      planSpy.mockReturnValue(Plan.Community);
+      const { team, run } = await update(null);
+      team.setPreference(TeamPreference.VerificationInterval, "P90D");
+      await team.save();
+
+      const updated = await run();
+      await updated.reload();
+      expect(
+        updated.preferences?.[TeamPreference.VerificationInterval]
+      ).toEqual(null);
+    });
+  });
+
   describe("preferences", () => {
     it("should update preference when value changes", async () => {
       const team = await buildTeam();

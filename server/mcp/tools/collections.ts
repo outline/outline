@@ -290,10 +290,17 @@ export function collectionTools(server: McpServer, scopes: string[]) {
           });
           authorize(user, "update", collection);
 
-          // the verification cadence is policy for every document in the
-          // collection, so changing it additionally requires team admin access.
-          if (input.verificationInterval !== undefined && !user.isAdmin) {
-            throw AuthorizationError();
+          // The verification cadence is policy for every document in the
+          // collection, so changing it additionally requires team admin
+          // access and the entitlement. Clearing it stays possible after
+          // losing the entitlement.
+          if (input.verificationInterval !== undefined) {
+            if (!user.isAdmin) {
+              throw AuthorizationError();
+            }
+            if (input.verificationInterval !== null) {
+              authorize(user, "setVerificationDefaults", user.team);
+            }
           }
 
           if (input.name !== undefined) {

@@ -2,6 +2,7 @@ import {
   CollectionPermission,
   CollectionStatusFilter,
   DocumentPermission,
+  Plan,
   Scope,
 } from "@shared/types";
 import { DeprecationValidation } from "@shared/validations";
@@ -9,6 +10,7 @@ import {
   Document,
   UserMembership,
   GroupMembership,
+  Team,
   View,
 } from "@server/models";
 import type { User } from "@server/models";
@@ -3062,6 +3064,14 @@ describe("personal collection lists", () => {
 });
 
 describe("#collections.update verificationInterval", () => {
+  beforeEach(() => {
+    vi.spyOn(Team.prototype, "plan", "get").mockReturnValue(Plan.Business);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("should not allow a non-admin to change the collection cadence", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
@@ -3076,6 +3086,45 @@ describe("#collections.update verificationInterval", () => {
       },
     });
     expect(res.status).toEqual(403);
+  });
+
+  it("should require the entitlement to set the collection cadence", async () => {
+    vi.restoreAllMocks();
+
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: admin.id,
+    });
+    const res = await server.post("/api/collections.update", admin, {
+      body: {
+        id: collection.id,
+        verificationInterval: "P90D",
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should allow an admin to clear the cadence without the entitlement", async () => {
+    vi.restoreAllMocks();
+
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: admin.id,
+      verificationInterval: "P90D",
+    });
+    const res = await server.post("/api/collections.update", admin, {
+      body: {
+        id: collection.id,
+        verificationInterval: null,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.verificationInterval).toEqual(null);
   });
 
   it("should allow an admin to set and clear the collection cadence", async () => {

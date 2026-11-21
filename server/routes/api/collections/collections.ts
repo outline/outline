@@ -634,10 +634,17 @@ router.post(
       collection
     );
 
-    // the verification cadence is policy for every document in the
-    // collection, so changing it additionally requires team admin access.
-    if (verificationInterval !== undefined && !user.isAdmin) {
-      throw AuthorizationError();
+    // The verification cadence is policy for every document in the
+    // collection, so changing it additionally requires team admin access and
+    // the entitlement. Clearing it stays possible after losing the
+    // entitlement.
+    if (verificationInterval !== undefined) {
+      if (!user.isAdmin) {
+        throw AuthorizationError();
+      }
+      if (verificationInterval !== null) {
+        authorize(user, "setVerificationDefaults", user.team);
+      }
     }
 
     if (deprecatedReason !== undefined) {

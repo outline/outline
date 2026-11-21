@@ -1,5 +1,6 @@
+import { Plan } from "@shared/types";
 import { DeprecationValidation } from "@shared/validations";
-import { Collection } from "@server/models";
+import { Collection, Team } from "@server/models";
 import {
   buildCollection,
   buildPersonalCollection,
@@ -295,6 +296,33 @@ describe("delete_collection", () => {
 });
 
 describe("update_collection verificationInterval", () => {
+  beforeEach(() => {
+    vi.spyOn(Team.prototype, "plan", "get").mockReturnValue(Plan.Business);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("does not allow setting the cadence without the entitlement", async () => {
+    vi.restoreAllMocks();
+
+    const { user, accessToken } = await buildOAuthUser({ role: "admin" });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_collection", {
+      id: collection.id,
+      verificationInterval: "P90D",
+    });
+    expect(res?.result?.isError).toBe(true);
+
+    await collection.reload();
+    expect(collection.verificationInterval).toEqual(null);
+  });
+
   it("sets and clears the cadence as an admin", async () => {
     const { user, accessToken } = await buildOAuthUser({ role: "admin" });
     const collection = await buildCollection({
