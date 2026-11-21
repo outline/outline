@@ -799,6 +799,8 @@
   "Width": "Width",
   "Image height": "Image height",
   "Height": "Height",
+  "Aspect ratio locked": "Aspect ratio locked",
+  "Aspect ratio unlocked": "Aspect ratio unlocked",
   "Paste a link": "Paste a link",
   "Delete embed": "Delete embed",
   "Delete video": "Delete video",

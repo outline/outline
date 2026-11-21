@@ -381,7 +381,11 @@ export function MediaDimension({ tooltip }: Props) {
         </Flex>
       </Tooltip>
       {canUnlock && (
-        <Tooltip content={t("Lock aspect ratio")}>
+        <Tooltip
+          content={
+            isLocked ? t("Aspect ratio locked") : t("Aspect ratio unlocked")
+          }
+        >
           <Toolbar.Button asChild>
             <AspectRatioLockButton
               isLocked={isLocked}
