@@ -2312,7 +2312,7 @@ table {
   width: 100%;
   border-collapse: separate;
   border-radius: ${EditorStyleHelper.blockRadius};
-  margin-top: 1em;
+  margin: .5em 0;
   box-sizing: border-box;
   border: 1px solid ${props.theme.divider};
   border-left: 0;
