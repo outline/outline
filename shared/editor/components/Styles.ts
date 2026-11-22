@@ -2380,6 +2380,12 @@ table {
     }
   }
 
+  /* keeps the insert button above the grips of neighboring cells */
+  td:has(.${EditorStyleHelper.tableAddRow}:hover, .${EditorStyleHelper.tableAddColumn}:hover),
+  th:has(.${EditorStyleHelper.tableAddRow}:hover, .${EditorStyleHelper.tableAddColumn}:hover) {
+    z-index: 3;
+  }
+
   td .component-embed {
     padding: 4px 0;
   }
@@ -2449,7 +2455,7 @@ table {
 
   .${EditorStyleHelper.tableAddRow} {
     bottom: calc(var(--span-end, 0%) - 1px);
-    left: -16px;
+    left: -10px;
     width: 0;
     height: 2px;
     z-index: 1;
@@ -2467,12 +2473,12 @@ table {
     }
 
     &:hover {
-      width: calc(var(--table-width) - ${EditorStyleHelper.padding * 1.5}px);
+      width: calc(var(--table-width) - ${EditorStyleHelper.padding * 1.5}px - 6px);
     }
 
     &:hover::after {
       bottom: -7.5px;
-      left: -16px;
+      left: -5px;
     }
 
     // extra clickable area
@@ -2493,7 +2499,7 @@ table {
   }
 
   .${EditorStyleHelper.tableAddColumn} {
-    top: -16px;
+    top: -10px;
     right: calc(var(--span-end, 0%) - 1px);
     width: 2px;
     height: 0;
@@ -2512,11 +2518,11 @@ table {
     }
 
     &:hover {
-      height: calc(var(--table-height) - ${EditorStyleHelper.padding}px + 6px);
+      height: calc(var(--table-height) - ${EditorStyleHelper.padding}px);
     }
 
     &:hover::after {
-      top: -16px;
+      top: -5px;
       right: -7px;
     }
 
@@ -2546,10 +2552,10 @@ table {
       content: "";
       cursor: grab;
       position: absolute;
-      top: -16px;
+      top: -10px;
       left: var(--span-start, 0);
       width: var(--span-size, 100%);
-      height: 12px;
+      height: 6px;
       background: var(--table-grip, ${props.theme.divider});
       display: ${props.readOnly ? "none" : "block"};
       /* above the add column controls so narrow columns stay draggable */
@@ -2581,10 +2587,10 @@ table {
       content: "";
       cursor: grab;
       position: absolute;
-      left: -16px;
+      left: -10px;
       top: var(--span-start, 0);
       height: var(--span-size, 100%);
-      width: 12px;
+      width: 6px;
       background: var(--table-grip, ${props.theme.divider});
       border-color: var(--table-grip-border, ${props.theme.background});
       display: ${props.readOnly ? "none" : "block"};
@@ -2617,13 +2623,13 @@ table {
       content: "";
       cursor: var(--pointer);
       background: var(--table-grip, ${props.theme.divider});
-      width: 13px;
-      height: 13px;
-      border-radius: 13px;
+      width: 10px;
+      height: 10px;
+      border-radius: 10px;
       border: 2px solid var(--table-grip-border, ${props.theme.background});
       position: absolute;
-      top: -18px;
-      left: -18px;
+      top: -12px;
+      left: -12px;
       display: ${props.readOnly ? "none" : "block"};
       z-index: 10;
     }
