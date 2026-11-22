@@ -2623,13 +2623,13 @@ table {
       content: "";
       cursor: var(--pointer);
       background: var(--table-grip, ${props.theme.divider});
-      width: 10px;
-      height: 10px;
-      border-radius: 10px;
+      width: 8px;
+      height: 8px;
+      border-radius: 8px;
       border: 2px solid var(--table-grip-border, ${props.theme.background});
       position: absolute;
-      top: -12px;
-      left: -12px;
+      top: -13px;
+      left: -13px;
       display: ${props.readOnly ? "none" : "block"};
       z-index: 10;
     }
