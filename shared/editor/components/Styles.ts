@@ -1599,7 +1599,7 @@ ${
   ${noticeColors(props.theme, props.theme.noticeInfoBackground, props.theme.noticeInfoText)}
   border-radius: ${EditorStyleHelper.blockRadius};
   padding: 8px 10px 8px 8px;
-  margin: 8px 0;
+  margin: .5em 0;
 
   a {
     text-decoration: underline;
@@ -2312,7 +2312,6 @@ table {
   width: 100%;
   border-collapse: separate;
   border-radius: ${EditorStyleHelper.blockRadius};
-  margin: .5em 0;
   box-sizing: border-box;
   border: 1px solid ${props.theme.divider};
   border-left: 0;
