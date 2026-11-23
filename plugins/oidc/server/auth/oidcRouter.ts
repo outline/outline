@@ -28,7 +28,7 @@ import config from "../../plugin.json";
 import env from "../env";
 import { OIDCStrategy } from "./OIDCStrategy";
 import { resolveProviderId } from "./resolveProviderId";
-import { createContext } from "@server/context";
+import { withUser } from "@server/context";
 import { OIDCMalformedUserInfoError } from "../errors";
 
 export interface OIDCEndpoints {
@@ -192,11 +192,7 @@ export function createOIDCRouter(
               avatarUrl = null;
             }
 
-            const ctx = createContext({
-              ip: context.ip,
-              user,
-              authType: context.auth?.type,
-            });
+            const ctx = withUser(context, user);
             const result = await accountProvisioner(ctx, {
               team: {
                 teamId: team?.id,

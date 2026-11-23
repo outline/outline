@@ -5,7 +5,7 @@ import { AttachmentPreset } from "@shared/types";
 import { bytesToHumanReadable, getFileNameFromUrl } from "@shared/utils/files";
 import env from "@server/env";
 import { AttachmentValidation } from "@shared/validations";
-import { createContext } from "@server/context";
+import { withTransaction } from "@server/context";
 import {
   AuthorizationError,
   InvalidRequestError,
@@ -230,7 +230,7 @@ router.post(
   validate(T.AttachmentsCreateFromUrlSchema),
   async (ctx: Context<T.AttachmentCreateFromUrlReq>) => {
     const { id, url, documentId, preset } = ctx.input.body;
-    const { user, type } = ctx.auth;
+    const { user } = ctx.auth;
 
     if (preset !== AttachmentPreset.DocumentAttachment || !documentId) {
       throw ValidationError(
@@ -252,25 +252,17 @@ router.post(
     // Does not use transaction middleware, as attachment must be persisted
     // before the job is scheduled.
     const attachment = await sequelize.transaction(async (transaction) =>
-      Attachment.createWithCtx(
-        createContext({
-          authType: type,
-          user,
-          ip: ctx.ip,
-          transaction,
-        }),
-        {
-          id: modelId,
-          key,
-          acl,
-          size: 0,
-          expiresAt: AttachmentHelper.presetToExpiry(preset),
-          contentType: "application/octet-stream",
-          documentId,
-          teamId: user.teamId,
-          userId: user.id,
-        }
-      )
+      Attachment.createWithCtx(withTransaction(ctx, transaction), {
+        id: modelId,
+        key,
+        acl,
+        size: 0,
+        expiresAt: AttachmentHelper.presetToExpiry(preset),
+        contentType: "application/octet-stream",
+        documentId,
+        teamId: user.teamId,
+        userId: user.id,
+      })
     );
 
     const job = await new UploadAttachmentFromUrlTask().schedule({

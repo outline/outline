@@ -25,7 +25,7 @@ import teamProvisioner from "./teamProvisioner";
 import userProvisioner from "./userProvisioner";
 import type { Context } from "@server/types";
 import { addSeconds } from "date-fns";
-import { createContext } from "@server/context";
+import { withTransaction, withUser } from "@server/context";
 
 type Props = {
   /** Details of the user logging in from SSO provider */
@@ -120,15 +120,9 @@ async function accountProvisioner(
     if (!isConnected && providers.length === 1) {
       // Update in place so that existing user authentications stay linked.
       await sequelize.transaction((transaction) =>
-        providers[0].updateWithCtx(
-          createContext({
-            user: actor,
-            authType: ctx.auth?.type,
-            ip: ctx.ip,
-            transaction,
-          }),
-          { providerId: authenticationProviderParams.providerId }
-        )
+        providers[0].updateWithCtx(withTransaction(ctx, transaction), {
+          providerId: authenticationProviderParams.providerId,
+        })
       );
     } else if (!isConnected) {
       await team.$create<AuthenticationProvider>(
@@ -292,12 +286,7 @@ export async function provisionFirstCollection(
   user: User
 ) {
   await sequelize.transaction(async (transaction) => {
-    const context = createContext({
-      user,
-      authType: ctx.auth?.type,
-      ip: ctx.ip,
-      transaction,
-    });
+    const context = withTransaction(withUser(ctx, user), transaction);
 
     const collection = await Collection.createWithCtx(context, {
       name: "Welcome",

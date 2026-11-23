@@ -37,7 +37,7 @@ import {
   SlackUtils,
   SlackOAuthNonceCookie,
 } from "plugins/slack/shared/SlackUtils";
-import { createContext } from "@server/context";
+import { withUser } from "@server/context";
 
 type SlackProfile = Profile & {
   team: {
@@ -97,11 +97,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
 
         const { domain } = parseEmail(profile.user.email);
 
-        const ctx = createContext({
-          ip: context.ip,
-          user,
-          authType: context.auth?.type,
-        });
+        const ctx = withUser(context, user);
         const result = await accountProvisioner(ctx, {
           team: {
             teamId: team?.id,

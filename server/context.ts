@@ -1,6 +1,6 @@
 import type { Transaction } from "sequelize";
 import type { User } from "@server/models";
-import type { Authentication, Context } from "@server/types";
+import type { AppContext, Authentication, Context } from "@server/types";
 import { AuthenticationType } from "@server/types";
 
 /** The fields of a context that model hooks read from query options. */
@@ -38,6 +38,33 @@ export function createContext({
     ip: ip ?? user?.lastActiveIp,
     transaction,
   } as Context;
+}
+
+/**
+ * Derives a context from an existing one that acts as the given user.
+ *
+ * @param ctx the context to derive from.
+ * @param user the actor for the new context.
+ * @returns the derived context.
+ */
+export function withUser(ctx: AppContext | Context, user?: User) {
+  return createContext({
+    user,
+    authType: ctx.auth?.type,
+    ip: ctx.ip,
+    transaction: ctx.transaction,
+  });
+}
+
+/**
+ * Derives a context from an existing one that runs in the given transaction.
+ *
+ * @param ctx the context to derive from.
+ * @param transaction the transaction for the new context.
+ * @returns the derived context.
+ */
+export function withTransaction(ctx: Context, transaction: Transaction) {
+  return { auth: ctx.auth, ip: ctx.ip, transaction } as Context;
 }
 
 /**

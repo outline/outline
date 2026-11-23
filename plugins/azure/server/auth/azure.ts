@@ -22,7 +22,7 @@ import {
 } from "@server/utils/passport";
 import config from "../../plugin.json";
 import env from "../env";
-import { createContext } from "@server/context";
+import { withUser } from "@server/context";
 import UploadUserAvatarTask from "@server/queues/tasks/UploadUserAvatarTask";
 import { UserFlag } from "@server/models/User";
 import { getEmailVerified } from "./getEmailVerified";
@@ -122,11 +122,7 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
         const subdomain = slugifyDomain(domain);
 
         const teamName = organization.displayName;
-        const ctx = createContext({
-          ip: context.ip,
-          user,
-          authType: context.auth?.type,
-        });
+        const ctx = withUser(context, user);
         const result = await accountProvisioner(ctx, {
           team: {
             teamId: team?.id,

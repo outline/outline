@@ -1,5 +1,5 @@
 import { PersonalCollectionId } from "@shared/constants";
-import { createContext } from "@server/context";
+import { withTransaction } from "@server/context";
 import { Collection } from "@server/models";
 import { authorize } from "@server/policies";
 import { sequelize } from "@server/storage/database";
@@ -33,14 +33,7 @@ export default async function personalCollectionLoader(
 
   // The creation lock is only held inside a transaction.
   return sequelize.transaction((innerTransaction) =>
-    Collection.findOrCreatePersonal(
-      createContext({
-        user,
-        authType: ctx.auth.type,
-        ip: ctx.ip,
-        transaction: innerTransaction,
-      })
-    )
+    Collection.findOrCreatePersonal(withTransaction(ctx, innerTransaction))
   );
 }
 
