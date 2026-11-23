@@ -129,4 +129,36 @@ describe("getUserForJWT", () => {
       id: "user_suspended",
     });
   });
+
+  it("should reject a transfer token that was already used", async () => {
+    const user = await buildUser();
+    const token = user.getTransferToken();
+
+    await getUserForJWT(token, ["transfer"]);
+    await expect(getUserForJWT(token, ["transfer"])).rejects.toThrow(
+      "Token has already been used"
+    );
+  });
+
+  it("should allow only one of several concurrent transfer token redemptions", async () => {
+    const user = await buildUser();
+    const token = user.getTransferToken();
+
+    const results = await Promise.allSettled([
+      getUserForJWT(token, ["transfer"]),
+      getUserForJWT(token, ["transfer"]),
+      getUserForJWT(token, ["transfer"]),
+    ]);
+    expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+  });
+
+  it("should not consume a transfer token that fails the type check", async () => {
+    const user = await buildUser();
+    const token = user.getTransferToken();
+
+    await expect(getUserForJWT(token)).rejects.toThrow("Invalid token");
+
+    const result = await getUserForJWT(token, ["transfer"]);
+    expect(result.user.id).toEqual(user.id);
+  });
 });

@@ -99,6 +99,18 @@ export async function getUserForJWT(
     ) {
       throw AuthenticationError("Token has already been used");
     }
+
+    // Atomically claim the token so concurrent requests cannot both redeem it.
+    const claimed = await Redis.defaultClient.set(
+      RedisPrefixHelper.getTransferTokenKey(hash(token)),
+      "1",
+      "PX",
+      Minute.ms * 2,
+      "NX"
+    );
+    if (!claimed) {
+      throw AuthenticationError("Token has already been used");
+    }
   }
 
   return {

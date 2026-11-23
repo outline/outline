@@ -138,4 +138,14 @@ export class RedisPrefixHelper {
   public static getEmailSigninTokenKey(tokenHash: string) {
     return `auth:email-signin:${tokenHash}`;
   }
+
+  /**
+   * Gets key for marking a transfer token as used.
+   *
+   * @param tokenHash The SHA-256 hash of the transfer token.
+   * @returns the cache key string.
+   */
+  public static getTransferTokenKey(tokenHash: string) {
+    return `auth:transfer:${tokenHash}`;
+  }
 }
