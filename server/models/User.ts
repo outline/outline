@@ -1,7 +1,6 @@
 import crypto from "node:crypto";
 import { addHours, addMinutes, subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
-import type { Context as KoaContext } from "koa";
 import type {
   Transaction,
   SaveOptions,
@@ -52,7 +51,7 @@ import env from "@server/env";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
 import { LockHelper } from "@server/storage/LockHelper";
 import { afterCommit } from "@server/storage/transaction";
-import type { Context } from "@server/types";
+import type { Context, AppContext } from "@server/types";
 import { toHookContext } from "@server/context";
 import { VerificationCode } from "@server/utils/VerificationCode";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
@@ -583,7 +582,7 @@ class User extends ParanoidModel<
    * @param force whether to update even if the last update was recent.
    * @returns a promise that resolves with the updated user.
    */
-  updateActiveAt = async (ctx?: KoaContext, force = false) => {
+  updateActiveAt = async (ctx?: AppContext, force = false) => {
     const fiveMinutesAgo = subMinutes(new Date(), 5);
 
     // ensure this is updated only every few minutes otherwise
@@ -610,7 +609,7 @@ class User extends ParanoidModel<
     });
   };
 
-  updateSignedIn = (ctx: KoaContext | Context) => {
+  updateSignedIn = (ctx: AppContext | Context) => {
     const now = new Date();
     this.lastActiveAt = now;
     this.lastActiveIp = ctx.request.ip;
@@ -694,7 +693,7 @@ class User extends ParanoidModel<
    * @param ctx The request context, used to get the IP address of the request
    * @returns The email signin token
    */
-  getEmailSigninToken = (ctx: KoaContext) =>
+  getEmailSigninToken = (ctx: AppContext) =>
     JWT.sign(
       {
         id: this.id,

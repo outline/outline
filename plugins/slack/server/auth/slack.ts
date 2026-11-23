@@ -19,7 +19,7 @@ import {
 } from "@server/models";
 import { authorize } from "@server/policies";
 import { sequelize } from "@server/storage/database";
-import type { Context, AuthenticationResult } from "@server/types";
+import type { Context, AuthenticationResult, AppContext } from "@server/types";
 import { verifyOAuthStateNonce } from "@server/utils/oauth";
 import {
   getClientFromOAuthState,
@@ -88,7 +88,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
         result?: AuthenticationResult
       ) => void
     ) {
-      const context = req.ctx;
+      const context: AppContext = req.ctx;
       try {
         const team = await getTeamFromContext(context);
         const client = getClientFromOAuthState(context);

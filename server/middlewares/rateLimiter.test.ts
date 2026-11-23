@@ -1,10 +1,10 @@
-import type { Context } from "koa";
 import { RateLimiterRes } from "rate-limiter-flexible";
 import env from "@server/env";
 import { ApiKey } from "@server/models";
 import * as jwtUtils from "@server/utils/jwt";
 import RateLimiter from "@server/utils/RateLimiter";
 import { defaultRateLimiter, rateLimiter } from "./rateLimiter";
+import type { AppContext } from "@server/types";
 
 interface MockContextOptions {
   path?: string;
@@ -35,7 +35,7 @@ const createContext = ({
       query: {},
     },
     cookies: { get: () => undefined },
-  }) as unknown as Context;
+  }) as unknown as AppContext;
 
 describe("rateLimiter middleware", () => {
   const originalRateLimiterEnabled = env.RATE_LIMITER_ENABLED;

@@ -61,7 +61,7 @@ import {
 import { parser } from "@server/editor";
 import { ValidationError } from "@server/errors";
 import type { Context } from "@server/types";
-import { toHookContext } from "@server/context";
+import { toHookContext, type HookContextFields } from "@server/context";
 import { LockHelper } from "@server/storage/LockHelper";
 import { afterCommit } from "@server/storage/transaction";
 import { CacheHelper } from "@server/utils/CacheHelper";
@@ -428,7 +428,7 @@ class Collection extends ParanoidModel<
   }
 
   @BeforeDestroy
-  static async deleteDocuments(model: Collection, ctx: Context["context"]) {
+  static async deleteDocuments(model: Collection, ctx: HookContextFields) {
     // A bulk update rather than a destroy per document, so `deletedById` is
     // written here instead of by the hook on ParanoidModel.
     await Document.update(
@@ -536,7 +536,7 @@ class Collection extends ParanoidModel<
   @BeforeUpdate
   static async publishPermissionChangedEvent(
     model: Collection,
-    ctx: Context["context"]
+    ctx: HookContextFields
   ) {
     const privacyChanged = model.previous("permission") !== model.permission;
     const sharingChanged = model.previous("sharing") !== model.sharing;

@@ -1,5 +1,4 @@
 import passport from "@outlinewiki/koa-passport";
-import type { Context } from "koa";
 import {
   AuthorizationError,
   InternalOAuthError,
@@ -11,7 +10,7 @@ import env from "@server/env";
 import { AuthenticationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { Team } from "@server/models";
-import type { AuthenticationResult } from "@server/types";
+import type { AuthenticationResult, AppContext } from "@server/types";
 import { signIn } from "@server/utils/authentication";
 import { parseState } from "@server/utils/passport";
 
@@ -52,7 +51,7 @@ async function getValidatedHost(host: string): Promise<string> {
 }
 
 export default function createMiddleware(providerName: string) {
-  return function passportMiddleware(ctx: Context) {
+  return function passportMiddleware(ctx: AppContext) {
     return passport.authorize(
       providerName,
       {

@@ -1,4 +1,3 @@
-import type { Context } from "koa";
 import { TeamPreference } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
@@ -6,6 +5,7 @@ import { Integration, type Team } from "@server/models";
 import { getSessionRedirectUrl } from "@server/utils/authentication";
 import { SessionsCookieHelper } from "@server/utils/SessionsCookieHelper";
 import type { AppRenderOptions } from "./app";
+import type { AppContext } from "@server/types";
 
 /**
  * Returns the URL to redirect an app request to when the request did not
@@ -17,7 +17,7 @@ import type { AppRenderOptions } from "./app";
  * @returns the URL to redirect to, or undefined to render the app.
  */
 export async function getWorkspaceRedirectUrl(
-  ctx: Context,
+  ctx: AppContext,
   team: Team | null | undefined
 ): Promise<string | undefined> {
   if (!env.isCloudHosted) {

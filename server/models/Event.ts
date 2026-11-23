@@ -27,7 +27,7 @@ import Document from "./Document";
 import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
-import type { Context as KoaContext } from "koa";
+import type { AppContext } from "@server/types";
 
 @Table({ tableName: "events", modelName: "event", updatedAt: false })
 class Event extends IdModel<
@@ -161,7 +161,7 @@ class Event extends IdModel<
    * @returns A promise resolving to the new event
    */
   static createFromContext(
-    ctx: KoaContext | Context,
+    ctx: AppContext | Context,
     attributes: Omit<Partial<Event>, "ip" | "teamId" | "actorId"> = {},
     defaultAttributes: Pick<Partial<Event>, "ip" | "teamId" | "actorId"> = {},
     options?: CreateOptions<InferAttributes<Event>>

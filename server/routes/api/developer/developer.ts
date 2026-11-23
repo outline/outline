@@ -1,4 +1,4 @@
-import type { Context as KoaContext, Next } from "koa";
+import type { Next } from "koa";
 import Router from "@koa/router";
 import { Op } from "sequelize";
 import { randomString, randomElement } from "@shared/random";
@@ -12,14 +12,14 @@ import validate from "@server/middlewares/validate";
 import { Document, Notification, User } from "@server/models";
 import presentNotification from "@server/presenters/notification";
 import { presentUser } from "@server/presenters";
-import type { Context } from "@server/types";
+import type { Context, AppContext } from "@server/types";
 import * as T from "./schema";
 
 const router = new Router();
 
 function dev() {
   return async function checkDevelopmentMiddleware(
-    ctx: KoaContext,
+    ctx: AppContext,
     next: Next
   ) {
     if (env.ENVIRONMENT !== "development") {

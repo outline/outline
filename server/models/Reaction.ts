@@ -17,7 +17,7 @@ import {
   Table,
 } from "sequelize-typescript";
 import { createContext } from "@server/context";
-import type { Context } from "@server/types";
+import type { HookContextFields } from "@server/context";
 import Comment from "./Comment";
 import User from "./User";
 import IdModel from "./base/IdModel";
@@ -54,7 +54,7 @@ class Reaction extends IdModel<
   @AfterCreate
   public static async addReactionToCommentCache(
     model: Reaction,
-    ctx: Context["context"] &
+    ctx: HookContextFields &
       FindOrCreateOptions<Attributes<Reaction>, CreationAttributes<Reaction>>
   ) {
     const { transaction } = ctx;
@@ -106,7 +106,7 @@ class Reaction extends IdModel<
   @AfterDestroy
   public static async removeReactionFromCommentCache(
     model: Reaction,
-    ctx: Context["context"] & InstanceDestroyOptions
+    ctx: HookContextFields & InstanceDestroyOptions
   ) {
     const { transaction } = ctx;
 

@@ -2,7 +2,7 @@ import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "@koa/router";
 import { Readable } from "node:stream";
-import type { Context as KoaContext, Next } from "koa";
+import type { Next } from "koa";
 import {
   createMcpHandler,
   type McpServerFactory,
@@ -19,7 +19,11 @@ import { rateLimiter } from "@server/middlewares/rateLimiter";
 import requestTracer from "@server/middlewares/requestTracer";
 import type { User } from "@server/models";
 import { UserFlag } from "@server/models/User";
-import { AuthenticationType, type Context } from "@server/types";
+import {
+  AuthenticationType,
+  type Context,
+  type AppContext,
+} from "@server/types";
 import { OAuthHelper } from "@server/utils/oauth/OAuthHelper";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 
@@ -117,7 +121,7 @@ async function validateOrigin(ctx: Context, next: Next) {
  * @param ctx - the Koa context.
  * @returns the web request.
  */
-function toWebRequest(ctx: KoaContext): Request {
+function toWebRequest(ctx: AppContext): Request {
   const headers = new Headers();
   for (const [key, value] of Object.entries(ctx.req.headers)) {
     for (const item of Array.isArray(value) ? value : [value ?? ""]) {

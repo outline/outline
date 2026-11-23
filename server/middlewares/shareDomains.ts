@@ -1,11 +1,12 @@
-import type { Context, Next } from "koa";
+import type { Next } from "koa";
 import { Op } from "sequelize";
 import { parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import { Share } from "@server/models";
+import type { AppContext } from "@server/types";
 
 export default function shareDomains() {
-  return async function shareDomainsMiddleware(ctx: Context, next: Next) {
+  return async function shareDomainsMiddleware(ctx: AppContext, next: Next) {
     const isCustomDomain = parseDomain(ctx.host).custom;
 
     if (env.isDevelopment || (isCustomDomain && env.isCloudHosted)) {

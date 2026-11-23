@@ -287,7 +287,7 @@ router.post(
 );
 
 router.get("/register/:clientId", registrationAuth(), async (ctx) => {
-  const client: OAuthClient = ctx.state.oauthClient;
+  const client = ctx.state.oauthClient as OAuthClient;
   const team = await client.$get("team");
   if (!team) {
     throw NotFoundError();

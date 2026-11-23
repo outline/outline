@@ -1,7 +1,8 @@
-import type { ParameterizedContext, DefaultContext } from "koa";
+import type { ParameterizedContext } from "koa";
 import type { RouterContext } from "@koa/router";
 import type { InferAttributes, Model, Transaction } from "sequelize";
 import type { z } from "zod";
+import type { Details as UserAgentDetails } from "express-useragent";
 import type {
   AuthenticationType,
   CollectionSort,
@@ -79,17 +80,45 @@ export type AppState = {
   oauthState?: OAuthState;
   /** The identifiers this request is rate limited against. */
   rateLimiterIdentifiers?: string[];
+  /** The share that the request's custom domain points to. */
+  rootShare?: Share | null;
+  /** The nonce allowed by the content security policy for inline scripts. */
+  cspNonce?: string;
+  /** Additional script sources allowed by the content security policy. */
+  cspScriptSrc?: string[];
+  /** Additional style sources allowed by the content security policy. */
+  cspStyleSrc?: string[];
+  /** Whether the response may be framed by other origins. */
+  cspAllowFraming?: boolean;
 };
 
 /** Fields that middleware sets on the Koa context. */
-export interface AppContextFields extends DefaultContext {
+export interface AppContextFields {
   /** The authentication for the request, empty when the request is anonymous. */
   auth?: Authentication | Record<string, never>;
   /** The transaction for the request, when the route runs in one. */
   transaction?: Transaction;
+  /** The parsed User-Agent header. */
+  userAgent?: UserAgentDetails;
+  /** The path prefix when the app is mounted under another path. */
+  mountPath?: string;
+  /** Redirects in the browser so that auth cookies are sent with the request. */
+  redirectOnClient: RedirectOnClient;
+}
+
+type RedirectOnClient = (redirectTo: string, method?: "GET" | "POST") => void;
+
+// Set on app.context, so every Koa context has it.
+declare module "koa" {
+  interface DefaultContext {
+    redirectOnClient: RedirectOnClient;
+  }
 }
 
 export type AppContext = ParameterizedContext<AppState, AppContextFields>;
+
+/** The Koa context within a router route, including matched params. */
+export type AppRouterContext = RouterContext<AppState, AppContextFields>;
 
 export type BaseReq = z.infer<typeof BaseSchema>;
 

@@ -11,7 +11,7 @@ import accountProvisioner from "@server/commands/accountProvisioner";
 import { TeamDomainRequiredError } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
 import { AuthenticationProvider, User } from "@server/models";
-import type { AuthenticationResult } from "@server/types";
+import type { AuthenticationResult, AppContext } from "@server/types";
 import {
   StateStore,
   getTeamFromContext,
@@ -65,7 +65,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
         result?: AuthenticationResult
       ) => void
     ) {
-      const context = req.ctx;
+      const context: AppContext = req.ctx;
       try {
         // "domain" is the Google Workspaces domain
         const domain = profile._json.hd;

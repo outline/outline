@@ -10,7 +10,7 @@ import { parseEmail } from "@shared/utils/email";
 import accountProvisioner from "@server/commands/accountProvisioner";
 import passportMiddleware from "@server/middlewares/passport";
 import type { User } from "@server/models";
-import type { AuthenticationResult } from "@server/types";
+import type { AuthenticationResult, AppContext } from "@server/types";
 import {
   StateStore,
   request,
@@ -57,7 +57,7 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
         result?: AuthenticationResult
       ) => void
     ) {
-      const context = req.ctx;
+      const context: AppContext = req.ctx;
       try {
         // see docs for what the fields in profile represent here:
         // https://docs.microsoft.com/en-us/azure/active-directory/develop/access-tokens

@@ -1,6 +1,7 @@
-import type { Context, Next } from "koa";
+import type { Next } from "koa";
 import { AuthenticationError } from "@server/errors";
 import { OAuthClient } from "@server/models";
+import type { AppRouterContext } from "@server/types";
 
 /**
  * Middleware that authenticates requests to the RFC 7592 client registration
@@ -10,7 +11,10 @@ import { OAuthClient } from "@server/models";
  * parameter and attaches the client to `ctx.state.oauthClient`.
  */
 export default function registrationAuth() {
-  return async function registrationAuthMiddleware(ctx: Context, next: Next) {
+  return async function registrationAuthMiddleware(
+    ctx: AppRouterContext,
+    next: Next
+  ) {
     const authorization = ctx.headers.authorization;
     if (!authorization?.startsWith("Bearer ")) {
       throw AuthenticationError("Missing or invalid Authorization header");

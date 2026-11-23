@@ -18,7 +18,7 @@ import accountProvisioner from "@server/commands/accountProvisioner";
 import { InvalidRequestError, TeamDomainRequiredError } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
 import type { User } from "@server/models";
-import type { AuthenticationResult } from "@server/types";
+import type { AuthenticationResult, AppContext } from "@server/types";
 import {
   StateStore,
   getTeamFromContext,
@@ -72,7 +72,7 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
             result?: AuthenticationResult
           ) => void
         ) {
-          const context = req.ctx;
+          const context: AppContext = req.ctx;
           try {
             const team = await getTeamFromContext(context);
             const client = getClientFromOAuthState(context);

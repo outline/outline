@@ -82,7 +82,7 @@ import { DocumentHelper } from "./helpers/DocumentHelper";
 import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
 import type { Context } from "@server/types";
-import { toHookContext } from "@server/context";
+import { toHookContext, type HookContextFields } from "@server/context";
 import { APIUpdateExtension } from "@server/collaboration/APIUpdateExtension";
 import { SkipChangeset } from "./decorators/Changeset";
 import type { EventOverrideOptions, HookContext } from "./base/Model";
@@ -650,7 +650,7 @@ class Document extends ArchivableModel<
   @AfterUpdate
   static async publishTitleChangeEvent(
     model: Document,
-    ctx: Context["context"]
+    ctx: HookContextFields
   ) {
     if (model.changed("title")) {
       const hookContext = {
