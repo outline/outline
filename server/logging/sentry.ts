@@ -23,17 +23,17 @@ export function requestErrorHandler(error: any, ctx: AppContext) {
         scope.setTag("request_id", requestId as string);
       }
 
-      const authType = ctx.state?.auth?.type ?? undefined;
+      const authType = ctx.auth?.type ?? undefined;
       if (authType) {
         scope.setTag("auth_type", authType);
       }
 
-      const teamId = ctx.state?.auth?.user?.teamId ?? undefined;
+      const teamId = ctx.auth?.user?.teamId ?? undefined;
       if (teamId) {
         scope.setTag("team_id", teamId);
       }
 
-      const userId = ctx.state?.auth?.user?.id ?? undefined;
+      const userId = ctx.auth?.user?.id ?? undefined;
       if (userId) {
         scope.setUser({
           id: userId,

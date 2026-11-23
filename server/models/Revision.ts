@@ -16,7 +16,7 @@ import {
 } from "sequelize-typescript";
 import type { ProsemirrorData, SourceMetadata } from "@shared/types";
 import { DocumentValidation, RevisionValidation } from "@shared/validations";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import Document from "./Document";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
@@ -266,12 +266,12 @@ class Revision extends ParanoidModel<
    * @returns A Promise that resolves when saved
    */
   static createFromDocument(
-    ctx: APIContext,
+    ctx: Context,
     document: Document,
     collaboratorIds?: string[]
   ) {
     const revision = this.buildFromDocument(document);
-    const authType = ctx.context.auth?.type;
+    const authType = ctx.auth?.type;
     revision.sourceMetadata = authType ? { authType } : null;
 
     if (collaboratorIds) {

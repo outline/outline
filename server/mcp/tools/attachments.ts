@@ -60,7 +60,7 @@ export function attachmentTools(server: McpServer, scopes: string[]) {
         async ({ contentType, name, size }, extra) => {
           try {
             const ctx = buildAPIContext(extra);
-            const { user } = ctx.state.auth;
+            const { user } = ctx.auth;
             const team = await Team.findByPk(user.teamId, {
               rejectOnEmpty: true,
             });

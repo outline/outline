@@ -17,7 +17,7 @@ import {
   buildDocument,
   buildImport,
 } from "@server/test/factories";
-import { withAPIContext } from "@server/test/support";
+import { withContext } from "@server/test/support";
 import MarkdownImportsProcessor from "../processors/MarkdownImportsProcessor";
 import UploadAttachmentsForImportTask from "./UploadAttachmentsForImportTask";
 import MarkdownAPIImportTask, {
@@ -529,7 +529,7 @@ describe("MarkdownAPIImportTask document export archives", () => {
       userId: admin.id,
       rejectOnEmpty: true,
     });
-    await withAPIContext(admin, (ctx) => archivable.archiveWithCtx(ctx));
+    await withContext(admin, (ctx) => archivable.archiveWithCtx(ctx));
 
     await new MarkdownImportsProcessor().perform({
       name: "imports.delete",

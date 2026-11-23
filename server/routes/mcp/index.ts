@@ -2,7 +2,7 @@ import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "@koa/router";
 import { Readable } from "node:stream";
-import type { Context, Next } from "koa";
+import type { Context as KoaContext, Next } from "koa";
 import {
   createMcpHandler,
   type McpServerFactory,
@@ -19,7 +19,7 @@ import { rateLimiter } from "@server/middlewares/rateLimiter";
 import requestTracer from "@server/middlewares/requestTracer";
 import type { User } from "@server/models";
 import { UserFlag } from "@server/models/User";
-import { AuthenticationType, type APIContext } from "@server/types";
+import { AuthenticationType, type Context } from "@server/types";
 import { OAuthHelper } from "@server/utils/oauth/OAuthHelper";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 
@@ -91,8 +91,8 @@ const mcpHandler = createMcpHandler(createServer, {
  * @param ctx - the authenticated Koa context.
  * @param next - the next middleware.
  */
-async function validateOrigin(ctx: APIContext, next: Next) {
-  const { user } = ctx.state.auth;
+async function validateOrigin(ctx: Context, next: Next) {
+  const { user } = ctx.auth;
   const origin = ctx.get("origin");
   const allowedOrigins = [
     new URL(env.URL).origin,
@@ -117,7 +117,7 @@ async function validateOrigin(ctx: APIContext, next: Next) {
  * @param ctx - the Koa context.
  * @returns the web request.
  */
-function toWebRequest(ctx: Context): Request {
+function toWebRequest(ctx: KoaContext): Request {
   const headers = new Headers();
   for (const [key, value] of Object.entries(ctx.req.headers)) {
     for (const item of Array.isArray(value) ? value : [value ?? ""]) {
@@ -168,8 +168,8 @@ router.post(
     ],
   }),
   validateOrigin,
-  async (ctx) => {
-    const { user, token, scope } = ctx.state.auth;
+  async (ctx: Context) => {
+    const { user, token, scope } = ctx.auth;
 
     if (!user.team.getPreference(TeamPreference.MCP)) {
       throw NotFoundError();

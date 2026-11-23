@@ -5,7 +5,7 @@ import {
   buildDocument,
   buildUser,
 } from "@server/test/factories";
-import { withAPIContext } from "@server/test/support";
+import { withContext } from "@server/test/support";
 import { sequelize } from "@server/storage/database";
 
 describe("presentDocuments", () => {
@@ -19,7 +19,7 @@ describe("presentDocuments", () => {
           teamId: user.teamId,
           collectionId: collection.id,
         });
-        await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+        await withContext(user, (ctx) => document.destroyWithCtx(ctx));
       }
 
       const documents = await Document.scope("withDrafts").findAll({
@@ -65,8 +65,8 @@ describe("presentDocuments", () => {
         teamId: userA.teamId,
         collectionId: collection.id,
       });
-      await withAPIContext(userA, (ctx) => documentA.destroyWithCtx(ctx));
-      await withAPIContext(userB, (ctx) => documentB.destroyWithCtx(ctx));
+      await withContext(userA, (ctx) => documentA.destroyWithCtx(ctx));
+      await withContext(userB, (ctx) => documentB.destroyWithCtx(ctx));
 
       // One document arrives with the association loaded, the other without.
       const loaded = await Document.scope("withDrafts").findOne({

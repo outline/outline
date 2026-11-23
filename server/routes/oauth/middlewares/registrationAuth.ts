@@ -22,8 +22,8 @@ export default function registrationAuth() {
     }
 
     const client = await OAuthClient.findByRegistrationAccessToken(token, {
-      transaction: ctx.state.transaction,
-      lock: ctx.state.transaction?.LOCK.NO_KEY_UPDATE,
+      transaction: ctx.transaction,
+      lock: ctx.transaction?.LOCK.NO_KEY_UPDATE,
     });
     if (!client) {
       throw AuthenticationError("Invalid registration access token");

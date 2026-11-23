@@ -29,7 +29,7 @@ import { CollectionPermission } from "@shared/types";
 import { ValidationError } from "@server/errors";
 import { LockHelper } from "@server/storage/LockHelper";
 import { afterCommit } from "@server/storage/transaction";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import Collection from "./Collection";
@@ -259,7 +259,7 @@ class UserMembership extends IdModel<
   @AfterCreate
   static async publishAddUserEventAfterCreate(
     model: UserMembership,
-    context: APIContext["context"]
+    context: Context["context"]
   ) {
     await model.insertEvent(context, "add_user", {
       isNew: true,
@@ -311,7 +311,7 @@ class UserMembership extends IdModel<
   @BeforeUpdate
   static async checkLastAdminBeforeUpdate(
     model: UserMembership,
-    ctx: APIContext["context"]
+    ctx: Context["context"]
   ) {
     if (
       model.permission === CollectionPermission.Admin ||
@@ -326,7 +326,7 @@ class UserMembership extends IdModel<
   @BeforeDestroy
   static async checkLastAdminBeforeDestroy(
     model: UserMembership,
-    ctx: APIContext["context"]
+    ctx: Context["context"]
   ) {
     // Only check for last admin permission if this permission is admin
     if (
@@ -341,7 +341,7 @@ class UserMembership extends IdModel<
   @AfterUpdate
   static async publishAddUserEventAfterUpdate(
     model: UserMembership,
-    context: APIContext["context"]
+    context: Context["context"]
   ) {
     await model.insertEvent(context, "add_user", {
       isNew: false,
@@ -351,7 +351,7 @@ class UserMembership extends IdModel<
   @AfterDestroy
   static async publishRemoveUserEvent(
     model: UserMembership,
-    context: APIContext["context"]
+    context: Context["context"]
   ) {
     await model.insertEvent(context, "remove_user");
   }
@@ -454,7 +454,7 @@ class UserMembership extends IdModel<
   }
 
   private async insertEvent(
-    ctx: APIContext["context"],
+    ctx: Context["context"],
     name: string,
     data?: Record<string, unknown>
   ) {
@@ -487,7 +487,7 @@ class UserMembership extends IdModel<
 
   private static async validateLastAdminPermission(
     model: UserMembership,
-    { transaction }: APIContext["context"]
+    { transaction }: Context["context"]
   ) {
     // Both models guard the same invariant, so they share one lock name,
     // otherwise the last user manager and the last group manager can be

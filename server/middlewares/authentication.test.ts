@@ -1,4 +1,3 @@
-import type { DefaultState } from "koa";
 import { errToString } from "@shared/utils/error";
 import { randomString } from "@shared/random";
 import { Scope } from "@shared/types";
@@ -16,61 +15,49 @@ import auth from "./authentication";
 describe("Authentication middleware", () => {
   describe("with session JWT", () => {
     it("should authenticate with correct session token", async () => {
-      const state = {} as DefaultState;
       const user = await buildUser();
       const authMiddleware = auth();
-      await authMiddleware(
-        buildMockContext({
-          request: {
-            get: vi.fn(() => `Bearer ${user.getSessionToken()}`),
-          },
-          state,
-          cache: {},
-        }),
-        vi.fn()
-      );
-      expect(state.auth.user.id).toEqual(user.id);
+      const ctx = buildMockContext({
+        request: {
+          get: vi.fn(() => `Bearer ${user.getSessionToken()}`),
+        },
+        cache: {},
+      });
+      await authMiddleware(ctx, vi.fn());
+      expect(ctx.auth?.user.id).toEqual(user.id);
     });
 
     it("should return error with invalid session token", async () => {
-      const state = {} as DefaultState;
       const user = await buildUser();
       const authMiddleware = auth();
 
       try {
-        await authMiddleware(
-          buildMockContext({
-            request: {
-              get: vi.fn(() => `Bearer ${user.getSessionToken()}error`),
-            },
-            state,
-            cache: {},
-          }),
-          vi.fn()
-        );
+        const ctx = buildMockContext({
+          request: {
+            get: vi.fn(() => `Bearer ${user.getSessionToken()}error`),
+          },
+          cache: {},
+        });
+        await authMiddleware(ctx, vi.fn());
       } catch (e) {
         expect(errToString(e)).toBe("Invalid token");
       }
     });
 
     it("should return error if AuthenticationType mismatches", async () => {
-      const state = {} as DefaultState;
       const user = await buildUser();
       const authMiddleware = auth({
         type: AuthenticationType.API,
       });
 
       try {
-        await authMiddleware(
-          buildMockContext({
-            request: {
-              get: vi.fn(() => `Bearer ${user.getSessionToken()}`),
-            },
-            state,
-            cache: {},
-          }),
-          vi.fn()
-        );
+        const ctx = buildMockContext({
+          request: {
+            get: vi.fn(() => `Bearer ${user.getSessionToken()}`),
+          },
+          cache: {},
+        });
+        await authMiddleware(ctx, vi.fn());
       } catch (e) {
         expect(errToString(e)).toBe("Invalid authentication type");
       }
@@ -79,24 +66,19 @@ describe("Authentication middleware", () => {
 
   describe("with API key", () => {
     it("should authenticate user with valid API key", async () => {
-      const state = {} as DefaultState;
       const user = await buildUser();
       const authMiddleware = auth();
       const key = await buildApiKey({ userId: user.id });
-      await authMiddleware(
-        buildMockContext({
-          request: {
-            get: vi.fn(() => `Bearer ${key.value}`),
-          },
-          state,
-          cache: {},
-        }),
-        vi.fn()
-      );
-      expect(state.auth.user.id).toEqual(user.id);
+      const ctx = buildMockContext({
+        request: {
+          get: vi.fn(() => `Bearer ${key.value}`),
+        },
+        cache: {},
+      });
+      await authMiddleware(ctx, vi.fn());
+      expect(ctx.auth?.user.id).toEqual(user.id);
     });
     it("should authenticate with global read scope on read endpoints", async () => {
-      const state = {} as DefaultState;
       const user = await buildUser();
       const authMiddleware = auth();
       const key = await buildApiKey({
@@ -104,23 +86,20 @@ describe("Authentication middleware", () => {
         scope: [Scope.Read],
       });
 
-      await authMiddleware(
-        buildMockContext({
-          originalUrl: "/api/auth.info",
-          request: {
-            url: "/auth.info",
-            get: vi.fn(() => `Bearer ${key.value}`),
-          },
-          state,
-          cache: {},
-        }),
-        vi.fn()
-      );
-      expect(state.auth.user.id).toEqual(user.id);
+      const ctx = buildMockContext({
+        originalUrl: "/api/auth.info",
+        request: {
+          url: "/auth.info",
+          get: vi.fn(() => `Bearer ${key.value}`),
+        },
+        cache: {},
+      });
+
+      await authMiddleware(ctx, vi.fn());
+      expect(ctx.auth?.user.id).toEqual(user.id);
     });
 
     it("should return 403 authorization error when scope does not match", async () => {
-      const state = {} as DefaultState;
       const user = await buildUser();
       const authMiddleware = auth();
       const key = await buildApiKey({
@@ -129,18 +108,15 @@ describe("Authentication middleware", () => {
       });
 
       try {
-        await authMiddleware(
-          buildMockContext({
-            originalUrl: "/api/documents.create",
-            request: {
-              url: "/documents.create",
-              get: vi.fn(() => `Bearer ${key.value}`),
-            },
-            state,
-            cache: {},
-          }),
-          vi.fn()
-        );
+        const ctx = buildMockContext({
+          originalUrl: "/api/documents.create",
+          request: {
+            url: "/documents.create",
+            get: vi.fn(() => `Bearer ${key.value}`),
+          },
+          cache: {},
+        });
+        await authMiddleware(ctx, vi.fn());
         throw new Error("Expected error to be thrown");
       } catch (e) {
         expect(e).toHaveProperty("status", 403);
@@ -152,20 +128,16 @@ describe("Authentication middleware", () => {
     });
 
     it("should return error with invalid API key", async () => {
-      const state = {} as DefaultState;
       const authMiddleware = auth();
 
       try {
-        await authMiddleware(
-          buildMockContext({
-            request: {
-              get: vi.fn(() => `Bearer ${randomString(38)}`),
-            },
-            state,
-            cache: {},
-          }),
-          vi.fn()
-        );
+        const ctx = buildMockContext({
+          request: {
+            get: vi.fn(() => `Bearer ${randomString(38)}`),
+          },
+          cache: {},
+        });
+        await authMiddleware(ctx, vi.fn());
       } catch (e) {
         expect(errToString(e)).toBe("Invalid API key");
       }
@@ -174,7 +146,6 @@ describe("Authentication middleware", () => {
 
   describe("with OAuth access token", () => {
     it("should authenticate user with valid OAuth access token", async () => {
-      const state = {} as DefaultState;
       const user = await buildUser();
       const authMiddleware = auth();
       const authentication = await buildOAuthAuthentication({
@@ -182,23 +153,20 @@ describe("Authentication middleware", () => {
         scope: [Scope.Read],
       });
 
-      await authMiddleware(
-        buildMockContext({
-          originalUrl: "/api/users.info",
-          request: {
-            url: "/users.info",
-            get: vi.fn(() => `Bearer ${authentication.accessToken}`),
-          },
-          state,
-          cache: {},
-        }),
-        vi.fn()
-      );
-      expect(state.auth.user.id).toEqual(user.id);
+      const ctx = buildMockContext({
+        originalUrl: "/api/users.info",
+        request: {
+          url: "/users.info",
+          get: vi.fn(() => `Bearer ${authentication.accessToken}`),
+        },
+        cache: {},
+      });
+
+      await authMiddleware(ctx, vi.fn());
+      expect(ctx.auth?.user.id).toEqual(user.id);
     });
 
     it("should return error with invalid scope", async () => {
-      const state = {} as DefaultState;
       const user = await buildUser();
       const authMiddleware = auth();
       const authentication = await buildOAuthAuthentication({
@@ -207,18 +175,15 @@ describe("Authentication middleware", () => {
       });
 
       try {
-        await authMiddleware(
-          buildMockContext({
-            originalUrl: "/api/documents.create",
-            request: {
-              url: "/documents.create",
-              get: vi.fn(() => `Bearer ${authentication.accessToken}`),
-            },
-            state,
-            cache: {},
-          }),
-          vi.fn()
-        );
+        const ctx = buildMockContext({
+          originalUrl: "/api/documents.create",
+          request: {
+            url: "/documents.create",
+            get: vi.fn(() => `Bearer ${authentication.accessToken}`),
+          },
+          cache: {},
+        });
+        await authMiddleware(ctx, vi.fn());
       } catch (e) {
         expect(errToString(e)).toContain(
           "does not have access to this resource"
@@ -227,7 +192,6 @@ describe("Authentication middleware", () => {
     });
 
     it("should return error with OAuth access token in body", async () => {
-      const state = {} as DefaultState;
       const user = await buildUser();
       const authMiddleware = auth();
       const authentication = await buildOAuthAuthentication({
@@ -235,21 +199,18 @@ describe("Authentication middleware", () => {
         scope: [Scope.Read],
       });
       try {
-        await authMiddleware(
-          buildMockContext({
-            originalUrl: "/api/users.info",
-            request: {
-              url: "/users.info",
-              get: vi.fn(() => null),
-              body: {
-                token: authentication.accessToken,
-              },
+        const ctx = buildMockContext({
+          originalUrl: "/api/users.info",
+          request: {
+            url: "/users.info",
+            get: vi.fn(() => null),
+            body: {
+              token: authentication.accessToken,
             },
-            state,
-            cache: {},
-          }),
-          vi.fn()
-        );
+          },
+          cache: {},
+        });
+        await authMiddleware(ctx, vi.fn());
       } catch (e) {
         expect(errToString(e)).toContain(
           "must be passed in the Authorization header"
@@ -259,20 +220,16 @@ describe("Authentication middleware", () => {
   });
 
   it("should return error message if no auth token is available", async () => {
-    const state = {} as DefaultState;
     const authMiddleware = auth();
 
     try {
-      await authMiddleware(
-        buildMockContext({
-          request: {
-            get: vi.fn(() => "error"),
-          },
-          state,
-          cache: {},
-        }),
-        vi.fn()
-      );
+      const ctx = buildMockContext({
+        request: {
+          get: vi.fn(() => "error"),
+        },
+        cache: {},
+      });
+      await authMiddleware(ctx, vi.fn());
     } catch (e) {
       expect(errToString(e)).toBe(
         'Bad Authorization header format. Format is "Authorization: Bearer <token>"'
@@ -281,27 +238,22 @@ describe("Authentication middleware", () => {
   });
 
   it("should allow passing session token in a cookie", async () => {
-    const state = {} as DefaultState;
     const user = await buildUser();
     const authMiddleware = auth();
-    await authMiddleware(
-      buildMockContext({
-        request: {
-          get: vi.fn(() => null),
-        },
-        cookies: {
-          get: vi.fn(() => user.getSessionToken()),
-        },
-        state,
-        cache: {},
-      }),
-      vi.fn()
-    );
-    expect(state.auth.user.id).toEqual(user.id);
+    const ctx = buildMockContext({
+      request: {
+        get: vi.fn(() => null),
+      },
+      cookies: {
+        get: vi.fn(() => user.getSessionToken()),
+      },
+      cache: {},
+    });
+    await authMiddleware(ctx, vi.fn());
+    expect(ctx.auth?.user.id).toEqual(user.id);
   });
 
   it("should return error with session token as a GET param", async () => {
-    const state = {} as DefaultState;
     const user = await buildUser();
     const authMiddleware = auth();
 
@@ -314,7 +266,6 @@ describe("Authentication middleware", () => {
               token: user.getSessionToken(),
             },
           },
-          state,
           cache: {},
         }),
         vi.fn()
@@ -325,7 +276,6 @@ describe("Authentication middleware", () => {
   });
 
   it("should return error with session token in body params", async () => {
-    const state = {} as DefaultState;
     const user = await buildUser();
     const authMiddleware = auth();
 
@@ -338,7 +288,6 @@ describe("Authentication middleware", () => {
               token: user.getSessionToken(),
             },
           },
-          state,
           cache: {},
         }),
         vi.fn()
@@ -349,7 +298,6 @@ describe("Authentication middleware", () => {
   });
 
   it("should not accept transfer token as a GET param", async () => {
-    const state = {} as DefaultState;
     const user = await buildUser();
     const authMiddleware = auth();
 
@@ -362,7 +310,6 @@ describe("Authentication middleware", () => {
               token: user.getTransferToken(),
             },
           },
-          state,
           cache: {},
         }),
         vi.fn()
@@ -373,7 +320,6 @@ describe("Authentication middleware", () => {
   });
 
   it("should not accept transfer token in the Authorization header", async () => {
-    const state = {} as DefaultState;
     const user = await buildUser();
     const authMiddleware = auth();
 
@@ -383,7 +329,6 @@ describe("Authentication middleware", () => {
           request: {
             get: vi.fn(() => `Bearer ${user.getTransferToken()}`),
           },
-          state,
           cache: {},
         }),
         vi.fn()
@@ -392,7 +337,6 @@ describe("Authentication middleware", () => {
   });
 
   it("should return an error for suspended users", async () => {
-    const state = {} as DefaultState;
     const admin = await buildAdmin();
     const user = await buildUser({
       suspendedAt: new Date(),
@@ -402,16 +346,13 @@ describe("Authentication middleware", () => {
     let error;
 
     try {
-      await authMiddleware(
-        buildMockContext({
-          request: {
-            get: vi.fn(() => `Bearer ${user.getSessionToken()}`),
-          },
-          state,
-          cache: {},
-        }),
-        vi.fn()
-      );
+      const ctx = buildMockContext({
+        request: {
+          get: vi.fn(() => `Bearer ${user.getSessionToken()}`),
+        },
+        cache: {},
+      });
+      await authMiddleware(ctx, vi.fn());
     } catch (err) {
       error = err;
     }
@@ -423,7 +364,6 @@ describe("Authentication middleware", () => {
   });
 
   it("should return an error for deleted team", async () => {
-    const state = {} as DefaultState;
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     await team.destroy();
@@ -431,16 +371,13 @@ describe("Authentication middleware", () => {
     let error;
 
     try {
-      await authMiddleware(
-        buildMockContext({
-          request: {
-            get: vi.fn(() => `Bearer ${user.getSessionToken()}`),
-          },
-          state,
-          cache: {},
-        }),
-        vi.fn()
-      );
+      const ctx = buildMockContext({
+        request: {
+          get: vi.fn(() => `Bearer ${user.getSessionToken()}`),
+        },
+        cache: {},
+      });
+      await authMiddleware(ctx, vi.fn());
     } catch (err) {
       error = err;
     }
@@ -449,7 +386,6 @@ describe("Authentication middleware", () => {
   });
   describe("with skip", () => {
     it("should ignore credentials when skip returns true", async () => {
-      const state = {} as DefaultState;
       const user = await buildUser();
       const apiKey = await buildApiKey({
         userId: user.id,
@@ -460,43 +396,36 @@ describe("Authentication middleware", () => {
         optional: true,
         skip: (ctx) => !!ctx.query.sig,
       });
-      await authMiddleware(
-        buildMockContext({
-          request: {
-            get: vi.fn(() => `Bearer ${apiKey.value}`),
-          },
-          query: { sig: "signature" },
-          originalUrl: "/api/files.get?sig=signature",
-          state,
-          cache: {},
-        }),
-        next
-      );
+      const ctx = buildMockContext({
+        request: {
+          get: vi.fn(() => `Bearer ${apiKey.value}`),
+        },
+        query: { sig: "signature" },
+        originalUrl: "/api/files.get?sig=signature",
+        cache: {},
+      });
+      await authMiddleware(ctx, next);
       expect(next).toHaveBeenCalled();
-      expect(state.auth).toEqual({});
+      expect(ctx.auth).toEqual({});
     });
 
     it("should authenticate when skip returns false", async () => {
-      const state = {} as DefaultState;
       const user = await buildUser();
       const next = vi.fn();
       const authMiddleware = auth({
         optional: true,
         skip: (ctx) => !!ctx.query.sig,
       });
-      await authMiddleware(
-        buildMockContext({
-          request: {
-            get: vi.fn(() => `Bearer ${user.getSessionToken()}`),
-          },
-          query: {},
-          state,
-          cache: {},
-        }),
-        next
-      );
+      const ctx = buildMockContext({
+        request: {
+          get: vi.fn(() => `Bearer ${user.getSessionToken()}`),
+        },
+        query: {},
+        cache: {},
+      });
+      await authMiddleware(ctx, next);
       expect(next).toHaveBeenCalled();
-      expect(state.auth.user.id).toEqual(user.id);
+      expect(ctx.auth?.user.id).toEqual(user.id);
     });
   });
 });

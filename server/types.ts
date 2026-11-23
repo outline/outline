@@ -71,8 +71,6 @@ export type Pagination = {
 };
 
 export type AppState = {
-  auth: Authentication | Record<string, never>;
-  transaction: Transaction;
   pagination: Pagination;
   /** The teams authorized to receive an inbound webhook. */
   webhookTeamIds?: string[];
@@ -83,16 +81,25 @@ export type AppState = {
   rateLimiterIdentifiers?: string[];
 };
 
-export type AppContext = ParameterizedContext<AppState, DefaultContext>;
+/** Fields that middleware sets on the Koa context. */
+export interface AppContextFields extends DefaultContext {
+  /** The authentication for the request, empty when the request is anonymous. */
+  auth?: Authentication | Record<string, never>;
+  /** The transaction for the request, when the route runs in one. */
+  transaction?: Transaction;
+}
+
+export type AppContext = ParameterizedContext<AppState, AppContextFields>;
 
 export type BaseReq = z.infer<typeof BaseSchema>;
 
 export type BaseRes = unknown;
 
-export interface APIContext<
+/** The context passed to route handlers, commands and model mutations. */
+export interface Context<
   ReqT = Partial<BaseReq>,
   ResT = BaseRes,
-> extends RouterContext<AppState, DefaultContext, ResT> {
+> extends RouterContext<AppState, AppContextFields, ResT> {
   // Router internals are left untyped so that handlers with a narrower context
   // remain assignable to route middleware.
   router: never;
@@ -101,13 +108,20 @@ export interface APIContext<
   /** Typed and validated version of request, consisting of validated body, query, etc. */
   input: ReqT;
 
-  /** The current request's context, which is passed to database mutations. */
-  context: {
-    transaction?: Transaction;
-    auth: Authentication;
-    ip?: string;
-  };
+  /** The authentication for the actor performing the request. */
+  auth: Authentication;
+
+  /** The transaction that database mutations should run in. */
+  transaction: Transaction;
 }
+
+/**
+ * @deprecated Use `Context` instead.
+ */
+export type APIContext<ReqT = Partial<BaseReq>, ResT = BaseRes> = Context<
+  ReqT,
+  ResT
+>;
 
 type BaseEvent<T extends Model> = {
   teamId: string;

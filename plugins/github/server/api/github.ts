@@ -10,7 +10,7 @@ import validate from "@server/middlewares/validate";
 import validateWebhook from "@server/middlewares/validateWebhook";
 import { IntegrationAuthentication, Integration } from "@server/models";
 import { authorize } from "@server/policies";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { verifyOAuthStateNonce } from "@server/utils/oauth";
 import { RequestHelper } from "@server/utils/RequestHelper";
 import { GitHubOAuthNonceCookie, GitHubUtils } from "../../shared/GitHubUtils";
@@ -35,7 +35,7 @@ router.get(
     getErrorPath: () => GitHubUtils.errorUrl("unauthenticated"),
   }),
   transaction(),
-  async (ctx: APIContext<T.GitHubCallbackReq>) => {
+  async (ctx: Context<T.GitHubCallbackReq>) => {
     const {
       code,
       state,
@@ -43,8 +43,8 @@ router.get(
       installation_id: installationId,
       setup_action: setupAction,
     } = ctx.input.query;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     if (error) {
       ctx.redirect(GitHubUtils.errorUrl(error));
@@ -129,7 +129,7 @@ router.post(
       return signature?.split("=")[1];
     },
   }),
-  async (ctx: APIContext) => {
+  async (ctx: Context) => {
     const { headers } = ctx.request;
     const body = RequestHelper.getBodyObject(ctx.request);
 

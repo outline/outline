@@ -19,7 +19,7 @@ import {
 } from "@server/models";
 import { authorize } from "@server/policies";
 import { sequelize } from "@server/storage/database";
-import type { APIContext, AuthenticationResult } from "@server/types";
+import type { Context, AuthenticationResult } from "@server/types";
 import { verifyOAuthStateNonce } from "@server/utils/oauth";
 import {
   getClientFromOAuthState,
@@ -156,9 +156,9 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
         }),
       getErrorPath: () => SlackUtils.errorUrl("unauthenticated"),
     }),
-    async (ctx: APIContext<T.SlackPostReq>) => {
+    async (ctx: Context<T.SlackPostReq>) => {
       const { code, error, state } = ctx.input.query;
-      const { user } = ctx.state.auth;
+      const { user } = ctx.auth;
 
       if (error) {
         ctx.redirect(SlackUtils.errorUrl(error));

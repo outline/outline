@@ -23,7 +23,7 @@ import { sequelize } from "@server/storage/database";
 import SyncUserGroupsTask from "@server/queues/tasks/SyncUserGroupsTask";
 import teamProvisioner from "./teamProvisioner";
 import userProvisioner from "./userProvisioner";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { addSeconds } from "date-fns";
 import { createContext } from "@server/context";
 
@@ -89,7 +89,7 @@ export type AccountProvisionerResult = {
 };
 
 async function accountProvisioner(
-  ctx: APIContext,
+  ctx: Context,
   {
     user: userParams,
     team: teamParams,
@@ -100,7 +100,7 @@ async function accountProvisioner(
   let result;
   let emailMatchOnly;
 
-  const actor = ctx.state.auth?.user;
+  const actor = ctx.auth?.user;
 
   // If the user is already logged in and is an admin of the team then we
   // allow them to connect or reconnect an authentication provider.
@@ -123,8 +123,8 @@ async function accountProvisioner(
         providers[0].updateWithCtx(
           createContext({
             user: actor,
-            authType: ctx.context.auth?.type,
-            ip: ctx.context.ip,
+            authType: ctx.auth?.type,
+            ip: ctx.ip,
             transaction,
           }),
           { providerId: authenticationProviderParams.providerId }
@@ -230,9 +230,9 @@ async function accountProvisioner(
         userId: user.id,
         actorId: user.id,
         teamId: user.teamId,
-        ip: ctx.context.ip,
+        ip: ctx.ip,
       },
-      { transaction: ctx.state.transaction }
+      { transaction: ctx.transaction }
     );
   }
 
@@ -287,15 +287,15 @@ async function accountProvisioner(
  * @returns a promise that resolves when the collection has been created.
  */
 export async function provisionFirstCollection(
-  ctx: APIContext,
+  ctx: Context,
   team: Team,
   user: User
 ) {
   await sequelize.transaction(async (transaction) => {
     const context = createContext({
       user,
-      authType: ctx.context.auth?.type,
-      ip: ctx.context.ip,
+      authType: ctx.auth?.type,
+      ip: ctx.ip,
       transaction,
     });
 

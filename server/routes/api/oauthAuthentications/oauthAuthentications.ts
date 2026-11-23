@@ -9,7 +9,7 @@ import { authorize } from "@server/policies";
 import { presentPolicies } from "@server/presenters";
 import presentOAuthAuthentication from "@server/presenters/oauthAuthentication";
 import { sequelize } from "@server/storage/database";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
@@ -21,8 +21,8 @@ router.post(
   auth(),
   pagination(),
   validate(T.OAuthAuthenticationsListSchema),
-  async (ctx: APIContext<T.OAuthAuthenticationsListReq>) => {
-    const { user } = ctx.state.auth;
+  async (ctx: Context<T.OAuthAuthenticationsListReq>) => {
+    const { user } = ctx.auth;
 
     const oauthAuthentications = await sequelize.query<OAuthAuthentication>(
       `
@@ -64,8 +64,8 @@ router.post(
   auth(),
   validate(T.OAuthAuthenticationsDeleteSchema),
   transaction(),
-  async (ctx: APIContext<T.OAuthAuthenticationsDeleteReq>) => {
-    const { user } = ctx.state.auth;
+  async (ctx: Context<T.OAuthAuthenticationsDeleteReq>) => {
+    const { user } = ctx.auth;
     const { oauthClientId, scope } = ctx.input.body;
     const where = {
       userId: user.id,
@@ -75,7 +75,7 @@ router.post(
 
     const oauthAuthentications = await OAuthAuthentication.findAll({
       where,
-      transaction: ctx.state.transaction,
+      transaction: ctx.transaction,
     });
 
     for (const oauthAuthentication of oauthAuthentications) {

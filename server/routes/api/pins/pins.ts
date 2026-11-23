@@ -12,7 +12,7 @@ import {
   presentDocuments,
   presentPolicies,
 } from "@server/presenters";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
@@ -25,10 +25,10 @@ router.post(
   auth(),
   validate(T.PinsCreateSchema),
   transaction(),
-  async (ctx: APIContext<T.PinsCreateReq>) => {
+  async (ctx: Context<T.PinsCreateReq>) => {
     const { documentId, collectionId, index } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
     const document = await Document.findByPk(documentId, {
       userId: user.id,
       transaction,
@@ -65,8 +65,8 @@ router.post(
   "pins.info",
   auth(),
   validate(T.PinsInfoSchema),
-  async (ctx: APIContext<T.PinsInfoReq>) => {
-    const { user } = ctx.state.auth;
+  async (ctx: Context<T.PinsInfoReq>) => {
+    const { user } = ctx.auth;
     const { documentId, collectionId } = ctx.input.body;
 
     const document = await Document.findByPk(documentId, {
@@ -102,9 +102,9 @@ router.post(
   auth(),
   validate(T.PinsListSchema),
   pagination(),
-  async (ctx: APIContext<T.PinsListReq>) => {
+  async (ctx: Context<T.PinsListReq>) => {
     const { collectionId } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     if (collectionId) {
       const collection = await Collection.findByPk(collectionId, {
@@ -161,10 +161,10 @@ router.post(
   auth(),
   validate(T.PinsUpdateSchema),
   transaction(),
-  async (ctx: APIContext<T.PinsUpdateReq>) => {
+  async (ctx: Context<T.PinsUpdateReq>) => {
     const { id, index } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
     const pin = await Pin.findByPk(id, {
       transaction,
       lock: Transaction.LOCK.UPDATE,
@@ -196,11 +196,11 @@ router.post(
   auth(),
   validate(T.PinsDeleteSchema),
   transaction(),
-  async (ctx: APIContext<T.PinsDeleteReq>) => {
+  async (ctx: Context<T.PinsDeleteReq>) => {
     const { id } = ctx.input.body;
-    const { transaction } = ctx.state;
+    const { transaction } = ctx;
 
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     const pin = await Pin.findByPk(id, {
       transaction,
       lock: Transaction.LOCK.UPDATE,

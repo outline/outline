@@ -9,7 +9,7 @@ import {
   buildUser,
 } from "@server/test/factories";
 import documentMover from "./documentMover";
-import { withAPIContext } from "@server/test/support";
+import { withContext } from "@server/test/support";
 
 describe("documentMover", () => {
   it("should move within a collection", async () => {
@@ -24,7 +24,7 @@ describe("documentMover", () => {
       collectionId: collection.id,
       teamId: team.id,
     });
-    const response = await withAPIContext(user, (ctx) =>
+    const response = await withContext(user, (ctx) =>
       documentMover(ctx, {
         document,
         collectionId: collection.id,
@@ -54,7 +54,7 @@ describe("documentMover", () => {
       title: "Child document",
       text: "content",
     });
-    const response = await withAPIContext(user, (ctx) =>
+    const response = await withContext(user, (ctx) =>
       documentMover(ctx, {
         document,
         collectionId: collection.id,
@@ -92,7 +92,7 @@ describe("documentMover", () => {
       text: "content",
     });
     await collection.addDocumentToStructure(newDocument);
-    const response = await withAPIContext(user, (ctx) =>
+    const response = await withContext(user, (ctx) =>
       documentMover(ctx, {
         document,
         collectionId: collection.id,
@@ -133,7 +133,7 @@ describe("documentMover", () => {
       text: "content",
     });
     await collection.addDocumentToStructure(newDocument);
-    const response = await withAPIContext(user, (ctx) =>
+    const response = await withContext(user, (ctx) =>
       documentMover(ctx, {
         document,
         collectionId: newCollection.id,
@@ -182,7 +182,7 @@ describe("documentMover", () => {
       teamId: collection.teamId,
     });
 
-    const response = await withAPIContext(user, (ctx) =>
+    const response = await withContext(user, (ctx) =>
       documentMover(ctx, {
         document,
         collectionId: newCollection.id,
@@ -242,7 +242,7 @@ describe("documentMover", () => {
       teamId: team.id,
     });
 
-    await withAPIContext(user, (ctx) =>
+    await withContext(user, (ctx) =>
       documentMover(ctx, {
         document,
         collectionId: newCollection.id,
@@ -283,7 +283,7 @@ describe("documentMover", () => {
       });
     }
 
-    await withAPIContext(user, (ctx) =>
+    await withContext(user, (ctx) =>
       documentMover(ctx, {
         document,
         collectionId: personal.id,
@@ -314,7 +314,7 @@ describe("documentMover", () => {
       teamId: team.id,
     });
 
-    await withAPIContext(user, (ctx) =>
+    await withContext(user, (ctx) =>
       documentMover(ctx, {
         document,
         collectionId: personal.id,
@@ -347,7 +347,7 @@ describe("documentMover", () => {
       teamId: team.id,
     });
 
-    const response = await withAPIContext(user, (ctx) =>
+    const response = await withContext(user, (ctx) =>
       documentMover(ctx, {
         document,
         collectionId: null,

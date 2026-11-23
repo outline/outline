@@ -11,7 +11,7 @@ import {
   buildTeam,
   buildUser,
 } from "@server/test/factories";
-import { withAPIContext } from "@server/test/support";
+import { withContext } from "@server/test/support";
 import ShareSubscriptionNotificationsTask from "./ShareSubscriptionNotificationsTask";
 
 const ip = "127.0.0.1";
@@ -431,7 +431,7 @@ describe("ShareSubscriptionNotificationsTask", () => {
       confirmedAt: new Date(),
     });
 
-    await withAPIContext(user, (ctx) =>
+    await withContext(user, (ctx) =>
       documentMover(ctx, { document, collectionId: other.id })
     );
 

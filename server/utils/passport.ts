@@ -386,9 +386,7 @@ function getClientFromInput(ctx: Context): Client {
 }
 
 function getAuthenticatedUser(ctx: Context): User | undefined {
-  return ctx.state.auth && "user" in ctx.state.auth
-    ? ctx.state.auth.user
-    : undefined;
+  return ctx.auth && "user" in ctx.auth ? ctx.auth.user : undefined;
 }
 
 function getAuthenticatedUserId(ctx: Context): string | undefined {
