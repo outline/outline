@@ -1,7 +1,7 @@
 import { differenceInMilliseconds } from "date-fns";
 import { Op } from "sequelize";
 import { IntegrationService, IntegrationType } from "@shared/types";
-import { Minute } from "@shared/utils/time";
+import { Minute, Second } from "@shared/utils/time";
 import { Document, Integration, Collection, Team } from "@server/models";
 import BaseProcessor from "@server/queues/processors/BaseProcessor";
 import type {
@@ -16,6 +16,9 @@ import env from "../env";
 import { presentMessageAttachment } from "../presenters/messageAttachment";
 
 export default class SlackProcessor extends BaseProcessor {
+  /** Time limit in milliseconds for posts to the Slack webhook. */
+  static fetchTimeout = 10 * Second.ms;
+
   static applicableEvents: Event["name"][] = [
     "documents.publish",
     "revisions.create",
@@ -90,6 +93,7 @@ export default class SlackProcessor extends BaseProcessor {
       headers: {
         "Content-Type": "application/json",
       },
+      timeout: SlackProcessor.fetchTimeout,
       body: JSON.stringify({
         text: `👋 Hey there! When documents are published or updated in the *${collection.name}* collection on ${env.APP_NAME} they will be posted to this channel!`,
         attachments: [
@@ -169,6 +173,7 @@ export default class SlackProcessor extends BaseProcessor {
       headers: {
         "Content-Type": "application/json",
       },
+      timeout: SlackProcessor.fetchTimeout,
       body: JSON.stringify({
         text,
         attachments: [
