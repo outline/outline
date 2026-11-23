@@ -115,14 +115,6 @@ export interface Context<
   transaction: Transaction;
 }
 
-/**
- * @deprecated Use `Context` instead.
- */
-export type APIContext<ReqT = Partial<BaseReq>, ResT = BaseRes> = Context<
-  ReqT,
-  ResT
->;
-
 type BaseEvent<T extends Model> = {
   teamId: string;
   actorId: string;
