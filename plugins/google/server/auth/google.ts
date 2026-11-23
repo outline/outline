@@ -72,7 +72,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
         let team = await getTeamFromContext(context);
         const client = getClientFromOAuthState(context);
         const user =
-          context.state?.auth?.user ?? (await getUserFromOAuthState(context));
+          context.auth?.user ?? (await getUserFromOAuthState(context));
 
         // No profile domain means a personal gmail account, and no team means
         // the request came from the apex domain rather than a workspace
@@ -128,7 +128,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
         const ctx = createContext({
           ip: context.ip,
           user,
-          authType: context.state?.auth?.type,
+          authType: context.auth?.type,
         });
         const result = await accountProvisioner(ctx, {
           team: {

@@ -185,8 +185,7 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
               }
             }
             const user =
-              context.state?.auth?.user ??
-              (await getUserFromOAuthState(context));
+              context.auth?.user ?? (await getUserFromOAuthState(context));
 
             // if a team can be inferred, we assume the user is only interested in signing into
             // that team in particular; otherwise, we will do a best effort at finding their account
@@ -194,7 +193,7 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
             const ctx = createContext({
               ip: context.ip,
               user,
-              authType: context.state?.auth?.type,
+              authType: context.auth?.type,
             });
             const result = await accountProvisioner(ctx, {
               team: {

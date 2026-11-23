@@ -142,8 +142,7 @@ export function createOIDCRouter(
             const team = await getTeamFromContext(context);
             const client = getClientFromOAuthState(context);
             const user =
-              context.state?.auth?.user ??
-              (await getUserFromOAuthState(context));
+              context.auth?.user ?? (await getUserFromOAuthState(context));
             const { domain } = parseEmail(email);
 
             const providerId = await resolveProviderId(
@@ -196,7 +195,7 @@ export function createOIDCRouter(
             const ctx = createContext({
               ip: context.ip,
               user,
-              authType: context.state?.auth?.type,
+              authType: context.auth?.type,
             });
             const result = await accountProvisioner(ctx, {
               team: {
