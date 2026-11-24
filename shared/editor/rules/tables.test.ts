@@ -1,3 +1,4 @@
+import type { Node } from "prosemirror-model";
 import { parser, schema, serializer } from "../../test/editor";
 
 /**
@@ -53,6 +54,24 @@ function parseBreaks(markdown: string) {
   });
 
   return { breakCount, texts };
+}
+
+/**
+ * Reduces a table node to the text of each cell, row by row, with each cell
+ * required to hold exactly one paragraph.
+ */
+function cellTexts(table: Node) {
+  const rows: string[][] = [];
+  table.forEach((row) => {
+    const cells: string[] = [];
+    row.forEach((cell) => {
+      expect(cell.childCount).toBe(1);
+      expect(cell.firstChild?.type.name).toBe("paragraph");
+      cells.push(cell.textContent);
+    });
+    rows.push(cells);
+  });
+  return rows;
 }
 
 it("round-trips a notice inside a table cell", () => {
@@ -311,4 +330,101 @@ it("keeps the space before inline code after a break in a table cell", () => {
 
   const markdown = serializer.serialize(doc, { commonMark: true });
   expect(parser.parse(markdown)!.toJSON()).toEqual(doc.toJSON());
+});
+
+it("parses multiple tables with content between them", () => {
+  const doc = parser.parse(
+    [
+      "Intro",
+      "",
+      "| A | B |",
+      "|---|---|",
+      "| 1 | 2 |",
+      "",
+      "Middle",
+      "",
+      "| C |",
+      "|---|",
+      "| 3 |",
+      "| 4 |",
+      "",
+      "Outro",
+    ].join("\n")
+  )!;
+
+  const children: Node[] = [];
+  doc.forEach((child) => children.push(child));
+
+  expect(children.map((child) => child.type.name)).toEqual([
+    "paragraph",
+    "table",
+    "paragraph",
+    "table",
+    "paragraph",
+  ]);
+  expect(children.map((child) => child.textContent)[2]).toBe("Middle");
+  expect(cellTexts(children[1])).toEqual([
+    ["A", "B"],
+    ["1", "2"],
+  ]);
+  expect(cellTexts(children[3])).toEqual([["C"], ["3"], ["4"]]);
+});
+
+it("parses column alignment into header and body cells", () => {
+  const doc = parser.parse(
+    "| L | C | R | N |\n|:--|:-:|--:|---|\n| a | b | c | d |"
+  )!;
+  const table = doc.firstChild!;
+
+  const alignments: unknown[][] = [];
+  table.forEach((row) => {
+    const cells: unknown[] = [];
+    row.forEach((cell) => cells.push(cell.attrs.alignment));
+    alignments.push(cells);
+  });
+
+  expect(alignments).toEqual([
+    ["left", "center", "right", null],
+    ["left", "center", "right", null],
+  ]);
+  expect(cellTexts(table)).toEqual([
+    ["L", "C", "R", "N"],
+    ["a", "b", "c", "d"],
+  ]);
+});
+
+it("parses a table inside a list item", () => {
+  const doc = parser.parse(
+    "- Item\n\n  | A | B |\n  |---|---|\n  | 1 | 2 |\n- Next"
+  )!;
+  const list = doc.firstChild!;
+
+  expect(list.type.name).toBe("bullet_list");
+  expect(list.childCount).toBe(2);
+
+  const item = list.firstChild!;
+  expect(item.childCount).toBe(2);
+  expect(item.firstChild?.textContent).toBe("Item");
+  expect(item.lastChild?.type.name).toBe("table");
+  expect(cellTexts(item.lastChild!)).toEqual([
+    ["A", "B"],
+    ["1", "2"],
+  ]);
+  expect(list.lastChild?.textContent).toBe("Next");
+});
+
+it("parses a table inside a blockquote", () => {
+  const doc = parser.parse(
+    "> | A | B |\n> |---|---|\n> | 1 | 2 |\n>\n> After"
+  )!;
+  const quote = doc.firstChild!;
+
+  expect(quote.type.name).toBe("blockquote");
+  expect(quote.childCount).toBe(2);
+  expect(quote.firstChild?.type.name).toBe("table");
+  expect(cellTexts(quote.firstChild!)).toEqual([
+    ["A", "B"],
+    ["1", "2"],
+  ]);
+  expect(quote.lastChild?.textContent).toBe("After");
 });
