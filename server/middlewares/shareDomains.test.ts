@@ -1,9 +1,9 @@
 import { subDays } from "date-fns";
-import type { Context } from "koa";
 import { randomString } from "@shared/random";
 import env from "@server/env";
 import { buildShare, buildTeam } from "@server/test/factories";
 import shareDomains from "./shareDomains";
+import type { AppContext } from "@server/types";
 
 describe("shareDomains middleware", () => {
   const buildContext = (hostname: string) =>
@@ -11,7 +11,7 @@ describe("shareDomains middleware", () => {
       host: hostname,
       hostname,
       state: {},
-    }) as Context;
+    }) as AppContext;
 
   beforeEach(() => {
     vi.spyOn(env, "isCloudHosted", "get").mockReturnValue(true);

@@ -12,16 +12,16 @@ import validate from "@server/middlewares/validate";
 import { Team, TeamDomain, User } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentTeam, presentPolicies } from "@server/presenters";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { safeEqual } from "@server/utils/crypto";
 import * as T from "./schema";
 
 const router = new Router();
 
-const handleTeamUpdate = async (ctx: APIContext<T.TeamsUpdateSchemaReq>) => {
-  const { transaction } = ctx.state;
-  const { user } = ctx.state.auth;
+const handleTeamUpdate = async (ctx: Context<T.TeamsUpdateSchemaReq>) => {
+  const { transaction } = ctx;
+  const { user } = ctx.auth;
   const team = await Team.findByPk(user.teamId, {
     include: [{ model: TeamDomain, separate: true }],
     lock: transaction.LOCK.NO_KEY_UPDATE,
@@ -63,12 +63,12 @@ router.post(
   "teams.requestDelete",
   rateLimiter(RateLimiterStrategy.FivePerHour),
   auth(),
-  async (ctx: APIContext) => {
+  async (ctx: Context) => {
     if (!env.EMAIL_ENABLED) {
       throw ValidationError("Email support is not set up for this instance");
     }
 
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     const { team } = user;
     authorize(user, "delete", team);
 
@@ -90,8 +90,8 @@ router.post(
   auth(),
   validate(T.TeamsDeleteSchema),
   transaction(),
-  async (ctx: APIContext<T.TeamsDeleteSchemaReq>) => {
-    const { auth } = ctx.state;
+  async (ctx: Context<T.TeamsDeleteSchemaReq>) => {
+    const { auth } = ctx;
     const { code } = ctx.input.body;
     const { user } = auth;
     const { team } = user;
@@ -120,9 +120,9 @@ router.post(
   auth(),
   validate(T.TeamsCreateSchema),
   transaction(),
-  async (ctx: APIContext<T.TeamsCreateSchemaReq>) => {
-    const { transaction } = ctx.state;
-    const { user } = ctx.state.auth;
+  async (ctx: Context<T.TeamsCreateSchemaReq>) => {
+    const { transaction } = ctx;
+    const { user } = ctx.auth;
     const { name } = ctx.input.body;
 
     const existingTeam = await Team.scope(

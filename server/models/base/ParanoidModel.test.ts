@@ -1,4 +1,4 @@
-import { createContext } from "@server/context";
+import { createContext, toHookContext } from "@server/context";
 import {
   buildCollection,
   buildDocument,
@@ -12,7 +12,7 @@ describe("ParanoidModel", () => {
       const user = await buildUser();
       const document = await buildDocument({ teamId: user.teamId });
 
-      await document.destroy(createContext({ user }).context);
+      await document.destroy(toHookContext(createContext({ user })));
       await document.reload({ paranoid: false });
 
       expect(document.deletedAt).toBeTruthy();
@@ -23,7 +23,7 @@ describe("ParanoidModel", () => {
       const user = await buildUser();
       const document = await buildDocument({ teamId: user.teamId });
 
-      await document.destroy(createContext({ user }).context);
+      await document.destroy(toHookContext(createContext({ user })));
       await document.restore();
       await document.reload();
 
@@ -51,7 +51,7 @@ describe("ParanoidModel", () => {
         userId: user.id,
       });
 
-      await collection.destroy(createContext({ user }).context);
+      await collection.destroy(toHookContext(createContext({ user })));
 
       expect(collection.deletedAt).toBeTruthy();
     });

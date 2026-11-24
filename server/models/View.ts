@@ -13,7 +13,7 @@ import {
   DataType,
   Scopes,
 } from "sequelize-typescript";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import Document from "./Document";
 import Event from "./Event";
 import User from "./User";
@@ -61,7 +61,7 @@ class View extends IdModel<
   documentId: string;
 
   static async incrementOrCreate(
-    ctx: APIContext,
+    ctx: Context,
     where: {
       userId: string;
       documentId: string;

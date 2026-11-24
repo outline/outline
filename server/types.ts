@@ -1,7 +1,8 @@
-import type { ParameterizedContext, DefaultContext } from "koa";
+import type { ParameterizedContext } from "koa";
 import type { RouterContext } from "@koa/router";
 import type { InferAttributes, Model, Transaction } from "sequelize";
 import type { z } from "zod";
+import type { Details as UserAgentDetails } from "express-useragent";
 import type {
   AuthenticationType,
   CollectionSort,
@@ -71,8 +72,6 @@ export type Pagination = {
 };
 
 export type AppState = {
-  auth: Authentication | Record<string, never>;
-  transaction: Transaction;
   pagination: Pagination;
   /** The teams authorized to receive an inbound webhook. */
   webhookTeamIds?: string[];
@@ -81,18 +80,55 @@ export type AppState = {
   oauthState?: OAuthState;
   /** The identifiers this request is rate limited against. */
   rateLimiterIdentifiers?: string[];
+  /** The share that the request's custom domain points to. */
+  rootShare?: Share | null;
+  /** The nonce allowed by the content security policy for inline scripts. */
+  cspNonce?: string;
+  /** Additional script sources allowed by the content security policy. */
+  cspScriptSrc?: string[];
+  /** Additional style sources allowed by the content security policy. */
+  cspStyleSrc?: string[];
+  /** Whether the response may be framed by other origins. */
+  cspAllowFraming?: boolean;
 };
 
-export type AppContext = ParameterizedContext<AppState, DefaultContext>;
+/** Fields that middleware sets on the Koa context. */
+export interface AppContextFields {
+  /** The authentication for the request, empty when the request is anonymous. */
+  auth?: Authentication | Record<string, never>;
+  /** The transaction for the request, when the route runs in one. */
+  transaction?: Transaction;
+  /** The parsed User-Agent header. */
+  userAgent?: UserAgentDetails;
+  /** The path prefix when the app is mounted under another path. */
+  mountPath?: string;
+  /** Redirects in the browser so that auth cookies are sent with the request. */
+  redirectOnClient: RedirectOnClient;
+}
+
+type RedirectOnClient = (redirectTo: string, method?: "GET" | "POST") => void;
+
+// Set on app.context, so every Koa context has it.
+declare module "koa" {
+  interface DefaultContext {
+    redirectOnClient: RedirectOnClient;
+  }
+}
+
+export type AppContext = ParameterizedContext<AppState, AppContextFields>;
+
+/** The Koa context within a router route, including matched params. */
+export type AppRouterContext = RouterContext<AppState, AppContextFields>;
 
 export type BaseReq = z.infer<typeof BaseSchema>;
 
 export type BaseRes = unknown;
 
-export interface APIContext<
+/** The context passed to route handlers, commands and model mutations. */
+export interface Context<
   ReqT = Partial<BaseReq>,
   ResT = BaseRes,
-> extends RouterContext<AppState, DefaultContext, ResT> {
+> extends RouterContext<AppState, AppContextFields, ResT> {
   // Router internals are left untyped so that handlers with a narrower context
   // remain assignable to route middleware.
   router: never;
@@ -101,12 +137,11 @@ export interface APIContext<
   /** Typed and validated version of request, consisting of validated body, query, etc. */
   input: ReqT;
 
-  /** The current request's context, which is passed to database mutations. */
-  context: {
-    transaction?: Transaction;
-    auth: Authentication;
-    ip?: string;
-  };
+  /** The authentication for the actor performing the request. */
+  auth: Authentication;
+
+  /** The transaction that database mutations should run in. */
+  transaction: Transaction;
 }
 
 type BaseEvent<T extends Model> = {

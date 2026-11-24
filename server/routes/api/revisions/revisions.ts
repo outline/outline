@@ -18,7 +18,7 @@ import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import TextBundleHelper from "@server/models/helpers/TextBundleHelper";
 import { authorize } from "@server/policies";
 import { presentPolicies, presentRevision } from "@server/presenters";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { streamZipResponse } from "@server/utils/koa";
 import pagination from "../middlewares/pagination";
@@ -30,9 +30,9 @@ router.post(
   "revisions.info",
   auth(),
   validate(T.RevisionsInfoSchema),
-  async (ctx: APIContext<T.RevisionsInfoReq>) => {
+  async (ctx: Context<T.RevisionsInfoReq>) => {
     const { id, documentId } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     let revision: Revision;
 
     if (id) {
@@ -71,9 +71,9 @@ router.post(
   "revisions.update",
   auth(),
   validate(T.RevisionsUpdateSchema),
-  async (ctx: APIContext<T.RevisionsUpdateReq>) => {
+  async (ctx: Context<T.RevisionsUpdateReq>) => {
     const { id, name } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const revision = await Revision.findByPk(id, {
       rejectOnEmpty: true,
@@ -101,10 +101,10 @@ router.post(
   auth({ role: UserRole.Admin }),
   validate(T.RevisionsDeleteSchema),
   transaction(),
-  async (ctx: APIContext<T.RevisionsDeleteReq>) => {
+  async (ctx: Context<T.RevisionsDeleteReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const revision = await Revision.findByPk(id, {
       rejectOnEmpty: true,
@@ -135,9 +135,9 @@ router.post(
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
   validate(T.RevisionsExportSchema),
-  async (ctx: APIContext<T.RevisionsExportReq>) => {
+  async (ctx: Context<T.RevisionsExportReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     const accept = ctx.request.headers["accept"];
 
     const revision = await Revision.findByPk(id, {
@@ -280,9 +280,9 @@ router.post(
   auth(),
   pagination(),
   validate(T.RevisionsListSchema),
-  async (ctx: APIContext<T.RevisionsListReq>) => {
+  async (ctx: Context<T.RevisionsListReq>) => {
     const { direction, documentId, sort } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const document = await Document.findByPk(documentId, {
       userId: user.id,

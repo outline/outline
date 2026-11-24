@@ -1,5 +1,6 @@
-import type { Context, Next } from "koa";
+import type { Next } from "koa";
 import env from "@server/env";
+import type { AppContext } from "@server/types";
 
 /**
  * Middleware that sets the response headers that are needed when serving the
@@ -18,7 +19,7 @@ export default function appHeaders() {
 
   const timingAllowOrigin = timingOrigins.join(", ");
 
-  return async function appHeadersMiddleware(ctx: Context, next: Next) {
+  return async function appHeadersMiddleware(ctx: AppContext, next: Next) {
     ctx.set("Timing-Allow-Origin", timingAllowOrigin);
 
     // Allow the JS Self-Profiling API to be used for local performance work.

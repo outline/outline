@@ -4,7 +4,7 @@ import type { User } from "@server/models";
 import { Attachment } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import FileStorage from "@server/storage/files";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import type { RequestInit } from "@server/utils/fetch";
 
 type BaseProps = {
@@ -19,7 +19,7 @@ type BaseProps = {
   /** The preset to use for the attachment */
   preset: AttachmentPreset;
   /** The request context */
-  ctx: APIContext;
+  ctx: Context;
   /** Options to pass to fetch when downloading the attachment */
   fetchOptions?: RequestInit;
 };
@@ -51,7 +51,7 @@ export default async function attachmentCreator({
   if (id) {
     const existing = await Attachment.findOne({
       where: { id, teamId: user.teamId },
-      transaction: ctx.context.transaction,
+      transaction: ctx.transaction,
     });
 
     if (existing) {

@@ -19,7 +19,7 @@ import {
   presentGroupUser,
 } from "@server/presenters";
 import ValidateSSOAccessTask from "@server/queues/tasks/ValidateSSOAccessTask";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import { clearCSRFCookie } from "@server/utils/csrf";
 import { getJWTPayload } from "@server/utils/jwt";
@@ -29,7 +29,7 @@ import type * as T from "./schema";
 
 const router = new Router();
 
-router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
+router.post("auth.config", async (ctx: Context<T.AuthConfigReq>) => {
   // If self hosted AND there is only one team then that team becomes the
   // brand for the knowledge base and its guest sign-in option is used for the
   // root login page.
@@ -122,8 +122,8 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
 /** Authentication services that don't require SSO validation. */
 const NON_SSO_SERVICES = ["email", "passkeys"];
 
-router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
-  const { user, service, type, token } = ctx.state.auth;
+router.post("auth.info", auth(), async (ctx: Context<T.AuthInfoReq>) => {
+  const { user, service, type, token } = ctx.auth;
   const [team, groups, availableTeams] = await Promise.all([
     Team.scope("withDomains").findByPk(user.teamId, {
       rejectOnEmpty: true,
@@ -194,8 +194,8 @@ router.post(
   "auth.delete",
   auth(),
   transaction(),
-  async (ctx: APIContext<T.AuthDeleteReq>) => {
-    const { auth, transaction } = ctx.state;
+  async (ctx: Context<T.AuthDeleteReq>) => {
+    const { auth, transaction } = ctx;
     const { user, token } = auth;
 
     await user.rotateJwtSecret({ transaction });

@@ -1,8 +1,9 @@
 import contentDisposition from "content-disposition";
 import type formidable from "formidable";
-import type { Context, Request } from "koa";
+import type { Request } from "koa";
 import { isArray } from "es-toolkit/compat";
 import { ZipFile } from "yazl";
+import type { AppContext } from "@server/types";
 
 /**
  * Get the first file from an incoming koa request
@@ -37,7 +38,7 @@ export const getFileFromRequest = (
  * @param build Callback that adds entries to the provided ZipFile.
  */
 export const streamZipResponse = (
-  ctx: Context,
+  ctx: AppContext,
   fileName: string,
   build: (zip: ZipFile) => void | Promise<void>
 ): void => {

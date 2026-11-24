@@ -10,7 +10,7 @@ import Logger from "@server/logging/Logger";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import validate from "@server/middlewares/validate";
 import { Event, User, Team } from "@server/models";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { VerificationCode } from "@server/utils/VerificationCode";
 import { signIn } from "@server/utils/authentication";
@@ -26,7 +26,7 @@ router.post(
   "email",
   rateLimiter(RateLimiterStrategy.TenPerHour),
   validate(T.EmailSchema),
-  async (ctx: APIContext<T.EmailReq>) => {
+  async (ctx: Context<T.EmailReq>) => {
     const { email, client, preferOTP } = ctx.input.body;
 
     const domain = parseDomain(ctx.request.hostname);
@@ -99,7 +99,7 @@ router.post(
   }
 );
 
-const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
+const emailCallback = async (ctx: Context<T.EmailCallbackReq>) => {
   const { query, body } = ctx.input;
   const token = query?.token || body?.token;
   const client = query?.client || body?.client || Client.Web;

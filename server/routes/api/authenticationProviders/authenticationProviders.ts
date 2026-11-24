@@ -13,7 +13,7 @@ import {
   presentAuthenticationProvider,
   presentPolicies,
 } from "@server/presenters";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import * as T from "./schema";
 
 const router = new Router();
@@ -22,9 +22,9 @@ router.post(
   "authenticationProviders.info",
   auth({ role: UserRole.Admin }),
   validate(T.AuthenticationProvidersInfoSchema),
-  async (ctx: APIContext<T.AuthenticationProvidersInfoReq>) => {
+  async (ctx: Context<T.AuthenticationProvidersInfoReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const authenticationProvider = await AuthenticationProvider.findByPk(id);
     authorize(user, "read", authenticationProvider);
@@ -41,10 +41,10 @@ router.post(
   auth({ role: UserRole.Admin }),
   validate(T.AuthenticationProvidersUpdateSchema),
   transaction(),
-  async (ctx: APIContext<T.AuthenticationProvidersUpdateReq>) => {
-    const { transaction } = ctx.state;
+  async (ctx: Context<T.AuthenticationProvidersUpdateReq>) => {
+    const { transaction } = ctx;
     const { id, isEnabled, settings } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const authenticationProvider = await AuthenticationProvider.findByPk(id, {
       transaction,
@@ -102,8 +102,8 @@ router.post(
   "authenticationProviders.startGroupSync",
   auth({ role: UserRole.Admin }),
   validate(T.AuthenticationProvidersStartGroupSyncSchema),
-  async (ctx: APIContext<T.AuthenticationProvidersStartGroupSyncReq>) => {
-    const { user } = ctx.state.auth;
+  async (ctx: Context<T.AuthenticationProvidersStartGroupSyncReq>) => {
+    const { user } = ctx.auth;
     const authenticationProvider = await AuthenticationProvider.findByPk(
       ctx.input.body.id
     );
@@ -140,10 +140,10 @@ router.post(
   auth({ role: UserRole.Admin }),
   validate(T.AuthenticationProvidersDeleteSchema),
   transaction(),
-  async (ctx: APIContext<T.AuthenticationProvidersDeleteReq>) => {
-    const { transaction } = ctx.state;
+  async (ctx: Context<T.AuthenticationProvidersDeleteReq>) => {
+    const { transaction } = ctx;
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const authenticationProvider = await AuthenticationProvider.findByPk(id, {
       transaction,
@@ -173,8 +173,8 @@ router.post(
 router.post(
   "authenticationProviders.list",
   auth({ role: UserRole.Admin }),
-  async (ctx: APIContext) => {
-    const { user } = ctx.state.auth;
+  async (ctx: Context) => {
+    const { user } = ctx.auth;
     authorize(user, "read", user.team);
 
     const teamAuthenticationProviders = (await user.team.$get(

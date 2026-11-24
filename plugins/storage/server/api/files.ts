@@ -20,7 +20,7 @@ import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { authorize } from "@server/policies";
 import FileStorage from "@server/storage/files";
 import type LocalStorage from "@server/storage/files/LocalStorage";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { getJWTPayload } from "@server/utils/jwt";
 import { ByteRangeHelper } from "../utils/ByteRangeHelper";
@@ -40,8 +40,8 @@ router.post(
       env.FILE_STORAGE_IMPORT_MAX_SIZE
     ),
   }),
-  async (ctx: APIContext<T.FilesCreateReq>) => {
-    const actor = ctx.state.auth.user;
+  async (ctx: Context<T.FilesCreateReq>) => {
+    const actor = ctx.auth.user;
     const { key, sig } = ctx.input.body;
     const file = ctx.input.file;
 
@@ -104,8 +104,8 @@ router.get(
   // Signed requests are authorized by their signature alone.
   auth({ optional: true, skip: (ctx) => !!ctx.query.sig }),
   validate(T.FilesGetSchema),
-  async (ctx: APIContext<T.FilesGetReq>) => {
-    const actor = ctx.state.auth.user;
+  async (ctx: Context<T.FilesGetReq>) => {
+    const actor = ctx.auth.user;
     const key = getKeyFromContext(ctx);
     const forceDownload = !!ctx.input.query.download;
     const isSignedRequest = !!ctx.input.query.sig;
@@ -206,7 +206,7 @@ function verifyUploadSignature(sig: string, key: string) {
   }
 }
 
-function getKeyFromContext(ctx: APIContext<T.FilesGetReq>): string {
+function getKeyFromContext(ctx: Context<T.FilesGetReq>): string {
   const { key, sig } = ctx.input.query;
   if (sig) {
     const payload = getJWTPayload(sig);

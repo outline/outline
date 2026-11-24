@@ -1,12 +1,12 @@
 import crypto from "node:crypto";
 import { addSeconds, subMinutes } from "date-fns";
-import type { Context } from "koa";
 import { toError } from "@shared/utils/error";
 import { getCookieDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import Redis from "@server/storage/redis";
 import { RedisPrefixHelper } from "./RedisPrefixHelper";
+import type { AppContext } from "@server/types";
 
 // ~3 months. Matches the default cookie lifetime so the hint is available for
 // as long as the cookie referencing it can be sent back.
@@ -41,7 +41,7 @@ export class LogoutTokenStore {
    * @param ctx The Koa context of the sign-in request.
    * @param token The provider token to persist as a later logout hint.
    */
-  public async persist(ctx: Context, token: string): Promise<void> {
+  public async persist(ctx: AppContext, token: string): Promise<void> {
     try {
       const sessionId = crypto.randomBytes(16).toString("hex");
       await Redis.defaultClient.set(
@@ -70,7 +70,7 @@ export class LogoutTokenStore {
    * @param ctx The Koa context of the logout request.
    * @returns The persisted token, or null if absent or unavailable.
    */
-  public async consume(ctx: Context): Promise<string | null> {
+  public async consume(ctx: AppContext): Promise<string | null> {
     const sessionId = ctx.cookies.get(this.cookieName);
     let token: string | null = null;
 
@@ -105,7 +105,7 @@ export class LogoutTokenStore {
     return `/auth/${this.provider}.logout`;
   }
 
-  private cookieOptions(ctx: Context, expires: Date) {
+  private cookieOptions(ctx: AppContext, expires: Date) {
     return {
       httpOnly: true,
       sameSite: "lax" as const,

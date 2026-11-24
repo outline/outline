@@ -19,7 +19,7 @@ import { Document, Share, Team, User, Group, GroupUser } from "@server/models";
 import { authorize, can } from "@server/policies";
 import { loadPublicShare } from "@server/commands/shareLoader";
 import presentUnfurl from "@server/presenters/unfurl";
-import type { APIContext, Unfurl } from "@server/types";
+import type { Context, Unfurl } from "@server/types";
 import { CacheHelper, type CacheResult } from "@server/utils/CacheHelper";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
@@ -41,21 +41,21 @@ router.post(
   rateLimiter(RateLimiterStrategy.OneThousandPerHour),
   auth({ optional: true }),
   validate(T.UrlsUnfurlSchema),
-  async (ctx: APIContext<T.UrlsUnfurlReq>) => {
+  async (ctx: Context<T.UrlsUnfurlReq>) => {
     const { url, documentId } = ctx.input.body;
     const urlObj = new URL(url);
 
     // A url may point at this installation without matching the default env.URL
     // when the team is on a custom domain or hosted subdomain.
     const isTeamUrl =
-      isInternalUrl(url) || !!ctx.state.auth.user?.team.isTeamUrl(url);
+      isInternalUrl(url) || !!ctx.auth.user?.team.isTeamUrl(url);
 
     // Public share URLs – does not require authentication
     if (isTeamUrl) {
       const shareId = parseShareIdFromUrl(url);
 
       if (shareId) {
-        const actor = ctx.state.auth.user;
+        const actor = ctx.auth.user;
         // teamId is only passed for slugs, so shares of other teams can unfurl
         let teamId: string | undefined;
         if (!isUUID(shareId)) {
@@ -88,7 +88,7 @@ router.post(
     }
 
     // Everything below requires authentication
-    const { user: actor } = ctx.state.auth;
+    const { user: actor } = ctx.auth;
     if (!actor) {
       throw AuthenticationError();
     }
@@ -259,7 +259,7 @@ router.post(
   rateLimiter(RateLimiterStrategy.OneHundredPerHour),
   auth(),
   validate(T.UrlsCheckEmbedSchema),
-  async (ctx: APIContext<T.UrlsCheckEmbedReq>) => {
+  async (ctx: Context<T.UrlsCheckEmbedReq>) => {
     const { url } = ctx.input.body;
 
     const result = await CacheHelper.getDataOrSet<EmbedCheckResult>(
@@ -279,7 +279,7 @@ router.post(
   rateLimiter(RateLimiterStrategy.OneHundredPerHour),
   auth(),
   validate(T.UrlsCheckCnameSchema),
-  async (ctx: APIContext<T.UrlsCheckCnameReq>) => {
+  async (ctx: Context<T.UrlsCheckCnameReq>) => {
     const { hostname } = ctx.input.body;
 
     const [team, share] = await Promise.all([

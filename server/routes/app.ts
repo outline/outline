@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import util from "node:util";
 import Router from "@koa/router";
-import type { Context, Next } from "koa";
+import type { Next } from "koa";
 import { escape } from "es-toolkit/compat";
 import { isbot } from "isbot";
 import { Sequelize } from "sequelize";
@@ -33,6 +33,7 @@ import {
   getWorkspaceRedirectUrl,
   getWorkspaceRenderOptions,
 } from "./workspace";
+import type { AppRouterContext } from "@server/types";
 
 /** Options used to render the app shell. */
 export interface AppRenderOptions {
@@ -159,7 +160,7 @@ const readIndexFile = async (): Promise<Buffer> => {
 };
 
 export const renderApp = async (
-  ctx: Context,
+  ctx: AppRouterContext,
   next: Next,
   options: AppRenderOptions = {}
 ) => {
@@ -291,10 +292,10 @@ export const renderApp = async (
     .replace(/\{head-tags\}/g, () => headTags)
     .replace(/\{slack-app-id\}/g, env.public.SLACK_APP_ID || "")
     .replace(/\{script-tags\}/g, scriptTags)
-    .replace(/\{csp-nonce\}/g, ctx.state.cspNonce);
+    .replace(/\{csp-nonce\}/g, ctx.state.cspNonce ?? "");
 };
 
-export const renderShare = async (ctx: Context, next: Next) => {
+export const renderShare = async (ctx: AppRouterContext, next: Next) => {
   const rootShareId = ctx.state?.rootShare?.id;
   const shareId = rootShareId ?? ctx.params.shareId;
   const collectionSlug = ctx.params.collectionSlug;

@@ -1,9 +1,10 @@
 import crypto from "node:crypto";
-import type { Context, Next } from "koa";
+import type { Next } from "koa";
 import helmet from "koa-helmet";
 import { asyncNoop } from "es-toolkit";
 import { uniq } from "es-toolkit/compat";
 import env from "@server/env";
+import type { AppContext } from "@server/types";
 
 const getBucketOrigins = (): string[] => {
   if (env.AWS_S3_ACCELERATE_URL) {
@@ -59,7 +60,7 @@ interface CSPOptions {
  * @param ctx The Koa context of the current request.
  * @param sources The origins to allow.
  */
-export function allowScriptSrc(ctx: Context, sources: string[]) {
+export function allowScriptSrc(ctx: AppContext, sources: string[]) {
   ctx.state.cspScriptSrc = [...(ctx.state.cspScriptSrc ?? []), ...sources];
 }
 
@@ -70,7 +71,7 @@ export function allowScriptSrc(ctx: Context, sources: string[]) {
  * @param ctx The Koa context of the current request.
  * @param sources The origins to allow.
  */
-export function allowStyleSrc(ctx: Context, sources: string[]) {
+export function allowStyleSrc(ctx: AppContext, sources: string[]) {
   ctx.state.cspStyleSrc = [...(ctx.state.cspStyleSrc ?? []), ...sources];
 }
 
@@ -80,7 +81,7 @@ export function allowStyleSrc(ctx: Context, sources: string[]) {
  *
  * @param ctx The Koa context of the current request.
  */
-export function allowFraming(ctx: Context) {
+export function allowFraming(ctx: AppContext) {
   ctx.state.cspAllowFraming = true;
   ctx.remove("X-Frame-Options");
 }
@@ -130,7 +131,7 @@ export default function createCSPMiddleware(options?: CSPOptions) {
     objectSrc.push(cloudFrontOrigin);
   }
 
-  return async function cspMiddleware(ctx: Context, next: Next) {
+  return async function cspMiddleware(ctx: AppContext, next: Next) {
     ctx.state.cspNonce = crypto.randomBytes(16).toString("hex");
     ctx.state.cspScriptSrc = [];
     ctx.state.cspStyleSrc = [];

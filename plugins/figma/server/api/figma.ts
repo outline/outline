@@ -3,7 +3,7 @@ import auth from "@server/middlewares/authentication";
 import Router from "@koa/router";
 import * as T from "./schema";
 import apexAuthRedirect from "@server/middlewares/apexAuthRedirect";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import validate from "@server/middlewares/validate";
 import {
   FigmaOAuthNonceCookie,
@@ -36,7 +36,7 @@ router.get(
     getErrorPath: () => FigmaUtils.errorUrl("unauthenticated"),
   }),
   transaction(),
-  async (ctx: APIContext<T.FigmaCallbackReq>) => {
+  async (ctx: Context<T.FigmaCallbackReq>) => {
     const { code, error, state } = ctx.input.query;
 
     // Check error after any sub-domain redirection. Otherwise, the user will be redirected to the root domain.
@@ -52,8 +52,8 @@ router.get(
 
     verifyOAuthStateNonce(ctx, FigmaOAuthNonceCookie, parsedState.nonce);
 
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     try {
       // validation middleware ensures that code is non-null at this point.

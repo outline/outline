@@ -5,7 +5,7 @@ import type { AppContext } from "@server/types";
 
 /**
  * Middleware that wraps a route in a database transaction, useful for mutations
- * The transaction is available on the context as `ctx.state.transaction` and
+ * The transaction is available on the context as `ctx.transaction` and
  * should be passed to all database calls within the route.
  *
  * @returns The middleware function.
@@ -13,7 +13,7 @@ import type { AppContext } from "@server/types";
 export function transaction() {
   return async function transactionMiddleware(ctx: AppContext, next: Next) {
     await sequelize.transaction(async (t: Transaction) => {
-      ctx.state.transaction = t;
+      ctx.transaction = t;
       return next();
     });
   };

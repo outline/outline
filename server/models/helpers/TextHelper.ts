@@ -9,7 +9,7 @@ import { trace } from "@server/logging/tracing";
 import type { User } from "@server/models";
 import { Attachment } from "@server/models";
 import FileStorage from "@server/storage/files";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import parseImages from "@server/utils/parseImages";
 
@@ -61,13 +61,13 @@ export class TextHelper {
    * Replaces remote and base64 encoded images in the given text with attachment
    * urls and uploads the images to the storage provider.
    *
-   * @param ctx The API context
+   * @param ctx The context
    * @param markdown The text to replace the images in
    * @param user The user context
    * @returns The text with the images replaced
    */
   static async replaceImagesWithAttachments(
-    ctx: APIContext,
+    ctx: Context,
     markdown: string,
     user: User,
     options: {

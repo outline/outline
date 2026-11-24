@@ -1,7 +1,7 @@
 import { randomBytes, createHmac } from "node:crypto";
-import type { Context } from "koa";
 import { CSRF } from "@shared/constants";
 import { safeEqual } from "./crypto";
+import type { AppContext } from "@server/types";
 
 /**
  * Returns the name of the cookie that carries the CSRF token for a request.
@@ -12,7 +12,7 @@ import { safeEqual } from "./crypto";
  * @param ctx the request context.
  * @returns the cookie name for this request.
  */
-export const getCookieName = (ctx: Pick<Context, "request">): string =>
+export const getCookieName = (ctx: Pick<AppContext, "request">): string =>
   ctx.request.secure ? CSRF.secureCookieName : CSRF.cookieName;
 
 /**
@@ -22,7 +22,7 @@ export const getCookieName = (ctx: Pick<Context, "request">): string =>
  * @returns the token, or undefined when no CSRF cookie is present.
  */
 export const getTokenFromCookie = (
-  ctx: Pick<Context, "cookies" | "request">
+  ctx: Pick<AppContext, "cookies" | "request">
 ): string | undefined => ctx.cookies.get(getCookieName(ctx));
 
 /**
@@ -32,7 +32,7 @@ export const getTokenFromCookie = (
  * @param ctx the request context.
  */
 export const clearCSRFCookie = (
-  ctx: Pick<Context, "cookies" | "request">
+  ctx: Pick<AppContext, "cookies" | "request">
 ): void => {
   ctx.cookies.set(getCookieName(ctx), null, {
     httpOnly: false,
