@@ -10,6 +10,7 @@ import type { Order, ScopeOptions, WhereOptions } from "sequelize";
 import type { Filter } from "@shared/helpers/FilterHelper";
 import { Op, Sequelize } from "sequelize";
 import { randomUUID } from "node:crypto";
+import { PersonalCollectionId } from "@shared/constants";
 import type { DirectionFilter, SortFilter } from "@shared/types";
 import { type NavigationNode } from "@shared/types";
 import {
@@ -32,6 +33,9 @@ import documentMover from "@server/commands/documentMover";
 import documentPermanentDeleter from "@server/commands/documentPermanentDeleter";
 import documentRestorer from "@server/commands/documentRestorer";
 import documentUpdater from "@server/commands/documentUpdater";
+import personalCollectionLoader, {
+  resolvePersonalCollectionId,
+} from "@server/commands/personalCollectionLoader";
 import env from "@server/env";
 import {
   InvalidRequestError,
@@ -1440,8 +1444,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.DocumentsUpdateReq>) => {
     const { transaction } = ctx.state;
-    const { id, insightsEnabled, publish, collectionId, ...input } =
-      ctx.input.body;
+    const { id, insightsEnabled, publish, ...input } = ctx.input.body;
     const updatingDeprecatedReason =
       input.deprecatedReason !== undefined &&
       Object.keys(ctx.input.body).every(
@@ -1472,6 +1475,15 @@ router.post(
     if (collection && insightsEnabled !== undefined) {
       authorize(user, "updateInsights", document);
     }
+
+    // The collection is only used when publishing a draft that has none, so
+    // the personal collection is only created in that case.
+    const collectionId =
+      input.collectionId === PersonalCollectionId
+        ? publish && !document.collectionId
+          ? await resolvePersonalCollectionId(ctx, input.collectionId)
+          : undefined
+        : input.collectionId;
 
     if (publish) {
       await authorizeDocumentPublish(ctx, document, collectionId);
@@ -1532,7 +1544,12 @@ router.post(
         throw InvalidRequestError("Cannot duplicate document inside a draft");
       }
 
-      if (collectionId && collectionId !== parent.collectionId) {
+      const requestedCollectionId =
+        collectionId === PersonalCollectionId
+          ? (await Collection.findPersonal(user, { transaction }))?.id
+          : collectionId;
+
+      if (collectionId && requestedCollectionId !== parent.collectionId) {
         throw InvalidRequestError(
           "collectionId must match the collection of the parent document"
         );
@@ -1547,12 +1564,15 @@ router.post(
           })
         : undefined;
     } else {
-      collection = collectionId
-        ? await Collection.findByPk(collectionId, {
-            userId: user.id,
-            transaction,
-          })
-        : document?.collection;
+      collection =
+        collectionId === PersonalCollectionId
+          ? await personalCollectionLoader(ctx)
+          : collectionId
+            ? await Collection.findByPk(collectionId, {
+                userId: user.id,
+                transaction,
+              })
+            : document?.collection;
 
       // The copy is created in the destination collection, so create permission
       // is required there rather than on the source.
@@ -1608,11 +1628,15 @@ router.post(
         throw InvalidRequestError("Cannot move document inside a draft");
       }
     } else if (collectionId) {
-      const collection = await Collection.findByPk(collectionId, {
-        userId: user.id,
-        transaction,
-      });
+      const collection =
+        collectionId === PersonalCollectionId
+          ? await personalCollectionLoader(ctx)
+          : await Collection.findByPk(collectionId, {
+              userId: user.id,
+              transaction,
+            });
       authorize(user, "updateDocument", collection);
+      collectionId = collection.id;
     } else {
       throw InvalidRequestError("collectionId is required to move a document");
     }

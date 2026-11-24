@@ -369,8 +369,10 @@ export const DocumentsDuplicateSchema = BaseSchema.extend({
     recursive: z.boolean().optional(),
     /** Whether the new document should be published */
     publish: z.boolean().optional(),
-    /** Id of the collection to which the document should be copied */
-    collectionId: z.uuid().optional(),
+    /** Id of the collection to which the document should be copied, or "personal" for the personal collection */
+    collectionId: z
+      .union([z.uuid(), z.literal(PersonalCollectionId)])
+      .optional(),
     /** Id of the parent document to which the document should be copied */
     parentDocumentId: z.uuid().optional(),
   }),
@@ -433,8 +435,10 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     /** Doc template Id */
     templateId: z.uuid().nullish(),
 
-    /** Doc collection Id */
-    collectionId: z.uuid().nullish(),
+    /** Doc collection Id, or "personal" for the personal collection */
+    collectionId: z
+      .union([z.uuid(), z.literal(PersonalCollectionId)])
+      .nullish(),
 
     /** If set, the update is rejected when the doc revision does not match */
     lastRevision: z.number().int().nonnegative().optional(),
@@ -492,8 +496,10 @@ export type DocumentsUpdateReq = z.infer<typeof DocumentsUpdateSchema>;
 
 export const DocumentsMoveSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
-    /** Id of collection to which the doc is supposed to be moved */
-    collectionId: z.uuid().optional().nullish(),
+    /** Id of collection to which the doc is supposed to be moved, or "personal" for the personal collection */
+    collectionId: z
+      .union([z.uuid(), z.literal(PersonalCollectionId)])
+      .nullish(),
 
     /** Parent Id, in case if the doc is moved to a new parent */
     parentDocumentId: z.uuid().nullish(),

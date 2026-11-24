@@ -1,16 +1,17 @@
 import { observer } from "mobx-react";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
+import { PersonalCollectionId } from "@shared/constants";
 import { ellipsis } from "@shared/styles";
 import type { NavigationNode } from "@shared/types";
 import type Document from "~/models/Document";
 import Button from "~/components/Button";
 import DocumentExplorer from "~/components/DocumentExplorer";
+import { useDestinationTrees } from "~/components/DocumentExplorer/useDestinationTrees";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
-import useCollectionTrees from "~/hooks/useCollectionTrees";
 import useStores from "~/hooks/useStores";
 
 type Props = {
@@ -19,19 +20,10 @@ type Props = {
 };
 
 function DocumentPublish({ document }: Props) {
-  const { dialogs, policies } = useStores();
+  const { collections, dialogs } = useStores();
   const { t } = useTranslation();
-  const collectionTrees = useCollectionTrees();
+  const publishOptions = useDestinationTrees();
   const [selectedPath, selectPath] = useState<NavigationNode | null>(null);
-  const publishOptions = useMemo(
-    () =>
-      collectionTrees.filter((node) =>
-        node.collectionId
-          ? policies.get(node.collectionId)?.abilities.createDocument
-          : true
-      ),
-    [policies, collectionTrees]
-  );
 
   const publish = async (path = selectedPath) => {
     if (!path) {
@@ -51,6 +43,11 @@ function DocumentPublish({ document }: Props) {
 
       document.collectionId = collectionId;
       await document.save(undefined, { publish: true });
+
+      // The request may have created the personal collection.
+      if (collectionId === PersonalCollectionId && document.collectionId) {
+        await collections.fetch(document.collectionId);
+      }
 
       toast.success(t("Document published"));
 

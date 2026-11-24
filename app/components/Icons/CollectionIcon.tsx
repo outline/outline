@@ -6,6 +6,7 @@ import { colorPalette } from "@shared/constants";
 import useContrastColor from "@shared/hooks/useContrastColor";
 import Avatar from "~/components/Avatar/Avatar";
 import type Collection from "~/models/Collection";
+import type User from "~/models/User";
 import useStores from "~/hooks/useStores";
 
 type Props = {
@@ -20,6 +21,32 @@ type Props = {
   className?: string;
 };
 
+interface PersonalCollectionIconProps {
+  /** The user that owns the personal collection */
+  owner: User;
+  /** The size of the icon, 24px is default to match standard icons */
+  size?: number;
+  className?: string;
+}
+
+/**
+ * The icon of a personal collection, which is the avatar of its owner.
+ *
+ * @param props The component props.
+ * @returns the icon element.
+ */
+export function PersonalCollectionIcon({
+  owner,
+  size = 24,
+  className,
+}: PersonalCollectionIconProps) {
+  return (
+    <AvatarWrapper $size={size} className={className}>
+      <Avatar model={owner} size={Math.round((size * 2) / 3)} />
+    </AvatarWrapper>
+  );
+}
+
 function ResolvedCollectionIcon({
   collection,
   color: inputColor,
@@ -33,11 +60,8 @@ function ResolvedCollectionIcon({
 
   // A personal collection always shows the avatar of its owner.
   if (owner) {
-    const iconSize = size ?? 24;
     return (
-      <AvatarWrapper $size={iconSize} className={className}>
-        <Avatar model={owner} size={Math.round((iconSize * 2) / 3)} />
-      </AvatarWrapper>
+      <PersonalCollectionIcon owner={owner} size={size} className={className} />
     );
   }
 
