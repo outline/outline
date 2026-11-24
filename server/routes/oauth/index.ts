@@ -8,7 +8,6 @@ import {
   ValidationError,
   NotFoundError,
 } from "@server/errors";
-import { apiContext } from "@server/middlewares/apiContext";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import requestTracer from "@server/middlewares/requestTracer";
@@ -20,7 +19,7 @@ import UploadOAuthClientLogoTask from "@server/queues/tasks/UploadOAuthClientLog
 import { authorize } from "@server/policies";
 import { presentDCRClient } from "@server/presenters/oauthClient";
 import { afterCommit } from "@server/storage/transaction";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { TeamPreference } from "@shared/types";
@@ -54,8 +53,8 @@ router.post(
   // Consent is given interactively, so only a session may authorize a client.
   // An API key or access token must never mint credentials for another client.
   auth({ type: AuthenticationType.APP }),
-  async (ctx) => {
-    const { user } = ctx.state.auth;
+  async (ctx: Context) => {
+    const { user } = ctx.auth;
     const body = RequestHelper.getBodyObject(ctx.request);
     const clientId = body.client_id;
     if (typeof clientId !== "string" || !clientId) {
@@ -120,7 +119,7 @@ router.post(
   "/token",
   validate(T.TokenSchema),
   rateLimiter(RateLimiterStrategy.OneHundredPerHour),
-  async (ctx: APIContext<T.TokenReq>) => {
+  async (ctx: Context<T.TokenReq>) => {
     const grantType = ctx.input.body.grant_type;
     const refreshToken = ctx.input.body.refresh_token;
     const clientId = ctx.input.body.client_id;
@@ -192,7 +191,7 @@ router.post(
   rateLimiter(RateLimiterStrategy.OneHundredPerHour),
   validate(T.TokenRevokeSchema),
   transaction(),
-  async (ctx: APIContext<T.TokenRevokeReq>) => {
+  async (ctx: Context<T.TokenRevokeReq>) => {
     const { token } = ctx.input.body;
 
     if (OAuthAuthentication.match(token)) {
@@ -219,7 +218,7 @@ router.post(
   validate(T.RegisterSchema),
   rateLimiter(RateLimiterStrategy.FivePerHour),
   transaction(),
-  async (ctx: APIContext<T.RegisterReq>) => {
+  async (ctx: Context<T.RegisterReq>) => {
     if (env.OAUTH_DISABLE_DCR) {
       throw NotFoundError();
     }
@@ -264,7 +263,7 @@ router.post(
     // The logo is copied to file storage in the background, so the consent
     // screen never loads it from a host that the client controls.
     if (logo_uri) {
-      await afterCommit(ctx.state.transaction, () =>
+      await afterCommit(ctx.transaction, () =>
         new UploadOAuthClientLogoTask().scheduleOptional({
           oauthClientId: client.id,
           logoUrl: logo_uri,
@@ -288,7 +287,7 @@ router.post(
 );
 
 router.get("/register/:clientId", registrationAuth(), async (ctx) => {
-  const client: OAuthClient = ctx.state.oauthClient;
+  const client = ctx.state.oauthClient as OAuthClient;
   const team = await client.$get("team");
   if (!team) {
     throw NotFoundError();
@@ -305,13 +304,13 @@ router.put(
   validate(T.RegisterUpdateSchema),
   transaction(),
   registrationAuth(),
-  async (ctx: APIContext<T.RegisterUpdateReq>) => {
+  async (ctx: Context<T.RegisterUpdateReq>) => {
     const client = ctx.state.oauthClient as OAuthClient;
     const { client_name, redirect_uris, client_uri, logo_uri } = ctx.input.body;
     assertValidRedirectUris(redirect_uris);
 
     const team = await client.$get("team", {
-      transaction: ctx.state.transaction,
+      transaction: ctx.transaction,
     });
     if (!team) {
       throw NotFoundError();
@@ -330,7 +329,7 @@ router.put(
 
     // The stored logo is kept until the background task replaces it.
     if (logo_uri) {
-      await afterCommit(ctx.state.transaction, () =>
+      await afterCommit(ctx.transaction, () =>
         new UploadOAuthClientLogoTask().scheduleOptional({
           oauthClientId: client.id,
           logoUrl: logo_uri,
@@ -350,7 +349,7 @@ router.delete(
   rateLimiter(RateLimiterStrategy.TenPerHour),
   transaction(),
   registrationAuth(),
-  async (ctx: APIContext) => {
+  async (ctx: Context) => {
     const client = ctx.state.oauthClient as OAuthClient;
     await client.destroyWithCtx(ctx);
     ctx.status = 204;
@@ -376,7 +375,6 @@ function assertValidRedirectUris(redirectUris: string[]) {
 app.use(requestTracer());
 app.use(oauthErrorHandler());
 app.use(bodyParser());
-app.use(apiContext());
 app.use(verifyCSRFToken());
 app.use(router.routes());
 

@@ -9,7 +9,7 @@ import validate from "@server/middlewares/validate";
 import Integration from "@server/models/Integration";
 import { authorize } from "@server/policies";
 import { presentIntegration, presentPolicies } from "@server/presenters";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
@@ -21,9 +21,9 @@ router.post(
   auth(),
   pagination(),
   validate(T.IntegrationsListSchema),
-  async (ctx: APIContext<T.IntegrationsListReq>) => {
+  async (ctx: Context<T.IntegrationsListReq>) => {
     const { direction, service, type, sort } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     let where: WhereOptions<Integration> = {
       teamId: user.teamId,
@@ -77,9 +77,9 @@ router.post(
   auth({ role: UserRole.Admin }),
   validate(T.IntegrationsCreateSchema),
   transaction(),
-  async (ctx: APIContext<T.IntegrationsCreateReq>) => {
+  async (ctx: Context<T.IntegrationsCreateReq>) => {
     const { type, service, settings } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     authorize(user, "createIntegration", user.team);
 
@@ -102,9 +102,9 @@ router.post(
   "integrations.info",
   auth(),
   validate(T.IntegrationsInfoSchema),
-  async (ctx: APIContext<T.IntegrationsInfoReq>) => {
+  async (ctx: Context<T.IntegrationsInfoReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const integration = await Integration.findByPk(id, {
       rejectOnEmpty: true,
@@ -123,10 +123,10 @@ router.post(
   auth({ role: UserRole.Admin }),
   validate(T.IntegrationsUpdateSchema),
   transaction(),
-  async (ctx: APIContext<T.IntegrationsUpdateReq>) => {
+  async (ctx: Context<T.IntegrationsUpdateReq>) => {
     const { id, events, settings } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const integration = await Integration.findByPk(id, {
       transaction,
@@ -158,10 +158,10 @@ router.post(
   auth(),
   validate(T.IntegrationsDeleteSchema),
   transaction(),
-  async (ctx: APIContext<T.IntegrationsDeleteReq>) => {
+  async (ctx: Context<T.IntegrationsDeleteReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const integration = await Integration.findByPk(id, {
       rejectOnEmpty: true,

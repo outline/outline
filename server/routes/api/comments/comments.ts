@@ -16,7 +16,8 @@ import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
 import { authorize } from "@server/policies";
 import { presentComment, presentPolicies } from "@server/presenters";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
+import { toHookContext } from "@server/context";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
@@ -30,7 +31,7 @@ router.post(
   commentingEnabled(),
   validate(T.CommentsCreateSchema),
   transaction(),
-  async (ctx: APIContext<T.CommentsCreateReq>) => {
+  async (ctx: Context<T.CommentsCreateReq>) => {
     const {
       id,
       documentId,
@@ -40,8 +41,8 @@ router.post(
       anchorSuffix,
       anchorNodeId,
     } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
     const anchored = !!(anchorText || anchorNodeId);
 
     if (anchored) {
@@ -109,7 +110,7 @@ router.post(
       // as updated by adding a comment.
       await document.update(
         { state: updated.state, content: updated.content },
-        { ...ctx.context, transaction, silent: true }
+        { ...toHookContext(ctx), transaction, silent: true }
       );
     }
 
@@ -135,9 +136,9 @@ router.post(
   auth(),
   commentingEnabled(),
   validate(T.CommentsInfoSchema),
-  async (ctx: APIContext<T.CommentsInfoReq>) => {
+  async (ctx: Context<T.CommentsInfoReq>) => {
     const { id, includeAnchorText } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const comment = await Comment.findByPk(id, {
       rejectOnEmpty: true,
@@ -165,7 +166,7 @@ router.post(
   pagination(),
   commentingEnabled(),
   validate(T.CommentsListSchema),
-  async (ctx: APIContext<T.CommentsListReq>) => {
+  async (ctx: Context<T.CommentsListReq>) => {
     const {
       sort,
       direction,
@@ -175,7 +176,7 @@ router.post(
       collectionId,
       includeAnchorText,
     } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     authorize(user, "listComments", user.team);
 
     let document: Document | null = null;
@@ -221,10 +222,10 @@ router.post(
   commentingEnabled(),
   validate(T.CommentsUpdateSchema),
   transaction(),
-  async (ctx: APIContext<T.CommentsUpdateReq>) => {
+  async (ctx: Context<T.CommentsUpdateReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const comment = await Comment.findByPk(id, {
       transaction,
@@ -297,10 +298,10 @@ router.post(
   commentingEnabled(),
   validate(T.CommentsDeleteSchema),
   transaction(),
-  async (ctx: APIContext<T.CommentsDeleteReq>) => {
+  async (ctx: Context<T.CommentsDeleteReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const comment = await Comment.findByPk(id, {
       transaction,
@@ -331,10 +332,10 @@ router.post(
   commentingEnabled(),
   validate(T.CommentsResolveSchema),
   transaction(),
-  async (ctx: APIContext<T.CommentsResolveReq>) => {
+  async (ctx: Context<T.CommentsResolveReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const comment = await Comment.findByPk(id, {
       transaction,
@@ -367,10 +368,10 @@ router.post(
   commentingEnabled(),
   validate(T.CommentsUnresolveSchema),
   transaction(),
-  async (ctx: APIContext<T.CommentsUnresolveReq>) => {
+  async (ctx: Context<T.CommentsUnresolveReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const comment = await Comment.findByPk(id, {
       transaction,
@@ -404,10 +405,10 @@ router.post(
   commentingEnabled(),
   validate(T.CommentsReactionSchema),
   transaction(),
-  async (ctx: APIContext<T.CommentsReactionReq>) => {
+  async (ctx: Context<T.CommentsReactionReq>) => {
     const { id, emoji } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const comment = await Comment.findByPk(id, {
       transaction,
@@ -460,10 +461,10 @@ router.post(
   commentingEnabled(),
   validate(T.CommentsReactionSchema),
   transaction(),
-  async (ctx: APIContext<T.CommentsReactionReq>) => {
+  async (ctx: Context<T.CommentsReactionReq>) => {
     const { id, emoji } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const comment = await Comment.findByPk(id, {
       transaction,
@@ -488,7 +489,7 @@ router.post(
     });
     authorize(user, "delete", reaction);
 
-    await reaction.destroy(ctx.context);
+    await reaction.destroy(toHookContext(ctx));
 
     ctx.body = {
       success: true,

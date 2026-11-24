@@ -212,7 +212,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
       withTracing("create_collection", async (input, context) => {
         try {
           const ctx = buildAPIContext(context);
-          const { user } = ctx.state.auth;
+          const { user } = ctx.auth;
           const team = await Team.findByPk(user.teamId, {
             rejectOnEmpty: true,
           });
@@ -220,8 +220,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
 
           const collection = await sequelize.transaction(
             async (transaction) => {
-              ctx.state.transaction = transaction;
-              ctx.context.transaction = transaction;
+              ctx.transaction = transaction;
 
               const created = Collection.build({
                 name: input.name,
@@ -313,11 +312,10 @@ export function collectionTools(server: McpServer, scopes: string[]) {
       withTracing("update_collection", async (input, context) => {
         try {
           const ctx = buildAPIContext(context);
-          const { user } = ctx.state.auth;
+          const { user } = ctx.auth;
 
           return await sequelize.transaction(async (transaction) => {
-            ctx.state.transaction = transaction;
-            ctx.context.transaction = transaction;
+            ctx.transaction = transaction;
 
             const collection = await Collection.findByPk(input.id, {
               userId: user.id,
@@ -418,11 +416,11 @@ export function collectionTools(server: McpServer, scopes: string[]) {
         async ({ id, archive, reason }, context) => {
           try {
             const ctx = buildAPIContext(context);
-            const { user } = ctx.state.auth;
+            const { user } = ctx.auth;
 
             await sequelize.transaction(async (transaction) => {
-              ctx.state.transaction = transaction;
-              ctx.context.transaction = transaction;
+              ctx.transaction = transaction;
+              ctx.transaction = transaction;
 
               const collection = await Collection.findByPk(id, {
                 userId: user.id,

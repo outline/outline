@@ -7,7 +7,7 @@ import { Document, AccessRequest, UserMembership } from "@server/models";
 import { AccessRequestStatus } from "@server/models/AccessRequest";
 import { authorize, can } from "@server/policies";
 import { presentAccessRequest, presentPolicies } from "@server/presenters";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import * as T from "./schema";
 import { InvalidRequestError, NotFoundError } from "@server/errors";
@@ -20,10 +20,10 @@ router.post(
   auth(),
   validate(T.AccessRequestsCreateSchema),
   transaction(),
-  async (ctx: APIContext<T.AccessRequestsCreateReq>) => {
+  async (ctx: Context<T.AccessRequestsCreateReq>) => {
     const { documentId } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const document = await Document.findByPk(documentId, {
       userId: user.id,
@@ -57,8 +57,8 @@ router.post(
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
   validate(T.AccessRequestsInfoSchema),
-  async (ctx: APIContext<T.AccessRequestsInfoReq>) => {
-    const { user } = ctx.state.auth;
+  async (ctx: Context<T.AccessRequestsInfoReq>) => {
+    const { user } = ctx.auth;
     const { id, documentId } = ctx.input.body;
     let accessRequest: AccessRequest | null = null;
 
@@ -91,10 +91,10 @@ router.post(
   auth(),
   validate(T.AccessRequestsApproveSchema),
   transaction(),
-  async (ctx: APIContext<T.AccessRequestsApproveReq>) => {
+  async (ctx: Context<T.AccessRequestsApproveReq>) => {
     const { id, permission } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const accessRequest = await AccessRequest.findByPk(id, {
       rejectOnEmpty: true,
@@ -143,10 +143,10 @@ router.post(
   auth(),
   validate(T.AccessRequestsDismissSchema),
   transaction(),
-  async (ctx: APIContext<T.AccessRequestsDismissReq>) => {
+  async (ctx: Context<T.AccessRequestsDismissReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const accessRequest = await AccessRequest.findByPk(id, {
       rejectOnEmpty: true,

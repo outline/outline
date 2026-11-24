@@ -5,7 +5,7 @@ import Logger from "@server/logging/Logger";
 import validate from "@server/middlewares/validate";
 import tasks from "@server/queues/tasks";
 import { CronTask, TaskInterval } from "@server/queues/tasks/base/CronTask";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { safeEqual } from "@server/utils/crypto";
 import * as T from "./schema";
 import { Minute } from "@shared/utils/time";
@@ -13,7 +13,7 @@ import { Minute } from "@shared/utils/time";
 const router = new Router();
 const receivedPeriods = new Set<TaskInterval>();
 
-const cronHandler = async (ctx: APIContext<T.CronSchemaReq>) => {
+const cronHandler = async (ctx: Context<T.CronSchemaReq>) => {
   const period = Object.values(TaskInterval).includes(
     ctx.params.period as TaskInterval
   )

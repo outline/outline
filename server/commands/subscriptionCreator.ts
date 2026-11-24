@@ -5,15 +5,15 @@ import type { Collection, Document, User } from "@server/models";
 import { Subscription, Event } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import type {
-  APIContext,
   CollectionOwnerEvent,
+  Context,
   DocumentEvent,
   RevisionEvent,
 } from "@server/types";
 
 type Props = {
   /** The request context, which also contains the user creating the subscription */
-  ctx: APIContext;
+  ctx: Context;
   /** The document to subscribe to */
   documentId?: string;
   /** The collection to subscribe to */
@@ -39,7 +39,7 @@ export default async function subscriptionCreator({
   event,
   resubscribe = true,
 }: Props): Promise<Subscription> {
-  const { user } = ctx.state.auth;
+  const { user } = ctx.auth;
 
   let rows: SubscriptionRow[];
   const now = new Date();
@@ -58,7 +58,7 @@ export default async function subscriptionCreator({
           now,
         },
         type: QueryTypes.SELECT,
-        transaction: ctx.state.transaction,
+        transaction: ctx.transaction,
       }
     );
   } else if (collectionId) {
@@ -76,7 +76,7 @@ export default async function subscriptionCreator({
           now,
         },
         type: QueryTypes.SELECT,
-        transaction: ctx.state.transaction,
+        transaction: ctx.transaction,
       }
     );
   } else {

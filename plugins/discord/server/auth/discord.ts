@@ -18,7 +18,7 @@ import accountProvisioner from "@server/commands/accountProvisioner";
 import { InvalidRequestError, TeamDomainRequiredError } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
 import type { User } from "@server/models";
-import type { AuthenticationResult } from "@server/types";
+import type { AuthenticationResult, AppContext } from "@server/types";
 import {
   StateStore,
   getTeamFromContext,
@@ -31,7 +31,7 @@ import {
 import config from "../../plugin.json";
 import env from "../env";
 import { DiscordGuildError, DiscordGuildRoleError } from "../errors";
-import { createContext } from "@server/context";
+import { withUser } from "@server/context";
 
 const router = new Router();
 
@@ -72,7 +72,7 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
             result?: AuthenticationResult
           ) => void
         ) {
-          const context = req.ctx;
+          const context: AppContext = req.ctx;
           try {
             const team = await getTeamFromContext(context);
             const client = getClientFromOAuthState(context);
@@ -185,17 +185,12 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
               }
             }
             const user =
-              context.state?.auth?.user ??
-              (await getUserFromOAuthState(context));
+              context.auth?.user ?? (await getUserFromOAuthState(context));
 
             // if a team can be inferred, we assume the user is only interested in signing into
             // that team in particular; otherwise, we will do a best effort at finding their account
             // or provisioning a new one (within AccountProvisioner)
-            const ctx = createContext({
-              ip: context.ip,
-              user,
-              authType: context.state?.auth?.type,
-            });
+            const ctx = withUser(context, user);
             const result = await accountProvisioner(ctx, {
               team: {
                 teamId: team?.id,

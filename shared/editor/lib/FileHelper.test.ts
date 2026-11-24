@@ -43,4 +43,22 @@ describe("FileHelper", () => {
     const unknown = new File(["x"], "notes.txt");
     expect(FileHelper.withContentType(unknown)).toBe(unknown);
   });
+
+  describe("getImageSourceAttr", () => {
+    it("returns undefined when the file cannot be read", async () => {
+      for (const type of ["image/png", "image/svg+xml"]) {
+        const file = new File(["x"], "image", { type });
+        const error = new DOMException(
+          "The requested file could not be read",
+          "NotReadableError"
+        );
+        vi.spyOn(file, "arrayBuffer").mockRejectedValue(error);
+        vi.spyOn(file, "text").mockRejectedValue(error);
+
+        await expect(FileHelper.getImageSourceAttr(file)).resolves.toBe(
+          undefined
+        );
+      }
+    });
+  });
 });

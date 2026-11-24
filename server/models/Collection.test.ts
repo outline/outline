@@ -11,7 +11,7 @@ import {
   buildTeam,
   buildDocument,
 } from "@server/test/factories";
-import { withAPIContext } from "@server/test/support";
+import { withContext } from "@server/test/support";
 import Collection from "./Collection";
 import Document from "./Document";
 import Event from "./Event";
@@ -35,7 +35,7 @@ describe("#updateDeprecatedReason", () => {
     );
 
     await expect(
-      withAPIContext(user, (ctx) =>
+      withContext(user, (ctx) =>
         collection.updateDeprecatedReason(ctx, "Outdated")
       )
     ).rejects.toThrow("The collection must be archived");
@@ -688,7 +688,7 @@ describe("#archiveWithCtx", () => {
       archivedAt: new Date("2024-01-01"),
     });
 
-    await withAPIContext(user, (ctx) => collection.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => collection.archiveWithCtx(ctx));
 
     await Promise.all([
       collection.reload(),
@@ -720,7 +720,7 @@ describe("#archiveWithCtx", () => {
       publishedAt: new Date(),
     });
 
-    await withAPIContext(user, (ctx) => collection.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => collection.archiveWithCtx(ctx));
 
     await otherDocument.reload();
     expect(otherDocument.archivedAt).toBeNull();
@@ -742,7 +742,7 @@ describe("#owners", () => {
     const owner = await buildUser({ teamId: user.teamId });
     const collection = await buildCollection({ teamId: user.teamId });
 
-    await withAPIContext(user, (ctx) => collection.addOwner(ctx, owner.id));
+    await withContext(user, (ctx) => collection.addOwner(ctx, owner.id));
 
     await collection.reload();
     expect(collection.ownerIds).toEqual([owner.id]);
@@ -760,9 +760,9 @@ describe("#owners", () => {
     const user = await buildUser();
     const owner = await buildUser({ teamId: user.teamId });
     const collection = await buildCollection({ teamId: user.teamId });
-    await withAPIContext(user, (ctx) => collection.addOwner(ctx, owner.id));
+    await withContext(user, (ctx) => collection.addOwner(ctx, owner.id));
 
-    await withAPIContext(user, (ctx) => collection.removeOwner(ctx, owner.id));
+    await withContext(user, (ctx) => collection.removeOwner(ctx, owner.id));
 
     await collection.reload();
     expect(collection.ownerIds).toEqual([]);
@@ -786,8 +786,8 @@ describe("#owners", () => {
       rejectOnEmpty: true,
     });
 
-    await withAPIContext(user, (ctx) => collection.addOwner(ctx, first.id));
-    await withAPIContext(user, (ctx) => stale.addOwner(ctx, second.id));
+    await withContext(user, (ctx) => collection.addOwner(ctx, first.id));
+    await withContext(user, (ctx) => stale.addOwner(ctx, second.id));
 
     await collection.reload();
     expect(collection.ownerIds).toEqual([first.id, second.id]);

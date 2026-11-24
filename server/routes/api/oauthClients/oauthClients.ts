@@ -14,7 +14,7 @@ import {
   presentOAuthClient,
   presentPublishedOAuthClient,
 } from "@server/presenters";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { ClientMetadataHelper } from "@server/utils/oauth/ClientMetadataHelper";
 import { OAuthHelper } from "@server/utils/oauth/OAuthHelper";
@@ -31,10 +31,10 @@ const router = new Router();
  * @param ctx The request context.
  * @returns true if the credential's scope covers managing clients.
  */
-function hasManageScope(ctx: APIContext) {
+function hasManageScope(ctx: Context) {
   return AuthenticationHelper.canAccess(
     "/api/oauthClients.update",
-    ctx.state.auth.scope ?? ["*"]
+    ctx.auth.scope ?? ["*"]
   );
 }
 
@@ -43,8 +43,8 @@ router.post(
   auth({ role: UserRole.Admin }),
   pagination(),
   validate(T.OAuthClientsListSchema),
-  async (ctx: APIContext<T.OAuthClientsListReq>) => {
-    const { user } = ctx.state.auth;
+  async (ctx: Context<T.OAuthClientsListReq>) => {
+    const { user } = ctx.auth;
     const where = {
       teamId: user.teamId,
       createdById: {
@@ -81,9 +81,9 @@ router.post(
   rateLimiter(RateLimiterStrategy.OneHundredPerHour),
   auth(),
   validate(T.OAuthClientsInfoSchema),
-  async (ctx: APIContext<T.OAuthClientsInfoReq>) => {
+  async (ctx: Context<T.OAuthClientsInfoReq>) => {
     const { id, clientId, redirectUri } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const oauthClient = clientId
       ? await ClientMetadataHelper.findOrFetchByClientId(clientId, user.team)
@@ -123,9 +123,9 @@ router.post(
   auth({ role: UserRole.Admin }),
   validate(T.OAuthClientsCreateSchema),
   transaction(),
-  async (ctx: APIContext<T.OAuthClientsCreateReq>) => {
+  async (ctx: Context<T.OAuthClientsCreateReq>) => {
     const input = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     authorize(user, "createOAuthClient", user.team);
 
@@ -147,10 +147,10 @@ router.post(
   auth({ role: UserRole.Admin }),
   validate(T.OAuthClientsUpdateSchema),
   transaction(),
-  async (ctx: APIContext<T.OAuthClientsUpdateReq>) => {
+  async (ctx: Context<T.OAuthClientsUpdateReq>) => {
     const { id, ...input } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const oauthClient = await OAuthClient.findByPk(id, {
       transaction,
@@ -176,10 +176,10 @@ router.post(
   auth({ role: UserRole.Admin }),
   validate(T.OAuthClientsRotateSecretSchema),
   transaction(),
-  async (ctx: APIContext<T.OAuthClientsRotateSecretReq>) => {
+  async (ctx: Context<T.OAuthClientsRotateSecretReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const oauthClient = await OAuthClient.findByPk(id, {
       transaction,
@@ -205,10 +205,10 @@ router.post(
   auth({ role: UserRole.Admin }),
   validate(T.OAuthClientsDeleteSchema),
   transaction(),
-  async (ctx: APIContext<T.OAuthClientsDeleteReq>) => {
+  async (ctx: Context<T.OAuthClientsDeleteReq>) => {
     const { id } = ctx.input.body as { id: string };
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const oauthClient = await OAuthClient.findByPk(id, {
       transaction,

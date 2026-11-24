@@ -19,7 +19,7 @@ import {
   presentGroup,
   presentUser,
 } from "@server/presenters";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -33,10 +33,10 @@ router.post(
   auth(),
   pagination(),
   validate(T.SuggestionsListSchema),
-  async (ctx: APIContext<T.SuggestionsListReq>) => {
+  async (ctx: Context<T.SuggestionsListReq>) => {
     const { query } = ctx.input.body;
     const { offset, limit } = ctx.state.pagination;
-    const actor = ctx.state.auth.user;
+    const actor = ctx.auth.user;
 
     const suggestUsers = async (): Promise<{
       users: User[];

@@ -23,7 +23,7 @@ import {
 import { SearchQuerySource } from "@server/models/SearchQuery";
 import SearchProviderManager from "@server/utils/SearchProviderManager";
 import { can } from "@server/policies";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { safeEqual } from "@server/utils/crypto";
 import { opts } from "@server/utils/i18n";
 import env from "../env";
@@ -38,7 +38,7 @@ const router = new Router();
 router.post(
   "hooks.unfurl",
   validate(T.HooksUnfurlSchema),
-  async (ctx: APIContext<T.HooksUnfurlReq>) => {
+  async (ctx: Context<T.HooksUnfurlReq>) => {
     // See URL verification handshake documentation on this page:
     // https://api.slack.com/apis/connections/events-api
     if ("challenge" in ctx.input.body) {
@@ -133,7 +133,7 @@ router.post(
 router.post(
   "hooks.interactive",
   validate(T.HooksInteractiveSchema),
-  async (ctx: APIContext<T.HooksInteractiveReq>) => {
+  async (ctx: Context<T.HooksInteractiveReq>) => {
     const { payload } = ctx.input.body;
     let parsed;
 
@@ -208,7 +208,7 @@ router.post(
 router.post(
   "hooks.slack",
   validate(T.HooksSlackCommandSchema),
-  async (ctx: APIContext<T.HooksSlackCommandReq>) => {
+  async (ctx: Context<T.HooksSlackCommandReq>) => {
     const { token, team_id, user_id, text } = ctx.input.body;
     verifySlackToken(token);
 

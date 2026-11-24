@@ -4,7 +4,7 @@ import { DocumentConflictError, ValidationError } from "@server/errors";
 import { Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 
 type Props = {
   /** The existing document */
@@ -51,7 +51,7 @@ type Props = {
  * @returns Document The updated document
  */
 export default async function documentUpdater(
-  ctx: APIContext,
+  ctx: Context,
   {
     document,
     title,
@@ -72,8 +72,8 @@ export default async function documentUpdater(
     ownerIds,
   }: Props
 ): Promise<Document> {
-  const { user } = ctx.state.auth;
-  const { transaction } = ctx.state;
+  const { user } = ctx.auth;
+  const { transaction } = ctx;
   const cId = collectionId || document.collectionId;
   const previousOwnerIds = document.ownerIds ?? [];
 

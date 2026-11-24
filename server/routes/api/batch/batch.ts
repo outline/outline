@@ -14,7 +14,7 @@ import {
   rateLimiter,
 } from "@server/middlewares/rateLimiter";
 import validate from "@server/middlewares/validate";
-import type { APIContext, AppContext } from "@server/types";
+import type { Context, AppContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { BatchableApiMethods } from "@shared/constants";
@@ -115,9 +115,11 @@ function createSubContext(
   body: T.BatchRequestBody
 ) {
   const sub: AppContext = Object.create(ctx);
-  // A shallow copy so middleware writes (auth, transaction) don't leak between
-  // concurrent sub-requests or back to the parent.
+  // Own copies so middleware writes don't leak between concurrent sub-requests
+  // or back to the parent.
   sub.state = { ...ctx.state };
+  sub.auth = ctx.auth;
+  sub.transaction = ctx.transaction;
   sub.request = Object.create(ctx.request);
   // The parent's credential is the actor for every sub-request, so a token in
   // the sub-request body must not re-authenticate it as a different one.
@@ -152,16 +154,6 @@ function createSubContext(
     set: (value: number) => {
       captured.status = value;
     },
-  });
-  // Re-bind ctx.context to this child so mutations use the child's transaction
-  // rather than the parent's (the getter from apiContext closes over its ctx).
-  Object.defineProperty(sub, "context", {
-    configurable: true,
-    get: () => ({
-      auth: sub.state.auth,
-      transaction: sub.state.transaction,
-      ip: sub.request.ip,
-    }),
   });
 
   return { sub, captured };
@@ -275,7 +267,7 @@ router.post(
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth({ type: AuthenticationType.APP }),
   validate(T.BatchSchema),
-  async (ctx: APIContext<T.BatchReq>) => {
+  async (ctx: Context<T.BatchReq>) => {
     const { requests } = ctx.input.body;
 
     // Sub-request routes would otherwise be appended to the APM route name.

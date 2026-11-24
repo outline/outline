@@ -55,6 +55,7 @@ export const MouseSafeArea = observer(function MouseSafeArea_(props: {
 
   return (
     <div
+      data-menu-hidden=""
       style={{
         position: "absolute",
         top: 0,

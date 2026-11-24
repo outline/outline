@@ -2,13 +2,13 @@ import { faker } from "@faker-js/faker";
 import { UserRole } from "@shared/types";
 import { buildTeam, buildUser } from "@server/test/factories";
 import userInviter from "./userInviter";
-import { withAPIContext } from "@server/test/support";
+import { withContext } from "@server/test/support";
 import { TeamDomain } from "@server/models";
 
 describe("userInviter", () => {
   it("should return sent invites", async () => {
     const user = await buildUser();
-    const response = await withAPIContext(user, (ctx) =>
+    const response = await withContext(user, (ctx) =>
       userInviter(ctx, {
         invites: [
           {
@@ -24,7 +24,7 @@ describe("userInviter", () => {
 
   it("should filter empty invites", async () => {
     const user = await buildUser();
-    const response = await withAPIContext(user, (ctx) =>
+    const response = await withContext(user, (ctx) =>
       userInviter(ctx, {
         invites: [
           {
@@ -48,7 +48,7 @@ describe("userInviter", () => {
       createdById: user.id,
     });
 
-    await withAPIContext(user, (ctx) =>
+    await withContext(user, (ctx) =>
       expect(
         userInviter(ctx, {
           invites: [
@@ -74,7 +74,7 @@ describe("userInviter", () => {
       createdById: user.id,
     });
 
-    const response = await withAPIContext(user, (ctx) =>
+    const response = await withContext(user, (ctx) =>
       userInviter(ctx, {
         invites: [
           {
@@ -92,7 +92,7 @@ describe("userInviter", () => {
 
   it("should filter obviously bunk emails", async () => {
     const user = await buildUser();
-    const response = await withAPIContext(user, (ctx) =>
+    const response = await withContext(user, (ctx) =>
       userInviter(ctx, {
         invites: [
           {
@@ -108,7 +108,7 @@ describe("userInviter", () => {
 
   it("should not send duplicates", async () => {
     const user = await buildUser();
-    const response = await withAPIContext(user, (ctx) =>
+    const response = await withContext(user, (ctx) =>
       userInviter(ctx, {
         invites: [
           {
@@ -130,7 +130,7 @@ describe("userInviter", () => {
   it("should not send invites to existing team members", async () => {
     const email = faker.internet.email().toLowerCase();
     const user = await buildUser({ email });
-    const response = await withAPIContext(user, (ctx) =>
+    const response = await withContext(user, (ctx) =>
       userInviter(ctx, {
         invites: [
           {

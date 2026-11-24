@@ -3,7 +3,7 @@ import { Op } from "sequelize";
 import { UserRole } from "@shared/types";
 import { ValidationError } from "@server/errors";
 import User from "@server/models/User";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 
 /**
  * Validates the requested owners of a document or collection, added owners
@@ -19,13 +19,13 @@ import type { APIContext } from "@server/types";
  * users cannot be an owner.
  */
 export async function validateOwnerIds(
-  ctx: APIContext,
+  ctx: Context,
   ownerIds: string[],
   previousOwnerIds: string[],
   maxOwners: number
 ): Promise<string[]> {
-  const { user } = ctx.state.auth;
-  const { transaction } = ctx.state;
+  const { user } = ctx.auth;
+  const { transaction } = ctx;
   const ids = uniq(ownerIds);
   const addedIds = difference(ids, previousOwnerIds);
 
@@ -69,7 +69,7 @@ export async function validateOwnerIds(
  * @throws ValidationError when any of the owners are not valid.
  */
 export async function resolveOwnerIds(
-  ctx: APIContext,
+  ctx: Context,
   currentOwnerIds: string[],
   ownerIds: string[],
   maxOwners: number

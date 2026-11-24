@@ -11,7 +11,7 @@ import accountProvisioner from "@server/commands/accountProvisioner";
 import { TeamDomainRequiredError } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
 import { AuthenticationProvider, User } from "@server/models";
-import type { AuthenticationResult } from "@server/types";
+import type { AuthenticationResult, AppContext } from "@server/types";
 import {
   StateStore,
   getTeamFromContext,
@@ -22,7 +22,7 @@ import {
 } from "@server/utils/passport";
 import config from "../../plugin.json";
 import env from "../env";
-import { createContext } from "@server/context";
+import { withUser } from "@server/context";
 import { GmailAccountCreationError } from "../errors";
 
 const router = new Router();
@@ -65,14 +65,14 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
         result?: AuthenticationResult
       ) => void
     ) {
-      const context = req.ctx;
+      const context: AppContext = req.ctx;
       try {
         // "domain" is the Google Workspaces domain
         const domain = profile._json.hd;
         let team = await getTeamFromContext(context);
         const client = getClientFromOAuthState(context);
         const user =
-          context.state?.auth?.user ?? (await getUserFromOAuthState(context));
+          context.auth?.user ?? (await getUserFromOAuthState(context));
 
         // No profile domain means a personal gmail account, and no team means
         // the request came from the apex domain rather than a workspace
@@ -125,11 +125,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
         // if a team can be inferred, we assume the user is only interested in signing into
         // that team in particular; otherwise, we will do a best effort at finding their account
         // or provisioning a new one (within AccountProvisioner)
-        const ctx = createContext({
-          ip: context.ip,
-          user,
-          authType: context.state?.auth?.type,
-        });
+        const ctx = withUser(context, user);
         const result = await accountProvisioner(ctx, {
           team: {
             teamId: team?.id,

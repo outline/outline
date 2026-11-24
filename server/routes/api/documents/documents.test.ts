@@ -53,7 +53,7 @@ import {
 import {
   getTestServer,
   readZipResponse,
-  withAPIContext,
+  withContext,
 } from "@server/test/support";
 
 const server = getTestServer();
@@ -210,7 +210,7 @@ describe("#documents.info", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => document.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.info", user, {
       body: {
         id: document.id,
@@ -491,7 +491,7 @@ describe("#documents.info", () => {
       teamId: document.teamId,
       userId: user.id,
     });
-    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => document.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.info", {
       body: {
         shareId: share.id,
@@ -690,7 +690,7 @@ describe("#documents.export", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => document.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.export", user, {
       body: {
         id: document.id,
@@ -1044,7 +1044,7 @@ describe("#documents.list", () => {
         collectionId: collection.id,
       }),
     ]);
-    await withAPIContext(user, (ctx) => docs[0].archiveWithCtx(ctx));
+    await withContext(user, (ctx) => docs[0].archiveWithCtx(ctx));
     const res = await server.post("/api/documents.list", user, {
       body: {
         statusFilter: [StatusFilter.Archived],
@@ -1085,8 +1085,8 @@ describe("#documents.list", () => {
       }),
     ]);
     await Promise.all([
-      withAPIContext(user, (ctx) => docs[0].archiveWithCtx(ctx)),
-      withAPIContext(user, (ctx) => docs[1].archiveWithCtx(ctx)),
+      withContext(user, (ctx) => docs[0].archiveWithCtx(ctx)),
+      withContext(user, (ctx) => docs[1].archiveWithCtx(ctx)),
     ]);
     const res = await server.post("/api/documents.list", user, {
       body: {
@@ -3519,7 +3519,7 @@ describe("#documents.search", () => {
       text: "search term",
       teamId: user.teamId,
     });
-    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => document.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.search", user, {
       body: {
         query: "search term",
@@ -3538,7 +3538,7 @@ describe("#documents.search", () => {
       text: "search term",
       teamId: user.teamId,
     });
-    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => document.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.search", user, {
       body: {
         query: "search term",
@@ -4652,10 +4652,8 @@ describe("#documents.archived", () => {
       ]);
 
     await Promise.all([
-      withAPIContext(user, (ctx) =>
-        documentInFirstCollection.archiveWithCtx(ctx)
-      ),
-      withAPIContext(user, (ctx) =>
+      withContext(user, (ctx) => documentInFirstCollection.archiveWithCtx(ctx)),
+      withContext(user, (ctx) =>
         documentInSecondCollection.archiveWithCtx(ctx)
       ),
     ]);
@@ -4694,10 +4692,8 @@ describe("#documents.archived", () => {
       ]);
 
     await Promise.all([
-      withAPIContext(user, (ctx) =>
-        documentInFirstCollection.archiveWithCtx(ctx)
-      ),
-      withAPIContext(user, (ctx) =>
+      withContext(user, (ctx) => documentInFirstCollection.archiveWithCtx(ctx)),
+      withContext(user, (ctx) =>
         documentInSecondCollection.archiveWithCtx(ctx)
       ),
     ]);
@@ -4714,7 +4710,7 @@ describe("#documents.archived", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => document.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.archived", user);
     const body = await res.json();
     expect(res.status).toEqual(200);
@@ -4727,7 +4723,7 @@ describe("#documents.archived", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     const res = await server.post("/api/documents.archived", user);
     const body = await res.json();
     expect(res.status).toEqual(200);
@@ -4743,7 +4739,7 @@ describe("#documents.archived", () => {
       teamId: user.teamId,
       collectionId: collection.id,
     });
-    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => document.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.archived", user);
     const body = await res.json();
     expect(res.status).toEqual(200);
@@ -4769,7 +4765,7 @@ describe("#documents.deleted", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     const res = await server.post("/api/documents.deleted", user);
     const body = await res.json();
     expect(res.status).toEqual(200);
@@ -4797,9 +4793,9 @@ describe("#documents.deleted", () => {
       collectionId: null,
     });
     await Promise.all([
-      withAPIContext(user, (ctx) => document.destroyWithCtx(ctx)),
-      withAPIContext(user, (ctx) => draftDocument.destroyWithCtx(ctx)),
-      withAPIContext(user2, (ctx) => otherUserDraft.destroyWithCtx(ctx)),
+      withContext(user, (ctx) => document.destroyWithCtx(ctx)),
+      withContext(user, (ctx) => draftDocument.destroyWithCtx(ctx)),
+      withContext(user2, (ctx) => otherUserDraft.destroyWithCtx(ctx)),
     ]);
     const res = await server.post("/api/documents.deleted", user);
     const body = await res.json();
@@ -4816,7 +4812,7 @@ describe("#documents.deleted", () => {
       userId: admin.id,
       teamId: admin.teamId,
     });
-    await withAPIContext(admin, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(admin, (ctx) => document.destroyWithCtx(ctx));
     const res = await server.post("/api/documents.deleted", admin);
     const body = await res.json();
     expect(res.status).toEqual(200);
@@ -4835,7 +4831,7 @@ describe("#documents.deleted", () => {
       teamId: user.teamId,
       collectionId: collection.id,
     });
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     const res = await server.post("/api/documents.deleted", user);
     const body = await res.json();
     expect(res.status).toEqual(200);
@@ -4856,8 +4852,8 @@ describe("#documents.deleted", () => {
       teamId: user.teamId,
       collectionId: collection.id,
     });
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
-    await withAPIContext(other, (ctx) => otherDocument.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(other, (ctx) => otherDocument.destroyWithCtx(ctx));
 
     const res = await server.post("/api/documents.deleted", user, {
       body: {
@@ -4896,7 +4892,7 @@ describe("#documents.deleted", () => {
       collectionId: collection.id,
       parentDocumentId: document.id,
     });
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
 
     await childDocument.reload({ paranoid: false });
     expect(childDocument.deletedById).toEqual(user.id);
@@ -4921,7 +4917,7 @@ describe("#documents.deleted", () => {
       teamId: user.teamId,
       collectionId: collection.id,
     });
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
 
     const res = await server.post("/api/documents.info", user, {
       body: { id: document.id },
@@ -4965,7 +4961,7 @@ describe("#documents.deleted", () => {
       teamId: user.teamId,
       collectionId: collection.id,
     });
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     await Document.update(
       { deletedAt: subDays(new Date(), 10) },
       {
@@ -5014,9 +5010,9 @@ describe("#documents.deleted", () => {
       teamId: user.teamId,
       collectionId: collection.id,
     });
-    await withAPIContext(user, (ctx) => ownDraft.destroyWithCtx(ctx));
-    await withAPIContext(other, (ctx) => otherDraft.destroyWithCtx(ctx));
-    await withAPIContext(other, (ctx) => otherDocument.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => ownDraft.destroyWithCtx(ctx));
+    await withContext(other, (ctx) => otherDraft.destroyWithCtx(ctx));
+    await withContext(other, (ctx) => otherDocument.destroyWithCtx(ctx));
 
     const res = await server.post("/api/documents.deleted", user);
     const body = await res.json();
@@ -5043,7 +5039,7 @@ describe("#documents.deleted", () => {
       userId: user.id,
       permission: DocumentPermission.ReadWrite,
     });
-    await withAPIContext(other, (ctx) => sharedDraft.destroyWithCtx(ctx));
+    await withContext(other, (ctx) => sharedDraft.destroyWithCtx(ctx));
 
     const res = await server.post("/api/documents.deleted", user);
     const body = await res.json();
@@ -5071,7 +5067,7 @@ describe("#documents.deleted", () => {
       permission: DocumentPermission.ReadWrite,
       createdById: other.id,
     });
-    await withAPIContext(other, (ctx) => sharedDraft.destroyWithCtx(ctx));
+    await withContext(other, (ctx) => sharedDraft.destroyWithCtx(ctx));
 
     const res = await server.post("/api/documents.deleted", user);
     const body = await res.json();
@@ -5897,7 +5893,7 @@ describe("#documents.restore", () => {
       collectionId: collection.id,
       teamId: team.id,
     });
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     await collection.destroy({ hooks: false });
 
     const res = await server.post("/api/documents.restore", user, {
@@ -5926,7 +5922,7 @@ describe("#documents.restore", () => {
       collectionId: collection.id,
       teamId: team.id,
     });
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     await collection.destroy({ hooks: false });
 
     const res = await server.post("/api/documents.restore", user, {
@@ -5996,7 +5992,7 @@ describe("#documents.restore", () => {
       teamId: user.teamId,
       deprecatedReason: "Outdated",
     });
-    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => document.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.restore", user, {
       body: {
         id: document.id,
@@ -6030,7 +6026,7 @@ describe("#documents.restore", () => {
       parentDocumentId: child.id,
       deprecatedReason: "Grandchild is outdated",
     });
-    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => document.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.restore", user, {
       body: { id: document.id },
     });
@@ -6054,8 +6050,8 @@ describe("#documents.restore", () => {
       collectionId: document.collectionId,
       parentDocumentId: document.id,
     });
-    await withAPIContext(user, (ctx) => childDocument.archiveWithCtx(ctx));
-    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => childDocument.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => document.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.restore", user, {
       body: {
         id: childDocument.id,
@@ -7509,7 +7505,7 @@ describe("#documents.update", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => document.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.update", user, {
       body: {
         id: document.id,
@@ -8195,7 +8191,7 @@ describe("#documents.unpublish", () => {
       teamId: user.teamId,
       parentDocumentId: document.id,
     });
-    await withAPIContext(user, (ctx) => child.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => child.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.unpublish", user, {
       body: {
         id: document.id,
@@ -8254,7 +8250,7 @@ describe("#documents.unpublish", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     const res = await server.post("/api/documents.unpublish", user, {
       body: {
         id: document.id,
@@ -8269,7 +8265,7 @@ describe("#documents.unpublish", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => document.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.unpublish", user, {
       body: {
         id: document.id,

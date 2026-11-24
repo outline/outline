@@ -1,7 +1,7 @@
 import { Hour } from "@shared/utils/time";
 import type Collection from "@server/models/Collection";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import presentUser from "./user";
 
 type Options = {
@@ -18,7 +18,7 @@ type Options = {
 };
 
 export default async function presentCollection(
-  ctx: APIContext | undefined,
+  ctx: Context | undefined,
   collection: Collection,
   options: Options = {}
 ) {

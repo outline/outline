@@ -15,7 +15,7 @@ import {
   buildUser,
   buildGuestUser,
 } from "@server/test/factories";
-import { withAPIContext } from "@server/test/support";
+import { withContext } from "@server/test/support";
 import { sequelize } from "@server/storage/database";
 import GroupMembership from "./GroupMembership";
 import GroupUser from "./GroupUser";
@@ -48,7 +48,7 @@ describe("#restoreTo", () => {
         { deprecatedReason: "Outdated" },
         { where: { id: document.id }, paranoid: false }
       );
-      await withAPIContext(user, (ctx) =>
+      await withContext(user, (ctx) =>
         document.restoreTo(ctx, { collectionId: collection.id })
       );
       await document.reload();
@@ -84,7 +84,7 @@ describe("#destroyWithCtx", () => {
   it("should soft delete and set last modified", async () => {
     const document = await buildDocument();
     const user = await buildUser();
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
 
     const newDocument = await Document.findByPk(document.id, {
       paranoid: false,
@@ -98,7 +98,7 @@ describe("#destroyWithCtx", () => {
       archivedAt: new Date(),
     });
     const user = await buildUser();
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     const newDocument = await Document.findByPk(document.id, {
       paranoid: false,
     });
@@ -121,7 +121,7 @@ describe("#destroyWithCtx", () => {
     });
     await collection.addDocumentToStructure(document, 0);
 
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     const [newDocument, newCollection] = await Promise.all([
       document.reload({ paranoid: false }),
       collection.reload(),
@@ -135,7 +135,7 @@ describe("#destroyWithCtx", () => {
   it("should delete draft without collection", async () => {
     const user = await buildUser();
     const document = await buildDraftDocument();
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     const deletedDocument = await Document.findByPk(document.id, {
       paranoid: false,
     });
@@ -1189,7 +1189,7 @@ describe("#owners", () => {
     const owner = await buildUser({ teamId: user.teamId });
     const document = await buildDocument({ teamId: user.teamId });
 
-    await withAPIContext(user, (ctx) => document.addOwner(ctx, owner.id));
+    await withContext(user, (ctx) => document.addOwner(ctx, owner.id));
 
     await document.reload();
     expect(document.ownerIds).toEqual([owner.id]);
@@ -1207,9 +1207,9 @@ describe("#owners", () => {
     const user = await buildUser();
     const owner = await buildUser({ teamId: user.teamId });
     const document = await buildDocument({ teamId: user.teamId });
-    await withAPIContext(user, (ctx) => document.addOwner(ctx, owner.id));
+    await withContext(user, (ctx) => document.addOwner(ctx, owner.id));
 
-    await withAPIContext(user, (ctx) => document.removeOwner(ctx, owner.id));
+    await withContext(user, (ctx) => document.removeOwner(ctx, owner.id));
 
     await document.reload();
     expect(document.ownerIds).toEqual([]);
@@ -1233,8 +1233,8 @@ describe("#owners", () => {
       rejectOnEmpty: true,
     });
 
-    await withAPIContext(user, (ctx) => document.addOwner(ctx, first.id));
-    await withAPIContext(user, (ctx) => stale.addOwner(ctx, second.id));
+    await withContext(user, (ctx) => document.addOwner(ctx, first.id));
+    await withContext(user, (ctx) => stale.addOwner(ctx, second.id));
 
     await document.reload();
     expect(document.ownerIds).toEqual([first.id, second.id]);

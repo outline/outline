@@ -290,7 +290,7 @@ export function toMobileMenuItems(
         }
 
         return (
-          <div key={`${item.type}-${index}`}>
+          <div key={`${item.type}-${index}`} role="group">
             <Components.MenuHeader>{item.title}</Components.MenuHeader>
             {groupItems}
           </div>
@@ -340,7 +340,11 @@ function matchesQuery(item: MenuItem, query: string): boolean {
 
 function filterMenuItems(items: MenuItem[]): MenuItem[] {
   return items
-    .filter((item) => item.visible !== false)
+    .filter(
+      (item) =>
+        item.visible !== false &&
+        (item.type !== "group" || filterMenuItems(item.items).length > 0)
+    )
     .reduce((acc, item) => {
       // trim separator when the previous item is also a separator.
       if (
@@ -352,10 +356,12 @@ function filterMenuItems(items: MenuItem[]): MenuItem[] {
       return [...acc, item];
     }, [] as MenuItem[])
     .filter((item, index, arr) => {
-      // trim when first or last item is a separator.
+      // trim when first or last item is a separator, or above a group header.
       if (
         item.type === "separator" &&
-        (index === 0 || index === arr.length - 1)
+        (index === 0 ||
+          index === arr.length - 1 ||
+          arr[index + 1]?.type === "group")
       ) {
         return false;
       }

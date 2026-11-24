@@ -13,7 +13,7 @@ import { Subscription, Document, User, Collection } from "@server/models";
 import SubscriptionHelper from "@server/models/helpers/SubscriptionHelper";
 import { authorize } from "@server/policies";
 import { presentSubscription } from "@server/presenters";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { safeEqual } from "@server/utils/crypto";
 import pagination from "../middlewares/pagination";
@@ -26,8 +26,8 @@ router.post(
   auth(),
   pagination(),
   validate(T.SubscriptionsListSchema),
-  async (ctx: APIContext<T.SubscriptionsListReq>) => {
-    const { user } = ctx.state.auth;
+  async (ctx: Context<T.SubscriptionsListReq>) => {
+    const { user } = ctx.auth;
     const { event, collectionId, documentId } = ctx.input.body;
 
     const where: WhereOptions<Subscription> = {
@@ -38,7 +38,7 @@ router.post(
     if (collectionId) {
       const collection = await Collection.findByPk(collectionId, {
         userId: user.id,
-        transaction: ctx.state.transaction,
+        transaction: ctx.transaction,
       });
       authorize(user, "read", collection);
 
@@ -72,8 +72,8 @@ router.post(
   "subscriptions.info",
   auth(),
   validate(T.SubscriptionsInfoSchema),
-  async (ctx: APIContext<T.SubscriptionsInfoReq>) => {
-    const { user } = ctx.state.auth;
+  async (ctx: Context<T.SubscriptionsInfoReq>) => {
+    const { user } = ctx.auth;
     const { event, collectionId, documentId } = ctx.input.body;
 
     const where: WhereOptions<Subscription> = {
@@ -121,8 +121,8 @@ router.post(
   auth(),
   validate(T.SubscriptionsCreateSchema),
   transaction(),
-  async (ctx: APIContext<T.SubscriptionsCreateReq>) => {
-    const { user } = ctx.state.auth;
+  async (ctx: Context<T.SubscriptionsCreateReq>) => {
+    const { user } = ctx.auth;
     const { event, collectionId, documentId } = ctx.input.body;
 
     if (documentId) {
@@ -159,8 +159,8 @@ router.get(
   validate(T.SubscriptionsDeleteTokenSchema),
   rateLimiter(RateLimiterStrategy.FivePerMinute),
   transaction(),
-  async (ctx: APIContext<T.SubscriptionsDeleteTokenReq>) => {
-    const { transaction } = ctx.state;
+  async (ctx: Context<T.SubscriptionsDeleteTokenReq>) => {
+    const { transaction } = ctx;
     const { follow, userId, documentId, token } = ctx.input.query;
 
     // The link in the email does not include the follow query param, this
@@ -237,9 +237,9 @@ router.post(
   auth(),
   validate(T.SubscriptionsDeleteSchema),
   transaction(),
-  async (ctx: APIContext<T.SubscriptionsDeleteReq>) => {
-    const { transaction } = ctx.state;
-    const { user } = ctx.state.auth;
+  async (ctx: Context<T.SubscriptionsDeleteReq>) => {
+    const { transaction } = ctx;
+    const { user } = ctx.auth;
     const { id } = ctx.input.body;
 
     const subscription = await Subscription.findByPk(id, {

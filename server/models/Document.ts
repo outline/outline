@@ -86,7 +86,8 @@ import {
 } from "./helpers/owners";
 import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
+import { toHookContext, type HookContextFields } from "@server/context";
 import { APIUpdateExtension } from "@server/collaboration/APIUpdateExtension";
 import { SkipChangeset } from "./decorators/Changeset";
 import type { EventOverrideOptions, HookContext } from "./base/Model";
@@ -659,7 +660,7 @@ class Document extends ArchivableModel<
   @AfterUpdate
   static async publishTitleChangeEvent(
     model: Document,
-    ctx: APIContext["context"]
+    ctx: HookContextFields
   ) {
     if (model.changed("title")) {
       const hookContext = {
@@ -671,7 +672,7 @@ class Document extends ArchivableModel<
   }
 
   @AfterUpdate
-  static async publishOwnerEvents(model: Document, ctx: APIContext["context"]) {
+  static async publishOwnerEvents(model: Document, ctx: HookContextFields) {
     if (!model.changed("ownerIds")) {
       return;
     }
@@ -1323,7 +1324,7 @@ class Document extends ArchivableModel<
    * @returns a promise that resolves once the owners are assigned.
    * @throws ValidationError when any of the owners are not valid.
    */
-  setOwnerIds = async (ctx: APIContext, ownerIds: string[]): Promise<void> => {
+  setOwnerIds = async (ctx: Context, ownerIds: string[]): Promise<void> => {
     const nextOwnerIds = await resolveRequestedOwnerIds(
       ctx,
       this.ownerIds ?? [],
@@ -1344,7 +1345,7 @@ class Document extends ArchivableModel<
    * @returns a promise that resolves once the owner is saved.
    * @throws ValidationError when the user cannot be an owner.
    */
-  addOwner = async (ctx: APIContext, userId: string): Promise<void> => {
+  addOwner = async (ctx: Context, userId: string): Promise<void> => {
     const ownerIds = await this.lockOwnerIds(ctx);
 
     if (!ownerIds.includes(userId)) {
@@ -1368,7 +1369,7 @@ class Document extends ArchivableModel<
    * @param userId the ID of the user to remove.
    * @returns a promise that resolves once the owner is removed.
    */
-  removeOwner = async (ctx: APIContext, userId: string): Promise<void> => {
+  removeOwner = async (ctx: Context, userId: string): Promise<void> => {
     if (!this.ownerIds?.includes(userId)) {
       return;
     }
@@ -1390,12 +1391,9 @@ class Document extends ArchivableModel<
    * @param userIds the IDs of the owners.
    * @returns a promise that resolves once the memberships are saved.
    */
-  grantOwnerAccess = async (
-    ctx: APIContext,
-    userIds: string[]
-  ): Promise<void> => {
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+  grantOwnerAccess = async (ctx: Context, userIds: string[]): Promise<void> => {
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     for (const userId of userIds) {
       const membership = await UserMembership.findOneForUpdate(
@@ -1416,13 +1414,13 @@ class Document extends ArchivableModel<
       membership.permission = DocumentPermission.Admin;
       membership.sourceId = null;
       if (membership.changed()) {
-        await membership.save(ctx.context);
+        await membership.save(toHookContext(ctx));
       }
     }
   };
 
   publish = async (
-    ctx: APIContext,
+    ctx: Context,
     {
       index = 0,
       collectionId,
@@ -1437,8 +1435,8 @@ class Document extends ArchivableModel<
       data?: Record<string, unknown>;
     }
   ): Promise<this> => {
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     this.lastModifiedById = user.id;
     this.updatedBy = user;
@@ -1529,19 +1527,19 @@ class Document extends ArchivableModel<
   /**
    * Unpublishes a published document, converting it back to a draft.
    *
-   * @param ctx the API context.
+   * @param ctx the context.
    * @param options.detach whether to detach the document from the containing collection.
    * @returns updated document.
    * @throws if the document has child documents.
    */
-  unpublishWithCtx = async (ctx: APIContext, options: { detach: boolean }) => {
+  unpublishWithCtx = async (ctx: Context, options: { detach: boolean }) => {
     // If the document is already a draft then calling unpublish should act like save
     if (!this.publishedAt) {
       return this.save();
     }
 
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const childDocumentIds = await this.findAllChildDocumentIds(
       { archivedAt: { [Op.eq]: null } },
@@ -1604,8 +1602,8 @@ class Document extends ArchivableModel<
 
   // Moves a document from being visible to the team within a collection
   // to the archived area, where it can be subsequently restored.
-  archiveWithCtx = async (ctx: APIContext) => {
-    const { transaction } = ctx.state;
+  archiveWithCtx = async (ctx: Context) => {
+    const { transaction } = ctx;
     const collection = this.collectionId
       ? await Collection.findByPk(this.collectionId, {
           includeDocumentStructure: true,
@@ -1627,10 +1625,10 @@ class Document extends ArchivableModel<
 
   // Restore an archived document back to being visible to the team
   restoreTo = async (
-    ctx: APIContext,
+    ctx: Context,
     { collectionId }: { collectionId: string }
   ) => {
-    const { transaction } = ctx.state;
+    const { transaction } = ctx;
     const collection = collectionId
       ? await Collection.findByPk(collectionId, {
           includeDocumentStructure: true,
@@ -1681,11 +1679,11 @@ class Document extends ArchivableModel<
 
   // Delete a document, archived or otherwise.
   destroyWithCtx = async (
-    ctx: APIContext,
+    ctx: Context,
     eventOpts?: EventOverrideOptions
   ): Promise<void> => {
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
     let deleted = false;
 
     if (this.collectionId) {
@@ -1703,7 +1701,7 @@ class Document extends ArchivableModel<
     }
 
     if (!deleted) {
-      await this.destroy(ctx.context);
+      await this.destroy(toHookContext(ctx));
     }
 
     this.lastModifiedById = user.id;
@@ -1823,11 +1821,11 @@ class Document extends ArchivableModel<
   });
 
   private restoreArchivedWithChildren = async (
-    ctx: APIContext,
+    ctx: Context,
     { collectionId }: { collectionId: string }
   ) => {
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const restoreChildren = async (parentDocumentId: string) => {
       const childDocuments = await (
@@ -1860,9 +1858,9 @@ class Document extends ArchivableModel<
     return this.saveWithCtx(ctx, undefined, { name: "unarchive" });
   };
 
-  private archiveWithChildren = async (ctx: APIContext) => {
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+  private archiveWithChildren = async (ctx: Context) => {
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
     const archivedAt = new Date();
 
     // Helper to archive all child documents for a document
@@ -1898,8 +1896,8 @@ class Document extends ArchivableModel<
    * @param ctx the API context containing the transaction.
    * @returns the current owner IDs.
    */
-  private async lockOwnerIds(ctx: APIContext): Promise<string[]> {
-    const { transaction } = ctx.state;
+  private async lockOwnerIds(ctx: Context): Promise<string[]> {
+    const { transaction } = ctx;
     const locked = await Document.unscoped().findOne({
       where: { id: this.id },
       attributes: ["id", "ownerIds"],
