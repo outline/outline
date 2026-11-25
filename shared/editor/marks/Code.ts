@@ -186,23 +186,20 @@ export default class Code extends Mark {
   toMarkdown() {
     function backticksFor(node: ProsemirrorNode, side: -1 | 1) {
       const ticks = /`+/g;
+      const text = node.isText ? node.text || "" : "";
       let match: RegExpMatchArray | null;
       let len = 0;
 
-      if (node.isText) {
-        while ((match = ticks.exec(node.text || ""))) {
-          len = Math.max(len, match[0].length);
-        }
+      while ((match = ticks.exec(text))) {
+        len = Math.max(len, match[0].length);
       }
 
-      let result = len > 0 && side > 0 ? " `" : "`";
-      for (let i = 0; i < len; i++) {
-        result += "`";
-      }
-      if (len > 0 && side < 0) {
-        result += " ";
-      }
-      return result;
+      // CommonMark strips one space from each side when both are present, so
+      // pad the content to keep its own spaces.
+      const pad =
+        len > 0 || (/^ .* $/s.test(text) && text.trim() !== "") ? " " : "";
+      const fence = "`".repeat(len + 1);
+      return side > 0 ? pad + fence : fence + pad;
     }
 
     return {

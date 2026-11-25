@@ -136,3 +136,11 @@ it("leaves neighbouring lists untouched when a checklist has multiple items", ()
   expect(output).toContain("A1 b");
   expect(output).not.toContain("[ ] B2 a");
 });
+
+it("keeps a label that starts with an escaped character", () => {
+  const ast = parser.parse("- [ ] \\*literal\\*");
+  const [item] = findNodes(ast?.toJSON(), "checkbox_item");
+  const [text] = findNodes(item, "text");
+
+  expect(text?.text).toBe("*literal*");
+});
