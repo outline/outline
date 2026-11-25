@@ -19,6 +19,7 @@ import type { Context } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import Logger from "@server/logging/Logger";
 import Redis from "@server/storage/redis";
+import ValidateSSOAccessTask from "@server/queues/tasks/ValidateSSOAccessTask";
 import { signIn } from "@server/utils/authentication";
 import { generatePasskeyName, PasskeyBrand } from "@shared/utils/passkeys";
 import * as T from "./schema";
@@ -373,6 +374,15 @@ router.post(
         isNewTeam: false,
         client,
       });
+
+      // Revoke the session if the user also has SSO and lost access there.
+      await new ValidateSSOAccessTask()
+        .schedule({ userId: user.id })
+        .catch((err) => {
+          Logger.warn("passkeys: Failed to schedule SSO validation", {
+            error: toError(err).message,
+          });
+        });
     } else {
       throw ValidationError("Verification failed");
     }
