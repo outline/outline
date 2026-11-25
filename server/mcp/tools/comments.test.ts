@@ -96,6 +96,28 @@ describe("list_comments", () => {
     expect(ids).toContain(comment.id);
   });
 
+  it("fails for an admin who is not a member of a private collection", async () => {
+    const { user, accessToken } = await buildOAuthUser({ role: "admin" });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      permission: null,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    await buildComment({
+      userId: document.createdById,
+      documentId: document.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "list_comments", {
+      collectionId: collection.id,
+    });
+
+    expect(res?.result?.isError).toBe(true);
+  });
+
   it("includes anchorText when comment is anchored", async () => {
     const { user, accessToken } = await buildOAuthUser();
     const collection = await buildCollection({

@@ -114,7 +114,7 @@ router.post(
       const collection = await Collection.findByPk(collectionId, {
         userId: user.id,
       });
-      authorize(user, "read", collection);
+      authorize(user, "readDocument", collection);
     } else {
       where[Op.and].push({
         [Op.or]: [

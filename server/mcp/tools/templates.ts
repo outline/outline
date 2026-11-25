@@ -108,7 +108,7 @@ export function templateTools(server: McpServer, scopes: string[]) {
               const collection = await Collection.findByPk(collectionId, {
                 userId: user.id,
               });
-              authorize(user, "read", collection);
+              authorize(user, "readDocument", collection);
               where[Op.and].push({ collectionId: collection.id });
             } else {
               where[Op.and].push({
