@@ -105,6 +105,13 @@ async function accountProvisioner(
   // If the user is already logged in and is an admin of the team then we
   // allow them to connect or reconnect an authentication provider.
   if (actor && actor.teamId === teamParams.teamId && actor.isAdmin) {
+    // An empty providerId (eg a personal Gmail account) would match any account without one.
+    if (!authenticationProviderParams.providerId) {
+      throw InvalidAuthenticationError(
+        "A personal account cannot be used to connect a sign-in provider"
+      );
+    }
+
     const team = actor.team;
     const providers = await AuthenticationProvider.findAll({
       where: {

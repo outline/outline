@@ -893,6 +893,37 @@ describe("accountProvisioner", () => {
       expect(isNewUser).toEqual(false);
     });
 
+    it("should not connect or reconnect an authentication provider with an empty providerId", async () => {
+      const admin = await buildAdmin();
+      const team = admin.team;
+      const [existingProvider] = await team.$get("authenticationProviders");
+
+      await expect(
+        accountProvisioner(createContext({ ip, user: admin }), {
+          user: {
+            name: admin.name,
+            email: admin.email!,
+          },
+          team: {
+            teamId: team.id,
+            subdomain: team.subdomain!,
+          },
+          authenticationProvider: {
+            name: existingProvider.name,
+            providerId: "",
+          },
+          authentication: {
+            providerId: randomUUID(),
+            scopes: ["read"],
+          },
+        })
+      ).rejects.toThrow();
+
+      const providers = await team.$get("authenticationProviders");
+      expect(providers.length).toEqual(1);
+      expect(providers[0].providerId).toEqual(existingProvider.providerId);
+    });
+
     it("should add an authentication provider when the team has several of the same type", async () => {
       const team = await buildTeam({
         authenticationProviders: [
