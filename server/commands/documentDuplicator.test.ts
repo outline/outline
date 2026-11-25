@@ -2,10 +2,12 @@ import { randomUUID } from "node:crypto";
 import { MentionType } from "@shared/types";
 import { createContext } from "@server/context";
 import env from "@server/env";
+import { Document } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import {
   buildCollection,
   buildDocument,
+  buildDraftDocument,
   buildUser,
 } from "@server/test/factories";
 import { withAPIContext } from "@server/test/support";
@@ -118,6 +120,52 @@ describe("documentDuplicator", () => {
     expect(childTitles[0]).toBe(child1.title);
     expect(childTitles[1]).toBe(child2.title);
     expect(childTitles[2]).toBe(child3.title);
+  });
+
+  it("should only duplicate the actor's own drafts with recursive=true", async () => {
+    const user = await buildUser();
+    const otherUser = await buildUser({ teamId: user.teamId });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const original = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const ownDraft = await buildDraftDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      parentDocumentId: original.id,
+    });
+    const otherDraft = await buildDraftDocument({
+      userId: otherUser.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      parentDocumentId: original.id,
+    });
+
+    // Load the root as the API does, so that drafts are not excluded by scope.
+    const document = await Document.findByPk(original.id, {
+      userId: user.id,
+      rejectOnEmpty: true,
+    });
+    const response = await withAPIContext(user, (ctx) =>
+      documentDuplicator(ctx, {
+        document,
+        collection,
+        recursive: true,
+      })
+    );
+
+    const sourceIds = response.map(
+      (doc) => doc.sourceMetadata?.originalDocumentId
+    );
+    expect(sourceIds).toHaveLength(2);
+    expect(sourceIds).toContain(ownDraft.id);
+    expect(sourceIds).not.toContain(otherDraft.id);
   });
 
   it("should duplicate existing document as draft", async () => {

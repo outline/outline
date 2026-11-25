@@ -176,6 +176,12 @@ async function duplicateRoots(
           : {
               [Op.eq]: null,
             },
+
+        // Drafts are private to their author, so only the actor's own are copied.
+        [Op.or]: [
+          { publishedAt: { [Op.ne]: null } },
+          { createdById: ctx.state.auth.user.id },
+        ],
       },
       {
         ...ctx,
