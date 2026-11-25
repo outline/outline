@@ -65,6 +65,8 @@ describe("#files.create", () => {
       {
         userId: user.id,
         teamId: user.teamId,
+        // Smaller than the upload, so the size check would destroy the file if it ran first.
+        size: 100,
         contentType:
           "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       },
