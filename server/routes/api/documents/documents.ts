@@ -101,7 +101,7 @@ import type { Context } from "@server/types";
 import { toHookContext } from "@server/context";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { convertBareUrlsToEmbedMarkdown } from "@server/utils/embeds";
-import { streamZipResponse } from "@server/utils/koa";
+import { getClientAbortSignal, streamZipResponse } from "@server/utils/koa";
 import { QueryHelper } from "@server/storage/QueryHelper";
 import { getTeamFromContext } from "@server/utils/passport";
 import pagination, { paginateQuery } from "../middlewares/pagination";
@@ -1039,28 +1039,44 @@ router.post(
         })
       : [];
 
-    // Read attachments and, when exporting HTML, inline small images that are
-    // referenced a single time as base64 data URIs. Any remaining attachments
-    // are bundled alongside the document in a zip.
-    const externalAttachments: { attachment: Attachment; buffer: Buffer }[] =
-      [];
+    // When exporting HTML, inline small images that are referenced a single
+    // time as base64 data URIs. Only these are read into memory; the other
+    // attachments are streamed into a zip with the document.
+    const signal = getClientAbortSignal(ctx.res);
+    const externalAttachments: Attachment[] = [];
+    let inlinedSize = 0;
     for (const attachment of attachments) {
-      const buffer = await AttachmentHelper.readBuffer(attachment);
+      if (signal.aborted) {
+        return;
+      }
 
-      if (contentType === "text/html") {
+      if (
+        contentType === "text/html" &&
+        HTMLHelper.canInlineImage(
+          content,
+          attachment.redirectUrl,
+          attachment.contentType,
+          // BIGINT columns are returned as strings.
+          Number(attachment.size),
+          inlinedSize
+        )
+      ) {
+        const buffer = await AttachmentHelper.readBuffer(attachment);
         const inlined = HTMLHelper.inlineImage(
           content,
           attachment.redirectUrl,
           attachment.contentType,
-          buffer
+          buffer,
+          inlinedSize
         );
         if (inlined !== null) {
           content = inlined;
+          inlinedSize += buffer.length;
           continue;
         }
       }
 
-      externalAttachments.push({ attachment, buffer });
+      externalAttachments.push(attachment);
     }
 
     if (isTextBundle) {
@@ -1070,15 +1086,18 @@ router.post(
       streamZipResponse(
         ctx,
         `${fileName}.${TextBundleHelper.packExtension}`,
-        (zip) => {
-          for (const { attachment, buffer } of externalAttachments) {
+        (zip, zipSignal) => {
+          for (const attachment of externalAttachments) {
             const reference = TextBundleHelper.assetPath(
               attachment.name,
               usedAssetNames
             );
-            zip.addBuffer(buffer, path.join(root, reference), {
-              mtime: attachment.updatedAt,
-            });
+            AttachmentHelper.addToArchive(
+              zip,
+              attachment,
+              path.join(root, reference),
+              zipSignal
+            );
 
             content = content.replace(
               new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
@@ -1115,13 +1134,13 @@ router.post(
       return;
     }
 
-    streamZipResponse(ctx, `${fileName}.zip`, (zip) => {
-      for (const { attachment, buffer } of externalAttachments) {
+    streamZipResponse(ctx, `${fileName}.zip`, (zip, zipSignal) => {
+      for (const attachment of externalAttachments) {
         const location = path.join(
           "attachments",
           `${attachment.id}.${mime.extension(attachment.contentType)}`
         );
-        zip.addBuffer(buffer, location, { mtime: attachment.updatedAt });
+        AttachmentHelper.addToArchive(zip, attachment, location, zipSignal);
 
         content = content.replace(
           new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
