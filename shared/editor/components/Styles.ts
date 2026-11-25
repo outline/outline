@@ -2557,7 +2557,8 @@ table {
       top: -${TABLE_CONTROLS_HEIGHT}px;
       left: var(--span-start, 0);
       width: var(--span-size, 100%);
-      height: ${TABLE_CONTROLS_HEIGHT}px;
+      /* stops above the top border of the table */
+      height: ${TABLE_CONTROLS_HEIGHT - 1}px;
       background: linear-gradient(${transparentize(1, props.theme.background)}, ${transparentize(0.15, props.theme.background)} 50%);
       display: ${props.readOnly ? "none" : "block"};
       pointer-events: none;
