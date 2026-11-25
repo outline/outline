@@ -10,6 +10,7 @@ import { presentPolicies } from "@server/presenters";
 import presentOAuthAuthentication from "@server/presenters/oauthAuthentication";
 import { sequelize } from "@server/storage/database";
 import type { Context } from "@server/types";
+import { AuthenticationType } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
@@ -61,7 +62,7 @@ router.post(
 router.post(
   "oauthAuthentications.delete",
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
-  auth(),
+  auth({ type: AuthenticationType.APP }),
   validate(T.OAuthAuthenticationsDeleteSchema),
   transaction(),
   async (ctx: Context<T.OAuthAuthenticationsDeleteReq>) => {
