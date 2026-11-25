@@ -82,7 +82,7 @@ function ownedByWhere(
   userIds: string[],
   teamId: string | undefined
 ): Record<string, unknown> {
-  if (!teamId || !isUUID(teamId)) {
+  if (!teamId) {
     throw new Error("`ownerIds` filter requires a teamId");
   }
   if (!userIds.every((id) => isUUID(id))) {
