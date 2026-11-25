@@ -4,6 +4,8 @@ import path from "node:path";
 import { faker } from "@faker-js/faker";
 import { addMinutes, subDays } from "date-fns";
 import FormData from "form-data";
+import { yDocToProsemirrorJSON } from "y-prosemirror";
+import * as Y from "yjs";
 import {
   CollectionPermission,
   DocumentPermission,
@@ -16,6 +18,7 @@ import {
 } from "@shared/types";
 import { TextHelper } from "@shared/utils/TextHelper";
 import { DeprecationValidation, DocumentValidation } from "@shared/validations";
+import { APIUpdateExtension } from "@server/collaboration/APIUpdateExtension";
 import { createContext } from "@server/context";
 import { parser } from "@server/editor";
 import type { Group, User } from "@server/models";
@@ -35,6 +38,7 @@ import {
 import { RelationshipType } from "@server/models/Relationship";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import HTMLHelper from "@server/models/helpers/HTMLHelper";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import DocumentImportTask from "@server/queues/tasks/DocumentImportTask";
 import FileStorage from "@server/storage/files";
 import {
@@ -6199,6 +6203,48 @@ describe("#documents.restore", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.data).toEqual(previous);
+  });
+
+  it("should restore the collaborative state to a previous version", async () => {
+    const notifyUpdateSpy = vi
+      .spyOn(APIUpdateExtension, "notifyUpdate")
+      .mockResolvedValue(undefined);
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      text: "original",
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user }),
+      document
+    );
+
+    // simulate an edit made in the collaborative editor
+    const updated = parser.parse("updated")?.toJSON();
+    document.content = updated;
+    document.state = Buffer.from(
+      Y.encodeStateAsUpdate(ProsemirrorHelper.toYDoc(updated))
+    );
+    await document.save();
+
+    const res = await server.post("/api/documents.restore", user, {
+      body: {
+        id: document.id,
+        revisionId: revision.id,
+      },
+    });
+    expect(res.status).toEqual(200);
+    expect(notifyUpdateSpy).toHaveBeenCalledWith(document.id, user.id);
+    notifyUpdateSpy.mockRestore();
+
+    const reloaded = await Document.findByPk(document.id, {
+      includeState: true,
+      rejectOnEmpty: true,
+    });
+    const ydoc = new Y.Doc();
+    Y.applyUpdate(ydoc, DocumentHelper.toState(reloaded));
+    expect(yDocToProsemirrorJSON(ydoc, "default")).toEqual(revision.content);
   });
 
   it("should not allow restoring a revision in another document", async () => {

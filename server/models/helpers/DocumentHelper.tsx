@@ -737,29 +737,42 @@ export class DocumentHelper {
     // own repairs back in response to this change.
     doc = withTrailingNode(doc);
     document.content = doc.toJSON();
-
-    if (document.state) {
-      const ydoc = new Y.Doc();
-      Y.applyUpdate(ydoc, document.state);
-      const type = ydoc.get("default", Y.XmlFragment) as Y.XmlFragment;
-
-      if (!type.doc) {
-        throw new Error("type.doc not found");
-      }
-
-      // apply new document to existing ydoc
-      updateYFragment(type.doc, type, doc, {
-        mapping: new Map(),
-        isOMark: new Map(),
-      });
-
-      const state = Y.encodeStateAsUpdate(ydoc);
-
-      document.state = Buffer.from(state);
-      document.changed("state", true);
-    }
+    DocumentHelper.applyToState(document, doc);
 
     return document;
+  }
+
+  /**
+   * Updates the collaborative state of a document to match the given content.
+   * Documents without state are not changed, as state is derived from content
+   * when they are first opened.
+   *
+   * @param document The document to update.
+   * @param doc The new content of the document.
+   */
+  static applyToState(document: Document, doc: Node) {
+    if (!document.state) {
+      return;
+    }
+
+    const ydoc = new Y.Doc();
+    Y.applyUpdate(ydoc, document.state);
+    const type = ydoc.get("default", Y.XmlFragment) as Y.XmlFragment;
+
+    if (!type.doc) {
+      throw new Error("type.doc not found");
+    }
+
+    // apply new document to existing ydoc
+    updateYFragment(type.doc, type, doc, {
+      mapping: new Map(),
+      isOMark: new Map(),
+    });
+
+    const state = Y.encodeStateAsUpdate(ydoc);
+
+    document.state = Buffer.from(state);
+    document.changed("state", true);
   }
 
   /**

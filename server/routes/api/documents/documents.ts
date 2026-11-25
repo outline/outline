@@ -1167,6 +1167,7 @@ router.post(
     const { transaction } = ctx;
     const document = await Document.findByPk(id, {
       userId: user.id,
+      includeState: !!revisionId,
       paranoid: false,
       transaction,
     });

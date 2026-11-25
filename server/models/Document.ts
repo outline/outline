@@ -1155,6 +1155,7 @@ class Document extends ArchivableModel<
     this.text = await DocumentHelper.toMarkdown(revision, {
       includeTitle: false,
     });
+    DocumentHelper.applyToState(this, DocumentHelper.toProsemirror(revision));
     this.title = revision.title;
     this.icon = revision.icon;
     this.color = revision.color;
