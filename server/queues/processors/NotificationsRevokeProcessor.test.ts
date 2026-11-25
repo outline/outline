@@ -101,6 +101,22 @@ describe("NotificationsRevokeProcessor", () => {
     expect(schedule).toHaveBeenCalledWith({ userId: user.id });
   });
 
+  it("should schedule a scope-less check for a demoted user", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+
+    await new NotificationsRevokeProcessor().perform({
+      name: "users.demote",
+      userId: user.id,
+      teamId: team.id,
+      actorId: user.id,
+      ip: "127.0.0.1",
+      data: { name: user.name },
+    });
+
+    expect(schedule).toHaveBeenCalledWith({ userId: user.id });
+  });
+
   it("should schedule a scope-less check for every member of a deleted group", async () => {
     const team = await buildTeam();
     const group = await buildGroup({ teamId: team.id });
