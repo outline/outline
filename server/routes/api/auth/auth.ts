@@ -120,7 +120,7 @@ router.post("auth.config", async (ctx: Context<T.AuthConfigReq>) => {
 });
 
 /** Authentication services that don't require SSO validation. */
-const NON_SSO_SERVICES = ["email", "passkeys"];
+const NON_SSO_SERVICES = ["email"];
 
 router.post("auth.info", auth(), async (ctx: Context<T.AuthInfoReq>) => {
   const { user, service, type, token } = ctx.auth;
@@ -145,9 +145,8 @@ router.post("auth.info", auth(), async (ctx: Context<T.AuthInfoReq>) => {
   );
 
   // If the user did not _just_ sign in then we need to check if they continue
-  // to have access to the workspace they are signed into. This only applies
-  // to SSO sessions - email and passkey logins don't have associated
-  // UserAuthentication records that need validation.
+  // to have access to the workspace they are signed into. Passkey sessions are
+  // included so that removal at an SSO provider the user also has applies.
   const requiresSSOValidation = !service || !NON_SSO_SERVICES.includes(service);
   if (
     requiresSSOValidation &&
