@@ -78,7 +78,13 @@ function isGroup<F extends string>(
   return "filters" in filter;
 }
 
-function ownedByWhere(userIds: string[]): Record<string, unknown> {
+function ownedByWhere(
+  userIds: string[],
+  teamId: string | undefined
+): Record<string, unknown> {
+  if (!teamId || !isUUID(teamId)) {
+    throw new Error("`ownerIds` filter requires a teamId");
+  }
   if (!userIds.every((id) => isUUID(id))) {
     throw new Error("`ownerIds` values must be UUIDs");
   }
@@ -90,7 +96,7 @@ function ownedByWhere(userIds: string[]): Record<string, unknown> {
       {
         collectionId: {
           [Op.in]: Sequelize.literal(
-            `(SELECT "id" FROM "collections" WHERE "ownerIds" && ARRAY[${ids}]::uuid[])`
+            `(SELECT "id" FROM "collections" WHERE "teamId" = '${teamId}' AND "ownerIds" && ARRAY[${ids}]::uuid[])`
           ),
         },
       },
@@ -98,7 +104,10 @@ function ownedByWhere(userIds: string[]): Record<string, unknown> {
   };
 }
 
-function leafToWhere(condition: FilterCondition): Record<string, unknown> {
+function leafToWhere(
+  condition: FilterCondition,
+  teamId?: string
+): Record<string, unknown> {
   const { field, operator, value } = condition;
 
   // `userId` is the public-API name for the denormalized collaboratorIds array
@@ -120,10 +129,10 @@ function leafToWhere(condition: FilterCondition): Record<string, unknown> {
   // through the collection that contains them.
   if (field === "ownerIds") {
     if (operator === "eq" && value !== undefined) {
-      return ownedByWhere([String(value)]);
+      return ownedByWhere([String(value)], teamId);
     }
     if (operator === "in" && Array.isArray(value)) {
-      return ownedByWhere(value.map(String));
+      return ownedByWhere(value.map(String), teamId);
     }
     throw new Error("`ownerIds` only supports `eq` or `in` operators");
   }
@@ -187,17 +196,19 @@ export function combineFilters(
  * Convert a filter DSL expression into a Sequelize WhereOptions clause.
  *
  * @param filter the filter expression to convert.
+ * @param teamId the team that the query is scoped to, required for `ownerIds`.
  * @returns a Sequelize-compatible where clause.
  */
 export function buildWhere<M extends object = object>(
-  filter: Filter
+  filter: Filter,
+  teamId?: string
 ): WhereOptions<M> {
   if (isGroup(filter)) {
-    const subWheres = filter.filters.map((f) => buildWhere<M>(f));
+    const subWheres = filter.filters.map((f) => buildWhere<M>(f, teamId));
     const op = filter.operator === "AND" ? Op.and : Op.or;
     return { [op]: subWheres } as WhereOptions<M>;
   }
-  return leafToWhere(filter) as WhereOptions<M>;
+  return leafToWhere(filter, teamId) as WhereOptions<M>;
 }
 
 /**
@@ -303,7 +314,8 @@ export function mapFilterFields(
 }
 
 function searchLeafToWhere(
-  condition: FilterCondition
+  condition: FilterCondition,
+  teamId?: string
 ): Record<string, unknown> {
   // documentId must be expanded to descendant ids by the route handler
   // before reaching here — the expansion is async and authorization-
@@ -313,7 +325,7 @@ function searchLeafToWhere(
       "documentId leaves must be expanded to `id` leaves before buildSearchWhere"
     );
   }
-  return leafToWhere(condition);
+  return leafToWhere(condition, teamId);
 }
 
 /**
@@ -325,18 +337,20 @@ function searchLeafToWhere(
  *     handles that.
  *
  * @param filter the filter expression.
+ * @param teamId the team that the query is scoped to, required for `ownerIds`.
  * @returns a Sequelize WHERE clause.
  * @throws if the filter references documentId (unexpanded).
  */
 export function buildSearchWhere<M extends object = object>(
-  filter: Filter
+  filter: Filter,
+  teamId?: string
 ): WhereOptions<M> {
   if (isGroup(filter)) {
-    const subWheres = filter.filters.map((f) => buildSearchWhere<M>(f));
+    const subWheres = filter.filters.map((f) => buildSearchWhere<M>(f, teamId));
     const op = filter.operator === "AND" ? Op.and : Op.or;
     return { [op]: subWheres } as WhereOptions<M>;
   }
-  return searchLeafToWhere(filter) as WhereOptions<M>;
+  return searchLeafToWhere(filter, teamId) as WhereOptions<M>;
 }
 
 interface LegacyParams {

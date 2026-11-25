@@ -304,7 +304,7 @@ router.post(
         collections: collection ? [collection] : undefined,
       });
       const mapped = mapFilterFields(filter, { documentId: "id" });
-      where[Op.and].push(buildWhere<Document>(mapped));
+      where[Op.and].push(buildWhere<Document>(mapped, user.teamId));
     }
 
     if (!backlinkDocumentId && !collectionScopeDropped) {
@@ -565,7 +565,7 @@ router.post(
     const filter = combineFilters(rawFilters);
     if (filter) {
       await authorizeFilterFields(user, filter);
-      where[Op.and].push(buildWhere<Document>(filter));
+      where[Op.and].push(buildWhere<Document>(filter, user.teamId));
     }
 
     const documents = await Document.scope([
