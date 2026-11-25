@@ -152,7 +152,7 @@ describe("documentDuplicator", () => {
       userId: user.id,
       rejectOnEmpty: true,
     });
-    const response = await withAPIContext(user, (ctx) =>
+    const response = await withContext(user, (ctx) =>
       documentDuplicator(ctx, {
         document,
         collection,

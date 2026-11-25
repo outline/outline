@@ -180,7 +180,7 @@ async function duplicateRoots(
         // Drafts are private to their author, so only the actor's own are copied.
         [Op.or]: [
           { publishedAt: { [Op.ne]: null } },
-          { createdById: ctx.state.auth.user.id },
+          { createdById: ctx.auth.user.id },
         ],
       },
       {
