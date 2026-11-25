@@ -66,6 +66,11 @@ router.post(
       throw AuthorizationError("Invalid key");
     }
 
+    // Reject repeated uploads before the error paths below can destroy the stored file.
+    if (await FileStorage.getFileExists(key)) {
+      throw ValidationError(`File already exists at ${key}`);
+    }
+
     const declaredSize = Number(attachment.size);
 
     if (file.size > declaredSize) {
