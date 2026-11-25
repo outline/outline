@@ -14,6 +14,13 @@ export default class Text extends Node {
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
-    state.text(node.text || "", !state.inAutolink);
+    const text = node.text || "";
+    if (!state.inAutolink) {
+      state.text(text, true);
+      return;
+    }
+
+    // Autolink text is not escaped, except pipes that would split a table cell.
+    state.text(state.inTable ? text.replace(/\|/g, "\\|") : text, false);
   }
 }
