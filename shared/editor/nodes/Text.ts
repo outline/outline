@@ -21,6 +21,6 @@ export default class Text extends Node {
     }
 
     // Autolink text is not escaped, except pipes that would split a table cell.
-    state.text(state.inTable ? text.replace(/\|/g, "\\|") : text, false);
+    state.text(state.inTable ? text.split("|").join("\\|") : text, false);
   }
 }
