@@ -215,4 +215,34 @@ describe("documentPermanentDeleter", () => {
       })
     ).toEqual(1);
   });
+
+  it("should destroy attachments referenced only by documents in the same batch", async () => {
+    const document1 = await buildDocument({
+      publishedAt: subDays(new Date(), 90),
+      deletedAt: subDays(new Date(), 60),
+    });
+    const document2 = await buildDocument({
+      teamId: document1.teamId,
+      publishedAt: subDays(new Date(), 90),
+      deletedAt: subDays(new Date(), 60),
+    });
+    const attachment = await buildAttachment({
+      teamId: document1.teamId,
+      documentId: document1.id,
+    });
+    document1.text = `![text](${attachment.redirectUrl})`;
+    await document1.save();
+    document2.text = `![text](${attachment.redirectUrl})`;
+    await document2.save();
+
+    const countDeletedDoc = await documentPermanentDeleter([
+      document1,
+      document2,
+    ]);
+    expect(countDeletedDoc).toEqual(2);
+    expect(schedule).toHaveBeenCalledTimes(1);
+    expect(schedule).toHaveBeenCalledWith(
+      expect.objectContaining({ attachmentId: attachment.id })
+    );
+  });
 });

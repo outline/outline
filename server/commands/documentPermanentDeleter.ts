@@ -22,8 +22,10 @@ export default async function documentPermanentDeleter(documents: Document[]) {
     FROM documents
     WHERE "searchVector" @@ to_tsquery('english', :query) AND
     "teamId" = :teamId AND
-    "id" != :documentId
+    "id" NOT IN (:documentIds)
   `;
+  const documentIds = documents.map((document) => document.id);
+  const checkedAttachmentIds = new Set<string>();
 
   for (const document of documents) {
     // Find any attachments that are referenced in the text content
@@ -42,22 +44,27 @@ export default async function documentPermanentDeleter(documents: Document[]) {
       })
     ).map((attachment) => attachment.id);
 
+    // Skip attachments already handled for another document in this batch.
     const attachmentIds = uniq([
       ...attachmentIdsInText,
       ...attachmentIdsForDocument,
-    ]);
+    ]).filter((attachmentId) => !checkedAttachmentIds.has(attachmentId));
+    attachmentIds.forEach((attachmentId) =>
+      checkedAttachmentIds.add(attachmentId)
+    );
 
     await Promise.all(
       attachmentIds.map(async (attachmentId) => {
-        // Check if the attachment is referenced in any other documents – this
-        // is needed as it's easy to copy and paste content between documents.
-        // An uploaded attachment may end up referenced in multiple documents.
+        // Check if the attachment is referenced in any documents outside this
+        // batch – this is needed as it's easy to copy and paste content between
+        // documents. An uploaded attachment may end up referenced in multiple
+        // documents.
         const [{ count }] = await sequelizeReadOnly.query<{ count: string }>(
           query,
           {
             type: QueryTypes.SELECT,
             replacements: {
-              documentId: document.id,
+              documentIds,
               teamId: document.teamId,
               query: attachmentId,
             },
@@ -79,8 +86,6 @@ export default async function documentPermanentDeleter(documents: Document[]) {
       })
     );
   }
-
-  const documentIds = documents.map((document) => document.id);
 
   // Re-check deletedAt in the database to exclude documents that were restored
   // between the caller's query and now. Otherwise the parentDocumentId clear
