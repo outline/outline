@@ -37,6 +37,9 @@ const stickyTableHeader = keyframes`
   to { transform: translateY(var(--sticky-header-travel)); }
 `;
 
+/** The space above a table for its column controls, it overlaps the block above. */
+const TABLE_CONTROLS_HEIGHT = 28;
+
 /** The frame of a file in the editor, which holds the progress bar of an upload. */
 const uploadFrame = `.${EditorStyleHelper.imageWrapper}, .${EditorStyleHelper.videoWrapper}, .widget, .${EditorStyleHelper.pdfWrapper}`;
 
@@ -2383,7 +2386,7 @@ table {
   /* keeps the insert button above the grips of neighboring cells */
   td:has(.${EditorStyleHelper.tableAddRow}:hover, .${EditorStyleHelper.tableAddColumn}:hover),
   th:has(.${EditorStyleHelper.tableAddRow}:hover, .${EditorStyleHelper.tableAddColumn}:hover) {
-    z-index: 3;
+    z-index: 11;
   }
 
   td .component-embed {
@@ -2427,7 +2430,7 @@ table {
 
     /* above the grips while the insert line is shown */
     &:hover {
-      z-index: 3;
+      z-index: 11;
     }
 
     &:hover::after {
@@ -2478,7 +2481,7 @@ table {
 
     &:hover::after {
       bottom: -7.5px;
-      left: -5px;
+      left: -16px;
     }
 
     // extra clickable area
@@ -2503,7 +2506,8 @@ table {
     right: calc(var(--span-end, 0%) - 1px);
     width: 2px;
     height: 0;
-    z-index: 1;
+    /* above the column grips, the clickable area is only the gap above them */
+    z-index: 3;
 
     &::after {
       content: "";
@@ -2522,14 +2526,16 @@ table {
     }
 
     &:hover::after {
-      top: -5px;
+      top: -16px;
       right: -7px;
     }
 
     // extra clickable area
     &::before {
-      top: -16px;
-      right: -12px;
+      top: -12px;
+      right: -7px;
+      width: 16px;
+      height: 8px;
     }
 
     &.first {
@@ -2538,12 +2544,26 @@ table {
 
       &::before {
         right: auto;
-        left: -12px;
+        left: -7px;
       }
     }
   }
 
   .${EditorStyleHelper.tableGripColumn} {
+    /* fades the block above where the controls overlap it */
+    &::before {
+      content: "";
+      position: absolute;
+      top: -${TABLE_CONTROLS_HEIGHT}px;
+      left: var(--span-start, 0);
+      width: var(--span-size, 100%);
+      height: ${TABLE_CONTROLS_HEIGHT}px;
+      background: linear-gradient(${transparentize(1, props.theme.background)}, ${transparentize(0.15, props.theme.background)} 50%);
+      display: ${props.readOnly ? "none" : "block"};
+      pointer-events: none;
+      z-index: 1;
+    }
+
     /* usage of ::after for all of the table grips works around a bug in
      * prosemirror-tables that causes Safari to hang when selecting a cell
      * in an empty table:
@@ -2552,33 +2572,37 @@ table {
       content: "";
       cursor: grab;
       position: absolute;
-      top: -10px;
+      top: -14px;
       left: var(--span-start, 0);
       width: var(--span-size, 100%);
       height: 6px;
-      background: var(--table-grip, ${props.theme.divider});
+      /* transparent border increases the clickable area */
+      border: solid transparent;
+      border-width: 4px 0;
+      background-clip: padding-box;
+      background-color: var(--table-grip, ${props.theme.divider});
       display: ${props.readOnly ? "none" : "block"};
       /* above the add column controls so narrow columns stay draggable */
       z-index: 2;
     }
 
     &:hover::after {
-      background: ${props.theme.text};
+      background-color: ${props.theme.text};
     }
 
     body.${EditorStyleHelper.tableDragging} &:hover::after {
-      background: var(--table-grip, ${props.theme.divider});
+      background-color: var(--table-grip, ${props.theme.divider});
     }
     &.first::after {
-      border-top-left-radius: 3px;
-      border-bottom-left-radius: 3px;
+      border-top-left-radius: 3px 7px;
+      border-bottom-left-radius: 3px 7px;
     }
     &.last::after {
-      border-top-right-radius: 3px;
-      border-bottom-right-radius: 3px;
+      border-top-right-radius: 3px 7px;
+      border-bottom-right-radius: 3px 7px;
     }
     &.selected::after {
-      background: ${props.theme.tableSelected};
+      background-color: ${props.theme.tableSelected};
     }
   }
 
@@ -2587,34 +2611,37 @@ table {
       content: "";
       cursor: grab;
       position: absolute;
-      left: -10px;
+      left: -14px;
       top: var(--span-start, 0);
       height: var(--span-size, 100%);
       width: 6px;
-      background: var(--table-grip, ${props.theme.divider});
-      border-color: var(--table-grip-border, ${props.theme.background});
+      /* transparent border increases the clickable area */
+      border: solid transparent;
+      border-width: 0 4px;
+      background-clip: padding-box;
+      background-color: var(--table-grip, ${props.theme.divider});
       display: ${props.readOnly ? "none" : "block"};
       /* above the add row controls so short rows stay draggable */
       z-index: 2;
     }
 
     &:hover::after {
-      background: ${props.theme.text};
+      background-color: ${props.theme.text};
     }
 
     body.${EditorStyleHelper.tableDragging} &:hover::after {
-      background: var(--table-grip, ${props.theme.divider});
+      background-color: var(--table-grip, ${props.theme.divider});
     }
     &.first::after {
-      border-top-left-radius: 3px;
-      border-top-right-radius: 3px;
+      border-top-left-radius: 7px 3px;
+      border-top-right-radius: 7px 3px;
     }
     &.last::after {
-      border-bottom-left-radius: 3px;
-      border-bottom-right-radius: 3px;
+      border-bottom-left-radius: 7px 3px;
+      border-bottom-right-radius: 7px 3px;
     }
     &.selected::after {
-      background: ${props.theme.tableSelected};
+      background-color: ${props.theme.tableSelected};
     }
   }
 
@@ -2622,26 +2649,29 @@ table {
     &::after {
       content: "";
       cursor: var(--pointer);
-      background: var(--table-grip, ${props.theme.divider});
-      width: 8px;
-      height: 8px;
-      border-radius: 8px;
-      border: 2px solid var(--table-grip-border, ${props.theme.background});
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      /* transparent border increases the clickable area */
+      border: 4px solid transparent;
+      background-clip: padding-box;
+      background-color: var(--table-grip, ${props.theme.divider});
+      box-shadow: inset 0 0 0 2px var(--table-grip-border, ${props.theme.background});
       position: absolute;
-      top: -13px;
-      left: -13px;
+      top: -17px;
+      left: -17px;
       display: ${props.readOnly ? "none" : "block"};
       z-index: 10;
     }
 
     &:hover::after {
-      background: ${props.theme.text};
+      background-color: ${props.theme.text};
     }
     &.selected::after {
-      background: ${props.theme.tableSelected};
+      background-color: ${props.theme.tableSelected};
     }
     &.dragging::after {
-      background: ${props.theme.accent};
+      background-color: ${props.theme.accent};
       opacity: 0.5;
     }
   }
@@ -2684,7 +2714,7 @@ table {
 .${EditorStyleHelper.tableGripColumn} {
   &.dragging::after {
     cursor: grabbing;
-    background: ${props.theme.accent};
+    background-color: ${props.theme.accent};
     opacity: 0.5;
   }
 }
@@ -2729,6 +2759,8 @@ table {
 
 .${EditorStyleHelper.table} {
   position: relative;
+  /* stops the negative margin of the scroll area from moving the wrapper over the block above */
+  display: flow-root;
 
   // The browser moves the header row in the same frame as the scroll, a scroll
   // listener is always one frame behind.
@@ -2938,17 +2970,30 @@ th:has(> .${EditorStyleHelper.tableFilterButton}.active) {
 
 .${EditorStyleHelper.tableScrollable} {
   position: relative;
-  margin: -1em ${-EditorStyleHelper.padding}px -0.5em;
+  margin: ${props.readOnly ? "-.5em" : `-${TABLE_CONTROLS_HEIGHT}px`} ${-EditorStyleHelper.padding}px -0.5em;
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
   overflow-y: hidden;
   overflow-x: auto;
   overflow-anchor: none;
-  padding-top: 1em;
+  padding-top: ${props.readOnly ? ".5em" : `${TABLE_CONTROLS_HEIGHT}px`};
   padding-bottom: .5em;
   padding-left: ${EditorStyleHelper.padding}px;
   padding-right: ${EditorStyleHelper.padding}px;
   transition: border 250ms ease-in-out 0s;
+
+  ${
+    props.readOnly
+      ? ""
+      : `
+  /* the padding overlaps the block above, which must stay clickable */
+  pointer-events: none;
+
+  > table {
+    pointer-events: auto;
+  }
+  `
+  }
 
   &:hover {
     scrollbar-color: ${props.theme.scrollbarThumb} ${
