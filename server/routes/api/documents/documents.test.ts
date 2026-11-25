@@ -1,3 +1,4 @@
+import { Readable } from "node:stream";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { faker } from "@faker-js/faker";
@@ -33,6 +34,7 @@ import {
 } from "@server/models";
 import { RelationshipType } from "@server/models/Relationship";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import DocumentImportTask from "@server/queues/tasks/DocumentImportTask";
 import FileStorage from "@server/storage/files";
 import {
@@ -746,8 +748,8 @@ describe("#documents.export", () => {
       teamId: user.teamId,
       text: `![image](${attachment.redirectUrl})`,
     });
-    vi.spyOn(FileStorage, "getFileBuffer").mockResolvedValue(
-      Buffer.from("image-data")
+    vi.spyOn(FileStorage, "getFileStream").mockImplementation(async () =>
+      Readable.from([Buffer.from("image-data")])
     );
 
     const res = await server.post("/api/documents.export", user, {
@@ -773,6 +775,111 @@ describe("#documents.export", () => {
     expect(entries["export-test.md"]).not.toContain(attachment.redirectUrl);
   });
 
+  it("should inline small images and stream other attachments for HTML", async () => {
+    const user = await buildUser();
+    const small = await buildAttachment({
+      teamId: user.teamId,
+      userId: user.id,
+      contentType: "image/png",
+      size: 10,
+    });
+    const large = await buildAttachment({
+      teamId: user.teamId,
+      userId: user.id,
+      contentType: "image/png",
+      size: HTMLHelper.maxInlineImageSize + 1,
+    });
+    const document = await buildDocument({
+      title: "Export Test",
+      userId: user.id,
+      teamId: user.teamId,
+      text: `![small](${small.redirectUrl})\n\n![large](${large.redirectUrl})`,
+    });
+    const getFileBuffer = vi
+      .spyOn(FileStorage, "getFileBuffer")
+      .mockResolvedValue(Buffer.from("small-data"));
+    vi.spyOn(FileStorage, "getFileStream").mockImplementation(async () =>
+      Readable.from([Buffer.from("large-data")])
+    );
+
+    const res = await server.post("/api/documents.export", user, {
+      body: {
+        id: document.id,
+      },
+      headers: {
+        accept: "text/html",
+      },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("content-type")).toEqual("application/zip");
+
+    const location = `attachments/${large.id}.png`;
+    const entries = await readZipResponse(res);
+    expect(Object.keys(entries).sort()).toEqual([location, "export-test.html"]);
+    expect(entries[location]).toEqual("large-data");
+    expect(entries["export-test.html"]).toContain(
+      Buffer.from("small-data").toString("base64")
+    );
+    expect(entries["export-test.html"]).not.toContain(small.redirectUrl);
+
+    // Only the image that is inlined is read into memory.
+    expect(getFileBuffer).toHaveBeenCalledTimes(1);
+    expect(getFileBuffer).toHaveBeenCalledWith(small.key);
+  });
+
+  it("should stop inlining images at the total size limit for HTML", async () => {
+    const user = await buildUser();
+    const count =
+      Math.floor(
+        HTMLHelper.maxTotalInlineImageSize / HTMLHelper.maxInlineImageSize
+      ) + 1;
+    const images = [];
+    for (let i = 0; i < count; i++) {
+      images.push(
+        await buildAttachment({
+          teamId: user.teamId,
+          userId: user.id,
+          contentType: "image/png",
+          size: HTMLHelper.maxInlineImageSize,
+        })
+      );
+    }
+    const document = await buildDocument({
+      title: "Export Test",
+      userId: user.id,
+      teamId: user.teamId,
+      text: images
+        .map((image) => `![image](${image.redirectUrl})`)
+        .join("\n\n"),
+    });
+    const getFileBuffer = vi
+      .spyOn(FileStorage, "getFileBuffer")
+      .mockResolvedValue(Buffer.alloc(HTMLHelper.maxInlineImageSize));
+    vi.spyOn(FileStorage, "getFileStream").mockImplementation(async () =>
+      Readable.from([Buffer.from("image-data")])
+    );
+
+    const res = await server.post("/api/documents.export", user, {
+      body: {
+        id: document.id,
+      },
+      headers: {
+        accept: "text/html",
+      },
+    });
+
+    expect(res.status).toEqual(200);
+
+    // The last image does not fit in the limit, so it is streamed into the zip.
+    const entries = await readZipResponse(res);
+    const external = Object.keys(entries).filter((name) =>
+      name.startsWith("attachments/")
+    );
+    expect(external).toHaveLength(1);
+    expect(getFileBuffer).toHaveBeenCalledTimes(count - 1);
+  });
+
   it("should stream a textpack when TextBundle is requested", async () => {
     const user = await buildUser();
     const attachment = await buildAttachment(
@@ -785,8 +892,8 @@ describe("#documents.export", () => {
       teamId: user.teamId,
       text: `![image](${attachment.redirectUrl})`,
     });
-    vi.spyOn(FileStorage, "getFileBuffer").mockResolvedValue(
-      Buffer.from("image-data")
+    vi.spyOn(FileStorage, "getFileStream").mockImplementation(async () =>
+      Readable.from([Buffer.from("image-data")])
     );
 
     const res = await server.post("/api/documents.export", user, {

@@ -207,16 +207,17 @@ router.post(
       streamZipResponse(
         ctx,
         `${fileName}.${TextBundleHelper.packExtension}`,
-        async (zip) => {
+        (zip, signal) => {
           for (const attachment of attachments) {
             const reference = TextBundleHelper.assetPath(
               attachment.name,
               usedAssetNames
             );
-            zip.addBuffer(
-              await AttachmentHelper.readBuffer(attachment),
+            AttachmentHelper.addToArchive(
+              zip,
+              attachment,
               path.join(root, reference),
-              { mtime: attachment.updatedAt }
+              signal
             );
 
             content = content.replace(
@@ -252,15 +253,13 @@ router.post(
       return;
     }
 
-    streamZipResponse(ctx, `${fileName}.zip`, async (zip) => {
+    streamZipResponse(ctx, `${fileName}.zip`, (zip, signal) => {
       for (const attachment of attachments) {
         const location = path.join(
           "attachments",
           `${attachment.id}.${mime.extension(attachment.contentType)}`
         );
-        zip.addBuffer(await AttachmentHelper.readBuffer(attachment), location, {
-          mtime: attachment.updatedAt,
-        });
+        AttachmentHelper.addToArchive(zip, attachment, location, signal);
 
         content = content.replace(
           new RegExp(escapeRegExp(attachment.redirectUrl), "g"),

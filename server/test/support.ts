@@ -157,7 +157,7 @@ export async function readZipResponse(
     const entries: Record<string, string> = {};
     await ZipHelper.walk(filePath, async (entry) => {
       entries[entry.fileName] = (
-        await entry.readBuffer(1024 * 1024)
+        await entry.readBuffer(4 * 1024 * 1024)
       ).toString();
     });
     return entries;
