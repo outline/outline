@@ -1,7 +1,7 @@
 import { difference } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { mergeRefs } from "react-merge-refs";
+import { useMergeRefs } from "react-merge-refs";
 import type { Optional } from "utility-types";
 import EditorContainer from "@shared/editor/components/Styles";
 import { AttachmentPreset } from "@shared/types";
@@ -138,6 +138,7 @@ function Editor({ ref, ...props }: Props & { ref?: React.Ref<SharedEditor> }) {
     },
     [updateComments]
   );
+  const mergedRef = useMergeRefs([ref, localRef, handleRefChanged]);
 
   // Read-only content that needs no node views or plugins is rendered from
   // the schema alone, avoiding an editor view per instance.
@@ -176,7 +177,7 @@ function Editor({ ref, ...props }: Props & { ref?: React.Ref<SharedEditor> }) {
           <React.Suspense fallback={<PlaceholderDocument delay={500} />}>
             <AsyncEditor
               key={props.extensions?.length || 0}
-              ref={mergeRefs([ref, localRef, handleRefChanged])}
+              ref={mergedRef}
               uploadFile={handleUploadFile}
               embeds={embeds}
               userPreferences={preferences}
