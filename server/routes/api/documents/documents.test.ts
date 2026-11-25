@@ -6247,6 +6247,70 @@ describe("#documents.restore", () => {
     expect(yDocToProsemirrorJSON(ydoc, "default")).toEqual(revision.content);
   });
 
+  it("should add the trailing paragraph when restoring a revision", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      content: parser.parse("- item")?.toJSON(),
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user }),
+      document
+    );
+    document.state = Buffer.from(
+      Y.encodeStateAsUpdate(ProsemirrorHelper.toYDoc("updated"))
+    );
+    await document.save();
+
+    const res = await server.post("/api/documents.restore", user, {
+      body: {
+        id: document.id,
+        revisionId: revision.id,
+      },
+    });
+    expect(res.status).toEqual(200);
+
+    const reloaded = await Document.findByPk(document.id, {
+      includeState: true,
+      rejectOnEmpty: true,
+    });
+    const ydoc = new Y.Doc();
+    Y.applyUpdate(ydoc, DocumentHelper.toState(reloaded));
+    const state = yDocToProsemirrorJSON(ydoc, "default");
+    expect(state.content?.at(-1)?.type).toEqual("paragraph");
+    expect(reloaded.content?.content?.at(-1)?.type).toEqual("paragraph");
+  });
+
+  it("should restore a revision when the collaboration server cannot be notified", async () => {
+    const notifyUpdateSpy = vi
+      .spyOn(APIUpdateExtension, "notifyUpdate")
+      .mockRejectedValue(new Error("Redis unavailable"));
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user }),
+      document
+    );
+    document.state = Buffer.from(
+      Y.encodeStateAsUpdate(ProsemirrorHelper.toYDoc("updated"))
+    );
+    await document.save();
+
+    const res = await server.post("/api/documents.restore", user, {
+      body: {
+        id: document.id,
+        revisionId: revision.id,
+      },
+    });
+    expect(res.status).toEqual(200);
+    expect(notifyUpdateSpy).toHaveBeenCalled();
+    notifyUpdateSpy.mockRestore();
+  });
+
   it("should not allow restoring a revision in another document", async () => {
     const user = await buildUser();
     const document = await buildDocument({
