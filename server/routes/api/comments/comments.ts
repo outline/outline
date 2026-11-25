@@ -191,7 +191,7 @@ router.post(
       const collection = await Collection.findByPk(collectionId, {
         userId: user.id,
       });
-      authorize(user, "read", collection);
+      authorize(user, "readDocument", collection);
     }
 
     const { comments, total } = await Comment.findAllForUser(user, {
