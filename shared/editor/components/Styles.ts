@@ -2550,22 +2550,6 @@ table {
   }
 
   .${EditorStyleHelper.tableGripColumn} {
-    /* fades the block above where the controls overlap it */
-    &::before {
-      content: "";
-      position: absolute;
-      top: -${TABLE_CONTROLS_HEIGHT}px;
-      /* also covers the left border of the cell */
-      left: calc(var(--span-start, 0%) - 1px);
-      width: calc(var(--span-size, 100%) + 1px);
-      /* stops above the top border of the table */
-      height: ${TABLE_CONTROLS_HEIGHT - 1}px;
-      background: linear-gradient(${transparentize(1, props.theme.background)}, ${transparentize(0.15, props.theme.background)} 50%);
-      display: ${props.readOnly ? "none" : "block"};
-      pointer-events: none;
-      z-index: 1;
-    }
-
     /* usage of ::after for all of the table grips works around a bug in
      * prosemirror-tables that causes Safari to hang when selecting a cell
      * in an empty table:
@@ -2990,6 +2974,9 @@ th:has(> .${EditorStyleHelper.tableFilterButton}.active) {
       : `
   /* the padding overlaps the block above, which must stay clickable */
   pointer-events: none;
+
+  /* fades the block above behind the controls, it does not scroll with the table */
+  background: linear-gradient(${transparentize(1, props.theme.background)}, ${transparentize(0.15, props.theme.background)} 50%) 0 0 / 100% ${TABLE_CONTROLS_HEIGHT}px no-repeat;
 
   > table {
     pointer-events: auto;
