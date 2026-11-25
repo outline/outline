@@ -90,6 +90,17 @@ export class RedisPrefixHelper {
   }
 
   /**
+   * Gets key for caching a team's integrations for a service.
+   *
+   * @param teamId The team ID to generate a key for.
+   * @param service The integration service to generate a key for.
+   * @returns the cache key string.
+   */
+  public static getIntegrationsKey(teamId: string, service: string) {
+    return `integrations:${teamId}:${service}`;
+  }
+
+  /**
    * Gets key for caching the count of a relationship managed by the
    * `CounterCache` decorator.
    *
@@ -126,5 +137,15 @@ export class RedisPrefixHelper {
    */
   public static getEmailSigninTokenKey(tokenHash: string) {
     return `auth:email-signin:${tokenHash}`;
+  }
+
+  /**
+   * Gets key for marking a transfer token as used.
+   *
+   * @param tokenHash The SHA-256 hash of the transfer token.
+   * @returns the cache key string.
+   */
+  public static getTransferTokenKey(tokenHash: string) {
+    return `auth:transfer:${tokenHash}`;
   }
 }

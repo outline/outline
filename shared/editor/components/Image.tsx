@@ -10,14 +10,7 @@ import { isExternalUrl, sanitizeImageSrc, sanitizeUrl } from "../../utils/urls";
 import { getDisplayUrl } from "../lib/uploadPlaceholder";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import type { ComponentProps } from "../types";
-import {
-  ResizeLeft,
-  ResizeRight,
-  ResizeTopLeft,
-  ResizeTopRight,
-  ResizeBottomLeft,
-  ResizeBottomRight,
-} from "./ResizeHandle";
+import { ResizeHandles, ResizeLeft, ResizeRight } from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
 
 type Props = ComponentProps & {
@@ -290,35 +283,10 @@ const Image = (props: Props) => {
         )}
         {isEditable && !isFullWidth && isResizable && (
           <>
-            <ResizeLeft
-              onPointerDown={handlePointerDown("left")}
+            <ResizeHandles
+              onPointerDown={handlePointerDown}
               onDoubleClick={handleDoubleClick}
-              $dragging={!!dragging}
-            />
-            <ResizeRight
-              onPointerDown={handlePointerDown("right")}
-              onDoubleClick={handleDoubleClick}
-              $dragging={!!dragging}
-            />
-            <ResizeTopLeft
-              onPointerDown={handlePointerDown("topLeft")}
-              onDoubleClick={handleDoubleClick}
-              $dragging={!!dragging}
-            />
-            <ResizeTopRight
-              onPointerDown={handlePointerDown("topRight")}
-              onDoubleClick={handleDoubleClick}
-              $dragging={!!dragging}
-            />
-            <ResizeBottomLeft
-              onPointerDown={handlePointerDown("bottomLeft")}
-              onDoubleClick={handleDoubleClick}
-              $dragging={!!dragging}
-            />
-            <ResizeBottomRight
-              onPointerDown={handlePointerDown("bottomRight")}
-              onDoubleClick={handleDoubleClick}
-              $dragging={!!dragging}
+              isVisible={!!dragging}
             />
           </>
         )}
@@ -432,8 +400,7 @@ const ImageWrapper = styled.div<{ isFullWidth: boolean; $dragging: boolean }>`
       opacity: 0.9;
     }
 
-    ${ResizeLeft}, ${ResizeRight},
-    ${ResizeTopLeft}, ${ResizeTopRight}, ${ResizeBottomLeft}, ${ResizeBottomRight} {
+    ${ResizeLeft}, ${ResizeRight} {
       opacity: 1;
     }
   }

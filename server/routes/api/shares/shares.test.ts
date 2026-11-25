@@ -17,7 +17,7 @@ import {
   buildTeam,
 } from "@server/test/factories";
 
-import { getTestServer, withAPIContext } from "@server/test/support";
+import { getTestServer, withContext } from "@server/test/support";
 
 const server = getTestServer();
 
@@ -174,7 +174,7 @@ describe("#shares.list", () => {
       teamId: user.teamId,
       userId: user.id,
     });
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     const res = await server.post("/api/shares.list", user);
     const body = await res.json();
     expect(res.status).toEqual(200);
@@ -1546,7 +1546,7 @@ describe("#shares.revoke", () => {
       teamId: user.teamId,
       userId: user.id,
     });
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     const res = await server.post("/api/shares.revoke", user, {
       body: {
         id: share.id,

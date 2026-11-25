@@ -1,7 +1,7 @@
 import { differenceInMilliseconds } from "date-fns";
 import { Op } from "sequelize";
 import { IntegrationService, IntegrationType } from "@shared/types";
-import { Minute } from "@shared/utils/time";
+import { Minute, Second } from "@shared/utils/time";
 import { Document, Integration, Collection, Team } from "@server/models";
 import BaseProcessor from "@server/queues/processors/BaseProcessor";
 import type {
@@ -16,11 +16,40 @@ import env from "../env";
 import { presentMessageAttachment } from "../presenters/messageAttachment";
 
 export default class SlackProcessor extends BaseProcessor {
+  /** Time limit in milliseconds for posts to the Slack webhook. */
+  static fetchTimeout = 10 * Second.ms;
+
   static applicableEvents: Event["name"][] = [
     "documents.publish",
     "revisions.create",
     "integrations.create",
   ];
+
+  /**
+   * Only queue document events when the team has a Slack post integration
+   * subscribed to the event.
+   *
+   * @param event The event about to be queued.
+   * @returns true if the event may need to be posted to Slack.
+   */
+  static async shouldQueue(event: Event): Promise<boolean> {
+    if (event.name === "integrations.create") {
+      return true;
+    }
+
+    const eventName =
+      event.name === "revisions.create" ? "documents.update" : event.name;
+    const integrations = await Integration.findEnabledByTeamIdAndService(
+      event.teamId,
+      IntegrationService.Slack
+    );
+
+    return integrations.some(
+      (integration) =>
+        integration.type === IntegrationType.Post &&
+        !!integration.events?.includes(eventName)
+    );
+  }
 
   async perform(event: Event) {
     switch (event.name) {
@@ -64,6 +93,7 @@ export default class SlackProcessor extends BaseProcessor {
       headers: {
         "Content-Type": "application/json",
       },
+      timeout: SlackProcessor.fetchTimeout,
       body: JSON.stringify({
         text: `👋 Hey there! When documents are published or updated in the *${collection.name}* collection on ${env.APP_NAME} they will be posted to this channel!`,
         attachments: [
@@ -143,6 +173,7 @@ export default class SlackProcessor extends BaseProcessor {
       headers: {
         "Content-Type": "application/json",
       },
+      timeout: SlackProcessor.fetchTimeout,
       body: JSON.stringify({
         text,
         attachments: [

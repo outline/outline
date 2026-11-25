@@ -1,7 +1,7 @@
 import httpErrors from "http-errors";
-import type { Context } from "koa";
 import { AuthenticationError } from "@server/errors";
 import apiErrorHandler from "./apiErrorHandler";
+import type { AppContext } from "@server/types";
 
 const createContext = (challenge?: string) => {
   const headers: Record<string, string> = {};
@@ -12,10 +12,10 @@ const createContext = (challenge?: string) => {
     response: {
       get: (field: string) => headers[field.toLowerCase()] ?? "",
     },
-  } as unknown as Context;
+  } as unknown as AppContext;
 };
 
-const runWithError = async (ctx: Context) => {
+const runWithError = async (ctx: AppContext) => {
   try {
     await apiErrorHandler()(ctx, () => Promise.reject(AuthenticationError()));
   } catch (err) {

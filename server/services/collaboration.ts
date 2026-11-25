@@ -1,7 +1,6 @@
 import type { IncomingMessage } from "node:http";
 import type http from "node:http";
 import type { Duplex } from "node:stream";
-import url from "node:url";
 import { Redis } from "@hocuspocus/extension-redis";
 import { Throttle } from "@hocuspocus/extension-throttle";
 import { Server } from "@hocuspocus/server";
@@ -78,9 +77,8 @@ export default function init(
     function (req: IncomingMessage, socket: Duplex, head: Buffer) {
       if (req.url?.startsWith(path)) {
         // parse document id and close connection if not present in request
-        const documentId = url
-          .parse(req.url)
-          .pathname?.replace(path, "")
+        const documentId = new URL(req.url, "http://localhost").pathname
+          .replace(path, "")
           .split("/")
           .pop();
 

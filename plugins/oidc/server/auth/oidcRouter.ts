@@ -1,6 +1,6 @@
 import passport from "@outlinewiki/koa-passport";
 import JWT from "jsonwebtoken";
-import type { Context, Request } from "koa";
+import type { Request } from "koa";
 import type Router from "@koa/router";
 import { get } from "es-toolkit/compat";
 import { toError } from "@shared/utils/error";
@@ -13,7 +13,7 @@ import { AuthenticationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import passportMiddleware from "@server/middlewares/passport";
 import type { User } from "@server/models";
-import type { AuthenticationResult } from "@server/types";
+import type { AuthenticationResult, AppContext } from "@server/types";
 import { LogoutTokenStore } from "@server/utils/LogoutTokenStore";
 import {
   StateStore,
@@ -28,7 +28,7 @@ import config from "../../plugin.json";
 import env from "../env";
 import { OIDCStrategy } from "./OIDCStrategy";
 import { resolveProviderId } from "./resolveProviderId";
-import { createContext } from "@server/context";
+import { withUser } from "@server/context";
 import { OIDCMalformedUserInfoError } from "../errors";
 
 export interface OIDCEndpoints {
@@ -84,7 +84,7 @@ export function createOIDCRouter(
             result?: AuthenticationResult
           ) => void
         ) {
-          const context = req.ctx;
+          const context: AppContext = req.ctx;
           try {
             // Some providers require a POST request to the userinfo endpoint, add them as exceptions here.
             const usePostMethod = [
@@ -142,8 +142,7 @@ export function createOIDCRouter(
             const team = await getTeamFromContext(context);
             const client = getClientFromOAuthState(context);
             const user =
-              context.state?.auth?.user ??
-              (await getUserFromOAuthState(context));
+              context.auth?.user ?? (await getUserFromOAuthState(context));
             const { domain } = parseEmail(email);
 
             const providerId = await resolveProviderId(
@@ -193,11 +192,7 @@ export function createOIDCRouter(
               avatarUrl = null;
             }
 
-            const ctx = createContext({
-              ip: context.ip,
-              user,
-              authType: context.state?.auth?.type,
-            });
+            const ctx = withUser(context, user);
             const result = await accountProvisioner(ctx, {
               team: {
                 teamId: team?.id,
@@ -252,7 +247,7 @@ export function createOIDCRouter(
   // ended so the provider can scope the logout and skip a confirmation prompt,
   // while `post_logout_redirect_uri` returns the user to Outline afterwards.
   // https://openid.net/specs/openid-connect-rpinitiated-1_0.html
-  router.get(`${config.id}.logout`, async (ctx: Context) => {
+  router.get(`${config.id}.logout`, async (ctx: AppContext) => {
     const idToken = await logoutTokens.consume(ctx);
 
     if (!endpoints.logoutURL) {

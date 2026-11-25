@@ -9,7 +9,7 @@ import { Emoji, User, Attachment } from "@server/models";
 import BaseStorage from "@server/storage/files/BaseStorage";
 import { authorize } from "@server/policies";
 import { presentEmoji, presentPolicies } from "@server/presenters";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
@@ -24,9 +24,9 @@ router.post(
   "emojis.info",
   auth(),
   validate(T.EmojisInfoSchema),
-  async (ctx: APIContext<T.EmojisInfoReq>) => {
+  async (ctx: Context<T.EmojisInfoReq>) => {
     const { id, name } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const include = [
       {
@@ -71,9 +71,9 @@ router.get(
   "emojis.redirect",
   auth({ optional: true }),
   validate(T.EmojisRedirectSchema),
-  async (ctx: APIContext<T.EmojisRedirectReq>) => {
+  async (ctx: Context<T.EmojisRedirectReq>) => {
     const { id, shareId } = ctx.input.query;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const emoji = await Emoji.unscoped().findByPk(id, {
       rejectOnEmpty: true,
@@ -116,8 +116,8 @@ router.post(
   auth(),
   pagination(),
   validate(T.EmojisListSchema),
-  async (ctx: APIContext<T.EmojisListReq>) => {
-    const { user } = ctx.state.auth;
+  async (ctx: Context<T.EmojisListReq>) => {
+    const { user } = ctx.auth;
     const { query } = ctx.input.body;
 
     let where: WhereOptions<Emoji> = {
@@ -169,10 +169,10 @@ router.post(
   auth(),
   validate(T.EmojisCreateSchema),
   transaction(),
-  async (ctx: APIContext<T.EmojisCreateReq>) => {
+  async (ctx: Context<T.EmojisCreateReq>) => {
     const { name, attachmentId } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
     authorize(user, "createEmoji", user.team);
 
     const attachment = await Attachment.findByPk(attachmentId, {
@@ -207,10 +207,10 @@ router.post(
   auth(),
   validate(T.EmojisUpdateSchema),
   transaction(),
-  async (ctx: APIContext<T.EmojisUpdateReq>) => {
+  async (ctx: Context<T.EmojisUpdateReq>) => {
     const { id, attachmentId } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const emoji = await Emoji.findByPk(id, {
       transaction,
@@ -261,13 +261,13 @@ router.post(
   auth(),
   validate(T.EmojisDeleteSchema),
   transaction(),
-  async (ctx: APIContext<T.EmojisDeleteReq>) => {
+  async (ctx: Context<T.EmojisDeleteReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const emoji = await Emoji.findByPk(id, {
-      transaction: ctx.state.transaction,
+      transaction: ctx.transaction,
       rejectOnEmpty: true,
       lock: transaction.LOCK.UPDATE,
     });

@@ -474,11 +474,11 @@ describe("content security policy", () => {
 });
 
 describe("/locales/:lng.json", () => {
-  it("should serve the translation file with cache headers", async () => {
+  it("should require revalidation before reusing a cached translation", async () => {
     const res = await server.get("/locales/en_US.json");
     expect(res.status).toEqual(200);
     expect(res.headers.get("content-type")).toContain("application/json");
-    expect(res.headers.get("cache-control")).toEqual("public, max-age=604800");
+    expect(res.headers.get("cache-control")).toEqual("public, no-cache");
     expect(res.headers.get("etag")).toBeTruthy();
     expect(res.headers.get("access-control-allow-origin")).toEqual("*");
     const body = await res.json();

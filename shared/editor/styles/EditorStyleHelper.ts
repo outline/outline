@@ -81,6 +81,11 @@ export class EditorStyleHelper {
   /** Line number shown in the gutter at the start of each code block line */
   static readonly codeBlockLineNumber = "code-block-line-number";
 
+  // Mentions
+
+  /** Attribute on a mention while its hover menu button is shown */
+  static readonly mentionMenuTarget = "data-menu-target";
+
   // Diffs
 
   static readonly diffInsertion = "diff-insertion";
@@ -196,6 +201,15 @@ export class EditorStyleHelper {
 
   /** Drag indicator on bottom side of cell */
   static readonly tableDragIndicatorBottom = "table-drag-indicator-bottom";
+
+  /** Table row hidden by a filter */
+  static readonly tableRowFiltered = "table-row-filtered";
+
+  /** Button in a header cell that opens the column filter */
+  static readonly tableFilterButton = "table-filter-button";
+
+  /** Bar below a filtered table with the filter summary */
+  static readonly tableFilterBar = "table-filter-bar";
 
   // Drag and drop
 

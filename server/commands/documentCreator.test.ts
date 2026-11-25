@@ -7,14 +7,14 @@ import {
   buildFileOperation,
   buildTemplate,
 } from "@server/test/factories";
-import { withAPIContext } from "@server/test/support";
+import { withContext } from "@server/test/support";
 import documentCreator from "./documentCreator";
 
 describe("documentCreator", () => {
   it("should attribute Markdown mentions to the authenticated writer", async () => {
     const user = await buildUser();
     const mentioned = await buildUser({ teamId: user.teamId });
-    const document = await withAPIContext(user, (ctx) =>
+    const document = await withContext(user, (ctx) =>
       documentCreator(ctx, {
         title: "Mentions",
         text: `@[${mentioned.name}](mention://user/${mentioned.id})`,
@@ -40,7 +40,7 @@ describe("documentCreator", () => {
         "This is rich content"
       ).toJSON();
 
-      const document = await withAPIContext(user, (ctx) =>
+      const document = await withContext(user, (ctx) =>
         documentCreator(ctx, {
           title: "Test Document",
           text: testText,
@@ -63,7 +63,7 @@ describe("documentCreator", () => {
 
       const testText = "This is plain text";
 
-      const document = await withAPIContext(user, (ctx) =>
+      const document = await withContext(user, (ctx) =>
         documentCreator(ctx, {
           title: "Test Document",
           text: testText,
@@ -81,7 +81,7 @@ describe("documentCreator", () => {
         teamId: user.teamId,
       });
 
-      const document = await withAPIContext(user, (ctx) =>
+      const document = await withContext(user, (ctx) =>
         documentCreator(ctx, {
           title: "Empty Document",
           collectionId: collection.id,
@@ -101,7 +101,7 @@ describe("documentCreator", () => {
         teamId: user.teamId,
       });
 
-      const document = await withAPIContext(user, (ctx) =>
+      const document = await withContext(user, (ctx) =>
         documentCreator(ctx, {
           title: "Test Document",
           text: "This is a test document",
@@ -124,7 +124,7 @@ describe("documentCreator", () => {
         teamId: user.teamId,
       });
 
-      const document = await withAPIContext(user, (ctx) =>
+      const document = await withContext(user, (ctx) =>
         documentCreator(ctx, {
           title: "Custom Document",
           text: "Custom content",
@@ -147,7 +147,7 @@ describe("documentCreator", () => {
         teamId: user.teamId,
       });
 
-      const document = await withAPIContext(user, (ctx) =>
+      const document = await withContext(user, (ctx) =>
         documentCreator(ctx, {
           title: "Draft Document",
           text: "Draft content",
@@ -166,7 +166,7 @@ describe("documentCreator", () => {
         teamId: user.teamId,
       });
 
-      const document = await withAPIContext(user, (ctx) =>
+      const document = await withContext(user, (ctx) =>
         documentCreator(ctx, {
           title: "Published Document",
           text: "Published content",
@@ -182,7 +182,7 @@ describe("documentCreator", () => {
       const user = await buildUser();
 
       await expect(
-        withAPIContext(user, (ctx) =>
+        withContext(user, (ctx) =>
           documentCreator(ctx, {
             title: "Invalid Document",
             text: "Content",
@@ -212,7 +212,7 @@ describe("documentCreator", () => {
         collectionId: collection.id,
       });
 
-      const document = await withAPIContext(user, (ctx) =>
+      const document = await withContext(user, (ctx) =>
         documentCreator(ctx, {
           title: "From Template",
           template,
@@ -241,7 +241,7 @@ describe("documentCreator", () => {
         collectionId: collection.id,
       });
 
-      const document = await withAPIContext(user, (ctx) =>
+      const document = await withContext(user, (ctx) =>
         documentCreator(ctx, {
           template,
           collectionId: collection.id,
@@ -267,7 +267,7 @@ describe("documentCreator", () => {
       });
 
       await expect(
-        withAPIContext(user, (ctx) =>
+        withContext(user, (ctx) =>
           documentCreator(ctx, {
             template,
             state: Buffer.from("some state"),
@@ -296,7 +296,7 @@ describe("documentCreator", () => {
         collectionId: collection.id,
       });
 
-      const document = await withAPIContext(user, (ctx) =>
+      const document = await withContext(user, (ctx) =>
         documentCreator(ctx, {
           title: "Child Document",
           text: "Child content",
@@ -323,7 +323,7 @@ describe("documentCreator", () => {
 
       const sourceMetadata = { fileName: "test" };
 
-      const document = await withAPIContext(user, (ctx) =>
+      const document = await withContext(user, (ctx) =>
         documentCreator(ctx, {
           title: "fileOperation Document",
           text: "fileOperation content",
@@ -349,7 +349,7 @@ describe("documentCreator", () => {
       const customEmojiId = "550e8400-e29b-41d4-a716-446655440000";
       const text = `Check this :${customEmojiId}: custom emoji`;
 
-      const document = await withAPIContext(user, (ctx) =>
+      const document = await withContext(user, (ctx) =>
         documentCreator(ctx, {
           title: "Custom Emoji Test",
           text,

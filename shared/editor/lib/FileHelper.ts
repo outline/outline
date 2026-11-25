@@ -298,7 +298,12 @@ export default class FileHelper {
    * @returns True if the file contains Draw.io/Diagrams.net data
    */
   private static async isDiagramsNetPng(file: File): Promise<boolean> {
-    const buffer = await file.arrayBuffer();
+    let buffer: ArrayBuffer;
+    try {
+      buffer = await file.arrayBuffer();
+    } catch (_err) {
+      return false;
+    }
     const bytes = new Uint8Array(buffer);
 
     // Validate PNG signature

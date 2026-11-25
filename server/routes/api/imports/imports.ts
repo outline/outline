@@ -13,7 +13,7 @@ import { Attachment, Collection, Document, Integration } from "@server/models";
 import Import from "@server/models/Import";
 import { authorize } from "@server/policies";
 import { presentImport, presentPolicies } from "@server/presenters";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
@@ -25,14 +25,14 @@ const router = new Router();
  * is chosen the user must be able to create documents in it; when a document
  * is chosen the user must be able to add children to it.
  *
- * @param ctx The API context for the create request.
+ * @param ctx The context for the create request.
  * @returns The resolved destination ids (both null when no destination set).
  */
 async function resolveImportDestination(
-  ctx: APIContext<T.ImportsCreateReq>
+  ctx: Context<T.ImportsCreateReq>
 ): Promise<{ collectionId: string | null; documentId: string | null }> {
-  const { user } = ctx.state.auth;
-  const { transaction } = ctx.state;
+  const { user } = ctx.auth;
+  const { transaction } = ctx;
   const { collectionId, documentId } = ctx.input.body;
 
   if (collectionId) {
@@ -65,9 +65,9 @@ router.post(
   auth({ role: UserRole.Admin }),
   validate(T.ImportsCreateSchema),
   transaction(),
-  async (ctx: APIContext<T.ImportsCreateReq>) => {
+  async (ctx: Context<T.ImportsCreateReq>) => {
     const body = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     authorize(user, "createImport", user.team);
 
@@ -141,9 +141,9 @@ router.post(
   auth({ role: UserRole.Admin }),
   pagination(),
   validate(T.ImportsListSchema),
-  async (ctx: APIContext<T.ImportsListReq>) => {
+  async (ctx: Context<T.ImportsListReq>) => {
     const { service, sort, direction } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     authorize(user, "listImports", user.team);
 
@@ -180,9 +180,9 @@ router.post(
   "imports.info",
   auth({ role: UserRole.Admin }),
   validate(T.ImportsInfoSchema),
-  async (ctx: APIContext<T.ImportsInfoReq>) => {
+  async (ctx: Context<T.ImportsInfoReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const importModel = await Import.findByPk(id, {
       rejectOnEmpty: true,
@@ -201,10 +201,10 @@ router.post(
   auth({ role: UserRole.Admin }),
   validate(T.ImportsDeleteSchema),
   transaction(),
-  async (ctx: APIContext<T.ImportsDeleteReq>) => {
+  async (ctx: Context<T.ImportsDeleteReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const importModel = await Import.findByPk(id, {
       rejectOnEmpty: true,
@@ -226,10 +226,10 @@ router.post(
   auth({ role: UserRole.Admin }),
   validate(T.ImportsCancelSchema),
   transaction(),
-  async (ctx: APIContext<T.ImportsCancelReq>) => {
+  async (ctx: Context<T.ImportsCancelReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     let importModel = await Import.findByPk(id, {
       rejectOnEmpty: true,

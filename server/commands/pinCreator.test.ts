@@ -1,6 +1,6 @@
 import { Event } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { withAPIContext } from "@server/test/support";
+import { withContext } from "@server/test/support";
 import pinCreator from "./pinCreator";
 
 describe("pinCreator", () => {
@@ -11,7 +11,7 @@ describe("pinCreator", () => {
       teamId: user.teamId,
     });
 
-    const pin = await withAPIContext(user, (ctx) =>
+    const pin = await withContext(user, (ctx) =>
       pinCreator({
         ctx,
         user,
@@ -37,7 +37,7 @@ describe("pinCreator", () => {
       teamId: user.teamId,
     });
 
-    const pin = await withAPIContext(user, (ctx) =>
+    const pin = await withContext(user, (ctx) =>
       pinCreator({
         ctx,
         user,

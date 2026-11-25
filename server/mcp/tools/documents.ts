@@ -431,7 +431,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
         try {
           const { collectionId, parentDocumentId, templateId } = input;
           const ctx = buildAPIContext(context);
-          const { user } = ctx.state.auth;
+          const { user } = ctx.auth;
 
           const { collection, parentDocument } = await authorizeDocumentCreate(
             ctx,
@@ -466,12 +466,12 @@ export function documentTools(server: McpServer, scopes: string[]) {
                   publish: input.publish !== false,
                   collectionId: collection?.id,
                   parentDocumentId: parentDocument?.id,
-                  authType: ctx.state.auth.type,
-                  ip: ctx.context.ip,
+                  authType: ctx.auth.type,
+                  ip: ctx.ip,
                 })
               : await sequelize.transaction(async (transaction) => {
-                  ctx.state.transaction = transaction;
-                  ctx.context.transaction = transaction;
+                  ctx.transaction = transaction;
+                  ctx.transaction = transaction;
 
                   return documentCreator(ctx, {
                     title: input.title,
@@ -545,11 +545,11 @@ export function documentTools(server: McpServer, scopes: string[]) {
       withTracing("move_document", async (input, context) => {
         try {
           const ctx = buildAPIContext(context);
-          const { user } = ctx.state.auth;
+          const { user } = ctx.auth;
 
           const document = await sequelize.transaction(async (transaction) => {
-            ctx.state.transaction = transaction;
-            ctx.context.transaction = transaction;
+            ctx.transaction = transaction;
+            ctx.transaction = transaction;
 
             const document = await Document.findByPk(input.id, {
               userId: user.id,
@@ -694,13 +694,47 @@ export function documentTools(server: McpServer, scopes: string[]) {
       },
       withTracing("update_document", async (input, context) => {
         try {
+          if (
+            (input.editMode === undefined ||
+              input.editMode === TextEditMode.Replace) &&
+            input.findText
+          ) {
+            throw ValidationError(
+              'findText cannot be used with replace editMode. Use editMode "patch" instead.'
+            );
+          }
+
+          if (
+            (input.editMode === TextEditMode.Append ||
+              input.editMode === TextEditMode.Prepend) &&
+            !input.text
+          ) {
+            throw ValidationError(
+              "text is required when using append, prepend, or editMode"
+            );
+          }
+
+          if (input.editMode === TextEditMode.Patch) {
+            if (input.text === undefined) {
+              throw ValidationError(
+                "text is required when using patch editMode"
+              );
+            }
+
+            if (!input.findText) {
+              throw ValidationError(
+                "findText is required when using patch editMode"
+              );
+            }
+          }
+
           const ctx = buildAPIContext(context);
-          const { user } = ctx.state.auth;
+          const { user } = ctx.auth;
 
           // Returns null when the update persisted nothing.
           const updated = await sequelize.transaction(async (transaction) => {
-            ctx.state.transaction = transaction;
-            ctx.context.transaction = transaction;
+            ctx.transaction = transaction;
+            ctx.transaction = transaction;
 
             const document = await Document.findByPk(input.id, {
               userId: user.id,
@@ -847,11 +881,11 @@ export function documentTools(server: McpServer, scopes: string[]) {
         async ({ id, archive, reason }, context) => {
           try {
             const ctx = buildAPIContext(context);
-            const { user } = ctx.state.auth;
+            const { user } = ctx.auth;
 
             await sequelize.transaction(async (transaction) => {
-              ctx.state.transaction = transaction;
-              ctx.context.transaction = transaction;
+              ctx.transaction = transaction;
+              ctx.transaction = transaction;
 
               const document = await Document.findByPk(id, {
                 userId: user.id,
@@ -906,11 +940,11 @@ export function documentTools(server: McpServer, scopes: string[]) {
       withTracing("restore_document", async ({ id, collectionId }, context) => {
         try {
           const ctx = buildAPIContext(context);
-          const { user } = ctx.state.auth;
+          const { user } = ctx.auth;
 
           const document = await sequelize.transaction(async (transaction) => {
-            ctx.state.transaction = transaction;
-            ctx.context.transaction = transaction;
+            ctx.transaction = transaction;
+            ctx.transaction = transaction;
 
             const document = await Document.findByPk(id, {
               userId: user.id,

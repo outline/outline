@@ -18,7 +18,7 @@ import { UrlHelper } from "@shared/utils/UrlHelper";
 import { ShareValidation } from "@shared/validations";
 import env from "@server/env";
 import { ValidationError } from "@server/errors";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import Collection from "./Collection";
 import Document from "./Document";
 import Team from "./Team";
@@ -323,8 +323,8 @@ class Share extends IdModel<
   @Column(DataType.UUID)
   documentId: string | null;
 
-  revoke(ctx: APIContext) {
-    const { user } = ctx.state.auth;
+  revoke(ctx: Context) {
+    const { user } = ctx.auth;
     this.revokedAt = new Date();
     this.revokedById = user.id;
     return this.saveWithCtx(ctx, undefined, { name: "revoke" });

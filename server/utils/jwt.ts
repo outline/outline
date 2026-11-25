@@ -7,7 +7,7 @@ import Redis from "@server/storage/redis";
 import { AuthenticationError, UserSuspendedError } from "../errors";
 import { hash } from "./crypto";
 import { RedisPrefixHelper } from "./RedisPrefixHelper";
-import type { Context } from "koa";
+import type { AppContext } from "@server/types";
 
 /**
  * Decodes a JWT token and returns its payload without verifying the
@@ -99,6 +99,18 @@ export async function getUserForJWT(
     ) {
       throw AuthenticationError("Token has already been used");
     }
+
+    // Atomically claim the token so concurrent requests cannot both redeem it.
+    const claimed = await Redis.defaultClient.set(
+      RedisPrefixHelper.getTransferTokenKey(hash(token)),
+      "1",
+      "PX",
+      Minute.ms * 2,
+      "NX"
+    );
+    if (!claimed) {
+      throw AuthenticationError("Token has already been used");
+    }
   }
 
   return {
@@ -119,7 +131,7 @@ export async function getUserForJWT(
  * @throws AuthenticationError if the token is invalid, expired, from a different IP, or already used.
  */
 export async function getUserForEmailSigninToken(
-  ctx: Context,
+  ctx: AppContext,
   token: string
 ): Promise<User> {
   const payload = getJWTPayload(token);

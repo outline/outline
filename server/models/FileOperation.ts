@@ -26,7 +26,7 @@ import {
   FileOperationType,
 } from "@shared/types";
 import FileStorage from "@server/storage/files";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { ValidateKey } from "@server/validation";
 import Collection from "./Collection";
 import Document from "./Document";
@@ -155,10 +155,10 @@ class FileOperation extends ParanoidModel<
    * @returns the new file operation with its source associations set.
    */
   static async createExport(
-    ctx: APIContext,
+    ctx: Context,
     options: CreateExportOptions
   ): Promise<FileOperation> {
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     const format = options.format ?? FileOperationFormat.MarkdownZip;
 
     // The owner is stored on the export, as a document can move out of the
@@ -171,7 +171,7 @@ class FileOperation extends ParanoidModel<
       ? await Collection.unscoped().findOne({
           attributes: ["ownerId"],
           where: { id: sourceCollectionId },
-          transaction: ctx.state.transaction,
+          transaction: ctx.transaction,
         })
       : null;
     const personalOwnerId = sourceCollection?.ownerId ?? undefined;

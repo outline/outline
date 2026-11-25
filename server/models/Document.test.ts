@@ -15,7 +15,7 @@ import {
   buildUser,
   buildGuestUser,
 } from "@server/test/factories";
-import { withAPIContext } from "@server/test/support";
+import { withContext } from "@server/test/support";
 import { sequelize } from "@server/storage/database";
 import GroupMembership from "./GroupMembership";
 import GroupUser from "./GroupUser";
@@ -47,7 +47,7 @@ describe("#restoreTo", () => {
         { deprecatedReason: "Outdated" },
         { where: { id: document.id }, paranoid: false }
       );
-      await withAPIContext(user, (ctx) =>
+      await withContext(user, (ctx) =>
         document.restoreTo(ctx, { collectionId: collection.id })
       );
       await document.reload();
@@ -83,7 +83,7 @@ describe("#destroyWithCtx", () => {
   it("should soft delete and set last modified", async () => {
     const document = await buildDocument();
     const user = await buildUser();
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
 
     const newDocument = await Document.findByPk(document.id, {
       paranoid: false,
@@ -97,7 +97,7 @@ describe("#destroyWithCtx", () => {
       archivedAt: new Date(),
     });
     const user = await buildUser();
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     const newDocument = await Document.findByPk(document.id, {
       paranoid: false,
     });
@@ -120,7 +120,7 @@ describe("#destroyWithCtx", () => {
     });
     await collection.addDocumentToStructure(document, 0);
 
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     const [newDocument, newCollection] = await Promise.all([
       document.reload({ paranoid: false }),
       collection.reload(),
@@ -134,7 +134,7 @@ describe("#destroyWithCtx", () => {
   it("should delete draft without collection", async () => {
     const user = await buildUser();
     const document = await buildDraftDocument();
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     const deletedDocument = await Document.findByPk(document.id, {
       paranoid: false,
     });
@@ -184,6 +184,28 @@ describe("#save", () => {
     expect(rows.searchVector).toContain("'uniqu':1A");
     expect(rows.searchVector).toMatch(/'origin':\d+C/);
     expect(rows.searchVector).toContain(tokens[0]);
+  });
+
+  it("should index text whose shorter prefix still exceeds the tsvector limit", async () => {
+    const document = await buildDocument({ title: "Original" });
+    const tokens: string[] = [];
+    for (let i = 0; i < 120_000; i++) {
+      tokens.push(
+        String.fromCharCode(19_968 + (i % 20_000)) +
+          String.fromCharCode(19_968 + Math.floor(i / 20_000))
+      );
+    }
+    document.title = "Unique tokens";
+    document.text = tokens.join(" ");
+    await document.save();
+
+    const [rows] = await sequelize.query<{ searchVector: string }>(
+      `SELECT "searchVector" FROM documents WHERE id = :id`,
+      { replacements: { id: document.id }, type: QueryTypes.SELECT }
+    );
+    expect(rows.searchVector).toContain("'uniqu':1A");
+    expect(rows.searchVector).toMatch(/'origin':\d+C/);
+    expect(rows.searchVector).toContain(`'${tokens[0]}'`);
   });
 });
 

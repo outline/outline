@@ -10,7 +10,7 @@ import {
   presentMembership,
   presentPolicies,
 } from "@server/presenters";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -21,8 +21,8 @@ router.post(
   auth(),
   pagination(),
   validate(T.UserMembershipsListSchema),
-  async (ctx: APIContext<T.UserMembershipsListReq>) => {
-    const { user } = ctx.state.auth;
+  async (ctx: Context<T.UserMembershipsListReq>) => {
+    const { user } = ctx.auth;
 
     const memberships = await UserMembership.scope("withUser").findAll({
       where: {
@@ -89,11 +89,11 @@ router.post(
   auth(),
   validate(T.UserMembershipsUpdateSchema),
   transaction(),
-  async (ctx: APIContext<T.UserMembershipsUpdateReq>) => {
+  async (ctx: Context<T.UserMembershipsUpdateReq>) => {
     const { id, index } = ctx.input.body;
-    const { transaction } = ctx.state;
+    const { transaction } = ctx;
 
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     const membership = await UserMembership.scope("withUser").findByPk(id, {
       transaction,
       lock: {

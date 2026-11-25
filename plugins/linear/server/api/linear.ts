@@ -10,7 +10,7 @@ import validate from "@server/middlewares/validate";
 import { IntegrationAuthentication, Integration } from "@server/models";
 import { authorize } from "@server/policies";
 import { afterCommit } from "@server/storage/transaction";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { verifyOAuthStateNonce } from "@server/utils/oauth";
 import { Linear } from "../linear";
 import UploadIntegrationLogoTask from "@server/queues/tasks/UploadIntegrationLogoTask";
@@ -39,10 +39,10 @@ router.get(
     getErrorPath: () => LinearUtils.errorUrl("unauthenticated"),
   }),
   transaction(),
-  async (ctx: APIContext<T.LinearCallbackReq>) => {
+  async (ctx: Context<T.LinearCallbackReq>) => {
     const { code, error, state } = ctx.input.query;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     // Check error after any sub-domain redirection. Otherwise, the user will be redirected to the root domain.
     if (error) {

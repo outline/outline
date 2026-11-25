@@ -10,7 +10,7 @@ import { authorize } from "@server/policies";
 import pagination, {
   paginateQuery,
 } from "@server/routes/api/middlewares/pagination";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import { QueryHelper } from "@server/storage/QueryHelper";
 import presentWebhookSubscription from "../presenters/webhookSubscription";
@@ -23,9 +23,9 @@ router.post(
   auth({ role: UserRole.Admin }),
   pagination(),
   validate(T.WebhookSubscriptionsListSchema),
-  async (ctx: APIContext<T.WebhookSubscriptionsListReq>) => {
+  async (ctx: Context<T.WebhookSubscriptionsListReq>) => {
     const { sort, direction, query } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     authorize(user, "listWebhookSubscription", user.team);
 
@@ -84,9 +84,9 @@ router.post(
   }),
   validate(T.WebhookSubscriptionsCreateSchema),
   transaction(),
-  async (ctx: APIContext<T.WebhookSubscriptionsCreateReq>) => {
+  async (ctx: Context<T.WebhookSubscriptionsCreateReq>) => {
     const { name, url, secret, events } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     authorize(user, "createWebhookSubscription", user.team);
 
@@ -114,10 +114,10 @@ router.post(
   }),
   validate(T.WebhookSubscriptionsDeleteSchema),
   transaction(),
-  async (ctx: APIContext<T.WebhookSubscriptionsDeleteReq>) => {
+  async (ctx: Context<T.WebhookSubscriptionsDeleteReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const webhookSubscription = await WebhookSubscription.findByPk(id, {
       rejectOnEmpty: true,
@@ -145,10 +145,10 @@ router.post(
   }),
   validate(T.WebhookSubscriptionsUpdateSchema),
   transaction(),
-  async (ctx: APIContext<T.WebhookSubscriptionsUpdateReq>) => {
+  async (ctx: Context<T.WebhookSubscriptionsUpdateReq>) => {
     const { id, name, url, secret, events } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const webhookSubscription = await WebhookSubscription.findByPk(id, {
       rejectOnEmpty: true,

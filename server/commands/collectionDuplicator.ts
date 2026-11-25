@@ -3,7 +3,7 @@ import Logger from "@server/logging/Logger";
 import { Collection } from "@server/models";
 import DuplicateCollectionDocumentsTask from "@server/queues/tasks/DuplicateCollectionDocumentsTask";
 import { afterCommit } from "@server/storage/transaction";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 
 type Props = {
   /** The collection to duplicate */
@@ -17,16 +17,16 @@ type Props = {
  * published documents within the collection are duplicated asynchronously by a
  * background task once the new collection is committed.
  *
- * @param ctx the API context containing the acting user and transaction.
+ * @param ctx the context containing the acting user and transaction.
  * @param props the collection to duplicate and optional overrides.
  * @returns the duplicated collection.
  */
 export default async function collectionDuplicator(
-  ctx: APIContext,
+  ctx: Context,
   { collection, name }: Props
 ): Promise<Collection> {
-  const { user } = ctx.state.auth;
-  const { transaction } = ctx.state;
+  const { user } = ctx.auth;
+  const { transaction } = ctx;
 
   const duplicated = Collection.build({
     name: name ?? collection.name,
@@ -54,7 +54,7 @@ export default async function collectionDuplicator(
       collectionId: duplicated.id,
       originalCollectionId: collection.id,
       actorId: user.id,
-      ip: ctx.context.ip ?? null,
+      ip: ctx.ip ?? null,
     });
 
   if (transaction) {

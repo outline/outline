@@ -171,13 +171,13 @@ describe("View", () => {
       });
       const firstViewedAt = view1.updatedAt;
 
-      // Wait a bit to ensure time difference
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      vi.useFakeTimers({ toFake: ["Date"] });
+      vi.setSystemTime(firstViewedAt.getTime() + 1000);
 
       const view2 = await View.incrementOrCreate(createContext({ user }), {
         documentId: document.id,
         userId: user.id,
-      });
+      }).finally(() => vi.useRealTimers());
 
       expect(view2.updatedAt.getTime()).toBeGreaterThan(
         firstViewedAt.getTime()

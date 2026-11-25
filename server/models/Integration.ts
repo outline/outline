@@ -1,4 +1,8 @@
-import type { InferAttributes, InferCreationAttributes } from "sequelize";
+import type {
+  InferAttributes,
+  InferCreationAttributes,
+  Transaction,
+} from "sequelize";
 import { type InstanceDestroyOptions } from "sequelize";
 import {
   ForeignKey,
@@ -8,17 +12,36 @@ import {
   DataType,
   Scopes,
   IsIn,
+  AfterCreate,
+  AfterUpdate,
   AfterDestroy,
+  AfterRestore,
 } from "sequelize-typescript";
 import type { IssueSource } from "@shared/schema";
 import { IntegrationType, IntegrationService } from "@shared/types";
 import type { IntegrationSettings } from "@shared/types";
+import { Hour } from "@shared/utils/time";
 import Collection from "@server/models/Collection";
 import IntegrationAuthentication from "@server/models/IntegrationAuthentication";
 import Team from "@server/models/Team";
 import User from "@server/models/User";
 import ParanoidModel from "@server/models/base/ParanoidModel";
+import { afterCommit } from "@server/storage/transaction";
+import { CacheHelper } from "@server/utils/CacheHelper";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
+import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
+
+/** A lightweight, cacheable projection of an integration. */
+export interface IntegrationSummary {
+  /** The integration ID. */
+  id: string;
+  /** The integration type, if any. */
+  type: IntegrationType | null;
+  /** The collection the integration is scoped to, if any. */
+  collectionId: string | null;
+  /** The event names the integration is subscribed to, if any. */
+  events: string[] | null;
+}
 
 @Scopes(() => ({
   withAuthentication: {
@@ -55,6 +78,43 @@ class Integration<T = unknown> extends ParanoidModel<
         type: IntegrationType.Analytics,
       },
     });
+  }
+
+  /**
+   * Returns the active integrations for a team and service, caching a
+   * lightweight projection in Redis so that event processors can cheaply check
+   * whether a team uses a service before doing any work. The cache is
+   * invalidated by model lifecycle hooks whenever an integration changes.
+   * Settings and authentication are intentionally not cached; load the full
+   * model by ID when they are needed.
+   *
+   * @param teamId The team to load integrations for.
+   * @param service The service to load integrations for.
+   * @returns the team's integrations for the service.
+   */
+  public static async findEnabledByTeamIdAndService(
+    teamId: string,
+    service: IntegrationService
+  ): Promise<IntegrationSummary[]> {
+    return (
+      (await CacheHelper.getDataOrSet<IntegrationSummary[]>(
+        RedisPrefixHelper.getIntegrationsKey(teamId, service),
+        async () => {
+          const integrations = await this.unscoped().findAll({
+            attributes: ["id", "type", "collectionId", "events"],
+            where: { teamId, service },
+            raw: true,
+          });
+          return integrations.map((integration) => ({
+            id: integration.id,
+            type: integration.type ?? null,
+            collectionId: integration.collectionId ?? null,
+            events: integration.events ?? null,
+          }));
+        },
+        Hour.seconds
+      )) ?? []
+    );
   }
 
   @IsIn([Object.values(IntegrationType)])
@@ -166,6 +226,21 @@ class Integration<T = unknown> extends ParanoidModel<
   }
 
   // hooks
+
+  @AfterCreate
+  @AfterUpdate
+  @AfterDestroy
+  @AfterRestore
+  static async invalidateCache(
+    model: Integration,
+    options: { transaction?: Transaction | null }
+  ) {
+    await afterCommit(options.transaction, () =>
+      CacheHelper.removeData(
+        RedisPrefixHelper.getIntegrationsKey(model.teamId, model.service)
+      )
+    );
+  }
 
   @AfterDestroy
   static async destoryIntegrationAuthentications(

@@ -1,5 +1,6 @@
 import { useRegisterActions } from "kbar";
 import { flattenDeep } from "es-toolkit/compat";
+import { useDeferredValue } from "react";
 import { actionToKBar } from "~/actions";
 import type { ActionVariant } from "~/types";
 import useActionContext from "./useActionContext";
@@ -28,9 +29,8 @@ export default function useCommandBarActions(
     actions.map((action) => actionToKBar(action, context))
   );
 
-  useRegisterActions(registerable, [
-    registerable.map((r) => r.id).join(""),
-    pathname,
-    ...additionalDeps,
-  ]);
+  // Deferred so that a burst of store updates does not re-register on every commit.
+  const ids = useDeferredValue(registerable.map((r) => r.id).join(""));
+
+  useRegisterActions(registerable, [ids, pathname, ...additionalDeps]);
 }

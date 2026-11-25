@@ -196,14 +196,14 @@ export function commentTools(server: McpServer, scopes: string[]) {
         ) => {
           try {
             const ctx = buildAPIContext(context);
-            const { user } = ctx.state.auth;
+            const { user } = ctx.auth;
 
             const data = commentParser.parse(text).toJSON();
             const commentId = uuidv4();
 
             const comment = await sequelize.transaction(async (transaction) => {
-              ctx.state.transaction = transaction;
-              ctx.context.transaction = transaction;
+              ctx.transaction = transaction;
+              ctx.transaction = transaction;
 
               let document = await Document.findByPk(documentId, {
                 userId: user.id,
@@ -305,7 +305,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
       withTracing("update_comment", async ({ id, text, status }, context) => {
         try {
           const ctx = buildAPIContext(context);
-          const { user } = ctx.state.auth;
+          const { user } = ctx.auth;
 
           const comment = await Comment.findByPk(id, {
             rejectOnEmpty: true,
@@ -381,7 +381,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
       withTracing("delete_comment", async ({ id }, context) => {
         try {
           const ctx = buildAPIContext(context);
-          const { user } = ctx.state.auth;
+          const { user } = ctx.auth;
 
           const comment = await Comment.findByPk(id, {
             rejectOnEmpty: true,

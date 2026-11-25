@@ -4,6 +4,7 @@ import type { NavigationNode } from "@shared/types";
 import env from "@server/env";
 import type { Collection, FileOperation } from "@server/models";
 import { Attachment, Document } from "@server/models";
+import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { presentAttachment, presentCollection } from "@server/presenters";
@@ -87,7 +88,7 @@ export default class ExportJSONTask extends ExportTask {
 
     const addAttachments = (attachments: Attachment[]) => {
       for (const attachment of attachments) {
-        this.addAttachmentToArchive(zip, attachment, attachment.key);
+        AttachmentHelper.addToArchive(zip, attachment, attachment.key);
 
         output.attachments[attachment.id] = {
           ...omit(presentAttachment(attachment), "url"),

@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import { addMinutes, subMinutes } from "date-fns";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import type { JwtPayload } from "jsonwebtoken";
-import type { Context, Next } from "koa";
+import type { Next } from "koa";
 import type { Strategy } from "@outlinewiki/koa-passport";
 import type { StateStoreStoreCallback } from "passport-oauth2";
 import type { Primitive } from "utility-types";
@@ -25,6 +25,7 @@ import {
   verifyOAuthIntent,
   verifyOAuthState,
 } from "./oauthState";
+import type { AppContext } from "@server/types";
 
 // With PKCE the library expects the code verifier in place of the boolean result.
 type PKCEStateStoreVerifyCallback = (
@@ -58,7 +59,7 @@ const ACTOR_SESSION_HASH_KEYLEN = 64;
  * the apex callback. Self-hosted deployments have a single domain and pass
  * through.
  */
-export async function startOAuthFlow(ctx: Context, next: Next) {
+export async function startOAuthFlow(ctx: AppContext, next: Next) {
   if (!env.isCloudHosted) {
     return next();
   }
@@ -143,7 +144,7 @@ export class StateStore {
   key = "state";
 
   store = (
-    ctx: Context,
+    ctx: AppContext,
     verifierOrCallback: StateStoreStoreCallback | string,
     _state?: Record<string, Primitive>,
     _meta?: unknown,
@@ -198,7 +199,7 @@ export class StateStore {
   };
 
   verify = (
-    ctx: Context,
+    ctx: AppContext,
     providedToken: string,
     callback: PKCEStateStoreVerifyCallback
   ) => {
@@ -288,7 +289,7 @@ export function parseState(state: string) {
  * @param ctx The Koa context
  * @returns The client type, defaults to Client.Web
  */
-export function getClientFromOAuthState(ctx: Context): Client {
+export function getClientFromOAuthState(ctx: AppContext): Client {
   const context = getKoaContext(ctx);
   const client = context.state.oauthState?.client;
   return client === Client.Desktop ? Client.Desktop : Client.Web;
@@ -302,7 +303,7 @@ export function getClientFromOAuthState(ctx: Context): Client {
  * @param ctx The Koa context
  * @returns The actor if available, otherwise undefined
  */
-export async function getUserFromOAuthState(ctx: Context) {
+export async function getUserFromOAuthState(ctx: AppContext) {
   const context = getKoaContext(ctx);
   const state = context.state.oauthState;
   if (!state?.actorId || !state.actorSessionHash) {
@@ -343,7 +344,7 @@ type TeamFromContextOptions = {
  * @returns The inferred team or undefined if not found
  */
 export async function getTeamFromContext(
-  ctx: Context,
+  ctx: AppContext,
   options: TeamFromContextOptions = { includeOAuthState: true }
 ) {
   const context = getKoaContext(ctx);
@@ -380,27 +381,25 @@ export async function getTeamFromContext(
   return team;
 }
 
-function getClientFromInput(ctx: Context): Client {
+function getClientFromInput(ctx: AppContext): Client {
   const clientInput = ctx.query.client?.toString();
   return clientInput === Client.Desktop ? Client.Desktop : Client.Web;
 }
 
-function getAuthenticatedUser(ctx: Context): User | undefined {
-  return ctx.state.auth && "user" in ctx.state.auth
-    ? ctx.state.auth.user
-    : undefined;
+function getAuthenticatedUser(ctx: AppContext): User | undefined {
+  return ctx.auth && "user" in ctx.auth ? ctx.auth.user : undefined;
 }
 
-function getAuthenticatedUserId(ctx: Context): string | undefined {
+function getAuthenticatedUserId(ctx: AppContext): string | undefined {
   return getAuthenticatedUser(ctx)?.id;
 }
 
-function getAuthenticatedUserSessionHash(ctx: Context): string | undefined {
+function getAuthenticatedUserSessionHash(ctx: AppContext): string | undefined {
   const user = getAuthenticatedUser(ctx);
   return user ? getActorSessionHash(user) : undefined;
 }
 
-async function getOAuthActor(ctx: Context): Promise<User | undefined> {
+async function getOAuthActor(ctx: AppContext): Promise<User | undefined> {
   const authenticatedUser = getAuthenticatedUser(ctx);
   if (authenticatedUser) {
     return authenticatedUser;
@@ -447,6 +446,6 @@ function getOAuthIntentKey(token: string): string {
   return `${OAUTH_INTENT_PREFIX}${hash(token)}`;
 }
 
-function getKoaContext(ctx: Context): Context {
-  return (ctx as Context & { ctx?: Context }).ctx ?? ctx;
+function getKoaContext(ctx: AppContext): AppContext {
+  return (ctx as AppContext & { ctx?: AppContext }).ctx ?? ctx;
 }

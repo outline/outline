@@ -131,7 +131,9 @@ yarn sequelize migration:create --name=add-field-to-table
 - Schedule optional background work that depends on a transaction from `afterCommit`, and use non-fatal scheduling so a queue failure does not fail the committed operation.
 - When changing persisted task input fields, keep readers compatible with queued inputs or migrate them before removing old fields.
 - For row locks used only for non-key updates or soft deletes, use `LOCK.NO_KEY_UPDATE` and set `lock.of` to the target model when includes or scopes add joins. Verify with separate transactions that foreign-key inserts and locks on unrelated joined rows do not block the operation, while competing writers to the target still wait for commit.
+- When serializing migrations, poll `LockHelper.tryAcquire` in short transactions and roll back unsuccessful attempts before waiting. A blocking advisory-lock statement holds a snapshot that can stall `CREATE INDEX CONCURRENTLY` in the lock holder. Verify simultaneous startup checks let concurrent index migrations finish.
 - In import task completion and failure handlers, reload the import under a row lock in the transaction before changing its state. Preserve `Processed` and `Import.terminalStates` outcomes, and never mark a completed task errored. Test cancellation committed while a task runs and late failure callbacks, then reload the import and task to verify their states.
+- When parallelizing requests inside a retryable import task, await all started operations with `Promise.allSettled` before propagating a failure, or cancel and drain them. Test one failed request alongside an unfinished request; the task must not reject while work from that attempt can overlap its retry.
 
 ## API Design
 
@@ -141,6 +143,7 @@ yarn sequelize migration:create --name=add-field-to-table
 - Validate request data using the validation middleware and schemas
 - Use presenters to format API responses.
 - Keep API routes thin, use model methods for business logic, or commands if logic spans multiple models.
+- MCP tools that call commands directly must preserve REST cross-field validation before any mutation. For document edits, reject nonempty `findText` in default or explicit replace mode, require nonempty text for append/prepend, and require nonempty `findText` plus defined text for patch while allowing empty replacement text for deletion. Test invalid combinations leave title, content, and revision unchanged.
 
 ## Authentication & Authorization
 
@@ -212,6 +215,7 @@ yarn test:shared   # All shared code tests
 - Log errors with appropriate context.
 - Return user-friendly error messages.
 - Never expose sensitive information in errors.
+- For subscription-controlled emails, reload the recipient and check the subscription in the template's `beforeSend`, returning false when unsubscribed or missing. Caller-only checks can miss other senders such as SSO. Test the template's send path directly and assert the mailer is not called for an unsubscribed recipient.
 
 ## Performance
 
@@ -231,5 +235,7 @@ yarn test:shared   # All shared code tests
 - Use rateLimiter middleware for sensitive endpoints.
 - Follow OWASP guidelines.
 - Never store sensitive data in plain text.
+- When changing log sanitization, sanitize error-report extras as a whole object so top-level credential keys are filtered too, matching sensitive names regardless of case, underscores, or hyphens. Sanitize each value's `toJSON` result without calling that result's root `toJSON` again. Test nested credentials and serializers returning themselves or shallow copies for filtering without recursion failures.
 - Use environment variables for secrets.
 - When reading untrusted response bodies or import archives, enforce limits while consuming data rather than truncating after buffering. For ZIP imports, set `ZipHelper` entry-count and aggregate read-byte limits as well as per-entry limits. Verify oversized responses and archives whose individually valid entries exceed the aggregate limit stop reading.
+- For API import attachments, do not treat `isExternalUrl` as proof a URL is downloadable; it also accepts unresolved relative paths. Require an absolute URL with a hostname or supported base64 data before creating an attachment or queuing a download. Test missing archive-relative paths remain unchanged while remote and base64 attachments are queued.
