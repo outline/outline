@@ -14,6 +14,6 @@ export default class Text extends Node {
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
-    state.text(node.text || "", undefined);
+    state.text(node.text || "", !state.inAutolink);
   }
 }

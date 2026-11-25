@@ -199,6 +199,33 @@ describe("escaping", () => {
 
     expect(output).toContain("| 10.12.14.21 |");
   });
+
+  it("does not escape the text of a plain URL link", () => {
+    const href = "https://example.edu/~alice/";
+    const doc = Node.fromJSON(schema, {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: href,
+              marks: [{ type: "link", attrs: { href } }],
+            },
+            { type: "text", text: " ~after" },
+          ],
+        },
+      ],
+    });
+
+    const output = serializer.serialize(doc);
+
+    expect(output).toBe(`<${href}> \\~after`);
+    expect(
+      parser.parse(output)?.firstChild?.firstChild?.marks[0].attrs.href
+    ).toBe(href);
+  });
 });
 
 describe("esc", () => {

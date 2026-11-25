@@ -104,6 +104,7 @@ export class MarkdownSerializerState {
   inTable = false;
   inList = false;
   inTightList = false;
+  inAutolink = false;
   closed = false;
   delim = "";
   _out = "";
