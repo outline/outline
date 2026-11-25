@@ -1,5 +1,6 @@
 import { subDays } from "date-fns";
 import { errToString } from "@shared/utils/error";
+import { parser } from "@server/editor";
 import { Attachment, Document } from "@server/models";
 import {
   buildAttachment,
@@ -244,5 +245,34 @@ describe("documentPermanentDeleter", () => {
     expect(schedule).toHaveBeenCalledWith(
       expect.objectContaining({ attachmentId: attachment.id })
     );
+  });
+
+  it("should only schedule deletion of attachments owned by the document's team", async () => {
+    const otherTeamDocument = await buildDocument({
+      publishedAt: subDays(new Date(), 90),
+      deletedAt: subDays(new Date(), 60),
+    });
+    const document = await buildDocument({
+      publishedAt: subDays(new Date(), 90),
+      deletedAt: subDays(new Date(), 60),
+    });
+    const attachment = await buildAttachment({
+      teamId: document.teamId,
+      documentId: document.id,
+    });
+    const content = parser
+      .parse(`![text](${attachment.redirectUrl})`)
+      ?.toJSON();
+    otherTeamDocument.content = content;
+    await otherTeamDocument.save();
+    document.content = content;
+    await document.save();
+
+    await documentPermanentDeleter([otherTeamDocument, document]);
+    expect(schedule).toHaveBeenCalledTimes(1);
+    expect(schedule).toHaveBeenCalledWith({
+      attachmentId: attachment.id,
+      teamId: document.teamId,
+    });
   });
 });

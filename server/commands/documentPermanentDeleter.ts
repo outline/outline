@@ -1,4 +1,4 @@
-import { chunk, uniq } from "es-toolkit/compat";
+import { chunk } from "es-toolkit/compat";
 import { Op, QueryTypes } from "sequelize";
 import { sleep } from "@shared/utils/timers";
 import Logger from "@server/logging/Logger";
@@ -33,22 +33,19 @@ export default async function documentPermanentDeleter(documents: Document[]) {
       DocumentHelper.toProsemirror(document)
     );
 
-    // Find any attachments that were originally uploaded to this document
-    const attachmentIdsForDocument = (
+    // Find attachments owned by this team that were uploaded to this document
+    // or are referenced in its text, skipping those already handled in this batch.
+    const attachmentIds = (
       await Attachment.findAll({
         attributes: ["id"],
         where: {
           teamId: document.teamId,
-          documentId: document.id,
+          [Op.or]: [{ documentId: document.id }, { id: attachmentIdsInText }],
         },
       })
-    ).map((attachment) => attachment.id);
-
-    // Skip attachments already handled for another document in this batch.
-    const attachmentIds = uniq([
-      ...attachmentIdsInText,
-      ...attachmentIdsForDocument,
-    ]).filter((attachmentId) => !checkedAttachmentIds.has(attachmentId));
+    )
+      .map((attachment) => attachment.id)
+      .filter((attachmentId) => !checkedAttachmentIds.has(attachmentId));
     attachmentIds.forEach((attachmentId) =>
       checkedAttachmentIds.add(attachmentId)
     );
