@@ -9626,6 +9626,86 @@ describe("#documents.duplicate", () => {
     expect(body.data.documents[1].fullWidth).toBe(true);
   });
 
+  it("should not duplicate other users' drafts below a shared document", async () => {
+    const author = await buildUser();
+    const invitee = await buildUser({ teamId: author.teamId });
+    const source = await buildCollection({
+      teamId: author.teamId,
+      userId: author.id,
+      permission: null,
+    });
+    const destination = await buildCollection({
+      teamId: author.teamId,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const parent = await buildDocument({
+      teamId: author.teamId,
+      userId: author.id,
+      collectionId: source.id,
+    });
+    const publishedChild = await buildDocument({
+      teamId: author.teamId,
+      userId: author.id,
+      collectionId: source.id,
+      parentDocumentId: parent.id,
+    });
+    const draftBefore = await buildDraftDocument({
+      teamId: author.teamId,
+      userId: author.id,
+      collectionId: source.id,
+      parentDocumentId: parent.id,
+    });
+
+    const addUser = await server.post("/api/documents.add_user", author, {
+      body: {
+        id: parent.id,
+        userId: invitee.id,
+        permission: DocumentPermission.Read,
+      },
+    });
+    expect(addUser.status).toEqual(200);
+
+    const draftAfter = await buildDraftDocument({
+      teamId: author.teamId,
+      userId: author.id,
+      collectionId: source.id,
+      parentDocumentId: parent.id,
+    });
+    const nestedDraft = await buildDraftDocument({
+      teamId: author.teamId,
+      userId: author.id,
+      collectionId: source.id,
+      parentDocumentId: publishedChild.id,
+    });
+
+    const res = await server.post("/api/documents.duplicate", invitee, {
+      body: {
+        id: parent.id,
+        recursive: true,
+        collectionId: destination.id,
+        publish: false,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    const copyIds = body.data.documents.map((doc: { id: string }) => doc.id);
+    expect(copyIds).toHaveLength(2);
+
+    const copies = await Document.unscoped().findAll({
+      where: { id: copyIds },
+    });
+    const sourceIds = copies.map(
+      (copy) => copy.sourceMetadata?.originalDocumentId
+    );
+    expect(sourceIds).toEqual(
+      expect.arrayContaining([parent.id, publishedChild.id])
+    );
+    expect(sourceIds).not.toContain(draftBefore.id);
+    expect(sourceIds).not.toContain(draftAfter.id);
+    expect(sourceIds).not.toContain(nestedDraft.id);
+  });
+
   it("should allow duplicating from a read-only collection into a writable one", async () => {
     const user = await buildUser();
     const source = await buildCollection({
