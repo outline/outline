@@ -1,7 +1,7 @@
 import { escape } from "es-toolkit/compat";
 import { isbot } from "isbot";
-import type { Context } from "koa";
 import { addMissingUrlPort } from "@shared/utils/urls";
+import type { AppContext } from "@server/types";
 
 /**
  * Performs a redirect on the browser so that the user's auth cookies are
@@ -12,7 +12,7 @@ import { addMissingUrlPort } from "@shared/utils/urls";
  * preventing links in emails from being clicked by bots. Otherwise, use GET.
  */
 export function redirectOnClient(
-  this: Context,
+  this: AppContext,
   redirectTo: string,
   method: "GET" | "POST" = "GET"
 ) {

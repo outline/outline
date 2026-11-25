@@ -3,7 +3,7 @@ import { toError } from "@shared/utils/error";
 import { parseDomain } from "@shared/utils/domains";
 import Logger from "@server/logging/Logger";
 import { Team } from "@server/models";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 
 /**
  * An authentication middleware that should be used on routes that return from external auth flows
@@ -19,17 +19,17 @@ export default function apexAuthRedirect<T>({
   getErrorPath,
 }: {
   /** Get the team ID for the current request */
-  getTeamId: (ctx: APIContext<T>) => string | null | undefined;
+  getTeamId: (ctx: Context<T>) => string | null | undefined;
   /** Get the redirect URL for the given team ID */
-  getRedirectPath: (ctx: APIContext<T>, team: Team) => string;
+  getRedirectPath: (ctx: Context<T>, team: Team) => string;
   /** Get the error URL for the current request */
-  getErrorPath: (ctx: APIContext<T>) => string;
+  getErrorPath: (ctx: Context<T>) => string;
 }) {
   return async function apexAuthRedirectMiddleware(
-    ctx: APIContext<T>,
+    ctx: Context<T>,
     next: Next
   ) {
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     if (user) {
       return next();
     }

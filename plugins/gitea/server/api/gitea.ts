@@ -11,7 +11,7 @@ import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { IntegrationAuthentication, Integration } from "@server/models";
 import { authorize } from "@server/policies";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import {
   generateOAuthStateNonce,
   verifyOAuthStateNonce,
@@ -28,12 +28,12 @@ router.post(
   auth(),
   validate(T.GiteaConnectSchema),
   transaction(),
-  async (ctx: APIContext<T.GiteaConnectReq>) => {
+  async (ctx: Context<T.GiteaConnectReq>) => {
     const { clientId, clientSecret } = ctx.input.body;
     const parsedUrl = new URL(ctx.input.body.url);
     const url = `${parsedUrl.origin}${parsedUrl.pathname}`.replace(/\/+$/, "");
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     authorize(user, "createIntegration", user.team);
     await validateUrlNotPrivate(url);
@@ -119,10 +119,10 @@ router.get(
     getErrorPath: () => GiteaUtils.errorUrl("unauthenticated"),
   }),
   transaction(),
-  async (ctx: APIContext<T.GiteaCallbackReq>) => {
+  async (ctx: Context<T.GiteaCallbackReq>) => {
     const { code, error, state } = ctx.input.query;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     if (error) {
       ctx.redirect(GiteaUtils.errorUrl(error));

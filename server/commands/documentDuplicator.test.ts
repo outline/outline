@@ -10,7 +10,7 @@ import {
   buildDraftDocument,
   buildUser,
 } from "@server/test/factories";
-import { withAPIContext } from "@server/test/support";
+import { withContext } from "@server/test/support";
 import { generateUrlId } from "@server/utils/url";
 import documentDuplicator from "./documentDuplicator";
 
@@ -22,7 +22,7 @@ describe("documentDuplicator", () => {
       teamId: user.teamId,
     });
 
-    const response = await withAPIContext(user, (ctx) =>
+    const response = await withContext(user, (ctx) =>
       documentDuplicator(ctx, {
         document: original,
         collection: original.collection,
@@ -45,7 +45,7 @@ describe("documentDuplicator", () => {
       icon: "👋",
     });
 
-    const response = await withAPIContext(user, (ctx) =>
+    const response = await withContext(user, (ctx) =>
       documentDuplicator(ctx, {
         document: original,
         collection: original.collection,
@@ -102,7 +102,7 @@ describe("documentDuplicator", () => {
     await collection.addDocumentToStructure(child2);
     await collection.addDocumentToStructure(child3);
 
-    await withAPIContext(user, (ctx) =>
+    await withContext(user, (ctx) =>
       documentDuplicator(ctx, {
         title: "duplicate",
         document: original,
@@ -175,7 +175,7 @@ describe("documentDuplicator", () => {
       teamId: user.teamId,
     });
 
-    const response = await withAPIContext(user, (ctx) =>
+    const response = await withContext(user, (ctx) =>
       documentDuplicator(ctx, {
         document: original,
         collection: original.collection,
@@ -281,7 +281,7 @@ describe("documentDuplicator", () => {
       text: `See [child 2](${child2.path}) and the [parent](/doc/${original.id}).`,
     });
 
-    const response = await withAPIContext(user, (ctx) =>
+    const response = await withContext(user, (ctx) =>
       documentDuplicator(ctx, {
         document: original,
         collection,
@@ -352,7 +352,7 @@ describe("documentDuplicator", () => {
       },
     });
 
-    const response = await withAPIContext(user, (ctx) =>
+    const response = await withContext(user, (ctx) =>
       documentDuplicator(ctx, {
         document: original,
         collection,
@@ -391,7 +391,7 @@ describe("documentDuplicator", () => {
       text: `See [other](${other.path}) and [elsewhere](https://example.com/doc/${other.urlId}).`,
     });
 
-    const response = await withAPIContext(user, (ctx) =>
+    const response = await withContext(user, (ctx) =>
       documentDuplicator(ctx, {
         document: original,
         collection,
@@ -425,7 +425,7 @@ describe("documentDuplicator", () => {
       ].join("\n\n"),
     });
 
-    const response = await withAPIContext(user, (ctx) =>
+    const response = await withContext(user, (ctx) =>
       documentDuplicator(ctx, {
         document: original,
         collection,
@@ -447,7 +447,7 @@ describe("documentDuplicator", () => {
       fullWidth: true,
     });
 
-    const response = await withAPIContext(user, (ctx) =>
+    const response = await withContext(user, (ctx) =>
       documentDuplicator(ctx, {
         document: original,
         collection: original.collection,
@@ -480,7 +480,7 @@ describe("documentDuplicator", () => {
       collectionId: collection.id,
     });
 
-    const response = await withAPIContext(user, (ctx) =>
+    const response = await withContext(user, (ctx) =>
       documentDuplicator(ctx, {
         document: original,
         collection: original.collection,

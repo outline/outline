@@ -23,7 +23,8 @@ import {
   Model as SequelizeModel,
 } from "sequelize-typescript";
 import Logger from "@server/logging/Logger";
-import type { Replace, APIContext } from "@server/types";
+import type { Replace, Context } from "@server/types";
+import { toHookContext, type HookContextFields } from "@server/context";
 import { getChangesetSkipped } from "../decorators/Changeset";
 import { InternalError } from "@server/errors";
 import { afterCommit } from "@server/storage/transaction";
@@ -46,7 +47,7 @@ type EventOptions = EventOverrideOptions & {
   publish: boolean;
 };
 
-export type HookContext = APIContext["context"] & { event?: EventOptions };
+export type HookContext = HookContextFields & { event?: EventOptions };
 
 class Model<
   // oxlint-disable-next-line @typescript-eslint/no-explicit-any -- Sequelize's Attributes<M> resolves to never under object default; load-bearing for static helpers like saveWithCtx<M extends Model>.
@@ -69,12 +70,12 @@ class Model<
    * Validates this instance, and if the validation passes, persists it to the database.
    */
   public saveWithCtx<M extends Model>(
-    ctx: APIContext,
+    ctx: Context,
     options?: SaveOptions<Attributes<M>>,
     eventOpts?: EventOverrideOptions
   ) {
     const hookContext: HookContext = {
-      ...ctx.context,
+      ...toHookContext(ctx),
       event: {
         ...eventOpts,
         publish: true,
@@ -87,12 +88,12 @@ class Model<
    * This is the same as calling `fill` and then calling `save`.
    */
   public updateWithCtx(
-    ctx: APIContext,
+    ctx: Context,
     keys: Partial<TModelAttributes>,
     eventOpts?: EventOverrideOptions
   ) {
     const hookContext: HookContext = {
-      ...ctx.context,
+      ...toHookContext(ctx),
       event: {
         ...eventOpts,
         publish: true,
@@ -117,9 +118,9 @@ class Model<
    * Destroy the row corresponding to this instance. Depending on your setting for paranoid, the row will
    * either be completely deleted, or have its deletedAt timestamp set to the current time.
    */
-  public destroyWithCtx(ctx: APIContext, eventOpts?: EventOverrideOptions) {
+  public destroyWithCtx(ctx: Context, eventOpts?: EventOverrideOptions) {
     const hookContext: HookContext = {
-      ...ctx.context,
+      ...toHookContext(ctx),
       event: {
         ...eventOpts,
         publish: true,
@@ -131,9 +132,9 @@ class Model<
   /**
    * Restore the row corresponding to this instance. Only available for paranoid models.
    */
-  public restoreWithCtx(ctx: APIContext, eventOpts?: EventOverrideOptions) {
+  public restoreWithCtx(ctx: Context, eventOpts?: EventOverrideOptions) {
     const hookContext: HookContext = {
-      ...ctx.context,
+      ...toHookContext(ctx),
       event: {
         ...eventOpts,
         publish: true,
@@ -146,25 +147,25 @@ class Model<
    * Find a row that matches the query, or build and save the row if none is found.
    * The successful result of the promise will be (instance, created) - Make sure to use `.then(([...]))`
    *
-   * @param ctx The API context.
+   * @param ctx The context.
    * @param options The find or create options.
    * @param eventOpts Optional event override options.
    * @returns a tuple of the instance and a boolean indicating if it was created.
    */
   public static async findOrCreateWithCtx<M extends Model>(
     this: ModelStatic<M>,
-    ctx: APIContext,
+    ctx: Context,
     options: FindOrCreateOptions<Attributes<M>, CreationAttributes<M>>,
     eventOpts?: EventOverrideOptions
   ): Promise<[M, boolean]> {
     const hookContext: HookContext = {
-      ...ctx.context,
+      ...toHookContext(ctx),
       event: {
         ...eventOpts,
         publish: true,
       },
     };
-    const transaction = ctx.context.transaction;
+    const transaction = ctx.transaction;
 
     // First, try to find an existing record
     const existing = await this.findOne({
@@ -206,19 +207,19 @@ class Model<
    * each. Rows are matched when the destroy runs, so rows written after the
    * options were prepared are destroyed too.
    *
-   * @param ctx The API context.
+   * @param ctx The context.
    * @param options The destroy options.
    * @param eventOpts Optional event override options.
    * @returns the number of destroyed rows.
    */
   public static destroyWithCtx<M extends Model>(
     this: ModelStatic<M>,
-    ctx: APIContext,
+    ctx: Context,
     options: DestroyOptions<Attributes<M>>,
     eventOpts?: EventOverrideOptions
   ) {
     const hookContext = {
-      ...ctx.context,
+      ...toHookContext(ctx),
       ...options,
       individualHooks: true,
       event: {
@@ -234,13 +235,13 @@ class Model<
    */
   public static createWithCtx<M extends Model>(
     this: ModelStatic<M>,
-    ctx: APIContext,
+    ctx: Context,
     values?: CreationAttributes<M>,
     eventOpts?: EventOverrideOptions,
     createOpts?: CreateOptions<M>
   ) {
     const hookContext = {
-      ...ctx.context,
+      ...toHookContext(ctx),
       ...createOpts,
       event: {
         ...eventOpts,
@@ -300,7 +301,7 @@ class Model<
    *
    * @param name The name of the event.
    * @param model The model that was mutated.
-   * @param context The API context.
+   * @param context The context.
    */
   protected static async insertEvent<T extends Model>(
     name: string,

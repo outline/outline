@@ -15,7 +15,7 @@ import onerror from "@server/onerror";
 import { BaseTask } from "@server/queues/tasks/base/BaseTask";
 import webService from "@server/services/web";
 import { sequelize } from "@server/storage/database";
-import type { APIContext, AppContext } from "@server/types";
+import type { Context, AppContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import ZipHelper from "@server/utils/ZipHelper";
 import TestServer from "./TestServer";
@@ -122,27 +122,23 @@ export function mockTaskSchedule() {
   return schedule;
 }
 
-export function withAPIContext<T>(
+export function withContext<T>(
   user: User,
-  fn: (ctx: APIContext) => T
+  fn: (ctx: Context) => T
 ): Promise<T> {
-  return sequelize.transaction(async (transaction: Transaction) => {
-    const state = {
+  return sequelize.transaction(async (transaction: Transaction) =>
+    fn({
+      ...createContext({ user, transaction }),
       auth: {
         user,
         type: AuthenticationType.APP,
         token: user.getSessionToken(),
       },
-      transaction,
-    };
-    return fn({
-      ...createContext({ user, transaction }),
-      state,
       request: {
         ip: faker.internet.ip(),
       },
-    } as APIContext);
-  });
+    } as Context)
+  );
 }
 
 /**
@@ -161,7 +157,7 @@ export async function readZipResponse(
     const entries: Record<string, string> = {};
     await ZipHelper.walk(filePath, async (entry) => {
       entries[entry.fileName] = (
-        await entry.readBuffer(1024 * 1024)
+        await entry.readBuffer(4 * 1024 * 1024)
       ).toString();
     });
     return entries;

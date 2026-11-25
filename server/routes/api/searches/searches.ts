@@ -4,7 +4,7 @@ import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { SearchQuery } from "@server/models";
 import { presentSearchQuery } from "@server/presenters";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -15,8 +15,8 @@ router.post(
   auth(),
   validate(T.SearchesListSchema),
   pagination(),
-  async (ctx: APIContext<T.SearchesListReq>) => {
-    const { user } = ctx.state.auth;
+  async (ctx: Context<T.SearchesListReq>) => {
+    const { user } = ctx.auth;
     const source = ctx.input.body?.source;
 
     const searches = await SearchQuery.findAll({
@@ -42,10 +42,10 @@ router.post(
   auth(),
   validate(T.SearchesUpdateSchema),
   transaction(),
-  async (ctx: APIContext<T.SearchesUpdateReq>) => {
+  async (ctx: Context<T.SearchesUpdateReq>) => {
     const { id, score } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const search = await SearchQuery.findOne({
       where: {
@@ -70,9 +70,9 @@ router.post(
   "searches.delete",
   auth(),
   validate(T.SearchesDeleteSchema),
-  async (ctx: APIContext<T.SearchesDeleteReq>) => {
+  async (ctx: Context<T.SearchesDeleteReq>) => {
     const { id, query } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     await SearchQuery.destroy({
       where: {

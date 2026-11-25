@@ -5,7 +5,7 @@ import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { User, Team } from "@server/models";
 import { UserFlag } from "@server/models/User";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { DomainNotAllowedError } from "@server/errors";
 import { authorize, can } from "@server/policies";
 
@@ -21,14 +21,14 @@ type Props = {
 };
 
 export default async function userInviter(
-  ctx: APIContext,
+  ctx: Context,
   { invites, suppressEmail }: Props
 ): Promise<{
   sent: Invite[];
   unsent: Invite[];
   users: User[];
 }> {
-  const { user } = ctx.state.auth;
+  const { user } = ctx.auth;
   const team = await Team.findByPk(user.teamId, { rejectOnEmpty: true });
 
   if (invites.some((invite) => invite.role === UserRole.Guest)) {

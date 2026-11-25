@@ -1,7 +1,7 @@
-import type { Context } from "koa";
 import Redis from "@server/storage/redis";
 import { LogoutTokenStore } from "./LogoutTokenStore";
 import { RedisPrefixHelper } from "./RedisPrefixHelper";
+import type { AppContext } from "@server/types";
 
 /**
  * Minimal Koa context stub exposing only the cookie jar and hostname the store
@@ -21,7 +21,7 @@ function buildContext(cookies: Record<string, string> = {}) {
         }
       },
     },
-  } as unknown as Context;
+  } as unknown as AppContext;
 }
 
 describe("LogoutTokenStore", () => {

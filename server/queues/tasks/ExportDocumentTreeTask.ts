@@ -9,6 +9,7 @@ import type { Collection } from "@server/models";
 import Attachment from "@server/models/Attachment";
 import Document from "@server/models/Document";
 import Team from "@server/models/Team";
+import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import OKFHelper from "@server/models/helpers/OKFHelper";
@@ -108,6 +109,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
       ? path.join(pathInZip, TextBundleHelper.textFileName)
       : pathInZip;
     const usedAssetNames = new Set<string>();
+    let inlinedSize = 0;
 
     // Add any referenced attachments to the zip file and replace the
     // reference in the document with the path to the attachment in the zip
@@ -140,7 +142,9 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
           text,
           attachment.redirectUrl,
           attachment.contentType,
-          attachment.size
+          // BIGINT columns are returned as strings.
+          Number(attachment.size),
+          inlinedSize
         )
       ) {
         let buffer: Buffer | undefined;
@@ -159,11 +163,13 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
               text,
               attachment.redirectUrl,
               attachment.contentType,
-              buffer
+              buffer,
+              inlinedSize
             )
           : null;
-        if (inlined !== null) {
+        if (buffer && inlined !== null) {
           text = inlined;
+          inlinedSize += buffer.length;
           continue;
         }
       }
@@ -174,7 +180,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
         ? TextBundleHelper.assetPath(attachment.name, usedAssetNames)
         : attachment.key;
 
-      this.addAttachmentToArchive(
+      AttachmentHelper.addToArchive(
         zip,
         attachment,
         isTextBundle

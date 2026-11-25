@@ -5,7 +5,7 @@ import { randomString } from "@shared/random";
 import { CommentingAccess, Plan, TeamPreference } from "@shared/types";
 import { Team } from "@server/models";
 import { buildAdmin, buildTeam, buildUser } from "@server/test/factories";
-import { setCloudHosted, withAPIContext } from "@server/test/support";
+import { setCloudHosted, withContext } from "@server/test/support";
 import teamUpdater from "./teamUpdater";
 
 describe("teamUpdater", () => {
@@ -27,7 +27,7 @@ describe("teamUpdater", () => {
         team,
         user,
         run: () =>
-          withAPIContext(user, (ctx) =>
+          withContext(user, (ctx) =>
             teamUpdater(ctx, {
               params: {
                 preferences: { [TeamPreference.DefaultShareExpiryDays]: days },
@@ -78,7 +78,7 @@ describe("teamUpdater", () => {
 
       const newValue = CommentingAccess.None;
 
-      const updatedTeam = await withAPIContext(user, (ctx) =>
+      const updatedTeam = await withContext(user, (ctx) =>
         teamUpdater(ctx, {
           params: {
             preferences: {
@@ -104,7 +104,7 @@ describe("teamUpdater", () => {
       await team.save();
 
       // Try to set the same value again
-      const updatedTeam = await withAPIContext(user, (ctx) =>
+      const updatedTeam = await withContext(user, (ctx) =>
         teamUpdater(ctx, {
           params: {
             preferences: {
@@ -134,7 +134,7 @@ describe("teamUpdater", () => {
       await team.save();
 
       // Pass an object with the same values (but different reference)
-      const updatedTeam = await withAPIContext(user, (ctx) =>
+      const updatedTeam = await withContext(user, (ctx) =>
         teamUpdater(ctx, {
           params: {
             preferences: {
@@ -166,7 +166,7 @@ describe("teamUpdater", () => {
       team.setPreference(TeamPreference.ViewersCanExport, true);
       await team.save();
 
-      const updatedTeam = await withAPIContext(user, (ctx) =>
+      const updatedTeam = await withContext(user, (ctx) =>
         teamUpdater(ctx, {
           params: {
             preferences: {
@@ -194,7 +194,7 @@ describe("teamUpdater", () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
 
-      const updatedTeam = await withAPIContext(user, (ctx) =>
+      const updatedTeam = await withContext(user, (ctx) =>
         teamUpdater(ctx, {
           params: { name: "Updated Team Name" },
           user,
@@ -214,7 +214,7 @@ describe("teamUpdater", () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
 
-      const updatedTeam = await withAPIContext(user, (ctx) =>
+      const updatedTeam = await withContext(user, (ctx) =>
         teamUpdater(ctx, {
           params: { subdomain },
           user,
@@ -232,7 +232,7 @@ describe("teamUpdater", () => {
       const user = await buildUser({ teamId: team.id });
 
       await expect(
-        withAPIContext(user, (ctx) =>
+        withContext(user, (ctx) =>
           teamUpdater(ctx, {
             params: { subdomain },
             user,

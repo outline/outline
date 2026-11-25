@@ -73,4 +73,13 @@ describe("LocalStorage", () => {
       expect(remaining).toBeLessThanOrEqual(Hour.seconds);
     });
   });
+
+  describe("getFileStream", () => {
+    it("should return null for a file that does not exist", async () => {
+      const storage = new LocalStorage();
+      await expect(
+        storage.getFileStream("uploads/missing/file.png")
+      ).resolves.toBeNull();
+    });
+  });
 });

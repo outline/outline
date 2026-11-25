@@ -7,7 +7,7 @@ import { View, Document } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentView } from "@server/presenters";
 import { AuthenticationType } from "@server/types";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import * as T from "./schema";
 import { transaction } from "@server/middlewares/transaction";
@@ -20,9 +20,9 @@ router.post(
   auth(),
   validate(T.ViewsListSchema),
   pagination({ defaultLimit: 100 }),
-  async (ctx: APIContext<T.ViewsListReq>) => {
+  async (ctx: Context<T.ViewsListReq>) => {
     const { documentId, includeSuspended } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const document = await Document.findByPk(documentId, {
       userId: user.id,
@@ -53,9 +53,9 @@ router.post(
   auth({ type: AuthenticationType.APP }),
   validate(T.ViewsCreateSchema),
   transaction(),
-  async (ctx: APIContext<T.ViewsCreateReq>) => {
+  async (ctx: Context<T.ViewsCreateReq>) => {
     const { documentId } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const document = await Document.findByPk(documentId, {
       userId: user.id,

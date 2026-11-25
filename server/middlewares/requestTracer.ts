@@ -1,9 +1,10 @@
-import type { Context, Next } from "koa";
+import type { Next } from "koa";
 import { addTags, getRootSpanFromRequestContext } from "@server/logging/tracer";
 import { RequestHelper } from "@server/utils/RequestHelper";
+import type { AppContext } from "@server/types";
 
 export default function requestTracer() {
-  return async function requestTracerMiddleware(ctx: Context, next: Next) {
+  return async function requestTracerMiddleware(ctx: AppContext, next: Next) {
     const params = ctx.request.body
       ? RequestHelper.getBodyObject(ctx.request)
       : ctx.request.query;

@@ -17,7 +17,7 @@ import {
   buildDocument,
   buildUser,
 } from "@server/test/factories";
-import { withAPIContext } from "@server/test/support";
+import { withContext } from "@server/test/support";
 import documentUpdater from "./documentUpdater";
 
 describe("documentUpdater", () => {
@@ -41,7 +41,7 @@ describe("documentUpdater", () => {
       });
       const newMention = `@[Writer](mention://user/${user.id})`;
 
-      document = await withAPIContext(user, (ctx) =>
+      document = await withContext(user, (ctx) =>
         documentUpdater(ctx, {
           document,
           text:
@@ -83,7 +83,7 @@ describe("documentUpdater", () => {
     });
     const originalMentions = DocumentHelper.parseMentions(document);
 
-    document = await withAPIContext(user, (ctx) =>
+    document = await withContext(user, (ctx) =>
       documentUpdater(ctx, { document, text: `${mention} updated` })
     );
 
@@ -97,7 +97,7 @@ describe("documentUpdater", () => {
       teamId: user.teamId,
     });
 
-    document = await withAPIContext(user, (ctx) =>
+    document = await withContext(user, (ctx) =>
       documentUpdater(ctx, {
         text: "Changed",
         document,
@@ -120,7 +120,7 @@ describe("documentUpdater", () => {
       userId: creator.id,
     });
 
-    document = await withAPIContext(user, (ctx) =>
+    document = await withContext(user, (ctx) =>
       documentUpdater(ctx, {
         text: "Changed",
         publish: true,
@@ -138,7 +138,7 @@ describe("documentUpdater", () => {
       teamId: user.teamId,
     });
 
-    document = await withAPIContext(user, (ctx) =>
+    document = await withContext(user, (ctx) =>
       documentUpdater(ctx, {
         title: document.title,
         document,
@@ -164,7 +164,7 @@ describe("documentUpdater", () => {
     document.state = Buffer.from(Y.encodeStateAsUpdate(ydoc));
     await document.save();
 
-    document = await withAPIContext(user, (ctx) =>
+    document = await withContext(user, (ctx) =>
       documentUpdater(ctx, {
         text: "Changed content",
         document,
@@ -185,7 +185,7 @@ describe("documentUpdater", () => {
       teamId: user.teamId,
     });
 
-    document = await withAPIContext(user, (ctx) =>
+    document = await withContext(user, (ctx) =>
       documentUpdater(ctx, {
         title: "New Title",
         document,
@@ -213,7 +213,7 @@ describe("documentUpdater", () => {
     });
     const loadedCollection = document.collection;
 
-    const result = await withAPIContext(user, (ctx) =>
+    const result = await withContext(user, (ctx) =>
       documentUpdater(ctx, {
         title: "New Title",
         document,
@@ -234,7 +234,7 @@ describe("documentUpdater", () => {
         teamId: user.teamId,
       });
 
-      document = await withAPIContext(user, (ctx) =>
+      document = await withContext(user, (ctx) =>
         documentUpdater(ctx, {
           text: "Changed",
           document,
@@ -267,7 +267,7 @@ describe("documentUpdater", () => {
         text: "Initial",
       });
 
-      document = await withAPIContext(user, (ctx) =>
+      document = await withContext(user, (ctx) =>
         documentUpdater(ctx, {
           text: "Appended",
           document,
@@ -294,7 +294,7 @@ describe("documentUpdater", () => {
         text: "**Bold**",
       });
 
-      document = await withAPIContext(user, (ctx) =>
+      document = await withContext(user, (ctx) =>
         documentUpdater(ctx, {
           text: "Appended",
           document,
@@ -346,7 +346,7 @@ describe("documentUpdater", () => {
       };
       await document.save();
 
-      document = await withAPIContext(user, (ctx) =>
+      document = await withContext(user, (ctx) =>
         documentUpdater(ctx, {
           text: "Appended",
           document,
@@ -382,7 +382,7 @@ describe("documentUpdater", () => {
         text: "Initial",
       });
 
-      document = await withAPIContext(user, (ctx) =>
+      document = await withContext(user, (ctx) =>
         documentUpdater(ctx, {
           text: "\n\nAppended",
           document,
@@ -415,7 +415,7 @@ describe("documentUpdater", () => {
         text: "Existing",
       });
 
-      document = await withAPIContext(user, (ctx) =>
+      document = await withContext(user, (ctx) =>
         documentUpdater(ctx, {
           text: "Prepended",
           document,
@@ -442,7 +442,7 @@ describe("documentUpdater", () => {
         text: "**Bold**",
       });
 
-      document = await withAPIContext(user, (ctx) =>
+      document = await withContext(user, (ctx) =>
         documentUpdater(ctx, {
           text: "Prepended",
           document,
@@ -478,7 +478,7 @@ describe("documentUpdater", () => {
         text: "Existing",
       });
 
-      document = await withAPIContext(user, (ctx) =>
+      document = await withContext(user, (ctx) =>
         documentUpdater(ctx, {
           text: "Prepended\n\n",
           document,
@@ -588,7 +588,7 @@ describe("documentUpdater", () => {
       });
 
       await expect(
-        withAPIContext(user, (ctx) =>
+        withContext(user, (ctx) =>
           documentUpdater(ctx, {
             text: "replacement",
             findText: "nonexistent text",
@@ -718,7 +718,7 @@ describe("documentUpdater", () => {
         text: "- First item\n- Second item\n- Third item",
       });
 
-      document = await withAPIContext(user, (ctx) =>
+      document = await withContext(user, (ctx) =>
         documentUpdater(ctx, {
           text: "* Updated item",
           findText: "* Second item",
@@ -750,7 +750,7 @@ describe("documentUpdater", () => {
         text: "1. Alpha one.\n2. Bravo two:\n\n   :::info\n   A note inside item two.\n   :::\n3. Charlie three.",
       });
 
-      document = await withAPIContext(user, (ctx) =>
+      document = await withContext(user, (ctx) =>
         documentUpdater(ctx, {
           text: "Amber",
           findText: "Alpha",
@@ -803,7 +803,7 @@ describe("documentUpdater", () => {
 
       const lastRow = await lineContaining(document, "gamma");
 
-      document = await withAPIContext(user, (ctx) =>
+      document = await withContext(user, (ctx) =>
         documentUpdater(ctx, {
           text: `${lastRow}\n\n## New\n\nbody text`,
           findText: lastRow,
@@ -834,7 +834,7 @@ describe("documentUpdater", () => {
 
       const middleRow = await lineContaining(document, "beta");
 
-      document = await withAPIContext(user, (ctx) =>
+      document = await withContext(user, (ctx) =>
         documentUpdater(ctx, {
           text: `${middleRow}\n\n## New`,
           findText: middleRow,
@@ -855,7 +855,7 @@ describe("documentUpdater", () => {
         text: "* alpha\n* beta\n* gamma",
       });
 
-      document = await withAPIContext(user, (ctx) =>
+      document = await withContext(user, (ctx) =>
         documentUpdater(ctx, {
           text: "- beta EDITED",
           findText: "* beta",
@@ -887,7 +887,7 @@ describe("documentUpdater", () => {
         text: "> alpha\n>\n> beta\n>\n> gamma\n\n## Notes",
       });
 
-      document = await withAPIContext(user, (ctx) =>
+      document = await withContext(user, (ctx) =>
         documentUpdater(ctx, {
           text: "beta EDITED",
           findText: "> beta",
@@ -924,7 +924,7 @@ describe("documentUpdater", () => {
 
       const lastRow = await lineContaining(document, "two");
 
-      document = await withAPIContext(user, (ctx) =>
+      document = await withContext(user, (ctx) =>
         documentUpdater(ctx, {
           text: `${lastRow}\n${lastRow.replace("two", "three").replace("2", "3")}`,
           findText: lastRow,
@@ -968,7 +968,7 @@ describe("documentUpdater", () => {
         },
       });
 
-      document = await withAPIContext(user, (ctx) =>
+      document = await withContext(user, (ctx) =>
         documentUpdater(ctx, {
           text: "* beta EDITED\n* delta",
           findText: "* beta",
@@ -1018,7 +1018,7 @@ describe("documentUpdater", () => {
         },
       });
 
-      document = await withAPIContext(user, (ctx) =>
+      document = await withContext(user, (ctx) =>
         documentUpdater(ctx, {
           text: "",
           findText: "* alpha\n",
@@ -1046,7 +1046,7 @@ describe("documentUpdater", () => {
         text: "# Title\n\n* only item\n\nafter",
       });
 
-      document = await withAPIContext(user, (ctx) =>
+      document = await withContext(user, (ctx) =>
         documentUpdater(ctx, {
           text: "plain text now",
           findText: "* only item",
@@ -1073,7 +1073,7 @@ describe("documentUpdater", () => {
         text: "* alpha\n* beta\n* gamma",
       });
 
-      document = await withAPIContext(user, (ctx) =>
+      document = await withContext(user, (ctx) =>
         documentUpdater(ctx, {
           text: "1. beta EDITED",
           findText: "* beta",
@@ -1101,7 +1101,7 @@ describe("documentUpdater", () => {
         text: "1. one\n2. two\n3. three",
       });
 
-      document = await withAPIContext(user, (ctx) =>
+      document = await withContext(user, (ctx) =>
         documentUpdater(ctx, {
           text: "2) two EDITED",
           findText: "2. two",
@@ -1134,7 +1134,7 @@ describe("documentUpdater", () => {
         text: "a. alpha",
       });
 
-      document = await withAPIContext(user, (ctx) =>
+      document = await withContext(user, (ctx) =>
         documentUpdater(ctx, {
           text: "a. alpha\n1) numeric",
           findText: "a. alpha",
@@ -1168,7 +1168,7 @@ describe("documentUpdater", () => {
         text: "* alpha\n  * one\n  * two\n  * three\n* beta",
       });
 
-      document = await withAPIContext(user, (ctx) =>
+      document = await withContext(user, (ctx) =>
         documentUpdater(ctx, {
           text: "  - two EDITED",
           findText: "  * two",
@@ -1212,7 +1212,7 @@ describe("documentUpdater", () => {
         text: "> alpha\n>\n> beta",
       });
 
-      document = await withAPIContext(user, (ctx) =>
+      document = await withContext(user, (ctx) =>
         documentUpdater(ctx, {
           text: "> beta\n\n## New\n\nbody",
           findText: "> beta",
@@ -2426,7 +2426,7 @@ describe("documentUpdater", () => {
       const user = await buildUser();
       const document = await buildDocument({ teamId: user.teamId });
 
-      const result = await withAPIContext(user, (ctx) =>
+      const result = await withContext(user, (ctx) =>
         documentUpdater(ctx, {
           document,
           text: "- [ ] one\n\n+++ Title\nBody\n+++",
@@ -2450,7 +2450,7 @@ describe("documentUpdater", () => {
         content,
       });
 
-      const result = await withAPIContext(user, (ctx) =>
+      const result = await withContext(user, (ctx) =>
         documentUpdater(ctx, {
           document,
           text: replacement,

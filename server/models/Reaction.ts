@@ -17,7 +17,7 @@ import {
   Table,
 } from "sequelize-typescript";
 import { createContext } from "@server/context";
-import type { APIContext } from "@server/types";
+import type { HookContextFields } from "@server/context";
 import Comment from "./Comment";
 import User from "./User";
 import IdModel from "./base/IdModel";
@@ -54,7 +54,7 @@ class Reaction extends IdModel<
   @AfterCreate
   public static async addReactionToCommentCache(
     model: Reaction,
-    ctx: APIContext["context"] &
+    ctx: HookContextFields &
       FindOrCreateOptions<Attributes<Reaction>, CreationAttributes<Reaction>>
   ) {
     const { transaction } = ctx;
@@ -86,7 +86,7 @@ class Reaction extends IdModel<
 
     comment.reactions = reactions;
 
-    // Pass only the fields needed in APIContext; otherwise sequelize props will be overwritten.
+    // Pass only the fields needed in Context; otherwise sequelize props will be overwritten.
     const context = createContext({
       user: ctx.auth.user,
       authType: ctx.auth.type,
@@ -106,7 +106,7 @@ class Reaction extends IdModel<
   @AfterDestroy
   public static async removeReactionFromCommentCache(
     model: Reaction,
-    ctx: APIContext["context"] & InstanceDestroyOptions
+    ctx: HookContextFields & InstanceDestroyOptions
   ) {
     const { transaction } = ctx;
 
@@ -139,7 +139,7 @@ class Reaction extends IdModel<
 
     comment.reactions = reactions;
 
-    // Pass only the fields needed in APIContext; otherwise sequelize props will be overwritten.
+    // Pass only the fields needed in Context; otherwise sequelize props will be overwritten.
     const context = createContext({
       user: ctx.auth.user,
       authType: ctx.auth.type,

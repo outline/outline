@@ -1,7 +1,6 @@
 import crypto from "node:crypto";
 import { addHours, addMinutes, subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
-import type { Context } from "koa";
 import type {
   Transaction,
   SaveOptions,
@@ -52,7 +51,8 @@ import env from "@server/env";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
 import { LockHelper } from "@server/storage/LockHelper";
 import { afterCommit } from "@server/storage/transaction";
-import type { APIContext } from "@server/types";
+import type { Context, AppContext } from "@server/types";
+import { toHookContext } from "@server/context";
 import { VerificationCode } from "@server/utils/VerificationCode";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { CacheHelper } from "@server/utils/CacheHelper";
@@ -582,7 +582,7 @@ class User extends ParanoidModel<
    * @param force whether to update even if the last update was recent.
    * @returns a promise that resolves with the updated user.
    */
-  updateActiveAt = async (ctx?: Context, force = false) => {
+  updateActiveAt = async (ctx?: AppContext, force = false) => {
     const fiveMinutesAgo = subMinutes(new Date(), 5);
 
     // ensure this is updated only every few minutes otherwise
@@ -609,13 +609,13 @@ class User extends ParanoidModel<
     });
   };
 
-  updateSignedIn = (ctx: Context | APIContext) => {
+  updateSignedIn = (ctx: AppContext | Context) => {
     const now = new Date();
     this.lastActiveAt = now;
     this.lastActiveIp = ctx.request.ip;
     this.lastSignedInAt = now;
     this.lastSignedInIp = ctx.request.ip;
-    return this.save({ hooks: false, transaction: ctx.state.transaction });
+    return this.save({ hooks: false, transaction: ctx.transaction });
   };
 
   /**
@@ -693,7 +693,7 @@ class User extends ParanoidModel<
    * @param ctx The request context, used to get the IP address of the request
    * @returns The email signin token
    */
-  getEmailSigninToken = (ctx: Context) =>
+  getEmailSigninToken = (ctx: AppContext) =>
     JWT.sign(
       {
         id: this.id,
@@ -990,15 +990,15 @@ class User extends ParanoidModel<
 
   static findByEmail = async function (
     this: typeof User,
-    ctx: APIContext,
+    ctx: Context,
     email: string
   ) {
     return this.findOne({
       where: {
-        teamId: ctx.state.auth.user.teamId,
+        teamId: ctx.auth.user.teamId,
         email: email.trim().toLowerCase(),
       },
-      ...ctx.context,
+      ...toHookContext(ctx),
     });
   };
 

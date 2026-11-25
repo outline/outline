@@ -1,9 +1,10 @@
 import stream from "node:stream";
-import type { Context, Next } from "koa";
+import type { Next } from "koa";
 import { Readable } from "readable-stream";
+import type { AppContext } from "@server/types";
 
 export default function apiResponse() {
-  return async function apiResponseMiddleware(ctx: Context, next: Next) {
+  return async function apiResponseMiddleware(ctx: AppContext, next: Next) {
     await next();
     const ok = ctx.status < 400;
 

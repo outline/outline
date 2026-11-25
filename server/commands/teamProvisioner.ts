@@ -13,7 +13,7 @@ import {
   retryOnUniqueConstraintError,
   sequelize,
 } from "@server/storage/database";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 
 type TeamProvisionerResult = {
   team: Team;
@@ -45,7 +45,7 @@ type Props = {
 };
 
 async function teamProvisioner(
-  ctx: APIContext,
+  ctx: Context,
   { teamId, name, domain, subdomain, avatarUrl, authenticationProvider }: Props
 ): Promise<TeamProvisionerResult> {
   const where = teamId

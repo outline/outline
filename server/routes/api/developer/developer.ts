@@ -1,4 +1,4 @@
-import type { Context, Next } from "koa";
+import type { Next } from "koa";
 import Router from "@koa/router";
 import { Op } from "sequelize";
 import { randomString, randomElement } from "@shared/random";
@@ -12,13 +12,16 @@ import validate from "@server/middlewares/validate";
 import { Document, Notification, User } from "@server/models";
 import presentNotification from "@server/presenters/notification";
 import { presentUser } from "@server/presenters";
-import type { APIContext } from "@server/types";
+import type { Context, AppContext } from "@server/types";
 import * as T from "./schema";
 
 const router = new Router();
 
 function dev() {
-  return async function checkDevelopmentMiddleware(ctx: Context, next: Next) {
+  return async function checkDevelopmentMiddleware(
+    ctx: AppContext,
+    next: Next
+  ) {
     if (env.ENVIRONMENT !== "development") {
       throw new Error("Attempted to access development route in production");
     }
@@ -32,7 +35,7 @@ router.post(
   dev(),
   auth(),
   validate(T.CreateTestUsersSchema),
-  async (ctx: APIContext<T.CreateTestUsersReq>) => {
+  async (ctx: Context<T.CreateTestUsersReq>) => {
     const { count } = ctx.input.body;
     const invites = Array(Math.min(count, 100))
       .fill(0)
@@ -69,9 +72,9 @@ router.post(
   dev(),
   auth(),
   validate(T.CreateTestNotificationsSchema),
-  async (ctx: APIContext<T.CreateTestNotificationsReq>) => {
+  async (ctx: Context<T.CreateTestNotificationsReq>) => {
     const { count } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const events = [
       NotificationEventType.UpdateDocument,

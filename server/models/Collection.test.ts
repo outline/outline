@@ -10,7 +10,7 @@ import {
   buildTeam,
   buildDocument,
 } from "@server/test/factories";
-import { withAPIContext } from "@server/test/support";
+import { withContext } from "@server/test/support";
 import Collection from "./Collection";
 import Document from "./Document";
 
@@ -32,7 +32,7 @@ describe("#updateDeprecatedReason", () => {
     );
 
     await expect(
-      withAPIContext(user, (ctx) =>
+      withContext(user, (ctx) =>
         collection.updateDeprecatedReason(ctx, "Outdated")
       )
     ).rejects.toThrow("The collection must be archived");
@@ -685,7 +685,7 @@ describe("#archiveWithCtx", () => {
       archivedAt: new Date("2024-01-01"),
     });
 
-    await withAPIContext(user, (ctx) => collection.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => collection.archiveWithCtx(ctx));
 
     await Promise.all([
       collection.reload(),
@@ -717,7 +717,7 @@ describe("#archiveWithCtx", () => {
       publishedAt: new Date(),
     });
 
-    await withAPIContext(user, (ctx) => collection.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => collection.archiveWithCtx(ctx));
 
     await otherDocument.reload();
     expect(otherDocument.archivedAt).toBeNull();

@@ -3,7 +3,7 @@ import { ParamRequiredError, ValidationError } from "@server/errors";
 import { Collection, Revision } from "@server/models";
 import type { Document } from "@server/models";
 import { authorize } from "@server/policies";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 
 type Props = {
   /** The document to restore. Must be loaded with `paranoid: false`. */
@@ -20,7 +20,7 @@ type Props = {
  * are re-attached to the destination collection's structure. Authorizes the
  * acting user against the document before any other check.
  *
- * @param ctx - the API context, providing the acting user and transaction.
+ * @param ctx - the context, providing the acting user and transaction.
  * @param props - the document and restore options.
  * @returns the restored document.
  * @throws AuthorizationError if the user cannot restore the document.
@@ -28,11 +28,11 @@ type Props = {
  * @throws NotFoundError if the given revision does not exist.
  */
 async function documentRestorer(
-  ctx: APIContext,
+  ctx: Context,
   { document, collectionId, revisionId }: Props
 ): Promise<Document> {
-  const { user } = ctx.state.auth;
-  const { transaction } = ctx.state;
+  const { user } = ctx.auth;
+  const { transaction } = ctx;
 
   if (!document.deletedAt && !document.archivedAt) {
     // restore an active document to a specific revision
