@@ -38,7 +38,7 @@ const stickyTableHeader = keyframes`
 `;
 
 /** The space above a table for its column controls, it overlaps the block above. */
-const TABLE_CONTROLS_HEIGHT = 28;
+const TABLE_CONTROLS_HEIGHT = 36;
 
 /** The frame of a file in the editor, which holds the progress bar of an upload. */
 const uploadFrame = `.${EditorStyleHelper.imageWrapper}, .${EditorStyleHelper.videoWrapper}, .widget, .${EditorStyleHelper.pdfWrapper}`;
@@ -2555,8 +2555,9 @@ table {
       content: "";
       position: absolute;
       top: -${TABLE_CONTROLS_HEIGHT}px;
-      left: var(--span-start, 0);
-      width: var(--span-size, 100%);
+      /* also covers the left border of the cell */
+      left: calc(var(--span-start, 0%) - 1px);
+      width: calc(var(--span-size, 100%) + 1px);
       /* stops above the top border of the table */
       height: ${TABLE_CONTROLS_HEIGHT - 1}px;
       background: linear-gradient(${transparentize(1, props.theme.background)}, ${transparentize(0.15, props.theme.background)} 50%);
