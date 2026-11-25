@@ -14,6 +14,7 @@ import {
   presentPolicies,
 } from "@server/presenters";
 import type { Context } from "@server/types";
+import { AuthenticationType } from "@server/types";
 import * as T from "./schema";
 
 const router = new Router();
@@ -38,7 +39,7 @@ router.post(
 
 router.post(
   "authenticationProviders.update",
-  auth({ role: UserRole.Admin }),
+  auth({ role: UserRole.Admin, type: AuthenticationType.APP }),
   validate(T.AuthenticationProvidersUpdateSchema),
   transaction(),
   async (ctx: Context<T.AuthenticationProvidersUpdateReq>) => {
@@ -137,7 +138,7 @@ router.post(
 
 router.post(
   "authenticationProviders.delete",
-  auth({ role: UserRole.Admin }),
+  auth({ role: UserRole.Admin, type: AuthenticationType.APP }),
   validate(T.AuthenticationProvidersDeleteSchema),
   transaction(),
   async (ctx: Context<T.AuthenticationProvidersDeleteReq>) => {

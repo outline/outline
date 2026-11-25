@@ -192,7 +192,7 @@ router.post("auth.info", auth(), async (ctx: Context<T.AuthInfoReq>) => {
 
 router.post(
   "auth.delete",
-  auth(),
+  auth({ type: AuthenticationType.APP }),
   transaction(),
   async (ctx: Context<T.AuthDeleteReq>) => {
     const { auth, transaction } = ctx;
