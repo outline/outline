@@ -42,6 +42,7 @@ type Props = {
   showCollection?: boolean;
   showPublished?: boolean;
   showDraft?: boolean;
+  showLastViewed?: boolean;
   ref?: React.RefObject<HTMLAnchorElement | null>;
 };
 
@@ -78,6 +79,7 @@ function DocumentListItem(props: Props) {
     showCollection,
     showPublished,
     showDraft = true,
+    showLastViewed = true,
     highlight,
     context,
     ref: _ref,
@@ -250,10 +252,30 @@ function DocumentListItem(props: Props) {
             showCollection={showCollection}
             showPublished={showPublished}
             showParentDocuments={showParentDocuments}
-            showLastViewed
+            showLastViewed={showLastViewed}
           />
         </Content>
       </Flex>
+      {document.destroysInDays !== undefined && (
+        <RetentionBadge>
+          {isInteractive ? (
+            <Tooltip
+              content={t(
+                "Will be permanently deleted in {{ count }} days unless restored",
+                { count: document.destroysInDays }
+              )}
+            >
+              <Badge>
+                {t("{{ count }} days", { count: document.destroysInDays })}
+              </Badge>
+            </Tooltip>
+          ) : (
+            <Badge>
+              {t("{{ count }} days", { count: document.destroysInDays })}
+            </Badge>
+          )}
+        </RetentionBadge>
+      )}
       <Actions>
         {isInteractive && (
           <DocumentMenu
@@ -336,6 +358,13 @@ const Content = styled.div`
   flex-grow: 1;
   flex-shrink: 1;
   min-width: 0;
+`;
+
+const RetentionBadge = styled.div`
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: 8px;
 `;
 
 const Actions = styled(EventBoundary)`

@@ -1,4 +1,4 @@
-import { addDays, differenceInSeconds } from "date-fns";
+import { differenceInSeconds } from "date-fns";
 import i18n from "i18next";
 import { computed, observable, override } from "mobx";
 import type { ProsemirrorData } from "@shared/types";
@@ -166,15 +166,6 @@ export default class Template extends ParanoidModel implements Searchable {
   @computed
   get isDraft(): boolean {
     return !this.publishedAt;
-  }
-
-  @computed
-  get permanentlyDeletedAt(): string | undefined {
-    if (!this.deletedAt) {
-      return undefined;
-    }
-
-    return addDays(new Date(this.deletedAt), 30).toString();
   }
 
   get displayTitle(): string {
