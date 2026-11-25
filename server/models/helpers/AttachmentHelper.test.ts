@@ -130,6 +130,33 @@ describe("AttachmentHelper", () => {
       expect(stream.destroyed).toBe(true);
     });
 
+    it("should destroy the storage stream when the signal aborts while it opens", async () => {
+      const attachment = await buildAttachment();
+      const stream = new Readable({ read() {} });
+      const controller = new AbortController();
+      vi.spyOn(FileStorage, "getFileStream").mockImplementation(async () => {
+        controller.abort();
+        return stream;
+      });
+
+      const zip = new ZipFile();
+      const finished = new Promise((resolve) =>
+        zip.outputStream.on("end", resolve)
+      );
+      zip.outputStream.resume();
+
+      AttachmentHelper.addToArchive(
+        zip,
+        attachment,
+        "image.png",
+        controller.signal
+      );
+      zip.end();
+      await finished;
+
+      expect(stream.destroyed).toBe(true);
+    });
+
     it("should not read from storage when the signal has already aborted", async () => {
       const attachment = await buildAttachment();
       const getFileStream = vi.spyOn(FileStorage, "getFileStream");

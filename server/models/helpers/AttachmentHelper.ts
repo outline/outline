@@ -179,6 +179,14 @@ export default class AttachmentHelper {
               return callback(null, Readable.from([]));
             }
 
+            // The client can disconnect while the stream is being opened.
+            if (signal?.aborted) {
+              if (stream instanceof Readable) {
+                stream.destroy();
+              }
+              return callback(null, Readable.from([]));
+            }
+
             // yazl ignores errors on input streams, so forward them to fail the
             // archive; otherwise the entry never ends and the output hangs open.
             stream.on("error", (err) => zip.emit("error", toError(err)));
