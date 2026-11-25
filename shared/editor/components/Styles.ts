@@ -2976,7 +2976,9 @@ th:has(> .${EditorStyleHelper.tableFilterButton}.active) {
   pointer-events: none;
 
   /* fades the block above behind the controls, it does not scroll with the table */
-  background: linear-gradient(${transparentize(1, props.theme.background)}, ${transparentize(0.15, props.theme.background)} 50%) 0 0 / 100% ${TABLE_CONTROLS_HEIGHT}px no-repeat;
+  &:has(.${EditorStyleHelper.tableGripColumn}) {
+    background: linear-gradient(${transparentize(1, props.theme.background)}, ${transparentize(0.15, props.theme.background)} 50%) 0 0 / 100% ${TABLE_CONTROLS_HEIGHT}px no-repeat;
+  }
 
   > table {
     pointer-events: auto;
