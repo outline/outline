@@ -14222,7 +14222,7 @@ __metadata:
     prosemirror-dropcursor: "npm:^1.8.4"
     prosemirror-gapcursor: "npm:^1.4.1"
     prosemirror-history: "npm:^1.5.1"
-    prosemirror-inputrules: "npm:^1.5.1"
+    prosemirror-inputrules: "npm:^1.7.0"
     prosemirror-keymap: "npm:^1.2.3"
     prosemirror-markdown: "npm:^1.13.9"
     prosemirror-model: "npm:^1.25.13"
@@ -15393,13 +15393,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prosemirror-inputrules@npm:^1.5.1":
-  version: 1.5.1
-  resolution: "prosemirror-inputrules@npm:1.5.1"
+"prosemirror-inputrules@npm:^1.7.0":
+  version: 1.7.0
+  resolution: "prosemirror-inputrules@npm:1.7.0"
   dependencies:
     prosemirror-state: "npm:^1.0.0"
     prosemirror-transform: "npm:^1.0.0"
-  checksum: 10c0/cff1ff9f7e726bf324e6cddd2c48984e6b2970cc98cd5dc59e6dbe2e9df0e01e4a2d100c77c721067804170b9607769c0fee7c98f2cfb4f3cff9af919fce31b9
+  checksum: 10c0/46fc012f0d794276c29fc8fe4ea50ac88a383295fc11b817d7d510ac0aca99383efd7ed741c90485f6e29e91ac2c9b46cb6ceb811cad580bda9a7590b2b185b4
   languageName: node
   linkType: hard
 

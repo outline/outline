@@ -203,7 +203,7 @@
     "prosemirror-dropcursor": "^1.8.4",
     "prosemirror-gapcursor": "^1.4.1",
     "prosemirror-history": "^1.5.1",
-    "prosemirror-inputrules": "^1.5.1",
+    "prosemirror-inputrules": "^1.7.0",
     "prosemirror-keymap": "^1.2.3",
     "prosemirror-markdown": "^1.13.9",
     "prosemirror-model": "^1.25.13",
