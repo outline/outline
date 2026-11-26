@@ -129,6 +129,7 @@ router.post(
     const { transaction } = ctx;
 
     const integration = await Integration.findByPk(id, {
+      rejectOnEmpty: true,
       transaction,
       lock: transaction.LOCK.NO_KEY_UPDATE,
     });
