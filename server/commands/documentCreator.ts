@@ -1,9 +1,12 @@
 import type { Optional } from "utility-types";
 import { PersonalCollectionId } from "@shared/constants";
 import { TextHelper } from "@shared/utils/TextHelper";
+import { DocumentValidation } from "@shared/validations";
 import { Collection, Document, type Template } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import { validateOwnerIds } from "@server/models/helpers/owners";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
+import { toHookContext } from "@server/context";
 import { authorize } from "@server/policies";
 import type { Context } from "@server/types";
 import { assertPresent } from "@server/validation";
@@ -32,6 +35,7 @@ type Props = Optional<
     | "updatedAt"
     | "createdById"
     | "lastModifiedById"
+    | "ownerIds"
   >
 > & {
   state?: Buffer;
@@ -184,6 +188,7 @@ export default async function documentCreator(
     sourceMetadata,
     createdById,
     lastModifiedById,
+    ownerIds,
   }: Props
 ): Promise<Document> {
   const { user } = ctx.auth;
@@ -229,6 +234,10 @@ export default async function documentCreator(
             user
           )
         : ProsemirrorHelper.toProsemirror("").toJSON();
+
+  const validatedOwnerIds = ownerIds
+    ? await validateOwnerIds(ctx, ownerIds, [], DocumentValidation.maxOwners)
+    : [];
 
   const document = Document.build({
     id,
@@ -284,9 +293,20 @@ export default async function documentCreator(
   // reload to get all of the data needed to present (user, collection etc)
   // we need to specify publishedAt to bypass default scope that only returns
   // published documents
-  return Document.findByPk(document.id, {
+  const reloaded = await Document.findByPk(document.id, {
     userId: user.id,
     rejectOnEmpty: true,
     transaction,
   });
+
+  // Owners are assigned after authorizing, as ownership grants permissions.
+  if (validatedOwnerIds.length > 0) {
+    authorize(user, "manageOwners", reloaded);
+    reloaded.ownerIds = validatedOwnerIds;
+    await reloaded.save({ ...toHookContext(ctx), silent: true });
+
+    await reloaded.grantOwnerAccess(ctx, validatedOwnerIds);
+  }
+
+  return reloaded;
 }

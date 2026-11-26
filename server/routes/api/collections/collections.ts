@@ -1,5 +1,6 @@
 import Router from "@koa/router";
 import { randomUUID } from "node:crypto";
+import { difference } from "es-toolkit";
 import { truncate } from "es-toolkit/compat";
 import type { WhereOptions } from "sequelize";
 import { Sequelize, Op } from "sequelize";
@@ -77,6 +78,7 @@ router.post(
       index,
       commenting,
       templateManagement,
+      ownerIds,
     } = ctx.input.body;
 
     const { user } = ctx.auth;
@@ -106,6 +108,14 @@ router.post(
       transaction,
       rejectOnEmpty: true,
     });
+
+    // Owners can only be checked once the collection exists.
+    if (ownerIds?.length) {
+      authorize(user, "manageOwners", reloaded);
+      await reloaded.setOwnerIds(ctx, ownerIds);
+      await reloaded.saveWithCtx(ctx);
+      await reloaded.grantOwnerAccess(ctx, reloaded.ownerIds);
+    }
 
     ctx.body = {
       data: await presentCollection(ctx, reloaded),
@@ -397,7 +407,7 @@ router.post(
   async (ctx: Context<T.CollectionsAddUserReq>) => {
     const { transaction } = ctx;
     const { user: actor } = ctx.auth;
-    const { id, userId, permission } = ctx.input.body;
+    const { id, userId, permission, owner } = ctx.input.body;
 
     const [collection, user] = await Promise.all([
       Collection.findByPk(id, { userId: actor.id, transaction }),
@@ -405,6 +415,28 @@ router.post(
     ]);
     authorize(actor, "manageUsers", collection);
     authorize(actor, "read", user);
+
+    const previousOwnerIds = collection.ownerIds ?? [];
+
+    if (owner) {
+      authorize(actor, "manageOwners", collection);
+      await collection.addOwner(ctx, userId);
+
+      const ownerMembership = await UserMembership.findOne({
+        where: { collectionId: id, userId },
+        transaction,
+        rejectOnEmpty: true,
+      });
+
+      ctx.body = {
+        data: {
+          users: [presentUser(user)],
+          memberships: [presentMembership(ownerMembership)],
+          collections: [await presentCollection(ctx, collection)],
+        },
+      };
+      return;
+    }
 
     let membership = await UserMembership.findOneForUpdate(
       { collectionId: id, userId },
@@ -428,10 +460,23 @@ router.post(
       );
     }
 
+    // Owners must be able to manage the collection, so other access removes
+    // the ownership.
+    if (
+      owner === false ||
+      membership.permission !== CollectionPermission.Admin
+    ) {
+      await collection.removeOwner(ctx, userId);
+    }
+
     ctx.body = {
       data: {
         users: [presentUser(user)],
         memberships: [presentMembership(membership)],
+        collections:
+          collection.ownerIds !== previousOwnerIds
+            ? [await presentCollection(ctx, collection)]
+            : [],
       },
     };
   }
@@ -463,6 +508,7 @@ router.post(
     }
 
     await membership.destroy(toHookContext(ctx));
+    await collection.removeOwner(ctx, userId);
 
     ctx.body = {
       success: true,
@@ -614,6 +660,7 @@ router.post(
       commenting,
       templateManagement,
       deprecatedReason,
+      ownerIds,
     } = ctx.input.body;
 
     const updatingDeprecatedReason =
@@ -633,6 +680,9 @@ router.post(
       updatingDeprecatedReason ? "updateDeprecatedReason" : "update",
       collection
     );
+    if (ownerIds) {
+      authorize(user, "manageOwners", collection);
+    }
 
     if (deprecatedReason !== undefined) {
       authorize(user, "updateDeprecatedReason", collection);
@@ -672,6 +722,11 @@ router.post(
       }
     }
 
+    const previousOwnerIds = collection.ownerIds ?? [];
+    if (ownerIds) {
+      await collection.setOwnerIds(ctx, ownerIds);
+    }
+
     collection.fill({
       name: name?.trim(),
       description,
@@ -689,6 +744,11 @@ router.post(
     const sharingChanged = collection.changed("sharing");
 
     await collection.saveWithCtx(ctx);
+
+    await collection.grantOwnerAccess(
+      ctx,
+      difference(collection.ownerIds ?? [], previousOwnerIds)
+    );
 
     // must reload to update collection membership for correct policy calculation
     // if the privacy level has changed. Otherwise skip this query for speed.

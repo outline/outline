@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { EmptyResultError } from "sequelize";
 import { randomString } from "@shared/random";
+import { CollectionPermission } from "@shared/types";
 import slugify from "@server/utils/slugify";
 import { createContext } from "@server/context";
 import {
@@ -13,6 +14,8 @@ import {
 import { withContext } from "@server/test/support";
 import Collection from "./Collection";
 import Document from "./Document";
+import Event from "./Event";
+import UserMembership from "./UserMembership";
 
 beforeEach(() => {
   vi.resetAllMocks();
@@ -721,5 +724,76 @@ describe("#archiveWithCtx", () => {
 
     await otherDocument.reload();
     expect(otherDocument.archivedAt).toBeNull();
+  });
+});
+
+describe("#owners", () => {
+  const ownerEvents = (collectionId: string) =>
+    Event.findAll({
+      where: {
+        collectionId,
+        name: ["collections.add_owner", "collections.remove_owner"],
+      },
+      order: [["createdAt", "ASC"]],
+    }).then((events) => events.map((event) => [event.name, event.userId]));
+
+  it("should add an owner with the manage permission", async () => {
+    const user = await buildUser();
+    const owner = await buildUser({ teamId: user.teamId });
+    const collection = await buildCollection({ teamId: user.teamId });
+
+    await withContext(user, (ctx) => collection.addOwner(ctx, owner.id));
+
+    await collection.reload();
+    expect(collection.ownerIds).toEqual([owner.id]);
+    const membership = await UserMembership.findOne({
+      where: { collectionId: collection.id, userId: owner.id },
+      rejectOnEmpty: true,
+    });
+    expect(membership.permission).toEqual(CollectionPermission.Admin);
+    expect(await ownerEvents(collection.id)).toEqual([
+      ["collections.add_owner", owner.id],
+    ]);
+  });
+
+  it("should remove an owner and keep their access", async () => {
+    const user = await buildUser();
+    const owner = await buildUser({ teamId: user.teamId });
+    const collection = await buildCollection({ teamId: user.teamId });
+    await withContext(user, (ctx) => collection.addOwner(ctx, owner.id));
+
+    await withContext(user, (ctx) => collection.removeOwner(ctx, owner.id));
+
+    await collection.reload();
+    expect(collection.ownerIds).toEqual([]);
+    expect(
+      await UserMembership.count({
+        where: { collectionId: collection.id, userId: owner.id },
+      })
+    ).toEqual(1);
+    expect(await ownerEvents(collection.id)).toEqual([
+      ["collections.add_owner", owner.id],
+      ["collections.remove_owner", owner.id],
+    ]);
+  });
+
+  it("should keep owners added by another instance of the collection", async () => {
+    const user = await buildUser();
+    const first = await buildUser({ teamId: user.teamId });
+    const second = await buildUser({ teamId: user.teamId });
+    const collection = await buildCollection({ teamId: user.teamId });
+    const stale = await Collection.findByPk(collection.id, {
+      rejectOnEmpty: true,
+    });
+
+    await withContext(user, (ctx) => collection.addOwner(ctx, first.id));
+    await withContext(user, (ctx) => stale.addOwner(ctx, second.id));
+
+    await collection.reload();
+    expect(collection.ownerIds).toEqual([first.id, second.id]);
+    expect(await ownerEvents(collection.id)).toEqual([
+      ["collections.add_owner", first.id],
+      ["collections.add_owner", second.id],
+    ]);
   });
 });

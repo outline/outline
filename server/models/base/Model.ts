@@ -34,6 +34,8 @@ export type EventOverrideOptions = {
   name?: string;
   /** Additional data to publish in the event. */
   data?: Record<string, unknown>;
+  /** The user that the event is about, defaults to the userId of the model. */
+  userId?: string;
   /**
    * Whether to persist the event to the database. Defaults to true when using any `withCtx` methods.
    */
@@ -379,11 +381,12 @@ class Model<
       collectionId,
       documentId,
       userId:
-        "userId" in model
+        context.event.userId ??
+        ("userId" in model
           ? model.userId
           : model instanceof models.user
             ? model.id
-            : undefined,
+            : undefined),
       teamId,
       actorId:
         context.auth?.user?.id ??

@@ -362,6 +362,20 @@ export type DocumentUserEvent = BaseEvent<UserMembership> & {
   };
 };
 
+export type DocumentOwnerEvent = BaseEvent<Document> & {
+  name: "documents.add_owner" | "documents.remove_owner";
+  userId: string;
+  modelId: string;
+  documentId: string;
+};
+
+export type CollectionOwnerEvent = BaseEvent<Collection> & {
+  name: "collections.add_owner" | "collections.remove_owner";
+  userId: string;
+  modelId: string;
+  collectionId: string;
+};
+
 export type AccessRequestEvent = BaseEvent<AccessRequest> & {
   name: "access_requests.create";
   modelId: string;
@@ -546,6 +560,7 @@ export type Event =
   | AuthenticationProviderEvent
   | DocumentEvent
   | DocumentUserEvent
+  | DocumentOwnerEvent
   | AccessRequestEvent
   | DocumentMovedEvent
   | DocumentGroupEvent
@@ -554,6 +569,7 @@ export type Event =
   | StarEvent
   | CollectionEvent
   | CollectionUserEvent
+  | CollectionOwnerEvent
   | CollectionGroupEvent
   | FileOperationEvent
   | IntegrationEvent

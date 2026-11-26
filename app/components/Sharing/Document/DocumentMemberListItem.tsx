@@ -11,21 +11,27 @@ import { Avatar, AvatarSize } from "~/components/Avatar";
 import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
 import Time from "~/components/Time";
 import type { Permission } from "~/types";
-import { EmptySelectValue } from "~/types";
+import { EmptySelectValue, OwnerSelectValue } from "~/types";
 import { ListItem } from "../components/ListItem";
 
 type Props = {
   user: User;
   membership?: UserMembership | undefined;
+  /** Whether the user is an owner of the document. */
+  isOwner?: boolean;
+  /** Whether the user can be made an owner of the document. */
+  canBeOwner?: boolean;
   onAdd?: () => void;
   onRemove?: () => void;
   onLeave?: () => void;
-  onUpdate?: (permission: DocumentPermission) => void;
+  onUpdate?: (permission: DocumentPermission, owner: boolean) => void;
 };
 
 const DocumentMemberListItem = ({
   user,
   membership,
+  isOwner,
+  canBeOwner,
   onRemove,
   onLeave,
   onUpdate,
@@ -33,11 +39,18 @@ const DocumentMemberListItem = ({
   const { t } = useTranslation();
 
   const handleChange = useCallback(
-    (permission: DocumentPermission | typeof EmptySelectValue) => {
+    (
+      permission:
+        | DocumentPermission
+        | typeof EmptySelectValue
+        | typeof OwnerSelectValue
+    ) => {
       if (permission === EmptySelectValue) {
         onRemove?.();
+      } else if (permission === OwnerSelectValue) {
+        onUpdate?.(DocumentPermission.Admin, true);
       } else {
-        onUpdate?.(permission);
+        onUpdate?.(permission, false);
       }
     },
     [onRemove, onUpdate]
@@ -59,6 +72,14 @@ const DocumentMemberListItem = ({
       label: t("Manage"),
       value: DocumentPermission.Admin,
     },
+    ...(isOwner || canBeOwner
+      ? ([
+          {
+            label: t("Owner"),
+            value: OwnerSelectValue,
+          },
+        ] satisfies Permission[])
+      : []),
     ...(canRemove
       ? ([
           {
@@ -70,13 +91,41 @@ const DocumentMemberListItem = ({
       : []),
   ];
 
-  const currentPermission = permissions.find(
-    (p) => p.value === membership?.permission
-  );
+  const value = isOwner ? OwnerSelectValue : membership?.permission;
+  const currentPermission = permissions.find((p) => p.value === value);
   if (!currentPermission) {
     return null;
   }
   const MaybeLink = membership?.source ? StyledLink : Fragment;
+
+  const leave: Permission[] = canRemove
+    ? [{ label: `${t("Leave")}…`, value: EmptySelectValue }]
+    : [];
+
+  // Owners stop being an owner before they can leave, which keeps the manage
+  // permission.
+  const ownPermissions: Permission[] = isOwner
+    ? [
+        currentPermission,
+        ...(onUpdate
+          ? [
+              {
+                divider: true,
+                label: t("Remove as owner"),
+                value: DocumentPermission.Admin,
+              },
+            ]
+          : leave),
+      ]
+    : [
+        currentPermission,
+        ...(onUpdate && canBeOwner
+          ? ([
+              { label: t("Owner"), value: OwnerSelectValue },
+            ] satisfies Permission[])
+          : []),
+        ...leave,
+      ];
 
   return (
     <ListItem
@@ -105,22 +154,8 @@ const DocumentMemberListItem = ({
       actions={
         <div style={{ marginRight: -8 }}>
           <InputMemberPermissionSelect
-            permissions={
-              onLeave
-                ? [
-                    currentPermission,
-                    ...(canRemove
-                      ? ([
-                          {
-                            label: `${t("Leave")}…`,
-                            value: EmptySelectValue,
-                          },
-                        ] satisfies Permission[])
-                      : []),
-                  ]
-                : permissions
-            }
-            value={membership?.permission}
+            permissions={onLeave ? ownPermissions : permissions}
+            value={value}
             onChange={handleChange}
             disabled={!onUpdate && !onLeave}
           />
