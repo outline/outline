@@ -94,8 +94,8 @@ function Shares() {
   }, [query, updateParams]);
 
   return (
-    <Scene title={t("Shared links")} icon={<GlobeIcon />} wide>
-      <Heading>{t("Shared links")}</Heading>
+    <Scene title={t("Public links")} icon={<GlobeIcon />} wide>
+      <Heading>{t("Public links")}</Heading>
 
       {can.update && !canShareDocuments && (
         <>

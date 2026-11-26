@@ -197,7 +197,7 @@ const useSettingsConfig = () => {
         icon: SparklesIcon,
       },
       {
-        name: t("Shared links"),
+        name: t("Public links"),
         path: settingsPath("shares"),
         component: Shares.Component,
         preload: Shares.preload,
