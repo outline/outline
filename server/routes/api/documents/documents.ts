@@ -1794,6 +1794,11 @@ router.post(
       const attachment = await Attachment.findByPk(attachmentId);
       authorize(user, "read", attachment);
 
+      // The import task deletes the file, so only accept temporary import uploads.
+      if (!attachment.expiresAt) {
+        throw ValidationError("Attachment is not an import upload");
+      }
+
       key = attachment.key;
       fileName = attachment.name;
       mimeType = attachment.contentType;

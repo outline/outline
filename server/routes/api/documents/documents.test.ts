@@ -6363,6 +6363,32 @@ describe("#documents.import", () => {
     );
   });
 
+  it("should reject an attachment that is not an import upload", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const attachment = await buildAttachment({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const deleteFile = vi.spyOn(FileStorage, "deleteFile");
+
+    const res = await server.post("/api/documents.import", user, {
+      body: {
+        collectionId: collection.id,
+        attachmentId: attachment.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("Attachment is not an import upload");
+    expect(deleteFile).not.toHaveBeenCalled();
+
+    vi.restoreAllMocks();
+  });
+
   it("should error if no file or attachmentId is passed", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
