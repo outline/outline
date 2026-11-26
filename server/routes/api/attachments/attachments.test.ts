@@ -515,6 +515,28 @@ describe("#attachments.create", () => {
   });
 });
 
+describe("#attachments.createFromUrl", () => {
+  it("should fail and remove the attachment when the download fails", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const id = randomUUID();
+
+    const res = await server.post("/api/attachments.createFromUrl", user, {
+      body: {
+        id,
+        url: "https://example.com/missing.png",
+        documentId: document.id,
+      },
+    });
+
+    expect(res.status).toEqual(400);
+    expect(await Attachment.findByPk(id)).toBeNull();
+  });
+});
+
 describe("#attachments.delete", () => {
   it("should require authentication", async () => {
     const res = await server.post("/api/attachments.delete");
