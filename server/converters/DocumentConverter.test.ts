@@ -182,6 +182,34 @@ John,25`;
           message: "The Word document could not be read",
         });
       });
+
+      it("should convert a Word document", async () => {
+        const result = await DocumentConverter.convert(
+          await fixture("images.docx"),
+          "images.docx",
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        );
+
+        expect(result.text.length).toBeGreaterThan(0);
+      });
+
+      it("should reject a Word document that is too large when uncompressed", async () => {
+        // The main part is found through relationships, so any name is valid.
+        const docx = await buildZip({
+          "word/media/image1.png": "a".repeat(11 * 1024 * 1024),
+        });
+
+        await expect(
+          DocumentConverter.convert(
+            docx,
+            "test.docx",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          )
+        ).rejects.toMatchObject({
+          id: "import_error",
+          message: "The Word document is too large to import when uncompressed",
+        });
+      });
     });
 
     describe("html", () => {
