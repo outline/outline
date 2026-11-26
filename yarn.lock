@@ -75,6 +75,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@aws-sdk/client-sesv2@npm:^3.1167.0":
+  version: 3.1167.0
+  resolution: "@aws-sdk/client-sesv2@npm:3.1167.0"
+  dependencies:
+    "@aws-sdk/core": "npm:^3.981.0"
+    "@aws-sdk/credential-provider-node": "npm:^3.972.97"
+    "@aws-sdk/signature-v4-multi-region": "npm:^3.996.52"
+    "@aws-sdk/types": "npm:^3.975.1"
+    "@smithy/core": "npm:^3.40.0"
+    "@smithy/fetch-http-handler": "npm:^5.8.1"
+    "@smithy/node-http-handler": "npm:^4.14.2"
+    "@smithy/types": "npm:^4.20.0"
+    tslib: "npm:^2.6.2"
+  checksum: 10c0/1b9a9a690f341e007801c5d392ab9c0b5fd0fa58a89dab9aad55d6be80b43ccf530222e4067116eff4174e24eef394a4f395a3116afbd79a44f8652f4b39cddc
+  languageName: node
+  linkType: hard
+
 "@aws-sdk/cloudfront-signer@npm:^3.1166.0":
   version: 3.1166.0
   resolution: "@aws-sdk/cloudfront-signer@npm:3.1166.0"
@@ -13967,6 +13984,7 @@ __metadata:
   resolution: "outline@workspace:."
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.1167.0"
+    "@aws-sdk/client-sesv2": "npm:^3.1167.0"
     "@aws-sdk/cloudfront-signer": "npm:^3.1166.0"
     "@aws-sdk/lib-storage": "npm:^3.1167.0"
     "@aws-sdk/s3-presigned-post": "npm:^3.1167.0"

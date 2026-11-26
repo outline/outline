@@ -3,6 +3,7 @@ import config from "../plugin.json";
 import AzureClient from "./azure";
 import router from "./auth/azure";
 import env from "./env";
+import { MicrosoftGraphEmailProvider } from "./MicrosoftGraphEmailProvider";
 
 const enabled = !!env.AZURE_CLIENT_ID && !!env.AZURE_CLIENT_SECRET;
 
@@ -16,5 +17,19 @@ if (enabled) {
       allowEmailMatch: true,
       oauthClient: () => new AzureClient(),
     },
+  });
+}
+
+const emailEnabled =
+  !!env.AZURE_MAIL_CLIENT_ID &&
+  !!env.AZURE_MAIL_CLIENT_SECRET &&
+  !!env.AZURE_MAIL_TENANT_ID;
+
+if (emailEnabled) {
+  PluginManager.add({
+    name: config.name,
+    description: "Adds Microsoft Graph as an email provider.",
+    type: Hook.EmailProvider,
+    value: new MicrosoftGraphEmailProvider(),
   });
 }

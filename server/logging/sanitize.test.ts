@@ -34,10 +34,13 @@ describe("sanitize", () => {
   });
 
   it("should filter additional sensitive fields", () => {
-    expect(sanitize({ apiKey: "a", secret: "b", authorization: "c" })).toEqual({
+    expect(
+      sanitize({ apiKey: "a", secret: "b", authorization: "c", body: "d" })
+    ).toEqual({
       apiKey: "[Filtered]",
       secret: "[Filtered]",
       authorization: "[Filtered]",
+      body: "[Filtered]",
     });
   });
 

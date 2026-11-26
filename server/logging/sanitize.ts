@@ -68,6 +68,7 @@ const sensitiveFields = new Set([
   "apikey",
   "secret",
   "authorization",
+  "body",
 ]);
 
 /**
