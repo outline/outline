@@ -95,3 +95,11 @@ it("returns true for relative image", () => {
 it("returns true for absolute image", () => {
   expect(isMarkdown(`![alt](https://www.google.com/coolimage.png)`)).toBe(true);
 });
+
+it("returns quickly for large bracket and dollar heavy text", () => {
+  const json = `[${Array.from({ length: 40_000 }, (_, i) => `[${i}]`).join(",")}]`;
+  expect(isMarkdown(json)).toBe(false);
+  expect(isMarkdown("[a] ".repeat(40_000))).toBe(false);
+  expect(isMarkdown("[".repeat(100_000))).toBe(false);
+  expect(isMarkdown("$5 ".repeat(40_000))).toBe(false);
+}, 1000);
