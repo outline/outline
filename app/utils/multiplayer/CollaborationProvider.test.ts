@@ -105,7 +105,7 @@ describe("CollaborationProvider", () => {
       provider.onMessage({
         data: updateMessage(Y.encodeStateAsUpdate(doc)),
         type: "message",
-        target: new WebSocket(null),
+        target: Object.create(WebSocket.prototype),
       });
 
       expect(provider.hasPendingChanges).toBe(false);
