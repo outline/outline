@@ -719,14 +719,6 @@ export type DocumentsRemoveGroupReq = z.infer<
   typeof DocumentsRemoveGroupSchema
 >;
 
-export const DocumentsSharedWithUserSchema = BaseSchema.extend({
-  body: DocumentsSortParamsSchema,
-});
-
-export type DocumentsSharedWithUserReq = z.infer<
-  typeof DocumentsSharedWithUserSchema
->;
-
 export const DocumentsMembershipsSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     query: z.string().optional(),
@@ -737,11 +729,3 @@ export const DocumentsMembershipsSchema = BaseSchema.extend({
 export type DocumentsMembershipsReq = z.infer<
   typeof DocumentsMembershipsSchema
 >;
-
-export const DocumentsSitemapSchema = BaseSchema.extend({
-  query: z.object({
-    shareId: zodShareIdType().optional(),
-  }),
-});
-
-export type DocumentsSitemapReq = z.infer<typeof DocumentsSitemapSchema>;
