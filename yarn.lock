@@ -9329,10 +9329,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"email-providers@npm:^2.27.0":
-  version: 2.27.0
-  resolution: "email-providers@npm:2.27.0"
-  checksum: 10c0/e21550bea705dd8f3584992df5b0eddb8efa77b7c58f2e20dabc79682b8e146bd799cb3205328102d5eec2e925cf2d8991f39f72e1a04910edf3c3955516f08a
+"email-providers@npm:^2.28.0":
+  version: 2.28.0
+  resolution: "email-providers@npm:2.28.0"
+  checksum: 10c0/6e8db50e571b731996eeeb6813c0b9f22e5cc674940f3cc9d43d490dde5e981d357bd1f9c01d6f1b6b4064995011c98619328014f558a79b259231570314c867
   languageName: node
   linkType: hard
 
@@ -14089,7 +14089,7 @@ __metadata:
     dd-trace: "npm:^5.135.0"
     diff: "npm:^9.0.0"
     discord-api-types: "npm:^0.38.48"
-    email-providers: "npm:^2.27.0"
+    email-providers: "npm:^2.28.0"
     emoji-regex: "npm:^10.6.0"
     es-toolkit: "npm:^1.53.0"
     express-useragent: "npm:^1.0.15"
