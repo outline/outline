@@ -358,4 +358,29 @@ describe("#passkeys.verifyAuthentication", () => {
       "No authentication challenge found or challenge expired"
     );
   });
+
+  it("should accept boolean extension results sent as form strings", async () => {
+    const options = await server.post(
+      "/auth/passkeys.generateAuthenticationOptions",
+      { body: {} }
+    );
+    const { data } = await options.json();
+    const res = await server.post("/auth/passkeys.verifyAuthentication", {
+      body: {
+        challengeId: data.challengeId,
+        id: "unknown",
+        rawId: "unknown",
+        response: {
+          authenticatorData: "",
+          clientDataJSON: "",
+          signature: "",
+        },
+        type: "public-key",
+        clientExtensionResults: { appid: "false", hmacCreateSecret: "true" },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toContain("Passkey not found");
+  });
 });
