@@ -39,7 +39,7 @@ const DEFAULT_TEXT_LIMIT = 16_000;
  *
  * @param text - the full text.
  * @param range - the UTF-16 index to start from and the maximum number of code points to return.
- * @returns the page text, the full text length, and the offset of the next page if more text remains.
+ * @returns the page text, and the next page offset and full text length if more text remains.
  */
 function paginateText(
   text: string,
@@ -57,8 +57,7 @@ function paginateText(
 
   return {
     text: page,
-    textLength: text.length,
-    ...(end < text.length && { nextOffset: end }),
+    ...(end < text.length && { nextOffset: end, textLength: text.length }),
   };
 }
 

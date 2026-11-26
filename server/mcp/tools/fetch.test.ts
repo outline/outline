@@ -108,6 +108,8 @@ describe("fetch", () => {
     expect(metadata.document.id).toEqual(document.id);
     expect(metadata.document.title).toEqual(document.title);
     expect(metadata.document.url).toMatch(/^https?:\/\//);
+    expect(metadata.textLength).toBeUndefined();
+    expect(metadata.nextOffset).toBeUndefined();
 
     // Second content is markdown text
     expect(res!.result!.content![1].text).toContain("Hello");
@@ -289,7 +291,7 @@ describe("fetch", () => {
       }
 
       combined += text;
-      textLength = metadata.textLength;
+      textLength = metadata.textLength ?? textLength;
       offset = metadata.nextOffset;
       pages++;
     } while (offset !== undefined);
