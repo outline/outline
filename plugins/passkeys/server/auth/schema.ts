@@ -5,7 +5,7 @@ import { BaseSchema } from "@server/routes/api/schema";
 // Form posts send booleans as "true" or "false".
 const formBoolean = z.union([
   z.boolean(),
-  z.stringbool({ truthy: ["true"], falsy: ["false"] }),
+  z.stringbool({ truthy: ["true"], falsy: ["false"], case: "sensitive" }),
 ]);
 
 export const PasskeysGenerateAuthenticationOptionsSchema = BaseSchema.extend({
