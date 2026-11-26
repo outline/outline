@@ -253,4 +253,74 @@ describe("fetch", () => {
 
     expect(res!.result!.content![1].text).toContain("Body of the template");
   });
+
+  it("pages long document text on line boundaries", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const lines = Array.from({ length: 50 }, (_, i) => `Line ${i}`);
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      text: lines.join("\n\n"),
+    });
+
+    let offset = 0;
+    let combined = "";
+    let pages = 0;
+    let textLength = 0;
+
+    do {
+      const res = await callMcpTool(server, accessToken, "fetch", {
+        resource: "document",
+        id: document.id,
+        offset,
+        limit: 100,
+      });
+      const metadata = JSON.parse(res!.result!.content![0].text ?? "{}");
+      const text = res!.result!.content![1].text ?? "";
+
+      expect(text.length).toBeLessThanOrEqual(100);
+      if (metadata.nextOffset !== undefined) {
+        expect(text.endsWith("\n")).toBe(true);
+      }
+
+      combined += text;
+      textLength = metadata.textLength;
+      offset = metadata.nextOffset;
+      pages++;
+    } while (offset !== undefined);
+
+    expect(pages).toBeGreaterThan(1);
+    expect(combined.length).toEqual(textLength);
+    expect(combined).toContain("Line 0");
+    expect(combined).toContain("Line 49");
+  });
+
+  it("cuts a line longer than the limit", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      text: "a".repeat(250),
+    });
+
+    const res = await callMcpTool(server, accessToken, "fetch", {
+      resource: "document",
+      id: document.id,
+      limit: 100,
+    });
+    const metadata = JSON.parse(res!.result!.content![0].text ?? "{}");
+
+    expect(res!.result!.content![1].text).toEqual("a".repeat(100));
+    expect(metadata.nextOffset).toEqual(100);
+  });
 });

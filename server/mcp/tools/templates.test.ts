@@ -40,10 +40,10 @@ describe("list_templates", () => {
 
     const match = data.find(
       (t: { id: string }) => t.id === workspaceTemplate.id
-    ) as { url: string; collectionId: string | null; text: string };
+    ) as { url: string; collectionId: string | null; text?: string };
     expect(match.url).toMatch(/^https?:\/\//);
     expect(match.collectionId).toBeNull();
-    expect(match.text).toContain("Body of the workspace template");
+    expect(match.text).toBeUndefined();
   });
 
   it("filters by collection", async () => {
