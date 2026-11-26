@@ -24,6 +24,9 @@ const ALLOWED_ALIGNMENTS = new Set(["left", "center", "right"]);
 /** Columns narrower than this, in pixels, clamp their cell content. */
 const narrowColumnWidth = 100;
 
+/** The largest colspan or rowspan of a cell. Larger spans make the table map too big to build. */
+const maxCellSpan = 1000;
+
 /**
  * Validates an alignment attribute value.
  *
@@ -41,10 +44,13 @@ export const isValidCellAlignment = (
  * is left out of the table map and cannot be found by position.
  *
  * @param value the value to validate.
- * @returns true if the value is a positive integer.
+ * @returns true if the value is a positive integer no larger than the maximum span.
  */
 export const isValidCellSpan = (value: unknown): value is number =>
-  typeof value === "number" && Number.isInteger(value) && value >= 1;
+  typeof value === "number" &&
+  Number.isInteger(value) &&
+  value >= 1 &&
+  value <= maxCellSpan;
 
 /**
  * Validates a table cell's `marks` attribute against the given schema. Checks

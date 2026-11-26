@@ -9,6 +9,7 @@ import {
   getCellsStartingInRow,
   isValidCellAlignment,
   isValidCellMarks,
+  isValidCellSpan,
   setCellAttrs,
 } from "./table";
 
@@ -24,6 +25,18 @@ const schema = new Schema({
     strong: {},
     em: {},
   },
+});
+
+describe("isValidCellSpan", () => {
+  it("accepts positive integers up to the maximum span", () => {
+    expect(isValidCellSpan(1)).toBe(true);
+    expect(isValidCellSpan(1000)).toBe(true);
+  });
+
+  it("rejects spans that are too large", () => {
+    expect(isValidCellSpan(1001)).toBe(false);
+    expect(isValidCellSpan(50_000_000)).toBe(false);
+  });
 });
 
 describe("isValidCellAlignment", () => {
@@ -213,6 +226,10 @@ describe.runIf(typeof document !== "undefined")("getCellAttrs", () => {
       rowspan: 1,
     });
     expect(cell({ colspan: "1.5", rowspan: "abc" })).toMatchObject({
+      colspan: 1,
+      rowspan: 1,
+    });
+    expect(cell({ colspan: "50000000", rowspan: "50000000" })).toMatchObject({
       colspan: 1,
       rowspan: 1,
     });
