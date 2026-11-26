@@ -128,6 +128,17 @@ class Team extends Model {
   }
 
   /**
+   * Whether the email address is on one of the team's domains.
+   *
+   * @param email The email address to check.
+   * @returns true if the email domain matches a team domain.
+   */
+  isTeamDomain(email: string): boolean {
+    const domain = email.split("@").pop()?.toLowerCase();
+    return !!domain && !!this.allowedDomains?.includes(domain);
+  }
+
+  /**
    * Whether the team is entitled to use the given feature.
    *
    * @param feature The feature to check for.
