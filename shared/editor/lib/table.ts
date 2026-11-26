@@ -21,6 +21,9 @@ export interface CellAttrs {
 
 const ALLOWED_ALIGNMENTS = new Set(["left", "center", "right"]);
 
+/** Columns narrower than this, in pixels, clamp their cell content. */
+const narrowColumnWidth = 100;
+
 /**
  * Validates an alignment attribute value.
  *
@@ -167,6 +170,11 @@ export function setCellAttrs(node: Node): Attrs {
     attrs.style = `text-align: ${node.attrs.alignment};`;
   }
   if (node.attrs.colwidth) {
+    const widths: number[] = node.attrs.colwidth.map(Number);
+    const width = widths.reduce((sum, w) => sum + w, 0);
+    if (widths.every((w) => w > 0) && width < narrowColumnWidth) {
+      attrs["data-narrow"] = "true";
+    }
     if (isBrowser) {
       attrs["data-colwidth"] = node.attrs.colwidth.map(Number).join(",");
     } else {

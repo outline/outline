@@ -2385,6 +2385,20 @@ table {
     padding: 4px 0;
   }
 
+  ${
+    !props.staticHTML &&
+    css`
+      @media screen {
+        [data-narrow]:not(.${EditorStyleHelper.tableCellActive}) > p {
+          display: -webkit-box;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 3;
+          overflow: hidden;
+        }
+      }
+    `
+  }
+
   td[data-bgcolor],
   th[data-bgcolor] {
     color: var(--cell-text-color);

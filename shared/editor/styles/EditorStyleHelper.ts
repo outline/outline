@@ -205,6 +205,9 @@ export class EditorStyleHelper {
   /** Table row hidden by a filter */
   static readonly tableRowFiltered = "table-row-filtered";
 
+  /** Table cell that contains the selection */
+  static readonly tableCellActive = "table-cell-active";
+
   /** Button in a header cell that opens the column filter */
   static readonly tableFilterButton = "table-filter-button";
 
