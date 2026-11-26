@@ -287,6 +287,10 @@ async function validateAuthentication(
     service = result.service;
   }
 
+  if (!(await user.team.canAuthenticateOnHost(ctx.request.hostname))) {
+    throw AuthenticationError("Token is not valid for this workspace");
+  }
+
   if (user.isSuspended) {
     const suspendingAdmin = user.suspendedById
       ? await User.findByPk(user.suspendedById)
