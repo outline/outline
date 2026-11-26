@@ -588,6 +588,34 @@ describe("#shares.create", () => {
     expect(body.data.id).toBe(share.id);
   });
 
+  it("should publish an existing unpublished share and keep its creator", async () => {
+    const owner = await buildUser();
+    const user = await buildUser({ teamId: owner.teamId });
+    const document = await buildDocument({
+      userId: owner.id,
+      teamId: owner.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: owner.teamId,
+      userId: owner.id,
+      published: false,
+    });
+    const res = await server.post("/api/shares.create", user, {
+      body: {
+        documentId: document.id,
+        published: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toBe(share.id);
+    expect(body.data.published).toBe(true);
+    expect(body.data.createdBy.id).toBe(owner.id);
+    await share.reload();
+    expect(share.published).toBe(true);
+  });
+
   it("should not disclose an existing published share to a user without share permission", async () => {
     const admin = await buildAdmin();
     const viewer = await buildViewer({ teamId: admin.teamId });
