@@ -244,10 +244,12 @@ describe("teamUpdater", () => {
   });
 
   describe("guest sign-in", () => {
-    it("should not disable email sign-in without an enabled provider", async () => {
+    it("should not disable email sign-in when all providers are disabled", async () => {
       const team = await buildTeam({
         guestSignin: true,
-        authenticationProviders: [],
+        authenticationProviders: [
+          { name: "slack", providerId: randomString(32), enabled: false },
+        ],
       });
       const user = await buildAdmin({ teamId: team.id });
 
