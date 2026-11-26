@@ -5,7 +5,7 @@ import { useLocation, useParams } from "react-router-dom";
 import styled, { ThemeProvider } from "styled-components";
 import { s } from "@shared/styles";
 import { isModKey } from "@shared/utils/keyboard";
-import type { NavigationNode } from "@shared/types";
+import { NavigationNodeType, type NavigationNode } from "@shared/types";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import type Share from "~/models/Share";
@@ -90,7 +90,11 @@ function useActivePage(share?: Share) {
     node: NavigationNode,
     slugToFind: string
   ): string | undefined => {
-    if (node.url.endsWith(slugToFind)) {
+    // A link can point at the page, but it is not the page.
+    if (
+      node.type !== NavigationNodeType.Link &&
+      node.url.endsWith(slugToFind)
+    ) {
       return node.id;
     }
     if (node.children) {

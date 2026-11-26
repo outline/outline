@@ -6,7 +6,7 @@ import type { match } from "react-router";
 import { useHistory } from "react-router-dom";
 import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
-import { DocumentPermission, UserPreference } from "@shared/types";
+import { UserPreference } from "@shared/types";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import type { FlattenedTreeNode } from "@shared/utils/tree";
 import type Collection from "~/models/Collection";
@@ -26,13 +26,12 @@ import { documentEditPath } from "~/utils/routeHelpers";
 import { DocumentIcon } from "~/components/Icons/DocumentIcon";
 import {
   useDragDocument,
-  useDropToReorderDocument,
   useDropToReparentDocument,
 } from "../hooks/useDragAndDrop";
 import { useSidebarExpansion } from "./SidebarExpansionContext";
 import DocumentRow from "./DocumentRow";
-import DropCursor from "./DropCursor";
-import { childDepthFor, indentForDepth } from "./SidebarLink";
+import { addLinkFromUrl } from "./linkUrls";
+import { useReorderDropCursors } from "./ReorderDropCursors";
 import type { SidebarContextType } from "./SidebarContext";
 import { useSidebarContext } from "./SidebarContext";
 
@@ -53,13 +52,6 @@ type Props = {
   trailingAncestors: FlattenedTreeNode[];
 };
 
-/** A position in the document tree that a dragged document can be dropped at. */
-type DropTarget = {
-  parentDocumentId: string | undefined;
-  index: number;
-  depth: number;
-};
-
 const DocumentLink = observer(function DocumentLink({
   node,
   collection,
@@ -72,7 +64,8 @@ const DocumentLink = observer(function DocumentLink({
   hasChildren,
   trailingAncestors,
 }: Props) {
-  const { documents } = useStores();
+  const stores = useStores();
+  const { documents } = stores;
   const { t } = useTranslation();
   const history = useHistory();
   const can = usePolicy(node.id);
@@ -200,44 +193,6 @@ const DocumentLink = observer(function DocumentLink({
     handleExpand
   );
 
-  // Fall back so document-only access (e.g. "Manage" on a parent) can reorder.
-  const moveCollectionId = collection?.id ?? document?.collectionId;
-
-  const targetAbove = React.useMemo<DropTarget>(
-    () => ({ parentDocumentId: parentId, index, depth }),
-    [parentId, index, depth]
-  );
-
-  // Below an expanded node the only position is its first child. Otherwise the
-  // position after the node comes first, then any ancestor positions that end
-  // here, so the pointer's horizontal position picks the depth. The node being
-  // dragged skips the position after itself, which would be a no-op.
-  const targetsBelow = React.useMemo<DropTarget[]>(() => {
-    if (expanded && hasChildren) {
-      return [
-        { parentDocumentId: node.id, index: 0, depth: childDepthFor(depth) },
-      ];
-    }
-    const afterSelf = isDragging
-      ? []
-      : [{ parentDocumentId: parentId, index: index + 1, depth }];
-    const afterAncestors = trailingAncestors.map((ancestor) => ({
-      parentDocumentId: ancestor.parentId,
-      index: ancestor.index + 1,
-      depth: ancestor.depth,
-    }));
-    return [...afterSelf, ...afterAncestors];
-  }, [
-    expanded,
-    hasChildren,
-    isDragging,
-    node.id,
-    parentId,
-    index,
-    depth,
-    trailingAncestors,
-  ]);
-
   const title = document?.title || node.title || t("Untitled");
 
   const handleNewDoc = React.useCallback(
@@ -273,58 +228,53 @@ const DocumentLink = observer(function DocumentLink({
     ]
   );
 
+  // A tree from a document membership has no loaded collection.
+  const linkCollectionId = collection?.id ?? document?.collectionId;
+  const handleNewLink = React.useCallback(
+    async (url: string) => {
+      if (linkCollectionId) {
+        await addLinkFromUrl({
+          stores,
+          collectionId: linkCollectionId,
+          parentDocumentId: node.id,
+          url,
+          index: 0,
+        });
+      }
+    },
+    [stores, linkCollectionId, node.id]
+  );
+
   const contextMenuAction = useDocumentMenuAction({
     documentId: node.id,
     onRename: handleRename,
+    isSidebar: true,
   });
 
   const menu = document ? (
     <DocumentMenu
       document={document}
+      isSidebar
       onRename={handleRename}
       onOpen={handleMenuOpen}
       onClose={handleMenuClose}
     />
   ) : undefined;
 
-  // Without a collection we can't read isManualSort; fall back to the shared
-  // membership's permission, which is the same for every descendant.
-  const canReorderHere = collection
-    ? collection.isManualSort
-    : membership?.permission === DocumentPermission.Admin ||
-      membership?.permission === DocumentPermission.ReadWrite;
-
-  // Cursors stay mounted between drags so that drag start/end doesn't change
-  // the tree for every row.
-  const cursorBefore =
-    canReorderHere && index === 0 ? (
-      <ReorderDropCursor
-        node={node}
-        collection={collection}
-        collectionId={moveCollectionId}
-        target={targetAbove}
-        position="top"
-      />
-    ) : undefined;
-
-  // Later cursors render on top, so each outer level's narrower hit area wins
-  // when the pointer is left of the previous level's indent.
-  const cursorAfter = canReorderHere
-    ? targetsBelow.map((target, level) => (
-        <ReorderDropCursor
-          key={level}
-          node={node}
-          collection={collection}
-          collectionId={moveCollectionId}
-          target={target}
-          hitWidth={
-            level > 0
-              ? indentForDepth(targetsBelow[level - 1].depth)
-              : undefined
-          }
-        />
-      ))
-    : undefined;
+  // Fall back so document-only access (e.g. "Manage" on a parent) can reorder.
+  const { cursorBefore, cursorAfter } = useReorderDropCursors({
+    node,
+    collection,
+    collectionId: document?.collectionId,
+    membership,
+    depth,
+    index,
+    parentId,
+    expanded,
+    hasChildren,
+    isDragging,
+    trailingAncestors,
+  });
 
   return (
     <DocumentRow
@@ -357,53 +307,12 @@ const DocumentLink = observer(function DocumentLink({
       menuOpen={menuOpen}
       canCreateChild={can.createChildDocument}
       onCreateChild={handleNewDoc}
+      onCreateChildLink={
+        linkCollectionId && !isDraft ? handleNewLink : undefined
+      }
       contextAction={contextMenuAction}
       isActiveOverride={isActiveCheck}
       onClickIntent={handlePrefetch}
-    />
-  );
-});
-
-type ReorderDropCursorProps = {
-  node: NavigationNode;
-  collection?: Collection;
-  collectionId?: string | null;
-  target: DropTarget;
-  position?: "top";
-  hitWidth?: number;
-};
-
-const ReorderDropCursor = observer(function ReorderDropCursor({
-  node,
-  collection,
-  collectionId,
-  target,
-  position,
-  hitWidth,
-}: ReorderDropCursorProps) {
-  const [{ isOverReorder }, dropToReorder] = useDropToReorderDocument(
-    node,
-    collection,
-    (item) => {
-      if (!collectionId) {
-        return;
-      }
-      return {
-        documentId: item.id,
-        collectionId,
-        parentDocumentId: target.parentDocumentId,
-        index: target.index,
-      };
-    }
-  );
-
-  return (
-    <DropCursor
-      isActiveDrop={isOverReorder}
-      innerRef={dropToReorder}
-      position={position}
-      indent={indentForDepth(target.depth)}
-      hitWidth={hitWidth}
     />
   );
 });

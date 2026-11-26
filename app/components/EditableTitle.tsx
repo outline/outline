@@ -117,7 +117,6 @@ function EditableTitle({
         setIsEditing(true);
 
         toast.error(errToString(error));
-        throw error;
       } finally {
         setIsSubmitting(false);
       }

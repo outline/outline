@@ -8,6 +8,7 @@ import { isbot } from "isbot";
 import { Sequelize } from "sequelize";
 import isUUID from "validator/lib/isUUID";
 import {
+  NavigationNodeType,
   TeamPreference,
   type IntegrationType,
   type NavigationNode,
@@ -68,11 +69,15 @@ function formatChildDocumentsAsMarkdown(
   children: NavigationNode[],
   baseUrl: string
 ): string {
-  if (!children || children.length === 0) {
+  // Links point to other pages, which are not documents in the share.
+  const documents = children?.filter(
+    (child) => child.type !== NavigationNodeType.Link
+  );
+  if (!documents || documents.length === 0) {
     return "";
   }
 
-  const lines = children.map((child) => {
+  const lines = documents.map((child) => {
     const url = baseUrl + child.url;
     return `- [${child.title}](${url})`;
   });

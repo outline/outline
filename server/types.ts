@@ -404,6 +404,20 @@ export type CollectionEvent = BaseEvent<Collection> & {
   collectionId: string;
 };
 
+export type CollectionLinkEvent = BaseEvent<Collection> & {
+  name:
+    | "collections.add_link"
+    | "collections.update_link"
+    | "collections.move_link"
+    | "collections.remove_link";
+  collectionId: string;
+  modelId: string;
+  data: {
+    /** Ids of the documents that contained or now contain the link. */
+    parentDocumentIds: string[];
+  };
+};
+
 export type GroupUserEvent = BaseEvent<UserMembership> & {
   name: "groups.add_user" | "groups.remove_user";
   userId: string;
@@ -568,6 +582,7 @@ export type Event =
   | CommentEvent
   | StarEvent
   | CollectionEvent
+  | CollectionLinkEvent
   | CollectionUserEvent
   | CollectionOwnerEvent
   | CollectionGroupEvent

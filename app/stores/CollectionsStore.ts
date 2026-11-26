@@ -5,8 +5,15 @@ import type { Filter } from "@shared/helpers/FilterHelper";
 import {
   CollectionPermission,
   type FileOperationFormat,
+  type NavigationNode,
   SubscriptionType,
 } from "@shared/types";
+import {
+  insertNavigationNode,
+  moveNavigationNode,
+  removeNavigationNode,
+  updateNavigationNode,
+} from "@shared/utils/collections";
 import Collection from "~/models/Collection";
 import type { PaginationParams, Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -249,4 +256,154 @@ export default class CollectionsStore extends IndexedStore<Collection> {
     includeAttachments: boolean;
     includePrivate: boolean;
   }) => client.post("/collections.export_all", options);
+
+  /**
+   * Adds a link to the structure of a collection. The collection does not need
+   * to be loaded, for example for users with access to a document only.
+   *
+   * @param collectionId The id of the collection.
+   * @param attributes The title and url of the link.
+   * @param parentDocumentId The id of the document to add the link below, if any.
+   * @param index The position among the siblings, defaults to the end.
+   * @returns A promise that resolves to the new link node.
+   */
+  addLink = async (
+    collectionId: string,
+    attributes: Pick<NavigationNode, "title" | "url">,
+    parentDocumentId?: string,
+    index?: number
+  ): Promise<NavigationNode> => {
+    const res = await client.post("/collections.add_link", {
+      id: collectionId,
+      parentDocumentId,
+      index,
+      ...attributes,
+    });
+    invariant(res?.data, "Data should be available");
+
+    this.changeStructure(collectionId, (nodes, collection) =>
+      // The websocket refresh may already contain the link.
+      collection.childrenByDocumentId.has(res.data.id)
+        ? undefined
+        : insertNavigationNode(nodes, res.data, parentDocumentId, index)
+    );
+    return res.data;
+  };
+
+  /**
+   * Updates the title and url of a link in the structure of a collection.
+   *
+   * @param collectionId The id of the collection.
+   * @param linkId The id of the link.
+   * @param attributes The title and url of the link.
+   * @returns A promise that resolves when the link is updated.
+   */
+  updateLink = async (
+    collectionId: string,
+    linkId: string,
+    attributes: Partial<Pick<NavigationNode, "title" | "url">>
+  ): Promise<void> => {
+    const res = await client.post("/collections.update_link", {
+      id: collectionId,
+      linkId,
+      ...attributes,
+    });
+    invariant(res?.data, "Data should be available");
+
+    this.changeStructure(collectionId, (nodes) =>
+      updateNavigationNode(nodes, linkId, (node) => ({
+        ...res.data,
+        children: node.children,
+      }))
+    );
+  };
+
+  /**
+   * Moves a link to a new position in the structure of a collection.
+   *
+   * @param collectionId The id of the collection.
+   * @param linkId The id of the link.
+   * @param parentDocumentId The id of the new parent document, or undefined for the root.
+   * @param index The position among the new siblings, defaults to the end.
+   * @returns A promise that resolves when the link is moved.
+   */
+  moveLink = async (
+    collectionId: string,
+    linkId: string,
+    parentDocumentId: string | undefined,
+    index?: number
+  ): Promise<void> => {
+    await client.post("/collections.move_link", {
+      id: collectionId,
+      linkId,
+      parentDocumentId: parentDocumentId ?? null,
+      index,
+    });
+
+    this.changeStructure(collectionId, (nodes) =>
+      moveNavigationNode(nodes, linkId, parentDocumentId, index)
+    );
+  };
+
+  /**
+   * Removes a link from the structure of a collection.
+   *
+   * @param collectionId The id of the collection.
+   * @param linkId The id of the link.
+   * @returns A promise that resolves when the link is removed.
+   */
+  removeLink = async (collectionId: string, linkId: string): Promise<void> => {
+    await client.post("/collections.remove_link", {
+      id: collectionId,
+      linkId,
+    });
+
+    this.changeStructure(
+      collectionId,
+      (nodes) => removeNavigationNode(nodes, linkId)?.nodes
+    );
+  };
+
+  /**
+   * Reloads the loaded document trees of memberships in a collection, as they
+   * do not update with the structure of the collection.
+   *
+   * @param collectionId The id of the collection.
+   */
+  refreshMembershipTrees = (collectionId: string) => {
+    const { userMemberships, groupMemberships, documents } = this.rootStore;
+
+    [...userMemberships.orderedData, ...groupMemberships.orderedData]
+      .filter(
+        (membership) =>
+          membership.documents &&
+          membership.documentId &&
+          documents.get(membership.documentId)?.collectionId === collectionId
+      )
+      .forEach((membership) => void membership.fetchDocuments({ force: true }));
+  };
+
+  /**
+   * Changes the structure of a collection in memory, when it is loaded, and
+   * reloads the membership trees in it.
+   *
+   * @param collectionId The id of the collection.
+   * @param change Returns the new structure, or undefined to keep it.
+   */
+  @action
+  private changeStructure(
+    collectionId: string,
+    change: (
+      nodes: NavigationNode[],
+      collection: Collection
+    ) => NavigationNode[] | undefined
+  ) {
+    const collection = this.get(collectionId);
+    const documents =
+      collection?.documents && change(collection.documents, collection);
+    if (collection && documents) {
+      collection.documents = documents;
+    }
+    this.refreshMembershipTrees(collectionId);
+  }
 }

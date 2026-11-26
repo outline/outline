@@ -3,11 +3,13 @@ import { addMonths, subDays } from "date-fns";
 import {
   IntegrationService,
   IntegrationType,
+  NavigationNodeType,
   TeamPreference,
 } from "@shared/types";
 import { parseSessionsCookie } from "@shared/utils/sessions";
 import { parser } from "@server/editor";
 import env from "@server/env";
+import { Collection } from "@server/models";
 import {
   buildAttachment,
   buildShare,
@@ -299,6 +301,46 @@ describe("/s/:id", () => {
     expect(body).toContain("**Documents**");
     expect(body).toContain(`[${child1.title}]`);
     expect(body).toContain(`[${child2.title}]`);
+  });
+
+  it("should not include links in the child documents list in markdown", async () => {
+    const parent = await buildDocument();
+    const child = await buildDocument({
+      teamId: parent.teamId,
+      collectionId: parent.collectionId,
+      parentDocumentId: parent.id,
+      title: "Child Document",
+    });
+    const collection = await Collection.findByPk(parent.collectionId!, {
+      includeDocumentStructure: true,
+      rejectOnEmpty: true,
+    });
+    await collection.addLinkToStructure(
+      {
+        id: randomUUID(),
+        type: NavigationNodeType.Link,
+        title: "External Link",
+        url: "https://example.com",
+        children: [],
+      },
+      parent.id,
+      undefined
+    );
+
+    const share = await buildShare({
+      documentId: parent.id,
+      teamId: parent.teamId,
+      includeChildDocuments: true,
+    });
+
+    const res = await server.get(`/s/${share.id}`, {
+      headers: { Accept: "text/markdown" },
+    });
+    const body = await res.text();
+
+    expect(res.status).toEqual(200);
+    expect(body).toContain(`[${child.title}]`);
+    expect(body).not.toContain("External Link");
   });
 
   it("should not include child documents list in markdown when includeChildDocuments is false", async () => {
