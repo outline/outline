@@ -88,7 +88,7 @@ describe("Image node markdown escaping", () => {
     expect(imageNode.attrs.src).toBe("https://x.com/a.png");
   });
 
-  it("round-trips a title that contains quotes", () => {
+  it("round-trips a title that contains quotes and a backslash", () => {
     const doc = parser.parse('![pic](https://x.com/a.png "placeholder")');
     const image = doc.firstChild?.firstChild;
     if (!image) {
@@ -96,11 +96,11 @@ describe("Image node markdown escaping", () => {
     }
     const edited = doc.type.create(null, [
       doc.firstChild.type.create(null, [
-        image.type.create({ ...image.attrs, title: 'say "hi"' }),
+        image.type.create({ ...image.attrs, title: 'say "hi" \\ ok' }),
       ]),
     ]);
     const imageNode = findImageNode(parser.parse(serializer.serialize(edited)));
-    expect(imageNode.attrs.title).toBe('say "hi"');
+    expect(imageNode.attrs.title).toBe('say "hi" \\ ok');
     expect(imageNode.attrs.alt).toBe("pic");
   });
 });
