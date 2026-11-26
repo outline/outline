@@ -12,6 +12,7 @@ import { AuthorizationError } from "@server/errors";
 import { presentNavigationNode, presentUser } from "@server/presenters";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
+import { TextHelper } from "@shared/utils/TextHelper";
 import { presentCollection } from "./collections";
 import { presentDocument } from "./documents";
 import { presentTemplate } from "./templates";
@@ -33,26 +34,29 @@ const DEFAULT_TEXT_LIMIT = 16_000;
 
 /**
  * Returns one page of a long text. The page ends after a line break where
- * possible so that a markdown line is not split between pages.
+ * possible so that a markdown line is not split between pages, and never
+ * splits a surrogate pair.
  *
  * @param text - the full text.
- * @param range - the character index to start from and the maximum number of characters to return.
+ * @param range - the UTF-16 index to start from and the maximum number of code points to return.
  * @returns the page text, the full text length, and the offset of the next page if more text remains.
  */
 function paginateText(
   text: string,
   { offset, limit }: { offset: number; limit: number }
 ) {
-  let end = offset + limit;
-  if (end < text.length) {
-    const lineEnd = text.lastIndexOf("\n", end - 1);
-    if (lineEnd > offset) {
-      end = lineEnd + 1;
+  // A code point is at most two UTF-16 units, so this slice holds a full page.
+  let page = TextHelper.truncate(text.slice(offset, offset + limit * 2), limit);
+  if (offset + page.length < text.length) {
+    const lineEnd = page.lastIndexOf("\n");
+    if (lineEnd > 0) {
+      page = page.slice(0, lineEnd + 1);
     }
   }
+  const end = offset + page.length;
 
   return {
-    text: text.slice(offset, end),
+    text: page,
     textLength: text.length,
     ...(end < text.length && { nextOffset: end }),
   };

@@ -323,4 +323,39 @@ describe("fetch", () => {
     expect(res!.result!.content![1].text).toEqual("a".repeat(100));
     expect(metadata.nextOffset).toEqual(100);
   });
+
+  it("does not split a surrogate pair between pages", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      text: `${"a".repeat(99)}😀b`,
+    });
+
+    const first = await callMcpTool(server, accessToken, "fetch", {
+      resource: "document",
+      id: document.id,
+      limit: 100,
+    });
+    const firstMetadata = JSON.parse(first!.result!.content![0].text ?? "{}");
+
+    expect(first!.result!.content![1].text).toEqual(`${"a".repeat(99)}😀`);
+    expect(firstMetadata.nextOffset).toEqual(101);
+
+    const second = await callMcpTool(server, accessToken, "fetch", {
+      resource: "document",
+      id: document.id,
+      offset: 99,
+      limit: 1,
+    });
+    const secondMetadata = JSON.parse(second!.result!.content![0].text ?? "{}");
+
+    expect(second!.result!.content![1].text).toEqual("😀");
+    expect(secondMetadata.nextOffset).toEqual(101);
+  });
 });
