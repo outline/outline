@@ -307,11 +307,10 @@ export default class Attachment extends Node {
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
-    state.ensureNewLine();
-    state.write(
-      `[${node.attrs.title} ${node.attrs.size}](${node.attrs.href})\n\n`
-    );
-    state.ensureNewLine();
+    // Separate writes, so that a list or quote delimiter also prefixes the opener.
+    state.write("\n");
+    state.write(`[${node.attrs.title} ${node.attrs.size}](${node.attrs.href})`);
+    state.closeBlock(node);
   }
 
   parseMarkdown() {

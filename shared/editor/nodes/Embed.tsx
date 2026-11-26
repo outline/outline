@@ -228,7 +228,8 @@ export default class Embed extends Node {
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     if (!state.inTable) {
-      state.ensureNewLine();
+      // Separate writes, so that a list or quote delimiter also prefixes the opener.
+      state.write("\n");
     }
 
     const href = node.attrs.href.replace(/_/g, "%5F");
@@ -237,7 +238,7 @@ export default class Embed extends Node {
       "[" + state.esc(href, false) + "](" + state.esc(href, false) + ")"
     );
     if (!state.inTable) {
-      state.write("\n\n");
+      state.closeBlock(node);
     }
   }
 

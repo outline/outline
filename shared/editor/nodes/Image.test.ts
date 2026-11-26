@@ -70,3 +70,37 @@ describe("Image node source attribute round-trip", () => {
     expect(imageNode.attrs.title).toBe("Caption source=example");
   });
 });
+
+describe("Image node markdown escaping", () => {
+  it("round-trips an alt with several newlines", () => {
+    const doc = parser.parse("![a](https://x.com/a.png)");
+    const image = doc.firstChild?.firstChild;
+    if (!image) {
+      throw new Error("Expected image node");
+    }
+    const edited = doc.type.create(null, [
+      doc.firstChild.type.create(null, [
+        image.type.create({ ...image.attrs, alt: "a\n\n\nb" }),
+      ]),
+    ]);
+    const imageNode = findImageNode(parser.parse(serializer.serialize(edited)));
+    expect(imageNode.attrs.alt).toBe("ab");
+    expect(imageNode.attrs.src).toBe("https://x.com/a.png");
+  });
+
+  it("round-trips a title that contains quotes", () => {
+    const doc = parser.parse('![pic](https://x.com/a.png "placeholder")');
+    const image = doc.firstChild?.firstChild;
+    if (!image) {
+      throw new Error("Expected image node");
+    }
+    const edited = doc.type.create(null, [
+      doc.firstChild.type.create(null, [
+        image.type.create({ ...image.attrs, title: 'say "hi"' }),
+      ]),
+    ]);
+    const imageNode = findImageNode(parser.parse(serializer.serialize(edited)));
+    expect(imageNode.attrs.title).toBe('say "hi"');
+    expect(imageNode.attrs.alt).toBe("pic");
+  });
+});
