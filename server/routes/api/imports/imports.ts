@@ -2,12 +2,12 @@ import Router from "@koa/router";
 import { randomUUID } from "node:crypto";
 import { truncate } from "es-toolkit/compat";
 import type { WhereOptions } from "sequelize";
-import type { IntegrationType } from "@shared/types";
-import { ImportState, UserRole } from "@shared/types";
+import { ImportState, IntegrationType, UserRole } from "@shared/types";
 import { ImportValidation } from "@shared/validations";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
+import { ValidationError } from "@server/errors";
 import validate from "@server/middlewares/validate";
 import { Attachment, Collection, Document, Integration } from "@server/models";
 import Import from "@server/models/Import";
@@ -113,6 +113,13 @@ router.post(
       rejectOnEmpty: true,
     });
     authorize(user, "read", integration);
+
+    if (
+      integration.type !== IntegrationType.Import ||
+      integration.service !== body.service
+    ) {
+      throw ValidationError("Integration does not match the import service");
+    }
 
     const name = integration.settings.externalWorkspace.name;
 
