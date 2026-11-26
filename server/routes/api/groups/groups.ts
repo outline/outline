@@ -120,10 +120,9 @@ router.post(
 
       where = {
         ...where,
-        id: {
-          ...(where.id as object),
-          [source === "manual" ? Op.notIn : Op.in]: sourceGroupIds,
-        },
+        [Op.and]: [
+          { id: { [source === "manual" ? Op.notIn : Op.in]: sourceGroupIds } },
+        ],
       };
     }
 
