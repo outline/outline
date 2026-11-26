@@ -40,6 +40,7 @@ import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import DocumentImportTask from "@server/queues/tasks/DocumentImportTask";
+import { sequelize } from "@server/storage/database";
 import FileStorage from "@server/storage/files";
 import {
   buildShare,
@@ -6237,6 +6238,65 @@ describe("#documents.restore", () => {
     expect(res.status).toEqual(200);
     expect(notifyUpdateSpy).toHaveBeenCalledWith(document.id, user.id);
     notifyUpdateSpy.mockRestore();
+
+    const reloaded = await Document.findByPk(document.id, {
+      includeState: true,
+      rejectOnEmpty: true,
+    });
+    const ydoc = new Y.Doc();
+    Y.applyUpdate(ydoc, DocumentHelper.toState(reloaded));
+    expect(yDocToProsemirrorJSON(ydoc, "default")).toEqual(revision.content);
+  });
+
+  it("should wait for the collaboration server to create the initial state", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      text: "original",
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user }),
+      document
+    );
+    document.content = parser.parse("updated")?.toJSON();
+    await document.save();
+    expect(document.state).toBeFalsy();
+
+    // hold the row lock that the collaboration server takes on first load
+    let restored = false;
+    let request: ReturnType<typeof server.post> | undefined;
+    await sequelize.transaction(async (transaction) => {
+      await Document.unscoped().findOne({
+        where: { id: document.id },
+        attributes: ["id"],
+        transaction,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
+      });
+      request = server.post("/api/documents.restore", user, {
+        body: {
+          id: document.id,
+          revisionId: revision.id,
+        },
+      });
+      void request.then(() => {
+        restored = true;
+      });
+      await new Promise((resolve) => setTimeout(resolve, 250));
+      expect(restored).toEqual(false);
+
+      await Document.unscoped().update(
+        {
+          state: Buffer.from(
+            Y.encodeStateAsUpdate(ProsemirrorHelper.toYDoc("updated"))
+          ),
+        },
+        { where: { id: document.id }, transaction }
+      );
+    });
+
+    const res = await request;
+    expect(res?.status).toEqual(200);
 
     const reloaded = await Document.findByPk(document.id, {
       includeState: true,
