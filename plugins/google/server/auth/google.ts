@@ -125,8 +125,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
         // if a team can be inferred, we assume the user is only interested in signing into
         // that team in particular; otherwise, we will do a best effort at finding their account
         // or provisioning a new one (within AccountProvisioner)
-        // A personal account has no domain to connect, so it only signs in.
-        const ctx = withUser(context, domain ? user : undefined);
+        const ctx = withUser(context, user);
         const result = await accountProvisioner(ctx, {
           team: {
             teamId: team?.id,

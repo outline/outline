@@ -117,6 +117,12 @@ async function accountProvisioner(
         provider.providerId === authenticationProviderParams.providerId
     );
 
+    if (!isConnected && !authenticationProviderParams.providerId) {
+      throw InvalidAuthenticationError(
+        "A personal account cannot be used to connect a sign-in provider"
+      );
+    }
+
     if (!isConnected && providers.length === 1) {
       // Update in place so that existing user authentications stay linked.
       await sequelize.transaction((transaction) =>
