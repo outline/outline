@@ -1,4 +1,5 @@
 import { partition, uniqBy } from "es-toolkit/compat";
+import { Op, Sequelize } from "sequelize";
 import { UserRole } from "@shared/types";
 import InviteEmail from "@server/emails/templates/InviteEmail";
 import env from "@server/env";
@@ -61,11 +62,15 @@ export default async function userInviter(
   const existingUsers = await User.findAll({
     where: {
       teamId: user.teamId,
-      email: emails,
+      [Op.and]: [
+        Sequelize.where(Sequelize.fn("lower", Sequelize.col("email")), {
+          [Op.in]: emails,
+        }),
+      ],
     },
   });
-  const existingEmails = existingUsers.map(
-    (existingUser) => existingUser.email
+  const existingEmails = existingUsers.map((existingUser) =>
+    existingUser.email?.toLowerCase()
   );
   const [existingInvites, filteredInvites] = partition(
     normalizedInvites,

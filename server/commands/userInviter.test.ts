@@ -231,4 +231,22 @@ describe("userInviter", () => {
     );
     expect(response.sent.length).toEqual(0);
   });
+
+  it("should not send invites to existing team members with different email case", async () => {
+    const email = faker.internet.email().toLowerCase();
+    const user = await buildUser({ email: email.toUpperCase() });
+    const response = await withContext(user, (ctx) =>
+      userInviter(ctx, {
+        invites: [
+          {
+            role: UserRole.Member,
+            email,
+            name: user.name,
+          },
+        ],
+      })
+    );
+    expect(response.sent.length).toEqual(0);
+    expect(response.unsent.length).toEqual(1);
+  });
 });
