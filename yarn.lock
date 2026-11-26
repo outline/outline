@@ -2139,58 +2139,58 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@firecrawl/pdf-inspector-darwin-arm64@npm:1.25.2":
-  version: 1.25.2
-  resolution: "@firecrawl/pdf-inspector-darwin-arm64@npm:1.25.2"
+"@firecrawl/pdf-inspector-darwin-arm64@npm:1.26.1":
+  version: 1.26.1
+  resolution: "@firecrawl/pdf-inspector-darwin-arm64@npm:1.26.1"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"@firecrawl/pdf-inspector-linux-arm64-gnu@npm:1.25.2":
-  version: 1.25.2
-  resolution: "@firecrawl/pdf-inspector-linux-arm64-gnu@npm:1.25.2"
+"@firecrawl/pdf-inspector-linux-arm64-gnu@npm:1.26.1":
+  version: 1.26.1
+  resolution: "@firecrawl/pdf-inspector-linux-arm64-gnu@npm:1.26.1"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@firecrawl/pdf-inspector-linux-arm64-musl@npm:1.25.2":
-  version: 1.25.2
-  resolution: "@firecrawl/pdf-inspector-linux-arm64-musl@npm:1.25.2"
+"@firecrawl/pdf-inspector-linux-arm64-musl@npm:1.26.1":
+  version: 1.26.1
+  resolution: "@firecrawl/pdf-inspector-linux-arm64-musl@npm:1.26.1"
   conditions: os=linux & cpu=arm64 & libc=musl
   languageName: node
   linkType: hard
 
-"@firecrawl/pdf-inspector-linux-x64-gnu@npm:1.25.2":
-  version: 1.25.2
-  resolution: "@firecrawl/pdf-inspector-linux-x64-gnu@npm:1.25.2"
+"@firecrawl/pdf-inspector-linux-x64-gnu@npm:1.26.1":
+  version: 1.26.1
+  resolution: "@firecrawl/pdf-inspector-linux-x64-gnu@npm:1.26.1"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@firecrawl/pdf-inspector-linux-x64-musl@npm:1.25.2":
-  version: 1.25.2
-  resolution: "@firecrawl/pdf-inspector-linux-x64-musl@npm:1.25.2"
+"@firecrawl/pdf-inspector-linux-x64-musl@npm:1.26.1":
+  version: 1.26.1
+  resolution: "@firecrawl/pdf-inspector-linux-x64-musl@npm:1.26.1"
   conditions: os=linux & cpu=x64 & libc=musl
   languageName: node
   linkType: hard
 
-"@firecrawl/pdf-inspector-win32-x64-msvc@npm:1.25.2":
-  version: 1.25.2
-  resolution: "@firecrawl/pdf-inspector-win32-x64-msvc@npm:1.25.2"
+"@firecrawl/pdf-inspector-win32-x64-msvc@npm:1.26.1":
+  version: 1.26.1
+  resolution: "@firecrawl/pdf-inspector-win32-x64-msvc@npm:1.26.1"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
 
-"@firecrawl/pdf-inspector@npm:^1.25.2":
-  version: 1.25.2
-  resolution: "@firecrawl/pdf-inspector@npm:1.25.2"
+"@firecrawl/pdf-inspector@npm:^1.26.1":
+  version: 1.26.1
+  resolution: "@firecrawl/pdf-inspector@npm:1.26.1"
   dependencies:
-    "@firecrawl/pdf-inspector-darwin-arm64": "npm:1.25.2"
-    "@firecrawl/pdf-inspector-linux-arm64-gnu": "npm:1.25.2"
-    "@firecrawl/pdf-inspector-linux-arm64-musl": "npm:1.25.2"
-    "@firecrawl/pdf-inspector-linux-x64-gnu": "npm:1.25.2"
-    "@firecrawl/pdf-inspector-linux-x64-musl": "npm:1.25.2"
-    "@firecrawl/pdf-inspector-win32-x64-msvc": "npm:1.25.2"
+    "@firecrawl/pdf-inspector-darwin-arm64": "npm:1.26.1"
+    "@firecrawl/pdf-inspector-linux-arm64-gnu": "npm:1.26.1"
+    "@firecrawl/pdf-inspector-linux-arm64-musl": "npm:1.26.1"
+    "@firecrawl/pdf-inspector-linux-x64-gnu": "npm:1.26.1"
+    "@firecrawl/pdf-inspector-linux-x64-musl": "npm:1.26.1"
+    "@firecrawl/pdf-inspector-win32-x64-msvc": "npm:1.26.1"
   dependenciesMeta:
     "@firecrawl/pdf-inspector-darwin-arm64":
       optional: true
@@ -2206,7 +2206,7 @@ __metadata:
       optional: true
   bin:
     pdf-inspector: bin/pdf-inspector.mjs
-  checksum: 10c0/93ab7e1063d05e7327cdf45a567f7ff96da7880c37227b64b09c567c2a1fc636736cf04dd330a3cab71fdfda5e3a314659970bd3d08debb7cb5ab417b1af0987
+  checksum: 10c0/ed592aa891f0d942847d3b425ef31a5232b11e63186caf486d905c02dbb087501aac69dbcb8c50800b4faff7b98f9ad0688ce5631ec227808d4bb0486c9b148b
   languageName: node
   linkType: hard
 
@@ -14014,7 +14014,7 @@ __metadata:
     "@emotion/is-prop-valid": "npm:^1.4.0"
     "@faker-js/faker": "npm:^10.6.0"
     "@fast-csv/parse": "npm:^5.0.8"
-    "@firecrawl/pdf-inspector": "npm:^1.25.2"
+    "@firecrawl/pdf-inspector": "npm:^1.26.1"
     "@fortawesome/fontawesome-svg-core": "npm:^7.3.1"
     "@fortawesome/free-brands-svg-icons": "npm:^7.3.1"
     "@fortawesome/free-solid-svg-icons": "npm:^7.3.1"
