@@ -170,7 +170,9 @@ export function setCellAttrs(node: Node): Attrs {
     attrs.style = `text-align: ${node.attrs.alignment};`;
   }
   if (node.attrs.colwidth) {
-    if (Number(node.attrs.colwidth[0]) < narrowColumnWidth) {
+    const widths: number[] = node.attrs.colwidth.map(Number);
+    const width = widths.reduce((sum, w) => sum + w, 0);
+    if (widths.every((w) => w > 0) && width < narrowColumnWidth) {
       attrs["data-narrow"] = "true";
     }
     if (isBrowser) {

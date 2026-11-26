@@ -238,6 +238,16 @@ describe("setCellAttrs", () => {
     expect(setCellAttrs(cellWithWidth(60))["data-narrow"]).toBe("true");
     expect(setCellAttrs(cellWithWidth(200))["data-narrow"]).toBeUndefined();
   });
+
+  it("sums the widths of merged columns", () => {
+    const cell = doc([
+      table([tr([td("A", { colspan: 2, colwidth: [60, 200] })])]),
+    ])
+      .child(0)
+      .child(0)
+      .child(0);
+    expect(setCellAttrs(cell)["data-narrow"]).toBeUndefined();
+  });
 });
 
 describe("getCellSpan", () => {
