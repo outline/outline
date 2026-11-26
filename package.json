@@ -213,7 +213,7 @@
     "prosemirror-transform": "^1.12.5",
     "prosemirror-view": "^1.42.9",
     "proxy-from-env": "^1.1.0",
-    "query-string": "^9.5.0",
+    "query-string": "^9.5.1",
     "rate-limiter-flexible": "^11.4.1",
     "react": "^19.3.1",
     "react-avatar-editor": "^15.1.0",

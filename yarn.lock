@@ -14200,7 +14200,7 @@ __metadata:
     prosemirror-transform: "npm:^1.12.5"
     prosemirror-view: "npm:^1.42.9"
     proxy-from-env: "npm:^1.1.0"
-    query-string: "npm:^9.5.0"
+    query-string: "npm:^9.5.1"
     rate-limiter-flexible: "npm:^11.4.1"
     react: "npm:^19.3.1"
     react-avatar-editor: "npm:^15.1.0"
@@ -15527,14 +15527,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"query-string@npm:^9.5.0":
-  version: 9.5.0
-  resolution: "query-string@npm:9.5.0"
+"query-string@npm:^9.5.1":
+  version: 9.5.1
+  resolution: "query-string@npm:9.5.1"
   dependencies:
     decode-uri-component: "npm:^0.5.0"
     filter-obj: "npm:^5.1.0"
     split-on-first: "npm:^3.0.0"
-  checksum: 10c0/a5b71d4541f1b8e8b02e69d5a687fa8749a34fd259343cdeb617bc3a4651d626285f458f3f312ac5d7eda58587ac58b908c9f13c2c9381706d6cbf72b4650021
+  checksum: 10c0/3f10428fa3d966e096d89b2794c4ee34b59de6b6281d5c367edeb25b105b61484389bee9b3fc5e037ce91a61c105dadea33e8f1123770e7f77a10c87d29b4e6c
   languageName: node
   linkType: hard
 
