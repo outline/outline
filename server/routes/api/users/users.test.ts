@@ -927,6 +927,29 @@ describe("#users.invite", () => {
     expect(res.status).toEqual(403);
   });
 
+  it("should not return emails the inviter cannot read", async () => {
+    const team = await buildTeam();
+    team.setPreference(TeamPreference.EmailDisplay, EmailDisplay.None);
+    await team.save();
+
+    const user = await buildUser({ teamId: team.id });
+    const res = await server.post("/api/users.invite", user, {
+      body: {
+        invites: [
+          {
+            email: "test@example.com",
+            name: "Test",
+            role: "member",
+          },
+        ],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.users).toHaveLength(1);
+    expect(body.data.users[0].email).toBeUndefined();
+  });
+
   it("should invite user as an admin", async () => {
     const admin = await buildAdmin();
     const res = await server.post("/api/users.invite", admin, {

@@ -541,8 +541,10 @@ router.post(
       data: {
         sent: response.sent,
         unsent: response.unsent,
-        users: response.users.map((user) =>
-          presentUser(user, { includeEmail: !!can(user, "readEmail", user) })
+        users: response.users.map((invitee) =>
+          presentUser(invitee, {
+            includeEmail: !!can(user, "readEmail", invitee),
+          })
         ),
       },
     };
