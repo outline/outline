@@ -280,7 +280,7 @@ export function diffArrays<T>(
   const subOutput = output_end - start;
 
   // The memo below holds one object per cell, so cap it to bound memory.
-  if (subInput * subOutput > MAX_ARRAY_DIFF_CELLS) {
+  if ((subInput + 1) * (subOutput + 1) > MAX_ARRAY_DIFF_CELLS) {
     throw new Error(
       `Array diff exceeds max complexity: ${subInput} x ${subOutput} changed items`
     );
