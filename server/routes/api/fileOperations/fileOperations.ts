@@ -9,7 +9,7 @@ import { FileOperation, Team } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentFileOperation, presentPolicies } from "@server/presenters";
 import FileStorage from "@server/storage/files";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -19,9 +19,9 @@ router.post(
   "fileOperations.info",
   auth(),
   validate(T.FileOperationsInfoSchema),
-  async (ctx: APIContext<T.FileOperationsInfoReq>) => {
+  async (ctx: Context<T.FileOperationsInfoReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const fileOperation = await FileOperation.findByPk(id, {
       userId: user.id,
@@ -41,9 +41,9 @@ router.post(
   auth({ role: UserRole.Admin }),
   pagination(),
   validate(T.FileOperationsListSchema),
-  async (ctx: APIContext<T.FileOperationsListReq>) => {
+  async (ctx: Context<T.FileOperationsListReq>) => {
     const { direction, sort, type } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const where: WhereOptions<FileOperation> = {
       teamId: user.teamId,
@@ -94,10 +94,10 @@ router.post(
 );
 
 const handleFileOperationsRedirect = async (
-  ctx: APIContext<T.FileOperationsRedirectReq>
+  ctx: Context<T.FileOperationsRedirectReq>
 ) => {
   const id = (ctx.input.body.id ?? ctx.input.query.id) as string;
-  const { user } = ctx.state.auth;
+  const { user } = ctx.auth;
 
   const fileOperation = await FileOperation.findByPk(id, {
     userId: user.id,
@@ -128,10 +128,10 @@ router.post(
   auth({ role: UserRole.Admin }),
   validate(T.FileOperationsDeleteSchema),
   transaction(),
-  async (ctx: APIContext<T.FileOperationsDeleteReq>) => {
+  async (ctx: Context<T.FileOperationsDeleteReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const fileOperation = await FileOperation.unscoped().findByPk(id, {
       rejectOnEmpty: true,

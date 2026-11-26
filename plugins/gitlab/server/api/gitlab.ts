@@ -11,7 +11,7 @@ import validate from "@server/middlewares/validate";
 import validateWebhook from "@server/middlewares/validateWebhook";
 import { IntegrationAuthentication, Integration } from "@server/models";
 import { authorize } from "@server/policies";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { safeEqual } from "@server/utils/crypto";
 import { RequestHelper } from "@server/utils/RequestHelper";
 import {
@@ -29,7 +29,7 @@ import * as T from "./schema";
 
 const router = new Router();
 
-function getGitLabWebhookToken(ctx: APIContext): string | undefined {
+function getGitLabWebhookToken(ctx: Context): string | undefined {
   const signatureHeader = ctx.request.headers["x-gitlab-token"];
   return Array.isArray(signatureHeader) ? signatureHeader[0] : signatureHeader;
 }
@@ -39,11 +39,11 @@ router.post(
   auth(),
   validate(T.GitLabConnectSchema),
   transaction(),
-  async (ctx: APIContext<T.GitLabConnectReq>) => {
+  async (ctx: Context<T.GitLabConnectReq>) => {
     const { url: rawUrl, clientId, clientSecret } = ctx.input.body;
     const url = rawUrl?.replace(/\/+$/, "");
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     authorize(user, "createIntegration", user.team);
 
@@ -150,10 +150,10 @@ router.get(
     getErrorPath: () => GitLabUtils.errorUrl("unauthenticated"),
   }),
   transaction(),
-  async (ctx: APIContext<T.GitLabCallbackReq>) => {
+  async (ctx: Context<T.GitLabCallbackReq>) => {
     const { code, error, state } = ctx.input.query;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     if (error) {
       ctx.redirect(GitLabUtils.errorUrl(error));
@@ -355,7 +355,7 @@ router.post(
     },
     getSignatureFromHeader: getGitLabWebhookToken,
   }),
-  async (ctx: APIContext) => {
+  async (ctx: Context) => {
     const { headers } = ctx.request;
     const body = RequestHelper.getBodyObject(ctx.request);
     const teamIds: Array<string | null> = ctx.state.webhookTeamIds ?? [null];

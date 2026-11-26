@@ -9,7 +9,7 @@ import {
   presentDocuments,
   presentPolicies,
 } from "@server/presenters";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -19,9 +19,9 @@ router.post(
   "relationships.info",
   auth(),
   validate(T.RelationshipsInfoSchema),
-  async (ctx: APIContext<T.RelationshipsInfoReq>) => {
+  async (ctx: Context<T.RelationshipsInfoReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const relationship = await Relationship.findByPk(id, {
       rejectOnEmpty: true,
@@ -58,9 +58,9 @@ router.post(
   auth(),
   pagination(),
   validate(T.RelationshipsListSchema),
-  async (ctx: APIContext<T.RelationshipsListReq>) => {
+  async (ctx: Context<T.RelationshipsListReq>) => {
     const { type, documentId, reverseDocumentId } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     // Results are anchored to a single document, which the user must be able to
     // read. Documents on the opposite side of each relationship are filtered by

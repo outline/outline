@@ -4,7 +4,7 @@ import Logger from "@server/logging/Logger";
 import type { AuthenticationProvider } from "@server/models";
 import { ExternalGroup, Group, GroupUser } from "@server/models";
 import type { User, Team } from "@server/models";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import type { ExternalGroupData } from "@server/utils/GroupSyncProvider";
 
 interface Props {
@@ -32,15 +32,15 @@ interface GroupSyncResult {
  * groups. Upserts ExternalGroup records, auto-creates Group records when
  * needed, and manages GroupUser memberships.
  *
- * @param ctx - API context with transaction.
+ * @param ctx - context with transaction.
  * @param props - sync parameters.
  * @returns result summary.
  */
 async function groupsSyncer(
-  ctx: APIContext,
+  ctx: Context,
   { user, team, authenticationProvider, externalGroups }: Props
 ): Promise<GroupSyncResult> {
-  const { transaction } = ctx.state;
+  const { transaction } = ctx;
   const result: GroupSyncResult = {
     groupsCreated: 0,
     membershipsAdded: 0,

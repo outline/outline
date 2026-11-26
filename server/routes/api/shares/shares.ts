@@ -31,7 +31,7 @@ import {
   presentCollection,
   presentDocument,
 } from "@server/presenters";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { getTeamFromContext } from "@server/utils/passport";
 import { QueryHelper } from "@server/storage/QueryHelper";
@@ -52,9 +52,9 @@ router.post(
   "shares.info",
   auth({ optional: true }),
   validate(T.SharesInfoSchema),
-  async (ctx: APIContext<T.SharesInfoReq>) => {
+  async (ctx: Context<T.SharesInfoReq>) => {
     const { id, collectionId, documentId } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     // only public link loads will send "id".
     if (id) {
@@ -160,9 +160,9 @@ router.post(
   auth(),
   pagination(),
   validate(T.SharesListSchema),
-  async (ctx: APIContext<T.SharesListReq>) => {
+  async (ctx: Context<T.SharesListReq>) => {
     const { sort, direction, query } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     authorize(user, "listShares", user.team);
     const collectionIds = await user.collectionIds();
 
@@ -261,7 +261,7 @@ router.post(
   auth(),
   validate(T.SharesCreateSchema),
   transaction(),
-  async (ctx: APIContext<T.SharesCreateReq>) => {
+  async (ctx: Context<T.SharesCreateReq>) => {
     const {
       collectionId,
       documentId,
@@ -274,7 +274,7 @@ router.post(
       showTOC,
       expiresAt,
     } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     authorize(user, "createShare", user.team);
 
     const collection = collectionId
@@ -350,7 +350,7 @@ router.post(
   auth(),
   validate(T.SharesUpdateSchema),
   transaction(),
-  async (ctx: APIContext<T.SharesUpdateReq>) => {
+  async (ctx: Context<T.SharesUpdateReq>) => {
     const {
       id,
       includeChildDocuments,
@@ -365,7 +365,7 @@ router.post(
       iconUrl,
     } = ctx.input.body;
 
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     authorize(user, "share", user.team);
 
     // fetch the share with document and collection.
@@ -407,9 +407,9 @@ router.post(
   auth(),
   validate(T.SharesRevokeSchema),
   transaction(),
-  async (ctx: APIContext<T.SharesRevokeReq>) => {
+  async (ctx: Context<T.SharesRevokeReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     const share = await Share.scope({
       method: ["withCollectionPermissions", user.id],
     }).findByPk(id);
@@ -433,7 +433,7 @@ router.get(
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   shareDomains(),
   validate(T.SharesSitemapSchema),
-  async (ctx: APIContext<T.SharesSitemapReq>) => {
+  async (ctx: Context<T.SharesSitemapReq>) => {
     const { id } = ctx.input.query;
     const team = await getTeamFromContext(ctx, { includeOAuthState: false });
 
@@ -461,13 +461,13 @@ router.post(
   rateLimiter(RateLimiterStrategy.TenPerHour),
   validate(T.SharesSubscribeSchema),
   transaction(),
-  async (ctx: APIContext<T.SharesSubscribeReq>) => {
+  async (ctx: Context<T.SharesSubscribeReq>) => {
     if (!env.EMAIL_ENABLED) {
       throw InvalidRequestError("Email is not configured");
     }
 
     const { shareId, documentId, email } = ctx.input.body;
-    const { transaction } = ctx.state;
+    const { transaction } = ctx;
     const team = await getTeamFromContext(ctx, { includeOAuthState: false });
 
     // Validate the share exists and is published
@@ -551,9 +551,9 @@ router.get(
   rateLimiter(RateLimiterStrategy.TenPerMinute),
   validate(T.SharesConfirmSubscriptionSchema),
   transaction(),
-  async (ctx: APIContext<T.SharesConfirmSubscriptionReq>) => {
+  async (ctx: Context<T.SharesConfirmSubscriptionReq>) => {
     const { id, token, follow } = ctx.input.query;
-    const { transaction } = ctx.state;
+    const { transaction } = ctx;
 
     // Anti-prefetch: prevent email clients from pre-fetching the link
     if (!follow) {
@@ -615,9 +615,9 @@ router.get(
  * @param ctx The request context.
  * @returns The updated subscription, or undefined if the token is not valid.
  */
-const unsubscribeShare = async (ctx: APIContext<T.SharesUnsubscribeReq>) => {
+const unsubscribeShare = async (ctx: Context<T.SharesUnsubscribeReq>) => {
   const { id, token } = ctx.input.query;
-  const { transaction } = ctx.state;
+  const { transaction } = ctx;
 
   const subscription = await ShareSubscription.findByPk(id, {
     transaction,
@@ -644,7 +644,7 @@ router.get(
   "shares.unsubscribe",
   validate(T.SharesUnsubscribeSchema),
   transaction(),
-  async (ctx: APIContext<T.SharesUnsubscribeReq>) => {
+  async (ctx: Context<T.SharesUnsubscribeReq>) => {
     const { follow } = ctx.input.query;
 
     // Anti-prefetch: prevent email clients from pre-fetching the link
@@ -669,7 +669,7 @@ router.post(
   "shares.unsubscribe",
   validate(T.SharesUnsubscribeSchema),
   transaction(),
-  async (ctx: APIContext<T.SharesUnsubscribeReq>) => {
+  async (ctx: Context<T.SharesUnsubscribeReq>) => {
     const subscription = await unsubscribeShare(ctx);
     if (!subscription) {
       throw AuthenticationError("Invalid unsubscribe token");

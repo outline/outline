@@ -99,4 +99,13 @@ export default class DialogsStore {
   closeAllModals = () => {
     this.modalStack.clear();
   };
+
+  /**
+   * Remove all open modals and the guide without calling their close handlers.
+   */
+  @action
+  clear = () => {
+    this.modalStack.clear();
+    this.guide = undefined;
+  };
 }

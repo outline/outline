@@ -1,3 +1,4 @@
+import type { Mark } from "prosemirror-model";
 import { Node } from "prosemirror-model";
 import { parser, schema, serializer } from "../../../test/editor";
 import { MarkdownSerializerState } from "./serializer";
@@ -198,6 +199,68 @@ describe("escaping", () => {
     const output = serializer.serialize(doc, { commonMark: true });
 
     expect(output).toContain("| 10.12.14.21 |");
+  });
+
+  it("escapes pipes in a plain URL link inside a table cell", () => {
+    const href = "https://example.edu/?q=a|b";
+    const cell = (type: string, content: object[]) => ({
+      type: "tr",
+      content: [{ type, content: [{ type: "paragraph", content }] }],
+    });
+    const doc = Node.fromJSON(schema, {
+      type: "doc",
+      content: [
+        {
+          type: "table",
+          content: [
+            cell("th", [{ type: "text", text: "Link" }]),
+            cell("td", [
+              {
+                type: "text",
+                text: href,
+                marks: [{ type: "link", attrs: { href } }],
+              },
+            ]),
+          ],
+        },
+      ],
+    });
+
+    const output = serializer.serialize(doc);
+    let link: Mark | undefined;
+    parser.parse(output)?.descendants((node) => {
+      link ??= node.marks.find((mark) => mark.type.name === "link");
+    });
+
+    expect(output).toContain("| <https://example.edu/?q=a\\|b> |");
+    expect(decodeURI(link?.attrs.href)).toBe(href);
+  });
+
+  it("does not escape the text of a plain URL link", () => {
+    const href = "https://example.edu/~alice/";
+    const doc = Node.fromJSON(schema, {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: href,
+              marks: [{ type: "link", attrs: { href } }],
+            },
+            { type: "text", text: " ~after" },
+          ],
+        },
+      ],
+    });
+
+    const output = serializer.serialize(doc);
+
+    expect(output).toBe(`<${href}> \\~after`);
+    expect(
+      parser.parse(output)?.firstChild?.firstChild?.marks[0].attrs.href
+    ).toBe(href);
   });
 });
 

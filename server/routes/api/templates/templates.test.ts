@@ -102,6 +102,26 @@ describe("#templates.list", () => {
     expect(body.data[0].id).toEqual(template.id);
   });
 
+  it("should not list templates in a private collection for an admin who is not a member", async () => {
+    const admin = await buildAdmin();
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+      permission: null,
+    });
+    await buildTemplate({
+      teamId: admin.teamId,
+      collectionId: collection.id,
+    });
+
+    const res = await server.post("/api/templates.list", admin, {
+      body: {
+        collectionId: collection.id,
+      },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
   it("should filter templates by query", async () => {
     const user = await buildUser();
     const template = await buildTemplate({

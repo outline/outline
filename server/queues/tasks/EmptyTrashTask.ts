@@ -12,18 +12,25 @@ export default class EmptyTrashTask extends BaseTask<Props> {
     if (!documentIds.length) {
       return;
     }
-    const documents = await Document.unscoped().findAll({
-      where: {
-        id: {
-          [Op.in]: documentIds,
+    await Document.unscoped().findAllInBatches<Document>(
+      {
+        where: {
+          id: {
+            [Op.in]: documentIds,
+          },
+          // for safety, ensure the documents are in soft-delete state.
+          deletedAt: {
+            [Op.ne]: null,
+          },
         },
-        // for safety, ensure the documents are in soft-delete state.
-        deletedAt: {
-          [Op.ne]: null,
-        },
+        paranoid: false,
+        batchLimit: 100,
       },
-      paranoid: false,
-    });
-    await documentPermanentDeleter(documents);
+      async (documents) => {
+        if (documents.length) {
+          await documentPermanentDeleter(documents);
+        }
+      }
+    );
   }
 }

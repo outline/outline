@@ -8,7 +8,7 @@ import validate from "@server/middlewares/validate";
 import { Event, User, Collection, Document } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentEvent } from "@server/presenters";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -19,8 +19,8 @@ router.post(
   auth(),
   pagination(),
   validate(T.EventsListSchema),
-  async (ctx: APIContext<T.EventsListReq>) => {
-    const { user } = ctx.state.auth;
+  async (ctx: Context<T.EventsListReq>) => {
+    const { user } = ctx.auth;
     const {
       name,
       events,

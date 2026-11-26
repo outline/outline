@@ -19,7 +19,7 @@ import {
 } from "sequelize-typescript";
 import { globalEventQueue } from "../queues";
 import { afterCommit } from "../storage/transaction";
-import type { APIContext } from "../types";
+import type { Context } from "../types";
 import { AuthenticationType } from "../types";
 import { normalizeIp } from "../utils/ip";
 import Collection from "./Collection";
@@ -27,7 +27,7 @@ import Document from "./Document";
 import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
-import type { Context } from "koa";
+import type { AppContext } from "@server/types";
 
 @Table({ tableName: "events", modelName: "event", updatedAt: false })
 class Event extends IdModel<
@@ -161,13 +161,13 @@ class Event extends IdModel<
    * @returns A promise resolving to the new event
    */
   static createFromContext(
-    ctx: Context | APIContext,
+    ctx: AppContext | Context,
     attributes: Omit<Partial<Event>, "ip" | "teamId" | "actorId"> = {},
     defaultAttributes: Pick<Partial<Event>, "ip" | "teamId" | "actorId"> = {},
     options?: CreateOptions<InferAttributes<Event>>
   ) {
-    const user = ctx.state.auth?.user;
-    const authType = ctx.state.auth?.type;
+    const user = ctx.auth?.user;
+    const authType = ctx.auth?.type;
 
     return this.create(
       {
@@ -178,7 +178,7 @@ class Event extends IdModel<
         authType,
       },
       {
-        transaction: ctx.state.transaction,
+        transaction: ctx.transaction,
         ...options,
       }
     );

@@ -14,7 +14,7 @@ import NotificationSettingsHelper from "@server/models/helpers/NotificationSetti
 import { authorize } from "@server/policies";
 import { presentPolicies } from "@server/presenters";
 import presentNotification from "@server/presenters/notification";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { safeEqual } from "@server/utils/crypto";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
@@ -31,8 +31,8 @@ const pixel = Buffer.from(
  * @param ctx The request context.
  * @returns The updated user, or undefined if the token is not valid.
  */
-const unsubscribe = async (ctx: APIContext<T.NotificationsUnsubscribeReq>) => {
-  const { transaction } = ctx.state;
+const unsubscribe = async (ctx: Context<T.NotificationsUnsubscribeReq>) => {
+  const { transaction } = ctx;
   const eventType = (ctx.input.body.eventType ??
     ctx.input.query.eventType) as NotificationEventType;
   const userId = (ctx.input.body.userId ?? ctx.input.query.userId) as string;
@@ -62,7 +62,7 @@ router.get(
   "notifications.unsubscribe",
   validate(T.NotificationsUnsubscribeSchema),
   transaction(),
-  async (ctx: APIContext<T.NotificationsUnsubscribeReq>) => {
+  async (ctx: Context<T.NotificationsUnsubscribeReq>) => {
     const { follow } = ctx.input.query;
 
     // The link in the email does not include the follow query param, this
@@ -86,7 +86,7 @@ router.post(
   "notifications.unsubscribe",
   validate(T.NotificationsUnsubscribeSchema),
   transaction(),
-  async (ctx: APIContext<T.NotificationsUnsubscribeReq>) => {
+  async (ctx: Context<T.NotificationsUnsubscribeReq>) => {
     const user = await unsubscribe(ctx);
     if (!user) {
       throw AuthenticationError("Invalid unsubscribe token");
@@ -103,9 +103,9 @@ router.post(
   auth(),
   pagination(),
   validate(T.NotificationsListSchema),
-  async (ctx: APIContext<T.NotificationsListReq>) => {
+  async (ctx: Context<T.NotificationsListReq>) => {
     const { eventType, archived } = ctx.input.body;
-    const user = ctx.state.auth.user;
+    const user = ctx.auth.user;
     let where: WhereOptions<Notification> = {
       teamId: user.teamId,
       userId: user.id,
@@ -163,9 +163,9 @@ router.get(
   "notifications.pixel",
   validate(T.NotificationsPixelSchema),
   transaction(),
-  async (ctx: APIContext<T.NotificationsPixelReq>) => {
+  async (ctx: Context<T.NotificationsPixelReq>) => {
     const { id, token } = ctx.input.query;
-    const { transaction } = ctx.state;
+    const { transaction } = ctx;
 
     const notification = await Notification.unscoped().findByPk(id, {
       lock: transaction.LOCK.UPDATE,
@@ -203,10 +203,10 @@ router.post(
   auth(),
   validate(T.NotificationsUpdateSchema),
   transaction(),
-  async (ctx: APIContext<T.NotificationsUpdateReq>) => {
+  async (ctx: Context<T.NotificationsUpdateReq>) => {
     const { id, viewedAt, archivedAt } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const notification = await Notification.findByPk(id, {
       lock: {
@@ -233,10 +233,10 @@ router.post(
   auth(),
   validate(T.NotificationsUpdateAllSchema),
   transaction(),
-  async (ctx: APIContext<T.NotificationsUpdateAllReq>) => {
+  async (ctx: Context<T.NotificationsUpdateAllReq>) => {
     const { viewedAt, archivedAt } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const values: Partial<Notification> = {};
     let where: WhereOptions<Notification> = {

@@ -6,7 +6,7 @@ import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Team, User } from "@server/models";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { signIn } from "@server/utils/authentication";
 import { getVersion, getVersionInfo } from "@server/utils/getInstallationInfo";
 import * as T from "./schema";
@@ -18,9 +18,9 @@ router.post(
   "installation.create",
   validate(T.InstallationCreateSchema),
   transaction(),
-  async (ctx: APIContext<T.InstallationCreateSchemaReq>) => {
+  async (ctx: Context<T.InstallationCreateSchemaReq>) => {
     const { teamName, userName, userEmail } = ctx.input.body;
-    const { transaction } = ctx.state;
+    const { transaction } = ctx;
 
     // Check that this can only be called when there are no existing teams
     const existingTeamCount = await Team.count({ transaction });
@@ -51,7 +51,7 @@ router.post(
   }
 );
 
-router.post("installation.info", auth(), async (ctx: APIContext) => {
+router.post("installation.info", auth(), async (ctx: Context) => {
   const currentVersion = getVersion();
   const { latestVersion, versionsBehind } =
     await getVersionInfo(currentVersion);

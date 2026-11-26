@@ -10,6 +10,7 @@ import type {
   DocumentUserEvent,
   Event,
   GroupEvent,
+  UserEvent,
 } from "@server/types";
 import type { RevokeScope } from "../tasks/RevokeUserNotificationsTask";
 import RevokeUserNotificationsTask from "../tasks/RevokeUserNotificationsTask";
@@ -23,7 +24,8 @@ type ReceivedEvent =
   | DocumentGroupEvent
   | DocumentMovedEvent
   | DocumentEvent
-  | GroupEvent;
+  | GroupEvent
+  | UserEvent;
 
 /**
  * Revokes notifications that reference a document or collection once the recipient loses access to it.
@@ -40,6 +42,7 @@ export default class NotificationsRevokeProcessor extends BaseProcessor {
     "documents.unarchive",
     "groups.remove_user",
     "groups.delete",
+    "users.demote",
   ];
 
   async perform(event: ReceivedEvent) {
@@ -68,9 +71,10 @@ export default class NotificationsRevokeProcessor extends BaseProcessor {
           documentId: event.documentId,
         });
 
-      // Access lost through a group cannot be scoped to a single collection or document, so all
-      // of the user's notifications are re-checked.
+      // Access lost through a group or a role change cannot be scoped to a single collection or
+      // document, so all of the user's notifications are re-checked.
       case "groups.remove_user":
+      case "users.demote":
         await new RevokeUserNotificationsTask().schedule({
           userId: event.userId,
         });

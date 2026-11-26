@@ -9,6 +9,7 @@ import env from "@server/env";
 import AttachmentHelper, {
   Buckets,
 } from "@server/models/helpers/AttachmentHelper";
+import { Attachment } from "@server/models";
 import FileStorage from "@server/storage/files";
 import {
   buildApiKey,
@@ -57,13 +58,15 @@ describe("#files.create", () => {
     expect(res.status).toEqual(403);
   });
 
-  it("should fail with status 401 if file exists on disk", async () => {
+  it("should fail with status 400 and keep the existing file if file exists on disk", async () => {
     const user = await buildUser();
     const fileName = "images.docx";
     const attachment = await buildAttachment(
       {
         userId: user.id,
         teamId: user.teamId,
+        // Smaller than the upload, so the size check would destroy the file if it ran first.
+        size: 100,
         contentType:
           "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       },
@@ -90,6 +93,10 @@ describe("#files.create", () => {
       body: form,
     });
     expect(res.status).toEqual(400);
+    expect(
+      existsSync(path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, attachment.key))
+    ).toBe(true);
+    expect(await Attachment.findByPk(attachment.id)).not.toBeNull();
   });
 
   it("should fail with status 400 if uploaded file exceeds declared size", async () => {

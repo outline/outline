@@ -21,8 +21,8 @@ export class PlanHelper {
 
   /** The features that are included in each plan. */
   public static readonly features: Record<Plan, PlanFeature[]> = {
-    [Plan.Community]: [],
-    [Plan.Standard]: [PlanFeature.Guests],
+    [Plan.Community]: [PlanFeature.DocumentOwners],
+    [Plan.Standard]: [PlanFeature.DocumentOwners, PlanFeature.Guests],
     [Plan.Business]: Object.values(PlanFeature),
     [Plan.Enterprise]: Object.values(PlanFeature),
     [Plan.Legacy]: [

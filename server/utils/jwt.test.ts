@@ -1,14 +1,14 @@
 import { subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
-import type { Context } from "koa";
 import { buildAdmin, buildUser } from "@server/test/factories";
 import { getUserForEmailSigninToken, getUserForJWT } from "./jwt";
+import type { AppContext } from "@server/types";
 
 /**
  * Minimal Koa context stub exposing only the request IP.
  */
 function buildContext(ip = "127.0.0.1") {
-  return { request: { ip } } as unknown as Context;
+  return { request: { ip } } as unknown as AppContext;
 }
 
 describe("getUserForEmailSigninToken", () => {

@@ -10,7 +10,7 @@ import { parseEmail } from "@shared/utils/email";
 import accountProvisioner from "@server/commands/accountProvisioner";
 import passportMiddleware from "@server/middlewares/passport";
 import type { User } from "@server/models";
-import type { AuthenticationResult } from "@server/types";
+import type { AuthenticationResult, AppContext } from "@server/types";
 import {
   StateStore,
   request,
@@ -22,7 +22,7 @@ import {
 } from "@server/utils/passport";
 import config from "../../plugin.json";
 import env from "../env";
-import { createContext } from "@server/context";
+import { withUser } from "@server/context";
 import UploadUserAvatarTask from "@server/queues/tasks/UploadUserAvatarTask";
 import { UserFlag } from "@server/models/User";
 import { getEmailVerified } from "./getEmailVerified";
@@ -57,7 +57,7 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
         result?: AuthenticationResult
       ) => void
     ) {
-      const context = req.ctx;
+      const context: AppContext = req.ctx;
       try {
         // see docs for what the fields in profile represent here:
         // https://docs.microsoft.com/en-us/azure/active-directory/develop/access-tokens
@@ -106,7 +106,7 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
         const team = await getTeamFromContext(context);
         const client = getClientFromOAuthState(context);
         const user =
-          context.state?.auth?.user ?? (await getUserFromOAuthState(context));
+          context.auth?.user ?? (await getUserFromOAuthState(context));
 
         const emailVerified = getEmailVerified(
           email,
@@ -122,11 +122,7 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
         const subdomain = slugifyDomain(domain);
 
         const teamName = organization.displayName;
-        const ctx = createContext({
-          ip: context.ip,
-          user,
-          authType: context.state?.auth?.type,
-        });
+        const ctx = withUser(context, user);
         const result = await accountProvisioner(ctx, {
           team: {
             teamId: team?.id,

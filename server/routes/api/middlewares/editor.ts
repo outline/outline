@@ -1,7 +1,8 @@
-import type { Context, Next } from "koa";
+import type { Next } from "koa";
 import semver from "semver";
 import EDITOR_VERSION from "@shared/editor/version";
 import { EditorUpdateError } from "@server/errors";
+import type { AppContext } from "@server/types";
 
 export default function editor() {
   /**
@@ -9,7 +10,7 @@ export default function editor() {
    * version. See the equivalent logic for collab server in:
    * /server/collaboration/EditorVersionExtension.ts
    */
-  return async function editorMiddleware(ctx: Context, next: Next) {
+  return async function editorMiddleware(ctx: AppContext, next: Next) {
     const clientVersion = ctx.headers["x-editor-version"];
 
     if (clientVersion) {

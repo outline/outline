@@ -9,6 +9,7 @@ import { addComment, addDraftCommentAnchor } from "../commands/comment";
 import { chainTransactions } from "../lib/chainTransactions";
 import { DraftCommentAnchorPlugin } from "../plugins/DraftCommentAnchorPlugin";
 import { isMarkActive } from "../queries/isMarkActive";
+import { getEventTargetElement } from "../lib/eventTarget";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import Mark from "./Mark";
 
@@ -213,11 +214,7 @@ export default class Comment extends Mark<CommentOptions> {
         props: {
           handleDOMEvents: {
             mouseup: (_view, event: MouseEvent) => {
-              if (!(event.target instanceof HTMLElement)) {
-                return false;
-              }
-
-              const comment = event.target.closest(
+              const comment = getEventTargetElement(event)?.closest(
                 `.${EditorStyleHelper.comment}`
               );
               if (!comment) {

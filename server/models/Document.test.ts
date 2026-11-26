@@ -15,10 +15,11 @@ import {
   buildUser,
   buildGuestUser,
 } from "@server/test/factories";
-import { withAPIContext } from "@server/test/support";
+import { withContext } from "@server/test/support";
 import { sequelize } from "@server/storage/database";
 import GroupMembership from "./GroupMembership";
 import GroupUser from "./GroupUser";
+import Event from "./Event";
 import UserMembership from "./UserMembership";
 
 beforeEach(() => {
@@ -47,7 +48,7 @@ describe("#restoreTo", () => {
         { deprecatedReason: "Outdated" },
         { where: { id: document.id }, paranoid: false }
       );
-      await withAPIContext(user, (ctx) =>
+      await withContext(user, (ctx) =>
         document.restoreTo(ctx, { collectionId: collection.id })
       );
       await document.reload();
@@ -78,7 +79,7 @@ describe("#restoreTo", () => {
         deletedAt: status === "deleted" ? new Date() : null,
       });
 
-      await withAPIContext(user, (ctx) =>
+      await withContext(user, (ctx) =>
         document.restoreTo(ctx, { collectionId: destination.id })
       );
       await Promise.all([document.reload(), destination.reload()]);
@@ -109,7 +110,7 @@ describe("#restoreTo", () => {
       archivedAt: new Date(),
     });
 
-    await withAPIContext(user, (ctx) =>
+    await withContext(user, (ctx) =>
       document.restoreTo(ctx, { collectionId: collection.id })
     );
     await document.reload();
@@ -143,7 +144,7 @@ describe("#destroyWithCtx", () => {
   it("should soft delete and set last modified", async () => {
     const document = await buildDocument();
     const user = await buildUser();
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
 
     const newDocument = await Document.findByPk(document.id, {
       paranoid: false,
@@ -157,7 +158,7 @@ describe("#destroyWithCtx", () => {
       archivedAt: new Date(),
     });
     const user = await buildUser();
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     const newDocument = await Document.findByPk(document.id, {
       paranoid: false,
     });
@@ -180,7 +181,7 @@ describe("#destroyWithCtx", () => {
     });
     await collection.addDocumentToStructure(document, 0);
 
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     const [newDocument, newCollection] = await Promise.all([
       document.reload({ paranoid: false }),
       collection.reload(),
@@ -194,7 +195,7 @@ describe("#destroyWithCtx", () => {
   it("should delete draft without collection", async () => {
     const user = await buildUser();
     const document = await buildDraftDocument();
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     const deletedDocument = await Document.findByPk(document.id, {
       paranoid: false,
     });
@@ -1230,5 +1231,76 @@ describe("commentCount", () => {
     await thread.save();
 
     expect(await document.commentCount).toEqual(1);
+  });
+});
+
+describe("#owners", () => {
+  const ownerEvents = (documentId: string) =>
+    Event.findAll({
+      where: {
+        documentId,
+        name: ["documents.add_owner", "documents.remove_owner"],
+      },
+      order: [["createdAt", "ASC"]],
+    }).then((events) => events.map((event) => [event.name, event.userId]));
+
+  it("should add an owner with the manage permission", async () => {
+    const user = await buildUser();
+    const owner = await buildUser({ teamId: user.teamId });
+    const document = await buildDocument({ teamId: user.teamId });
+
+    await withContext(user, (ctx) => document.addOwner(ctx, owner.id));
+
+    await document.reload();
+    expect(document.ownerIds).toEqual([owner.id]);
+    const membership = await UserMembership.findOne({
+      where: { documentId: document.id, userId: owner.id },
+      rejectOnEmpty: true,
+    });
+    expect(membership.permission).toEqual(DocumentPermission.Admin);
+    expect(await ownerEvents(document.id)).toEqual([
+      ["documents.add_owner", owner.id],
+    ]);
+  });
+
+  it("should remove an owner and keep their access", async () => {
+    const user = await buildUser();
+    const owner = await buildUser({ teamId: user.teamId });
+    const document = await buildDocument({ teamId: user.teamId });
+    await withContext(user, (ctx) => document.addOwner(ctx, owner.id));
+
+    await withContext(user, (ctx) => document.removeOwner(ctx, owner.id));
+
+    await document.reload();
+    expect(document.ownerIds).toEqual([]);
+    expect(
+      await UserMembership.count({
+        where: { documentId: document.id, userId: owner.id },
+      })
+    ).toEqual(1);
+    expect(await ownerEvents(document.id)).toEqual([
+      ["documents.add_owner", owner.id],
+      ["documents.remove_owner", owner.id],
+    ]);
+  });
+
+  it("should keep owners added by another instance of the document", async () => {
+    const user = await buildUser();
+    const first = await buildUser({ teamId: user.teamId });
+    const second = await buildUser({ teamId: user.teamId });
+    const document = await buildDocument({ teamId: user.teamId });
+    const stale = await Document.findByPk(document.id, {
+      rejectOnEmpty: true,
+    });
+
+    await withContext(user, (ctx) => document.addOwner(ctx, first.id));
+    await withContext(user, (ctx) => stale.addOwner(ctx, second.id));
+
+    await document.reload();
+    expect(document.ownerIds).toEqual([first.id, second.id]);
+    expect(await ownerEvents(document.id)).toEqual([
+      ["documents.add_owner", first.id],
+      ["documents.add_owner", second.id],
+    ]);
   });
 });

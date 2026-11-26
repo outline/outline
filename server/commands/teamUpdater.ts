@@ -5,7 +5,7 @@ import { ValidationError } from "@server/errors";
 import type { User } from "@server/models";
 import { Collection, Team, TeamDomain } from "@server/models";
 import { authorize } from "@server/policies";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 
 type Props = {
   params: Partial<Omit<Team, "allowedDomains">> & { allowedDomains?: string[] };
@@ -13,7 +13,7 @@ type Props = {
   team: Team;
 };
 
-const teamUpdater = async (ctx: APIContext, { params, user, team }: Props) => {
+const teamUpdater = async (ctx: Context, { params, user, team }: Props) => {
   const { allowedDomains, preferences, subdomain, ...attributes } = params;
   team.fill(attributes);
 
@@ -25,7 +25,7 @@ const teamUpdater = async (ctx: APIContext, { params, user, team }: Props) => {
         teamId: team.id,
         ownerId: null,
       },
-      transaction: ctx.state.transaction,
+      transaction: ctx.transaction,
     });
 
     if (!collection) {
@@ -40,7 +40,7 @@ const teamUpdater = async (ctx: APIContext, { params, user, team }: Props) => {
       const existing = await Team.findOne({
         where: { subdomain: newSubdomain },
         paranoid: false,
-        transaction: ctx.state.transaction,
+        transaction: ctx.transaction,
       });
 
       if (existing) {
@@ -54,7 +54,7 @@ const teamUpdater = async (ctx: APIContext, { params, user, team }: Props) => {
   if (allowedDomains !== undefined) {
     const existingAllowedDomains = await TeamDomain.findAll({
       where: { teamId: team.id },
-      transaction: ctx.state.transaction,
+      transaction: ctx.transaction,
     });
 
     // Only keep existing domains if they are still in the list of allowed domains

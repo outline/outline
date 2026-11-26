@@ -1,7 +1,7 @@
 import { t } from "i18next";
 import type Token from "markdown-it/lib/token.mjs";
 import { InputRule } from "prosemirror-inputrules";
-import type { MarkdownSerializerState } from "prosemirror-markdown";
+import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import type {
   Attrs,
   MarkSpec,
@@ -23,6 +23,7 @@ import {
   toggleLink,
 } from "../commands/link";
 import { isInCode } from "../queries/isInCode";
+import { getEventTargetElement } from "../lib/eventTarget";
 
 const LINK_INPUT_REGEX = /\[([^[]+)]\((\S+)\)$/;
 
@@ -155,8 +156,7 @@ export default class Link extends Mark<LinkOptions> {
 
       // SVG anchors, such as those inside Mermaid diagrams, are handled by
       // their own extension and have a non-string href.
-      const target =
-        event.target instanceof Element ? event.target.closest("a") : null;
+      const target = getEventTargetElement(event)?.closest("a");
       if (!(target instanceof HTMLAnchorElement)) {
         return undefined;
       }
@@ -361,23 +361,28 @@ export default class Link extends Mark<LinkOptions> {
   toMarkdown() {
     return {
       open: (
-        _state: MarkdownSerializerState,
+        state: MarkdownSerializerState,
         mark: ProsemirrorMark,
         parent: Node,
         index: number
-      ) => (isPlainURL(mark, parent, index, 1) ? "<" : "["),
+      ) => {
+        state.inAutolink = isPlainURL(mark, parent, index, 1);
+        return state.inAutolink ? "<" : "[";
+      },
       close: (
         state: MarkdownSerializerState,
         mark: ProsemirrorMark,
         parent: Node,
         index: number
-      ) =>
-        isPlainURL(mark, parent, index, -1)
+      ) => {
+        state.inAutolink = false;
+        return isPlainURL(mark, parent, index, -1)
           ? ">"
           : "](" +
-            state.esc(mark.attrs.href) +
-            (mark.attrs.title ? " " + quote(mark.attrs.title) : "") +
-            ")",
+              state.esc(mark.attrs.href, false) +
+              (mark.attrs.title ? " " + quote(mark.attrs.title) : "") +
+              ")";
+      },
     };
   }
 

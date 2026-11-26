@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { mergeRefs } from "react-merge-refs";
+import { useMergeRefs } from "react-merge-refs";
 import { useLocation, useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import Text from "@shared/components/Text";
@@ -197,6 +197,7 @@ function DocumentEditor(props: Props) {
     updateState: updateDocState,
   } = useDocumentContext();
   const handleRefChanged = React.useCallback(setEditor, [setEditor]);
+  const mergedRef = useMergeRefs([ref, editorRef, handleRefChanged]);
   const EditorComponent = multiplayer ? MultiplayerEditor : Editor;
 
   const childOffsetHeight = childRef.current?.offsetHeight || 0;
@@ -262,7 +263,7 @@ function DocumentEditor(props: Props) {
           from hiding mounted content, which would detach refs mid-commit. */}
       <React.Suspense fallback={<PlaceholderDocument />}>
         <EditorComponent
-          ref={mergeRefs([ref, editorRef, handleRefChanged])}
+          ref={mergedRef}
           lang={getLangFor(document.language)}
           placeholder={t("Type '/' to insert, or start writing…")}
           scrollTo={decodeURIComponentSafe(location.hash)}

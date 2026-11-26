@@ -41,6 +41,7 @@ import {
   BeforeUpdate,
   DefaultScope,
   AfterSave,
+  AfterUpdate,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
 import type {
@@ -60,7 +61,8 @@ import {
 } from "@shared/validations";
 import { parser } from "@server/editor";
 import { ValidationError } from "@server/errors";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
+import { toHookContext, type HookContextFields } from "@server/context";
 import { LockHelper } from "@server/storage/LockHelper";
 import { afterCommit } from "@server/storage/transaction";
 import { CacheHelper } from "@server/utils/CacheHelper";
@@ -77,8 +79,14 @@ import Import from "./Import";
 import Team from "./Team";
 import User from "./User";
 import UserMembership from "./UserMembership";
+import type { HookContext } from "./base/Model";
 import ParanoidModel from "./base/ParanoidModel";
 import { DocumentHelper } from "./helpers/DocumentHelper";
+import {
+  ownerChanges,
+  resolveOwnerIds as resolveRequestedOwnerIds,
+  validateOwnerIds,
+} from "./helpers/owners";
 import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
@@ -427,7 +435,7 @@ class Collection extends ParanoidModel<
   }
 
   @BeforeDestroy
-  static async deleteDocuments(model: Collection, ctx: APIContext["context"]) {
+  static async deleteDocuments(model: Collection, ctx: HookContextFields) {
     // A bulk update rather than a destroy per document, so `deletedById` is
     // written here instead of by the hook on ParanoidModel.
     await Document.update(
@@ -535,7 +543,7 @@ class Collection extends ParanoidModel<
   @BeforeUpdate
   static async publishPermissionChangedEvent(
     model: Collection,
-    ctx: APIContext["context"]
+    ctx: HookContextFields
   ) {
     const privacyChanged = model.previous("permission") !== model.permission;
     const sharingChanged = model.previous("sharing") !== model.sharing;
@@ -545,6 +553,26 @@ class Collection extends ParanoidModel<
         ...ctx,
         event: { publish: true },
       });
+    }
+  }
+
+  @AfterUpdate
+  static async publishOwnerEvents(model: Collection, ctx: HookContextFields) {
+    if (!model.changed("ownerIds")) {
+      return;
+    }
+
+    const changes = ownerChanges(
+      model.previous("ownerIds") ?? [],
+      model.ownerIds ?? []
+    );
+
+    for (const { name, userId } of changes) {
+      const hookContext = {
+        ...ctx,
+        event: { name, userId, publish: true },
+      } as HookContext;
+      await this.insertEvent(name, model, hookContext);
     }
   }
 
@@ -576,10 +604,19 @@ class Collection extends ParanoidModel<
   @BelongsTo(() => User, "ownerId")
   owner?: User | null;
 
+  /**
+   * The ID of the user that owns this collection when it is a personal
+   * collection, not to be confused with `ownerIds`.
+   */
   @AllowNull
   @ForeignKey(() => User)
   @Column(DataType.UUID)
   ownerId: string | null;
+
+  /** An array of user IDs that are responsible for this collection. */
+  @Default([])
+  @Column(DataType.ARRAY(DataType.UUID))
+  ownerIds: string[];
 
   @HasMany(() => Document, "collectionId")
   documents: Document[];
@@ -807,9 +844,9 @@ class Collection extends ParanoidModel<
    * @param ctx The request context with the acting user and a transaction.
    * @returns the personal collection of the user.
    */
-  static async findOrCreatePersonal(ctx: APIContext): Promise<Collection> {
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+  static async findOrCreatePersonal(ctx: Context): Promise<Collection> {
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const existing = await this.findPersonal(user, { transaction });
     if (existing) {
@@ -933,16 +970,119 @@ class Collection extends ParanoidModel<
   };
 
   /**
+   * Validate and assign the owners of the collection, without saving. The caller
+   * must authorize the change before calling this.
+   *
+   * @param ctx the API context containing the acting user.
+   * @param ownerIds the requested owner IDs.
+   * @returns a promise that resolves once the owners are assigned.
+   * @throws ValidationError when any of the owners are not valid.
+   */
+  setOwnerIds = async (ctx: Context, ownerIds: string[]): Promise<void> => {
+    const nextOwnerIds = await resolveRequestedOwnerIds(
+      ctx,
+      this.ownerIds ?? [],
+      ownerIds,
+      CollectionValidation.maxOwners
+    );
+    if (nextOwnerIds) {
+      this.ownerIds = nextOwnerIds;
+    }
+  };
+
+  /**
+   * Add a user as an owner of the collection, and give them the manage
+   * permission.
+   *
+   * @param ctx the API context containing the acting user and transaction.
+   * @param userId the ID of the user to add.
+   * @returns a promise that resolves once the owner is saved.
+   * @throws ValidationError when the user cannot be an owner.
+   */
+  addOwner = async (ctx: Context, userId: string): Promise<void> => {
+    const ownerIds = await this.lockOwnerIds(ctx);
+
+    if (!ownerIds.includes(userId)) {
+      this.ownerIds = await validateOwnerIds(
+        ctx,
+        [...ownerIds, userId],
+        ownerIds,
+        CollectionValidation.maxOwners
+      );
+      await this.saveWithCtx(ctx, { silent: true });
+    }
+
+    await this.grantOwnerAccess(ctx, [userId]);
+  };
+
+  /**
+   * Remove a user from the owners of the collection. Their access to the
+   * collection does not change.
+   *
+   * @param ctx the API context containing the acting user and transaction.
+   * @param userId the ID of the user to remove.
+   * @returns a promise that resolves once the owner is removed.
+   */
+  removeOwner = async (ctx: Context, userId: string): Promise<void> => {
+    if (!this.ownerIds?.includes(userId)) {
+      return;
+    }
+
+    const ownerIds = await this.lockOwnerIds(ctx);
+    if (!ownerIds.includes(userId)) {
+      return;
+    }
+
+    this.ownerIds = ownerIds.filter((id) => id !== userId);
+    await this.saveWithCtx(ctx, { silent: true });
+  };
+
+  /**
+   * Give users the manage permission on the collection, used when they are
+   * made owners.
+   *
+   * @param ctx the API context containing the acting user and transaction.
+   * @param userIds the IDs of the owners.
+   * @returns a promise that resolves once the memberships are saved.
+   */
+  grantOwnerAccess = async (ctx: Context, userIds: string[]): Promise<void> => {
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
+
+    for (const userId of userIds) {
+      const membership = await UserMembership.findOneForUpdate(
+        { userId, collectionId: this.id },
+        { transaction }
+      );
+
+      if (!membership) {
+        await UserMembership.createWithCtx(ctx, {
+          userId,
+          collectionId: this.id,
+          permission: CollectionPermission.Admin,
+          createdById: user.id,
+        });
+        continue;
+      }
+
+      membership.permission = CollectionPermission.Admin;
+      if (membership.changed()) {
+        await membership.save(toHookContext(ctx));
+      }
+    }
+  };
+
+  /**
    * Archives the collection and all of its non-archived documents. The
    * collection's `archivedAt` and `archivedBy` are set to now and the acting
    * user respectively, and child documents inherit the same `archivedAt`.
    *
-   * @param ctx - the API context, including the acting user and optional transaction.
+   * @param ctx - the context, including the acting user and optional transaction.
    * @returns the updated collection.
    */
-  archiveWithCtx = async (ctx: APIContext) => {
-    const { transaction } = ctx.state;
-    const { user } = ctx.state.auth;
+  archiveWithCtx = async (ctx: Context) => {
+    const { transaction } = ctx;
+    const { user } = ctx.auth;
 
     this.archivedAt = new Date();
     this.archivedById = user.id;
@@ -971,13 +1111,13 @@ class Collection extends ParanoidModel<
   /**
    * Updates the reason for archiving the collection.
    *
-   * @param ctx the API context, including the acting user and transaction.
+   * @param ctx the context, including the acting user and transaction.
    * @param reason the reason to save, or null to clear it.
    * @returns the updated collection.
    * @throws ValidationError if the collection is no longer archived.
    */
-  updateDeprecatedReason = async (ctx: APIContext, reason: string | null) => {
-    const { transaction } = ctx.state;
+  updateDeprecatedReason = async (ctx: Context, reason: string | null) => {
+    const { transaction } = ctx;
 
     if (transaction) {
       await Collection.unscoped().findOne({
@@ -1005,11 +1145,11 @@ class Collection extends ParanoidModel<
    * Removes a document from this collection's structure and soft deletes it
    * along with all of its descendants.
    *
-   * @param ctx the API context, which attributes the deletion to the acting user.
+   * @param ctx the context, which attributes the deletion to the acting user.
    * @param document the document to delete.
    */
-  deleteDocument = async (ctx: APIContext, document: Document) => {
-    const { transaction } = ctx.context;
+  deleteDocument = async (ctx: Context, document: Document) => {
+    const { transaction } = ctx;
 
     await this.removeDocumentInStructure(document, { transaction });
 
@@ -1030,11 +1170,11 @@ class Collection extends ParanoidModel<
 
       // Destroyed one at a time to ensure model hooks run for each document.
       for (const childDocumentId of childDocumentIds) {
-        await childDocumentsById[childDocumentId]?.destroy(ctx.context);
+        await childDocumentsById[childDocumentId]?.destroy(toHookContext(ctx));
       }
     }
 
-    await document.destroy(ctx.context);
+    await document.destroy(toHookContext(ctx));
   };
 
   removeDocumentInStructure = async (
@@ -1274,6 +1414,30 @@ class Collection extends ParanoidModel<
     color: isNil(this.color) ? undefined : this.color,
     children: sortNavigationNodes(this.documentStructure ?? [], this.sort),
   });
+
+  /**
+   * Lock the collection row and load its current owners, so that concurrent
+   * owner changes are not lost.
+   *
+   * @param ctx the API context containing the transaction.
+   * @returns the current owner IDs.
+   */
+  private async lockOwnerIds(ctx: Context): Promise<string[]> {
+    const { transaction } = ctx;
+    const locked = await Collection.unscoped().findOne({
+      where: { id: this.id },
+      attributes: ["id", "ownerIds"],
+      transaction,
+      lock: transaction?.LOCK.NO_KEY_UPDATE,
+      paranoid: false,
+      rejectOnEmpty: true,
+    });
+    const ownerIds = locked.ownerIds ?? [];
+
+    // The change is compared with the locked owners, not the loaded owners.
+    this.set("ownerIds", ownerIds, { raw: true });
+    return ownerIds;
+  }
 }
 
 export default Collection;

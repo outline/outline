@@ -5,6 +5,7 @@ import {
   EditIcon,
   NewDocumentIcon,
   CaseSensitiveIcon,
+  ProfileIcon,
   UserIcon,
 } from "outline-icons";
 import { endOfDay, startOfDay } from "date-fns";
@@ -195,6 +196,16 @@ export function createSearchFilters(t: TFunction): SearchFilter[] {
       id: "createdById",
       label: t("Created by"),
       icon: <EditIcon />,
+      ...matchSelection,
+      // The API only supports membership checks for these fields.
+      operators: ["eq", "in"],
+      useOptions: useUserOptions,
+    },
+    {
+      type: "select",
+      id: "ownerIds",
+      label: t("Owned by"),
+      icon: <ProfileIcon />,
       ...matchSelection,
       // The API only supports membership checks for these fields.
       operators: ["eq", "in"],

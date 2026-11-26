@@ -13,9 +13,9 @@ describe("userAgent middleware", () => {
 
     await userAgent()(ctx, next);
 
-    expect(ctx.userAgent.source).toEqual(chromeOnMac);
-    expect(ctx.userAgent.isDesktop).toBe(true);
-    expect(ctx.userAgent.isMobile).toBe(false);
+    expect(ctx.userAgent?.source).toEqual(chromeOnMac);
+    expect(ctx.userAgent?.isDesktop).toBe(true);
+    expect(ctx.userAgent?.isMobile).toBe(false);
     expect(next).toHaveBeenCalled();
   });
 
@@ -24,8 +24,8 @@ describe("userAgent middleware", () => {
 
     await userAgent()(ctx, vi.fn());
 
-    expect(ctx.userAgent.isMobile).toBe(true);
-    expect(ctx.userAgent.isDesktop).toBe(false);
+    expect(ctx.userAgent?.isMobile).toBe(true);
+    expect(ctx.userAgent?.isDesktop).toBe(false);
   });
 
   it("should use a placeholder when the header is missing", async () => {
@@ -33,6 +33,6 @@ describe("userAgent middleware", () => {
 
     await userAgent()(ctx, vi.fn());
 
-    expect(ctx.userAgent.source).toEqual("unknown");
+    expect(ctx.userAgent?.source).toEqual("unknown");
   });
 });

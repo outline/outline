@@ -144,6 +144,11 @@
                   "addColumnAfter"
                 ],
                 "message": "Use the wrappers from shared/editor/commands/table instead, which respect the target index and place the cursor in the inserted cell."
+              },
+              {
+                "name": "koa",
+                "importNames": ["Context", "DefaultContext"],
+                "message": "Use AppContext or Context from @server/types, which do not allow arbitrary properties."
               }
             ],
             "patterns": [
