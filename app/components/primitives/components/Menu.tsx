@@ -128,13 +128,22 @@ export const MenuLabel = styled.div`
 `;
 
 export const MenuHeader = styled.h3`
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
+  font-size: 13px;
+  font-weight: 500;
   color: ${s("sidebarText")};
-  letter-spacing: 0.04em;
   margin: 1em 12px 0.5em;
   user-select: none;
+
+  // Remove the top margin when nothing visible is above the header, except in
+  // the mobile drawer, which has less padding.
+  ${breakpoint("tablet")`
+    &:first-child:not([role="group"] > *),
+    [data-menu-hidden]:first-child + &,
+    [role="group"]:first-child > &:first-child,
+    [data-menu-hidden]:first-child + [role="group"] > &:first-child {
+      margin-top: 0;
+    }
+  `}
 `;
 
 export const MenuDisclosure = styled(ExpandedIcon)`

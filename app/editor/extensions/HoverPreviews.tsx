@@ -1,6 +1,7 @@
 import { action, observable } from "mobx";
 import { Plugin } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
+import { getEventTargetElement } from "@shared/editor/lib/eventTarget";
 import Extension from "@shared/editor/lib/Extension";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import stores from "~/stores";
@@ -41,7 +42,7 @@ export default class HoverPreviews extends Extension<HoverPreviewsOptions> {
   }
 
   get plugins() {
-    const isHoverTarget = (target: Element | null) =>
+    const isHoverTarget = (target: Element | null | undefined) =>
       target instanceof HTMLElement &&
       this.editor.elementRef.current?.contains(target);
 
@@ -52,9 +53,8 @@ export default class HoverPreviews extends Extension<HoverPreviewsOptions> {
         props: {
           handleDOMEvents: {
             mouseover: (_view: EditorView, event: MouseEvent) => {
-              const target = (event.target as HTMLElement)?.closest(
-                ".use-hover-preview"
-              );
+              const target =
+                getEventTargetElement(event)?.closest(".use-hover-preview");
               if (isHoverTarget(target)) {
                 hoveringTimeout = setTimeout(
                   action(async () => {
@@ -102,9 +102,8 @@ export default class HoverPreviews extends Extension<HoverPreviewsOptions> {
               return false;
             },
             mouseout: action((_view: EditorView, event: MouseEvent) => {
-              const target = (event.target as HTMLElement)?.closest(
-                ".use-hover-preview"
-              );
+              const target =
+                getEventTargetElement(event)?.closest(".use-hover-preview");
               if (isHoverTarget(target)) {
                 clearTimeout(hoveringTimeout);
                 this.state.activeLinkElement = null;

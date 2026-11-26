@@ -1,5 +1,5 @@
 import httpErrors from "http-errors";
-import type { Context, Next } from "koa";
+import type { Next } from "koa";
 import {
   ValidationError as SequelizeValidationError,
   EmptyResultError as SequelizeEmptyResultError,
@@ -19,6 +19,7 @@ import {
   isDatabaseUnavailableError,
   isQueryCanceledError,
 } from "@server/storage/database";
+import type { AppContext } from "@server/types";
 
 /** Postgres codes for a requested date the database cannot represent. */
 const DATE_RANGE_ERROR_CODES = new Set(["22008", "22015"]);
@@ -38,7 +39,7 @@ function sqlStateOf(err: SequelizeDatabaseError): string | undefined {
 }
 
 export default function apiErrorHandler() {
-  return async function apiErrorHandlerMiddleware(ctx: Context, next: Next) {
+  return async function apiErrorHandlerMiddleware(ctx: AppContext, next: Next) {
     try {
       await next();
     } catch (err) {

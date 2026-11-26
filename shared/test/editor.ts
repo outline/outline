@@ -6,6 +6,7 @@ import type { Plugin } from "prosemirror-state";
 import ExtensionManager from "../editor/lib/ExtensionManager";
 import { populateEmojiData } from "../editor/lib/emoji";
 import { richExtensions } from "../editor/nodes";
+import type { TableFilter } from "../editor/types";
 
 // Match the server, which loads emoji data before it builds the parser.
 populateEmojiData(data as EmojiMartData);
@@ -145,7 +146,7 @@ export function tr(cells: ReturnType<typeof td | typeof th>[]) {
  */
 export function table(
   rows: ReturnType<typeof tr>[],
-  attrs?: { layout?: string | null }
+  attrs?: { layout?: string | null; filters?: TableFilter[] | null }
 ) {
   return schema.nodes.table.create(attrs ?? null, rows);
 }

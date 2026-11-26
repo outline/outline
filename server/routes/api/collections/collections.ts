@@ -1,5 +1,6 @@
 import Router from "@koa/router";
 import { randomUUID } from "node:crypto";
+import { difference } from "es-toolkit";
 import { compact, truncate } from "es-toolkit/compat";
 import type { WhereOptions } from "sequelize";
 import { Sequelize, Op } from "sequelize";
@@ -50,7 +51,8 @@ import {
   presentGroupMembership,
   presentFileOperation,
 } from "@server/presenters";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
+import { toHookContext } from "@server/context";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { collectionIndexing } from "@server/utils/indexing";
 import { QueryHelper } from "@server/storage/QueryHelper";
@@ -66,8 +68,8 @@ router.post(
   auth(),
   validate(T.CollectionsCreateSchema),
   transaction(),
-  async (ctx: APIContext<T.CollectionsCreateReq>) => {
-    const { transaction } = ctx.state;
+  async (ctx: Context<T.CollectionsCreateReq>) => {
+    const { transaction } = ctx;
     const {
       name,
       color,
@@ -80,9 +82,10 @@ router.post(
       index,
       commenting,
       templateManagement,
+      ownerIds,
     } = ctx.input.body;
 
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     authorize(user, "createCollection", user.team);
 
     const collection = Collection.build({
@@ -110,6 +113,14 @@ router.post(
       rejectOnEmpty: true,
     });
 
+    // Owners can only be checked once the collection exists.
+    if (ownerIds?.length) {
+      authorize(user, "manageOwners", reloaded);
+      await reloaded.setOwnerIds(ctx, ownerIds);
+      await reloaded.saveWithCtx(ctx);
+      await reloaded.grantOwnerAccess(ctx, reloaded.ownerIds);
+    }
+
     ctx.body = {
       data: await presentCollection(ctx, reloaded),
       policies: presentPolicies(user, [reloaded]),
@@ -123,10 +134,10 @@ router.post(
   auth(),
   validate(T.CollectionsDuplicateSchema),
   transaction(),
-  async (ctx: APIContext<T.CollectionsDuplicateReq>) => {
-    const { transaction } = ctx.state;
+  async (ctx: Context<T.CollectionsDuplicateReq>) => {
+    const { transaction } = ctx;
     const { id, name } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const collection = await Collection.findByPk(id, {
       userId: user.id,
@@ -151,9 +162,9 @@ router.post(
   "collections.info",
   auth(),
   validate(T.CollectionsInfoSchema),
-  async (ctx: APIContext<T.CollectionsInfoReq>) => {
+  async (ctx: Context<T.CollectionsInfoReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     const collection = await Collection.findByPk(id, {
       userId: user.id,
       includeArchivedBy: true,
@@ -173,9 +184,9 @@ router.post(
   "collections.documents",
   auth(),
   validate(T.CollectionsDocumentsSchema),
-  async (ctx: APIContext<T.CollectionsDocumentsReq>) => {
+  async (ctx: Context<T.CollectionsDocumentsReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     const collection = await Collection.findByPk(id, {
       userId: user.id,
     });
@@ -195,8 +206,8 @@ router.post(
   auth(),
   validate(T.CollectionsAddLinkSchema),
   transaction(),
-  async (ctx: APIContext<T.CollectionsAddLinkReq>) => {
-    const { transaction } = ctx.state;
+  async (ctx: Context<T.CollectionsAddLinkReq>) => {
+    const { transaction } = ctx;
     const { id, parentDocumentId, title, url, index } = ctx.input.body;
 
     const collection = await loadCollectionForLink(ctx, id, parentDocumentId);
@@ -232,8 +243,8 @@ router.post(
   auth(),
   validate(T.CollectionsUpdateLinkSchema),
   transaction(),
-  async (ctx: APIContext<T.CollectionsUpdateLinkReq>) => {
-    const { transaction } = ctx.state;
+  async (ctx: Context<T.CollectionsUpdateLinkReq>) => {
+    const { transaction } = ctx;
     const { id, linkId, title, url } = ctx.input.body;
 
     const { collection, link } = await loadCollectionForExistingLink(
@@ -268,8 +279,8 @@ router.post(
   auth(),
   validate(T.CollectionsMoveLinkSchema),
   transaction(),
-  async (ctx: APIContext<T.CollectionsMoveLinkReq>) => {
-    const { transaction } = ctx.state;
+  async (ctx: Context<T.CollectionsMoveLinkReq>) => {
+    const { transaction } = ctx;
     const { id, linkId, parentDocumentId, index } = ctx.input.body;
 
     // The user must be able to change links at both the old and new location.
@@ -309,8 +320,8 @@ router.post(
   auth(),
   validate(T.CollectionsRemoveLinkSchema),
   transaction(),
-  async (ctx: APIContext<T.CollectionsRemoveLinkReq>) => {
-    const { transaction } = ctx.state;
+  async (ctx: Context<T.CollectionsRemoveLinkReq>) => {
+    const { transaction } = ctx;
     const { id, linkId } = ctx.input.body;
 
     const { collection, link } = await loadCollectionForExistingLink(
@@ -338,10 +349,10 @@ router.post(
   auth(),
   validate(T.CollectionsImportSchema),
   transaction(),
-  async (ctx: APIContext<T.CollectionsImportReq>) => {
-    const { transaction } = ctx.state;
+  async (ctx: Context<T.CollectionsImportReq>) => {
+    const { transaction } = ctx;
     const { attachmentId, permission, format } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     authorize(user, "importCollection", user.team);
 
     const attachment = await Attachment.findByPk(attachmentId, {
@@ -383,10 +394,10 @@ router.post(
   auth(),
   validate(T.CollectionsAddGroupSchema),
   transaction(),
-  async (ctx: APIContext<T.CollectionsAddGroupsReq>) => {
+  async (ctx: Context<T.CollectionsAddGroupsReq>) => {
     const { id, groupId, permission } = ctx.input.body;
-    const { transaction } = ctx.state;
-    const { user } = ctx.state.auth;
+    const { transaction } = ctx;
+    const { user } = ctx.auth;
 
     const [collection, group] = await Promise.all([
       Collection.findByPk(id, { userId: user.id, transaction }),
@@ -403,7 +414,7 @@ router.post(
     if (membership) {
       if (permission !== undefined) {
         membership.permission = permission;
-        await membership.save(ctx.context);
+        await membership.save(toHookContext(ctx));
       }
     } else {
       membership = await GroupMembership.create(
@@ -413,7 +424,7 @@ router.post(
           permission: permission ?? CollectionPermission.ReadWrite,
           createdById: user.id,
         },
-        ctx.context
+        toHookContext(ctx)
       );
     }
 
@@ -432,10 +443,10 @@ router.post(
   auth(),
   validate(T.CollectionsRemoveGroupSchema),
   transaction(),
-  async (ctx: APIContext<T.CollectionsRemoveGroupReq>) => {
+  async (ctx: Context<T.CollectionsRemoveGroupReq>) => {
     const { id, groupId } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const [collection, group] = await Promise.all([
       Collection.findByPk(id, {
@@ -460,7 +471,7 @@ router.post(
       );
     }
 
-    await membership.destroy(ctx.context);
+    await membership.destroy(toHookContext(ctx));
 
     ctx.body = {
       success: true,
@@ -473,9 +484,9 @@ router.post(
   auth(),
   pagination(),
   validate(T.CollectionsMembershipsSchema),
-  async (ctx: APIContext<T.CollectionsMembershipsReq>) => {
+  async (ctx: Context<T.CollectionsMembershipsReq>) => {
     const { id, query, permission } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const collection = await Collection.findByPk(id, {
       userId: user.id,
@@ -539,10 +550,10 @@ router.post(
   rateLimiter(RateLimiterStrategy.OneHundredPerHour),
   validate(T.CollectionsAddUserSchema),
   transaction(),
-  async (ctx: APIContext<T.CollectionsAddUserReq>) => {
-    const { transaction } = ctx.state;
-    const { user: actor } = ctx.state.auth;
-    const { id, userId, permission } = ctx.input.body;
+  async (ctx: Context<T.CollectionsAddUserReq>) => {
+    const { transaction } = ctx;
+    const { user: actor } = ctx.auth;
+    const { id, userId, permission, owner } = ctx.input.body;
 
     const [collection, user] = await Promise.all([
       Collection.findByPk(id, { userId: actor.id, transaction }),
@@ -550,6 +561,28 @@ router.post(
     ]);
     authorize(actor, "manageUsers", collection);
     authorize(actor, "read", user);
+
+    const previousOwnerIds = collection.ownerIds ?? [];
+
+    if (owner) {
+      authorize(actor, "manageOwners", collection);
+      await collection.addOwner(ctx, userId);
+
+      const ownerMembership = await UserMembership.findOne({
+        where: { collectionId: id, userId },
+        transaction,
+        rejectOnEmpty: true,
+      });
+
+      ctx.body = {
+        data: {
+          users: [presentUser(user)],
+          memberships: [presentMembership(ownerMembership)],
+          collections: [await presentCollection(ctx, collection)],
+        },
+      };
+      return;
+    }
 
     let membership = await UserMembership.findOneForUpdate(
       { collectionId: id, userId },
@@ -559,7 +592,7 @@ router.post(
     if (membership) {
       if (permission !== undefined) {
         membership.permission = permission;
-        await membership.save(ctx.context);
+        await membership.save(toHookContext(ctx));
       }
     } else {
       membership = await UserMembership.create(
@@ -569,14 +602,27 @@ router.post(
           permission: permission || user.defaultCollectionPermission,
           createdById: actor.id,
         },
-        ctx.context
+        toHookContext(ctx)
       );
+    }
+
+    // Owners must be able to manage the collection, so other access removes
+    // the ownership.
+    if (
+      owner === false ||
+      membership.permission !== CollectionPermission.Admin
+    ) {
+      await collection.removeOwner(ctx, userId);
     }
 
     ctx.body = {
       data: {
         users: [presentUser(user)],
         memberships: [presentMembership(membership)],
+        collections:
+          collection.ownerIds !== previousOwnerIds
+            ? [await presentCollection(ctx, collection)]
+            : [],
       },
     };
   }
@@ -587,9 +633,9 @@ router.post(
   auth(),
   validate(T.CollectionsRemoveUserSchema),
   transaction(),
-  async (ctx: APIContext<T.CollectionsRemoveUserReq>) => {
-    const { transaction } = ctx.state;
-    const { user: actor } = ctx.state.auth;
+  async (ctx: Context<T.CollectionsRemoveUserReq>) => {
+    const { transaction } = ctx;
+    const { user: actor } = ctx.auth;
     const { id, userId } = ctx.input.body;
 
     const [collection, user] = await Promise.all([
@@ -607,7 +653,8 @@ router.post(
       ctx.throw(InvalidRequestError("User is not a collection member"));
     }
 
-    await membership.destroy(ctx.context);
+    await membership.destroy(toHookContext(ctx));
+    await collection.removeOwner(ctx, userId);
 
     ctx.body = {
       success: true,
@@ -620,9 +667,9 @@ router.post(
   auth(),
   pagination(),
   validate(T.CollectionsMembershipsSchema),
-  async (ctx: APIContext<T.CollectionsMembershipsReq>) => {
+  async (ctx: Context<T.CollectionsMembershipsReq>) => {
     const { id, query, permission } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const collection = await Collection.findByPk(id, {
       userId: user.id,
@@ -682,10 +729,10 @@ router.post(
   auth({ role: UserRole.Member }),
   validate(T.CollectionsExportSchema),
   transaction(),
-  async (ctx: APIContext<T.CollectionsExportReq>) => {
+  async (ctx: Context<T.CollectionsExportReq>) => {
     const { id, format, includeAttachments } = ctx.input.body;
-    const { transaction } = ctx.state;
-    const { user } = ctx.state.auth;
+    const { transaction } = ctx;
+    const { user } = ctx.auth;
     const { team } = user;
 
     const collection = await Collection.findByPk(id, {
@@ -716,10 +763,10 @@ router.post(
   auth({ role: UserRole.Admin }),
   validate(T.CollectionsExportAllSchema),
   transaction(),
-  async (ctx: APIContext<T.CollectionsExportAllReq>) => {
+  async (ctx: Context<T.CollectionsExportAllReq>) => {
     const { format, includeAttachments, includePrivate } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
     const team = await Team.findByPk(user.teamId, { transaction });
     authorize(user, "createExport", team);
 
@@ -744,8 +791,8 @@ router.post(
   auth(),
   validate(T.CollectionsUpdateSchema),
   transaction(),
-  async (ctx: APIContext<T.CollectionsUpdateReq>) => {
-    const { transaction } = ctx.state;
+  async (ctx: Context<T.CollectionsUpdateReq>) => {
+    const { transaction } = ctx;
     const {
       id,
       name,
@@ -759,6 +806,7 @@ router.post(
       commenting,
       templateManagement,
       deprecatedReason,
+      ownerIds,
     } = ctx.input.body;
 
     const updatingDeprecatedReason =
@@ -767,7 +815,7 @@ router.post(
         (key) => key === "id" || key === "deprecatedReason"
       );
 
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     const collection = await Collection.findByPk(id, {
       userId: user.id,
       includeArchivedBy: updatingDeprecatedReason,
@@ -778,6 +826,9 @@ router.post(
       updatingDeprecatedReason ? "updateDeprecatedReason" : "update",
       collection
     );
+    if (ownerIds) {
+      authorize(user, "manageOwners", collection);
+    }
 
     if (deprecatedReason !== undefined) {
       authorize(user, "updateDeprecatedReason", collection);
@@ -817,6 +868,11 @@ router.post(
       }
     }
 
+    const previousOwnerIds = collection.ownerIds ?? [];
+    if (ownerIds) {
+      await collection.setOwnerIds(ctx, ownerIds);
+    }
+
     collection.fill({
       name: name?.trim(),
       description,
@@ -834,6 +890,11 @@ router.post(
     const sharingChanged = collection.changed("sharing");
 
     await collection.saveWithCtx(ctx);
+
+    await collection.grantOwnerAccess(
+      ctx,
+      difference(collection.ownerIds ?? [], previousOwnerIds)
+    );
 
     // must reload to update collection membership for correct policy calculation
     // if the privacy level has changed. Otherwise skip this query for speed.
@@ -869,15 +930,15 @@ router.post(
   validate(T.CollectionsListSchema),
   pagination(),
   transaction(),
-  async (ctx: APIContext<T.CollectionsListReq>) => {
+  async (ctx: Context<T.CollectionsListReq>) => {
     const {
       includeListOnly,
       query,
       statusFilter,
       filters: rawFilters,
     } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
     const collectionIds = await user.collectionIds({ transaction });
 
     const where: WhereOptions<Collection> & {
@@ -979,10 +1040,10 @@ router.post(
   auth(),
   validate(T.CollectionsDeleteSchema),
   transaction(),
-  async (ctx: APIContext<T.CollectionsDeleteReq>) => {
-    const { transaction } = ctx.state;
+  async (ctx: Context<T.CollectionsDeleteReq>) => {
+    const { transaction } = ctx;
     const { id, reason } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const collection = await Collection.findByPk(id, {
       userId: user.id,
@@ -1008,10 +1069,10 @@ router.post(
   auth(),
   validate(T.CollectionsArchiveSchema),
   transaction(),
-  async (ctx: APIContext<T.CollectionsArchiveReq>) => {
-    const { transaction } = ctx.state;
+  async (ctx: Context<T.CollectionsArchiveReq>) => {
+    const { transaction } = ctx;
     const { id, reason } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const collection = await Collection.findByPk(id, {
       userId: user.id,
@@ -1039,10 +1100,10 @@ router.post(
   auth(),
   validate(T.CollectionsRestoreSchema),
   transaction(),
-  async (ctx: APIContext<T.CollectionsRestoreReq>) => {
-    const { transaction } = ctx.state;
+  async (ctx: Context<T.CollectionsRestoreReq>) => {
+    const { transaction } = ctx;
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     let collection = await Collection.findByPk(id, {
       userId: user.id,
@@ -1089,10 +1150,10 @@ router.post(
   auth(),
   validate(T.CollectionsMoveSchema),
   transaction(),
-  async (ctx: APIContext<T.CollectionsMoveReq>) => {
-    const { transaction } = ctx.state;
+  async (ctx: Context<T.CollectionsMoveReq>) => {
+    const { transaction } = ctx;
     const { id, index } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     let collection = await Collection.findByPk(id, {
       transaction,
@@ -1127,7 +1188,7 @@ router.post(
  * @throws AuthorizationError if the user may not change links there.
  */
 async function authorizeLinkLocation(
-  ctx: APIContext,
+  ctx: Context,
   collectionId: string,
   parentDocumentId: string | null | undefined
 ) {
@@ -1152,11 +1213,11 @@ async function authorizeLinkLocation(
  * @returns the collection, with its documentStructure.
  */
 async function loadCollectionForLink(
-  ctx: APIContext,
+  ctx: Context,
   collectionId: string,
   parentDocumentId: string | null | undefined
 ) {
-  const { transaction } = ctx.state;
+  const { transaction } = ctx;
   await authorizeLinkLocation(ctx, collectionId, parentDocumentId);
 
   return Collection.findByPk(collectionId, {
@@ -1178,12 +1239,12 @@ async function loadCollectionForLink(
  * @throws NotFoundError if the link is not in the collection.
  */
 async function loadCollectionForExistingLink(
-  ctx: APIContext,
+  ctx: Context,
   collectionId: string,
   linkId: string
 ) {
-  const { transaction } = ctx.state;
-  const { user } = ctx.state.auth;
+  const { transaction } = ctx;
+  const { user } = ctx.auth;
 
   // Locked before the lookup, so that the link cannot move to a parent that
   // was not authorized.

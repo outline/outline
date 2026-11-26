@@ -3,12 +3,12 @@ import type { z } from "zod";
 import { ZodError } from "zod";
 import { toError } from "@shared/utils/error";
 import { ValidationError } from "@server/errors";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 
 export default function validate<T extends z.ZodType<Record<string, unknown>>>(
   schema: T
 ) {
-  return async function validateMiddleware(ctx: APIContext, next: Next) {
+  return async function validateMiddleware(ctx: Context, next: Next) {
     try {
       ctx.input = {
         ...ctx.input,

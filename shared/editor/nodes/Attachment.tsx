@@ -12,6 +12,7 @@ import type { Primitive } from "utility-types";
 import { bytesToHumanReadable, getEventFiles } from "../../utils/files";
 import { sanitizeUrl } from "../../utils/urls";
 import insertFiles from "../commands/insertFiles";
+import { toggleAspectRatioLock } from "../commands/toggleAspectRatioLock";
 import toggleWrap from "../commands/toggleWrap";
 import FileExtension from "../components/FileExtension";
 import Widget from "../components/Widget";
@@ -53,6 +54,11 @@ export default class Attachment extends Node {
         },
         height: {
           default: null,
+        },
+        // Unset means the default for the node type, see isAspectRatioLocked.
+        lockAspectRatio: {
+          default: null,
+          validate: "boolean|null",
         },
         contentType: {
           default: null,
@@ -111,7 +117,7 @@ export default class Attachment extends Node {
       node: ProsemirrorNode;
       getPos: () => number | undefined;
     }) =>
-    ({ width }: { width: number; height?: number }) => {
+    ({ width, height }: { width: number; height?: number }) => {
       if (!node.attrs.preview) {
         return;
       }
@@ -125,7 +131,7 @@ export default class Attachment extends Node {
       }
 
       const $pos = doc.resolve(pos);
-      const dimensions = resolvePDFDimensions(width);
+      const dimensions = resolvePDFDimensions(width, height);
 
       view.dispatch(tr.setSelection(new NodeSelection($pos)));
       commands["resizeAttachment"](dimensions);
@@ -268,6 +274,10 @@ export default class Attachment extends Node {
         dispatch?.(transaction.setSelection(new NodeSelection($pos)));
         return true;
       },
+      toggleAttachmentAspectRatioLock: (): Command => (state, dispatch) =>
+        state.selection instanceof NodeSelection &&
+        !!state.selection.node.attrs.preview &&
+        toggleAspectRatioLock(type)(state, dispatch),
       resizeAttachment:
         ({ width, height }: { width: number; height?: number }): Command =>
         (state, dispatch) => {

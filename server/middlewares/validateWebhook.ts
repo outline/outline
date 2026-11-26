@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import type { Next } from "koa";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { safeEqual } from "@server/utils/crypto";
 
 export default function validateWebhook({
@@ -8,11 +8,11 @@ export default function validateWebhook({
   getSignatureFromHeader,
   hmacSign = true,
 }: {
-  secretKey: string | ((ctx: APIContext) => Promise<string | undefined>);
-  getSignatureFromHeader: (ctx: APIContext) => string | undefined;
+  secretKey: string | ((ctx: Context) => Promise<string | undefined>);
+  getSignatureFromHeader: (ctx: Context) => string | undefined;
   hmacSign?: boolean;
 }) {
-  return async function validateWebhookMiddleware(ctx: APIContext, next: Next) {
+  return async function validateWebhookMiddleware(ctx: Context, next: Next) {
     const { body } = ctx.request;
     const signatureFromHeader = getSignatureFromHeader(ctx);
 

@@ -257,6 +257,16 @@ describe("Filters", () => {
         buildWhere({ field: "userId", operator: "neq", value: "u" })
       ).toThrow();
     });
+
+    it("rejects ownerIds without a teamId", () => {
+      expect(() =>
+        buildWhere({
+          field: "ownerIds",
+          operator: "eq",
+          value: "6f2e8f0c-4a8b-4d3e-9c1a-2b7d5e9f1a3c",
+        })
+      ).toThrow("`ownerIds` filter requires a teamId");
+    });
   });
 
   describe("dateFromDuration", () => {

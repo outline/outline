@@ -1,5 +1,4 @@
 import { addMonths } from "date-fns";
-import type { Context } from "koa";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
 import type { Sessions } from "@shared/utils/sessions";
 import {
@@ -9,6 +8,7 @@ import {
 } from "@shared/utils/sessions";
 import env from "@server/env";
 import { Team } from "@server/models";
+import type { AppContext } from "@server/types";
 
 /** Manages workspace entries in the cloud sessions cookie. */
 export class SessionsCookieHelper {
@@ -18,7 +18,7 @@ export class SessionsCookieHelper {
    * @param ctx the Koa context.
    * @returns the valid session entries.
    */
-  public static read(ctx: Context): Sessions {
+  public static read(ctx: AppContext): Sessions {
     try {
       return getRememberedSessions(
         parseSessionsCookie(
@@ -36,7 +36,7 @@ export class SessionsCookieHelper {
    * @param ctx the Koa context.
    * @param sessions the session entries to write.
    */
-  public static write(ctx: Context, sessions: Sessions): void {
+  public static write(ctx: AppContext, sessions: Sessions): void {
     if (!this.canWrite(ctx)) {
       return;
     }
@@ -72,7 +72,7 @@ export class SessionsCookieHelper {
    * @param team the signed-in workspace.
    * @param expires the session token expiry.
    */
-  public static add(ctx: Context, team: Team, expires: Date): void {
+  public static add(ctx: AppContext, team: Team, expires: Date): void {
     this.write(ctx, {
       ...this.read(ctx),
       [team.id]: {
@@ -91,7 +91,7 @@ export class SessionsCookieHelper {
    * @param ctx the Koa context.
    * @param teamId the workspace ID to mark as logged out.
    */
-  public static logout(ctx: Context, teamId: string): void {
+  public static logout(ctx: AppContext, teamId: string): void {
     const sessions = this.read(ctx);
     if (!sessions[teamId]) {
       return;
@@ -116,7 +116,7 @@ export class SessionsCookieHelper {
    * @returns the remembered workspaces in cookie order, including logged-out ones.
    */
   public static async reconcile(
-    ctx: Context,
+    ctx: AppContext,
     currentTeam?: Team,
     currentTeamExpiresAt?: Date
   ): Promise<Team[]> {
@@ -166,7 +166,7 @@ export class SessionsCookieHelper {
     return rememberedTeams;
   }
 
-  private static canWrite(ctx: Context): boolean {
+  private static canWrite(ctx: AppContext): boolean {
     return env.isCloudHosted && !parseDomain(ctx.request.hostname).custom;
   }
 }

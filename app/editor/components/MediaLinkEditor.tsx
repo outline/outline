@@ -7,7 +7,10 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
 import Tooltip from "~/components/Tooltip";
+import * as Toolbar from "@radix-ui/react-toolbar";
 import Input from "~/editor/components/Input";
+import { MediaDimension } from "./MediaDimension";
+import ToolbarSeparator from "./ToolbarSeparator";
 import ToolbarButton from "./ToolbarButton";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 
@@ -115,6 +118,17 @@ export function MediaLinkEditor({
         onKeyDown={handleKeyDown}
         readOnly={!view.editable}
       />
+      {view.editable && node.type.name === "embed" && (
+        <>
+          <ToolbarSeparator />
+          <Toolbar.Root asChild>
+            <DimensionGroup>
+              <MediaDimension tooltip={`${t("Width")} × ${t("Height")}`} />
+            </DimensionGroup>
+          </Toolbar.Root>
+          <ToolbarSeparator />
+        </>
+      )}
       <Tooltip content={t("Open link")}>
         <ToolbarButton onClick={openLink} disabled={!localUrl}>
           <OpenIcon />
@@ -138,6 +152,11 @@ export function MediaLinkEditor({
     </Wrapper>
   );
 }
+
+const DimensionGroup = styled.div`
+  display: flex;
+  align-items: center;
+`;
 
 const Wrapper = styled(Flex)`
   pointer-events: all;

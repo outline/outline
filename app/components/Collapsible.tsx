@@ -45,7 +45,7 @@ export function Collapsible({
         <StyledExpandedIcon aria-hidden="true" />
         {label}
       </StyledTrigger>
-      <StyledContent>{children}</StyledContent>
+      <CollapsibleContent>{children}</CollapsibleContent>
     </RadixCollapsible.Root>
   );
 }
@@ -77,7 +77,8 @@ const StyledTrigger = styled(RadixCollapsible.Trigger)`
   }
 `;
 
-const StyledContent = styled(RadixCollapsible.Content)`
+/** An animated Radix Collapsible content panel. */
+export const CollapsibleContent = styled(RadixCollapsible.Content)`
   overflow: hidden;
 
   &[data-state="open"] {

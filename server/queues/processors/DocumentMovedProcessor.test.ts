@@ -934,4 +934,56 @@ describe("DocumentMovedProcessor", () => {
     expect(documentIds).not.toContain(draftChild.id);
     expect(documentIds).not.toContain(childOfDraft.id);
   });
+
+  it.each(["documents.restore", "documents.unarchive"] as const)(
+    "should remove inherited memberships when a document is restored to the collection root on %s",
+    async (name) => {
+      expect(DocumentMovedProcessor.applicableEvents).toContain(name);
+
+      const team = await buildTeam();
+      const user = await buildAdmin({ teamId: team.id });
+      const user2 = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: team.id,
+      });
+      const parentDocument = await buildDocument({
+        collectionId: collection.id,
+        teamId: team.id,
+      });
+      const childDocument = await buildDocument({
+        collectionId: collection.id,
+        teamId: team.id,
+        parentDocumentId: parentDocument.id,
+      });
+      await UserMembership.create({
+        userId: user2.id,
+        documentId: parentDocument.id,
+        createdById: user.id,
+      });
+      expect(
+        await UserMembership.count({
+          where: { documentId: childDocument.id, userId: user2.id },
+        })
+      ).toBe(1);
+
+      // The restore placed the document at the collection root.
+      await childDocument.update({ parentDocumentId: null });
+
+      await new DocumentMovedProcessor().perform({
+        name,
+        documentId: childDocument.id,
+        collectionId: collection.id,
+        teamId: team.id,
+        actorId: user.id,
+        ip,
+      });
+
+      expect(
+        await UserMembership.count({
+          where: { documentId: childDocument.id, userId: user2.id },
+        })
+      ).toBe(0);
+    }
+  );
 });

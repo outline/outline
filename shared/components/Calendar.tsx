@@ -27,25 +27,13 @@ export function Calendar(props: Props) {
 const Wrapper = styled.div`
   color: ${s("text")};
 
-  .rdp {
+  .rdp-root {
+    position: relative;
     margin: 0;
   }
 
-  /* Visually-hidden accessibility labels (would otherwise show without the
-     base stylesheet). */
-  .rdp-vhidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    margin: -1px;
-    padding: 0;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    border: 0;
-    appearance: none;
-  }
-
   .rdp-months {
+    position: relative;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -57,11 +45,11 @@ const Wrapper = styled.div`
     flex: 1 1 252px;
   }
 
-  .rdp-caption {
+  .rdp-month_caption {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0 0 8px;
+    height: 28px;
+    margin-bottom: 8px;
   }
 
   .rdp-caption_label {
@@ -70,12 +58,20 @@ const Wrapper = styled.div`
     color: ${s("text")};
   }
 
+  /* The navigation is shown once, at the top end of the months. */
   .rdp-nav {
+    position: absolute;
+    top: 0;
+    inset-inline-end: 0;
+    z-index: 1;
     display: flex;
+    align-items: center;
     gap: 2px;
+    height: 28px;
   }
 
-  .rdp-nav_button {
+  .rdp-button_previous,
+  .rdp-button_next {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -89,22 +85,37 @@ const Wrapper = styled.div`
     cursor: var(--pointer);
     transition: background 100ms ease;
 
-    &:hover {
+    &:hover:not([aria-disabled="true"]) {
       background: ${s("listItemHoverBackground")};
+    }
+
+    &:focus-visible {
+      outline: 2px solid ${s("accent")};
+      outline-offset: -2px;
+    }
+
+    &[aria-disabled="true"] {
+      opacity: 0.4;
+      cursor: default;
     }
   }
 
-  .rdp-nav_icon {
+  .rdp-chevron {
     width: 16px;
     height: 16px;
+    fill: currentColor;
   }
 
-  .rdp-table {
+  .rdp-root[dir="rtl"] .rdp-chevron {
+    transform: rotate(180deg);
+  }
+
+  .rdp-month_grid {
     border-collapse: collapse;
     width: 100%;
   }
 
-  .rdp-head_cell {
+  .rdp-weekday {
     font-size: 12px;
     font-weight: 500;
     text-transform: none;
@@ -113,17 +124,19 @@ const Wrapper = styled.div`
     text-align: center;
   }
 
-  .rdp-cell {
+  /* Each day cell holds a button, which carries the visual state. */
+  .rdp-day {
     padding: 1px;
     text-align: center;
   }
 
-  .rdp-day {
+  .rdp-day_button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 34px;
     height: 34px;
+    padding: 0;
     border: 0;
     background: none;
     border-radius: 50%;
@@ -134,7 +147,7 @@ const Wrapper = styled.div`
     cursor: var(--pointer);
     transition: background 100ms ease;
 
-    &:hover:not([disabled]):not(.rdp-day_selected) {
+    &:hover:not([disabled]) {
       background: ${s("listItemHoverBackground")};
     }
 
@@ -145,27 +158,26 @@ const Wrapper = styled.div`
   }
 
   /* Today, when not selected, is emphasised with the accent colour. */
-  .rdp-day_today:not(.rdp-day_selected) {
+  .rdp-today:not(.rdp-selected) .rdp-day_button {
     font-weight: 700;
     color: ${s("accent")};
   }
 
   /* Days belonging to the previous/next month are clearly de-emphasised. */
-  .rdp-day_outside {
+  .rdp-outside .rdp-day_button {
     color: ${s("textTertiary")};
     opacity: 0.5;
   }
 
-  .rdp-day[disabled] {
+  .rdp-disabled .rdp-day_button {
     color: ${s("textTertiary")};
     opacity: 0.4;
     cursor: default;
   }
 
   /* The selected day is a solid accent-filled circle. */
-  .rdp-day_selected,
-  .rdp-day_selected:hover,
-  .rdp-day_selected:focus-visible {
+  .rdp-selected .rdp-day_button,
+  .rdp-selected .rdp-day_button:hover {
     background: ${s("accent")};
     color: ${s("accentText")};
     font-weight: 500;
@@ -173,8 +185,8 @@ const Wrapper = styled.div`
   }
 
   /* The days between the start and end of a range are softly highlighted. */
-  .rdp-day_range_middle.rdp-day_selected,
-  .rdp-day_range_middle.rdp-day_selected:hover {
+  .rdp-range_middle .rdp-day_button,
+  .rdp-range_middle .rdp-day_button:hover {
     background: ${s("listItemHoverBackground")};
     color: ${s("text")};
     font-weight: 400;

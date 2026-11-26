@@ -55,7 +55,7 @@ type AuthInput = {
 export default function auth(options: AuthenticationOptions = {}) {
   return async function authMiddleware(ctx: AppContext, next: Next) {
     if (options.skip?.(ctx)) {
-      ctx.state.auth = {};
+      ctx.auth = {};
       return next();
     }
 
@@ -67,7 +67,7 @@ export default function auth(options: AuthenticationOptions = {}) {
         Promise.all([user.updateActiveAt(ctx), user.team?.updateActiveAt()])
       );
 
-      ctx.state.auth = {
+      ctx.auth = {
         user,
         token,
         type,
@@ -89,7 +89,7 @@ export default function auth(options: AuthenticationOptions = {}) {
       // Credentials that are valid but insufficient are always surfaced,
       // otherwise the request would be silently downgraded to anonymous.
       if (options.optional && !(err instanceof httpErrors.Forbidden)) {
-        ctx.state.auth = {};
+        ctx.auth = {};
       } else {
         throw err;
       }

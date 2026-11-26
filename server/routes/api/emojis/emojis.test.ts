@@ -4,6 +4,7 @@ import {
   buildAttachment,
   buildDocument,
   buildEmoji,
+  buildGuestUser,
   buildUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
@@ -197,6 +198,25 @@ describe("#emojis.update", () => {
 });
 
 describe("#emojis.create", () => {
+  it("should not allow guests to create an emoji", async () => {
+    const user = await buildGuestUser();
+    const attachment = await buildAttachment({
+      teamId: user.teamId,
+      userId: user.id,
+      documentId: null,
+    });
+
+    const res = await server.post("/api/emojis.create", user, {
+      body: {
+        name: "party",
+        attachmentId: attachment.id,
+      },
+    });
+
+    expect(res.status).toEqual(403);
+    expect(await Emoji.count({ where: { teamId: user.teamId } })).toEqual(0);
+  });
+
   it("should create an emoji", async () => {
     const user = await buildUser();
     const attachment = await buildAttachment({

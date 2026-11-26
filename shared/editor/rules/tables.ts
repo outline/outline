@@ -1,4 +1,5 @@
 import type MarkdownIt from "markdown-it";
+import type Token from "markdown-it/lib/token.mjs";
 import { unescapeRawTableCell } from "../lib/markdown/tableCell";
 
 const BR_TAG_REGEX = /<br\s*\/?>/gi;
@@ -12,6 +13,13 @@ const LIST_OPEN_REGEX = /^(?:[*+-]|\d+[.)]|[a-z]\.|\[[ \tx_-]\])[ \t]+\S/im;
 
 // Matches a checkbox item that has no list marker, such as "[x] Task"
 const BARE_CHECKBOX_REGEX = /^[ \t]*(\[[ \tx_-]\]\s)/gim;
+
+const TABLE_SECTION_TYPES = [
+  "thead_open",
+  "thead_close",
+  "tbody_open",
+  "tbody_close",
+];
 
 const BLOCK_CELL_TYPES = [
   "container_notice_open",
@@ -120,123 +128,151 @@ function parseBlockCell(
     : null;
 }
 
+/**
+ * Split the text children of an inline token on each <br> tag and unescaped
+ * "\n" escape, placing a br token at each break.
+ *
+ * @param createToken - creates a new token of the given type and tag.
+ * @param children - the children of the inline token.
+ * @returns the new children.
+ */
+function splitChildrenOnBreaks(
+  createToken: (type: string, tag: string) => Token,
+  children: Token[]
+): Token[] {
+  const result: Token[] = [];
+
+  children.forEach((child) => {
+    // Skip processing math content to preserve LaTeX escape sequences
+    if (child.type === "math_inline") {
+      result.push(child);
+      return;
+    }
+
+    let content = child.content;
+
+    // First handle <br> tags
+    if (content.match(BR_TAG_REGEX) && child.type !== "code_inline") {
+      content = content.replace(BR_TAG_REGEX, "\\n");
+    }
+
+    const breakParts = splitOnBreaks(content);
+
+    // a schema agnostic way to know if a node is inline code would be
+    // great, for now we are stuck checking the node type.
+    if (breakParts.length > 1 && child.type !== "code_inline") {
+      breakParts.forEach((part, index) => {
+        // Trim only around the breaks, keeping spaces next to siblings.
+        let text = index > 0 ? part.trimStart() : part;
+        if (index < breakParts.length - 1) {
+          text = text.trimEnd();
+        }
+        const token = createToken("text", "");
+        token.content = text;
+        result.push(token);
+
+        if (index < breakParts.length - 1) {
+          result.push(createToken("br", "br"));
+        }
+      });
+    } else {
+      result.push(child);
+    }
+  });
+
+  return result;
+}
+
 export default function markdownTables(md: MarkdownIt): void {
   // insert a new rule after the "inline" rules are parsed
   md.core.ruler.after("inline", "tables-pm", (state) => {
     const tokens = state.tokens;
-    let inside = false;
 
-    for (let i = tokens.length - 1; i > 0; i--) {
-      if (inside) {
-        tokens[i].level--;
-      }
-
-      // convert unescaped \n and <br> tags in the text into real br tokens
+    // convert unescaped \n and <br> tags in the text into real br tokens
+    for (let i = 1; i < tokens.length; i++) {
       if (
         tokens[i].type === "inline" &&
         (hasBreak(tokens[i].content) || tokens[i].content.match(BR_TAG_REGEX))
       ) {
-        const existing = tokens[i].children || [];
-        tokens[i].children = [];
+        tokens[i].children = splitChildrenOnBreaks(
+          (type, tag) => new state.Token(type, tag, 1),
+          tokens[i].children || []
+        );
+      }
+    }
 
-        existing.forEach((child) => {
-          // Skip processing math content to preserve LaTeX escape sequences
-          if (child.type === "math_inline") {
-            tokens[i].children?.push(child);
-            return;
-          }
+    // The output is built in a single pass, splicing into the token array for
+    // each cell is quadratic for documents with many table cells.
+    const result: Token[] = tokens.length ? [tokens[0]] : [];
+    let inside = false;
+    let paragraphCloseIndex = -1;
 
-          let content = child.content;
+    for (let i = 1; i < tokens.length; i++) {
+      const token = tokens[i];
 
-          // First handle <br> tags
-          if (content.match(BR_TAG_REGEX) && child.type !== "code_inline") {
-            content = content.replace(BR_TAG_REGEX, "\\n");
-          }
-
-          const breakParts = splitOnBreaks(content);
-
-          // a schema agnostic way to know if a node is inline code would be
-          // great, for now we are stuck checking the node type.
-          if (breakParts.length > 1 && child.type !== "code_inline") {
-            breakParts.forEach((part, index) => {
-              // Trim only around the breaks, keeping spaces next to siblings.
-              let text = index > 0 ? part.trimStart() : part;
-              if (index < breakParts.length - 1) {
-                text = text.trimEnd();
-              }
-              const token = new state.Token("text", "", 1);
-              token.content = text;
-              tokens[i].children?.push(token);
-
-              if (index < breakParts.length - 1) {
-                const brToken = new state.Token("br", "br", 1);
-                tokens[i].children?.push(brToken);
-              }
-            });
-          } else {
-            tokens[i].children?.push(child);
-          }
-        });
+      if (i === paragraphCloseIndex) {
+        result.push(new state.Token("paragraph_close", "p", -1));
       }
 
       // filter out incompatible tokens from markdown-it that we don't need
       // in prosemirror. thead/tbody do nothing.
-      if (
-        ["thead_open", "thead_close", "tbody_open", "tbody_close"].includes(
-          tokens[i].type
-        )
+      if (TABLE_SECTION_TYPES.includes(token.type)) {
+        inside = token.type === "thead_open" || token.type === "tbody_open";
+        continue;
+      }
+
+      if (inside) {
+        token.level--;
+      }
+
+      result.push(token);
+
+      if (token.type !== "th_open" && token.type !== "td_open") {
+        continue;
+      }
+
+      // markdown-it table parser stores alignment as html styles, convert
+      // to a simple string here
+      if (token.attrs) {
+        const style = token.attrs[0][1];
+        token.info = style.split(":")[1];
+      }
+
+      // Find the corresponding close token
+      const closeType = token.type === "th_open" ? "th_close" : "td_close";
+      let closeIndex = i + 2; // Start after inline token
+      while (
+        closeIndex < tokens.length &&
+        tokens[closeIndex].type !== closeType
       ) {
-        inside = !inside;
-        tokens.splice(i, 1);
+        closeIndex++;
       }
 
-      if (["th_open", "td_open"].includes(tokens[i].type)) {
-        // markdown-it table parser stores alignment as html styles, convert
-        // to a simple string here
-        const tokenAttrs = tokens[i].attrs;
-        if (tokenAttrs) {
-          const style = tokenAttrs[0][1];
-          tokens[i].info = style.split(":")[1];
-        }
-
-        // Find the corresponding close token
-        const closeType =
-          tokens[i].type === "th_open" ? "th_close" : "td_close";
-        let closeIndex = i + 2; // Start after inline token
-        while (
-          closeIndex < tokens.length &&
-          tokens[closeIndex].type !== closeType
-        ) {
-          closeIndex++;
-        }
-
-        const inlineToken = tokens[i + 1];
-        if (inlineToken?.type === "inline") {
-          // Reconstruct block content that was serialized onto a single line,
-          // replacing the inline token with the block tokens.
-          const blockTokens = parseBlockCell(
-            md,
-            inlineToken.content,
-            state.env
-          );
-          if (blockTokens) {
-            tokens.splice(i + 1, closeIndex - i - 1, ...blockTokens);
-            continue;
+      const inlineToken = tokens[i + 1];
+      if (inlineToken?.type === "inline") {
+        // Reconstruct block content that was serialized onto a single line,
+        // replacing the inline token with the block tokens.
+        const blockTokens = parseBlockCell(md, inlineToken.content, state.env);
+        if (blockTokens) {
+          for (const blockToken of blockTokens) {
+            result.push(blockToken);
           }
+          i = closeIndex - 1;
+          continue;
         }
-
-        // markdown-it table parser does not return paragraphs inside the cells
-        // but prosemirror requires them, so we add 'em in here. Insert the
-        // closing token first, before closeIndex shifts.
-        tokens.splice(
-          closeIndex,
-          0,
-          new state.Token("paragraph_close", "p", -1)
-        );
-        tokens.splice(i + 1, 0, new state.Token("paragraph_open", "p", 1));
       }
+
+      // markdown-it table parser does not return paragraphs inside the cells
+      // but prosemirror requires them, so we add 'em in here.
+      result.push(new state.Token("paragraph_open", "p", 1));
+      paragraphCloseIndex = closeIndex;
     }
 
+    if (paragraphCloseIndex >= tokens.length) {
+      result.push(new state.Token("paragraph_close", "p", -1));
+    }
+
+    state.tokens = result;
     return false;
   });
 }

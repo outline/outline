@@ -200,7 +200,10 @@ export function MenuFilter({ query, onChange }: Props) {
   );
 
   return (
-    <Wrapper style={isActive ? undefined : VISUALLY_HIDDEN_STYLES}>
+    <Wrapper
+      style={isActive ? undefined : VISUALLY_HIDDEN_STYLES}
+      data-menu-hidden={isActive ? undefined : ""}
+    >
       <Input
         value={query ?? ""}
         onChange={handleChange}

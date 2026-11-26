@@ -178,6 +178,32 @@ describe("list_documents", () => {
     expect(data[0].document.id).toEqual(document.id);
   });
 
+  it("returns an exact match owned through its collection", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const owner = await buildUser({ teamId: user.teamId });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+      ownerIds: [owner.id],
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "list_documents", {
+      query: document.id,
+      ownerId: owner.id,
+    });
+
+    expect(res?.result?.isError).toBeUndefined();
+    const data = (res?.result?.content ?? []).map((c: { text: string }) =>
+      JSON.parse(c.text)
+    );
+    expect(data[0].document.id).toEqual(document.id);
+  });
+
   it("returns documents shared directly with the user", async () => {
     const { user, accessToken } = await buildOAuthUser();
     const author = await buildUser({ teamId: user.teamId });
@@ -734,6 +760,120 @@ describe("create_document", () => {
 });
 
 describe("update_document", () => {
+  it.each([
+    { input: { findText: "original", text: "replacement" }, field: "findText" },
+    {
+      input: { editMode: "replace", findText: "original", text: "replacement" },
+      field: "findText",
+    },
+    {
+      input: { editMode: "replace", findText: " ", text: "replacement" },
+      field: "findText",
+    },
+    { input: { editMode: "patch", findText: "original" }, field: "text" },
+    { input: { editMode: "patch", text: "replacement" }, field: "findText" },
+    {
+      input: { editMode: "patch", findText: "", text: "replacement" },
+      field: "findText",
+    },
+    { input: { editMode: "append" }, field: "text" },
+    { input: { editMode: "append", text: "" }, field: "text" },
+    { input: { editMode: "prepend" }, field: "text" },
+    { input: { editMode: "prepend", text: "" }, field: "text" },
+  ])("rejects invalid edit parameters: $input", async ({ input, field }) => {
+    const { user, accessToken } = await buildOAuthUser();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      text: "original content",
+    });
+    const { title, text, revisionCount } = document;
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      title: "Must not change",
+      ...input,
+    });
+
+    expect(res?.result?.isError).toBe(true);
+    expect(res?.result?.content?.[0]?.text).toContain(field);
+    expect(res?.result?.content?.[0]?.text).toContain("editMode");
+
+    await document.reload();
+    expect(document.title).toEqual(title);
+    expect(document.text).toEqual(text);
+    expect(document.revisionCount).toEqual(revisionCount);
+  });
+
+  it.each([undefined, "replace"])(
+    "allows an empty findText with editMode %s",
+    async (editMode) => {
+      const { user, accessToken } = await buildOAuthUser();
+      const document = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        text: "original content",
+      });
+
+      const res = await callMcpTool(server, accessToken, "update_document", {
+        id: document.id,
+        editMode,
+        findText: "",
+        text: "replacement content",
+      });
+
+      expect(res?.result?.isError).toBeFalsy();
+      await document.reload();
+      expect(document.text).toEqual("replacement content");
+    }
+  );
+
+  it.each([
+    { editMode: "append", expected: "original contentadded content" },
+    { editMode: "prepend", expected: "added contentoriginal content" },
+  ])(
+    "allows findText with $editMode for REST parity",
+    async ({ editMode, expected }) => {
+      const { user, accessToken } = await buildOAuthUser();
+      const document = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        text: "original content",
+      });
+
+      const res = await callMcpTool(server, accessToken, "update_document", {
+        id: document.id,
+        editMode,
+        findText: "original",
+        text: "added content",
+      });
+
+      expect(res?.result?.isError).toBeFalsy();
+      await document.reload();
+      expect(document.text).toEqual(expected);
+    }
+  );
+
+  it("allows empty patch text to delete the matched content", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      text: "the original sentence",
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      editMode: "patch",
+      findText: "original ",
+      text: "",
+    });
+
+    expect(res?.result?.isError).toBeFalsy();
+    await document.reload();
+    expect(document.text).toEqual("the sentence");
+  });
+
   it("attributes Markdown mentions to the authenticated editor", async () => {
     const { user, accessToken } = await buildOAuthUser();
     const author = await buildUser({ teamId: user.teamId });
@@ -1484,4 +1624,89 @@ describe("delete_document", () => {
       );
     }
   );
+});
+
+describe("document owners", () => {
+  it("creates a document with owners", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const owner = await buildUser({ teamId: user.teamId });
+
+    const res = await callMcpTool(server, accessToken, "create_document", {
+      title: "Owned",
+      publish: false,
+      ownerIds: [owner.id],
+    });
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+    expect(data.success).toBe(true);
+
+    const document = await Document.findByPk(data.id, { rejectOnEmpty: true });
+    expect(document.ownerIds).toEqual([owner.id]);
+  });
+
+  it("updates the owners of a document", async () => {
+    const { user, accessToken } = await buildOAuthUser({ role: "admin" });
+    const owner = await buildUser({ teamId: user.teamId });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      ownerIds: [owner.id],
+    });
+    expect(res?.result?.isError).toBeFalsy();
+
+    await document.reload();
+    expect(document.ownerIds).toEqual([owner.id]);
+
+    const membership = await UserMembership.findOne({
+      where: { documentId: document.id, userId: owner.id },
+      rejectOnEmpty: true,
+    });
+    expect(membership.permission).toEqual(DocumentPermission.Admin);
+  });
+
+  it("rejects owner changes without manage permission", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const owner = await buildUser({ teamId: user.teamId });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      ownerIds: [owner.id],
+    });
+    expect(res?.result?.isError).toBe(true);
+
+    await document.reload();
+    expect(document.ownerIds).toEqual([]);
+  });
+
+  it("filters documents by owner", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const owner = await buildUser({ teamId: user.teamId });
+    const owned = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      ownerIds: [owner.id],
+    });
+    await buildDocument({ teamId: user.teamId, userId: user.id });
+
+    const res = await callMcpTool(server, accessToken, "list_documents", {
+      ownerId: owner.id,
+    });
+    const data = (res?.result?.content ?? []).map((c: { text: string }) =>
+      JSON.parse(c.text)
+    );
+    expect(
+      data.map((d: { document: { id: string } }) => d.document.id)
+    ).toEqual([owned.id]);
+  });
 });

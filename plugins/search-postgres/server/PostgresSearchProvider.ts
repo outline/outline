@@ -828,7 +828,7 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
     }
 
     if (filter) {
-      where[Op.and].push(buildSearchWhere<Document>(filter));
+      where[Op.and].push(buildSearchWhere<Document>(filter, teamId));
     }
 
     return where;

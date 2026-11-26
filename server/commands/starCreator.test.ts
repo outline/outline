@@ -1,6 +1,6 @@
 import { Star, Event } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { withAPIContext } from "@server/test/support";
+import { withContext } from "@server/test/support";
 import starCreator from "./starCreator";
 
 describe("starCreator", () => {
@@ -11,7 +11,7 @@ describe("starCreator", () => {
       teamId: user.teamId,
     });
 
-    const star = await withAPIContext(user, (ctx) =>
+    const star = await withContext(user, (ctx) =>
       starCreator({
         ctx,
         documentId: document.id,
@@ -42,7 +42,7 @@ describe("starCreator", () => {
       index: "P",
     });
 
-    const star = await withAPIContext(user, (ctx) =>
+    const star = await withContext(user, (ctx) =>
       starCreator({
         ctx,
         documentId: document.id,

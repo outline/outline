@@ -2,7 +2,7 @@ import React, { useCallback, useRef } from "react";
 import { useMergeRefs } from "react-merge-refs";
 import styled from "styled-components";
 import useDragResize from "./hooks/useDragResize";
-import { ResizeLeft, ResizeRight } from "./ResizeHandle";
+import { ResizeHandles, ResizeLeft, ResizeRight } from "./ResizeHandle";
 import type { ComponentProps } from "../types";
 import { isFirefox } from "../../utils/browser";
 import { sanitizeUrl } from "../../utils/urls";
@@ -10,7 +10,12 @@ import Flex from "../../components/Flex";
 import { s } from "../../styles";
 import { Preview, Subtitle, Title } from "./Widget";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
-import { pdfNaturalHeight, pdfNaturalWidth } from "../lib/pdf";
+import { isAspectRatioLocked } from "../queries/isAspectRatioLocked";
+import {
+  pdfNaturalHeight,
+  pdfNaturalWidth,
+  resolvePDFDimensions,
+} from "../lib/pdf";
 
 type Props = ComponentProps & {
   /** Icon to display on the left side of the widget */
@@ -29,15 +34,19 @@ export default function PdfViewer(props: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const embedRef = useRef<HTMLEmbedElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const dimensions = resolvePDFDimensions(node.attrs.width, node.attrs.height);
 
-  const { width, handlePointerDown, dragging } = useDragResize({
-    width: node.attrs.width,
-    height: node.attrs.height,
-    naturalWidth: pdfNaturalWidth,
-    naturalHeight: pdfNaturalHeight,
-    onChangeSize,
-    ref,
-  });
+  const { width, height, handlePointerDown, handleDoubleClick, dragging } =
+    useDragResize({
+      width: node.attrs.width,
+      height: dimensions.height,
+      naturalWidth: pdfNaturalWidth,
+      naturalHeight: pdfNaturalHeight,
+      aspectRatio: dimensions.height / dimensions.width,
+      isLocked: isAspectRatioLocked(node),
+      onChangeSize,
+      ref,
+    });
 
   // force embed to reload, so the content fits the new size.
   const observeRef = useCallback(
@@ -109,23 +118,19 @@ export default function PdfViewer(props: Props) {
         style={{
           width: "100%",
           height: "auto",
-          aspectRatio: `${pdfNaturalWidth} / ${pdfNaturalHeight}`,
+          aspectRatio: `${width ?? dimensions.width} / ${height ?? dimensions.height}`,
           pointerEvents:
             !isEditable || (isSelected && !dragging) ? "initial" : "none",
           marginTop: 6,
         }}
       />
       {isEditable && !!props.onChangeSize && (
-        <>
-          <ResizeLeft
-            onPointerDown={handlePointerDown("left")}
-            $dragging={!!(isSelected || dragging)}
-          />
-          <ResizeRight
-            onPointerDown={handlePointerDown("right")}
-            $dragging={!!(isSelected || dragging)}
-          />
-        </>
+        <ResizeHandles
+          onPointerDown={handlePointerDown}
+          onDoubleClick={handleDoubleClick}
+          isVisible={!!(isSelected || dragging)}
+          isInset
+        />
       )}
     </PDFWrapper>
   );

@@ -1,4 +1,5 @@
 import { faker } from "@faker-js/faker";
+import { subHours } from "date-fns";
 import { randomUUID } from "node:crypto";
 import { Scope } from "@shared/types";
 import {
@@ -10,6 +11,7 @@ import {
   buildSubdomain,
 } from "@server/test/factories";
 import { getTestServer, setSelfHosted } from "@server/test/support";
+import ValidateSSOAccessTask from "@server/queues/tasks/ValidateSSOAccessTask";
 
 const server = getTestServer();
 
@@ -69,6 +71,27 @@ describe("#auth.info", () => {
     expect(res.status).toEqual(200);
     expect(body.data.collaborationToken).toBeTruthy();
   });
+
+  it.each([
+    ["passkeys", true],
+    ["email", false],
+  ])(
+    "should check SSO access for a %s session: %s",
+    async (service, expected) => {
+      const schedule = vi.spyOn(ValidateSSOAccessTask.prototype, "schedule");
+      const user = await buildUser({
+        lastSignedInAt: subHours(new Date(), 2),
+      });
+      const res = await server.post("/api/auth.info", {
+        headers: {
+          Authorization: `Bearer ${user.getSessionToken(undefined, service)}`,
+        },
+      });
+      expect(res.status).toEqual(200);
+      expect(schedule.mock.calls.length > 0).toBe(expected);
+      schedule.mockRestore();
+    }
+  );
 
   it("should not return a collaboration token for an API key", async () => {
     const user = await buildUser();

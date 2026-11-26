@@ -15,7 +15,7 @@ import {
   UserAuthentication,
 } from "@server/models";
 import { sequelize } from "@server/storage/database";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { UserFlag } from "@server/models/User";
 import UploadUserAvatarTask from "@server/queues/tasks/UploadUserAvatarTask";
 
@@ -67,7 +67,7 @@ type Props = {
 };
 
 export default async function userProvisioner(
-  ctx: APIContext,
+  ctx: Context,
   {
     name,
     email,

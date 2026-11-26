@@ -9,7 +9,7 @@ import {
   buildUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { PasskeyBrand } from "@shared/utils/passkeys";
 import {
   getExpectedOrigin,
@@ -82,13 +82,13 @@ function buildNoneAttestationResponse(challenge: string, rpId: string) {
 }
 
 describe("getExpectedOrigin", () => {
-  // Helper to mock APIContext for testing
+  // Helper to mock Context for testing
   const createMockContext = (options: {
     protocol: string;
     hostname: string;
     host: string;
     forwardedPort?: string;
-  }): APIContext =>
+  }): Context =>
     ({
       protocol: options.protocol,
       request: {
@@ -101,7 +101,7 @@ describe("getExpectedOrigin", () => {
           return undefined;
         },
       } as unknown,
-    }) as unknown as APIContext;
+    }) as unknown as Context;
 
   it("should construct origin with non-standard HTTPS port from X-Forwarded-Port", () => {
     const ctx = createMockContext({

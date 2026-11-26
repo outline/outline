@@ -152,49 +152,59 @@ export default class JSONAPIImportTask extends APIImportTask<Service> {
       );
       const seen = new Set<string>();
 
-      await ZipHelper.walk(handle.path, async (entry) => {
-        if (entry.isDirectory) {
-          return;
-        }
-        // Normalize to match the bootstrap-phase pathInZip (segments rejoined
-        // with `/`, no leading `./` or empty segments).
-        const normalized = entry.fileName
-          .split("/")
-          .filter((s) => s !== "" && s !== ".")
-          .join("/");
-        const item = manifestByPath.get(normalized);
-        if (!item) {
-          return;
-        }
-        seen.add(item.pathInZip);
-        const buffer = await entry.readBuffer(maxAttachmentSize);
-
-        try {
-          await sequelize.transaction(async (transaction) =>
-            attachmentCreator({
-              source: "import",
-              preset: AttachmentPreset.DocumentAttachment,
-              id: item.id,
-              name: item.name,
-              type: item.mimeType,
-              buffer,
-              user: createdBy,
-              ctx: createContext({ user: createdBy, transaction }),
-              fetchOptions: {
-                timeout: env.FILE_STORAGE_IMPORT_TIMEOUT,
-              },
-            })
-          );
-        } catch (err) {
-          // Each attachment commits in its own transaction, so a retry of
-          // this hook can re-encounter ids that already landed. Treat the
-          // unique-id collision as a no-op so the import remains resumable.
-          if (err instanceof UniqueConstraintError) {
+      await ZipHelper.walk(
+        handle.path,
+        async (entry) => {
+          if (entry.isDirectory) {
             return;
           }
-          throw err;
+          // Normalize to match the bootstrap-phase pathInZip (segments rejoined
+          // with `/`, no leading `./` or empty segments).
+          const normalized = entry.fileName
+            .split("/")
+            .filter((s) => s !== "" && s !== ".")
+            .join("/");
+          const item = manifestByPath.get(normalized);
+          if (!item) {
+            return;
+          }
+          seen.add(item.pathInZip);
+          const buffer = await entry.readBuffer(maxAttachmentSize);
+
+          try {
+            await sequelize.transaction(async (transaction) =>
+              attachmentCreator({
+                source: "import",
+                preset: AttachmentPreset.DocumentAttachment,
+                id: item.id,
+                name: item.name,
+                type: item.mimeType,
+                buffer,
+                user: createdBy,
+                ctx: createContext({ user: createdBy, transaction }),
+                fetchOptions: {
+                  timeout: env.FILE_STORAGE_IMPORT_TIMEOUT,
+                },
+              })
+            );
+          } catch (err) {
+            // Each attachment commits in its own transaction, so a retry of
+            // this hook can re-encounter ids that already landed. Treat the
+            // unique-id collision as a no-op so the import remains resumable.
+            if (err instanceof UniqueConstraintError) {
+              return;
+            }
+            throw err;
+          }
+        },
+        // Bytes read across all attachments may not exceed the upload size limit.
+        {
+          maxEntries: ImportValidation.maxZipEntries,
+          maxTotalSize: AttachmentHelper.presetToMaxUploadSize(
+            AttachmentPreset.WorkspaceImport
+          ),
         }
-      });
+      );
 
       for (const item of scratch.manifest) {
         if (!seen.has(item.pathInZip)) {

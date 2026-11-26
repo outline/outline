@@ -1,5 +1,6 @@
 import dns from "node:dns";
 import http from "node:http";
+import { HttpProxyAgent } from "http-proxy-agent";
 import type { MockInstance } from "vitest";
 import env from "@server/env";
 import { server as msw } from "@server/test/msw";
@@ -159,16 +160,25 @@ describe("fetch", () => {
     });
 
     it("should not connect to the proxy after a timeout", async () => {
+      let resolveLookup: (addresses: dns.LookupAddress[]) => void = () => {};
       const lookupSpy: MockInstance = vi.spyOn(dns.promises, "lookup");
-      lookupSpy.mockImplementation(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 200));
-        return [{ address: "192.0.2.1", family: 4 }];
-      });
+      lookupSpy.mockReturnValue(
+        new Promise((resolve) => {
+          resolveLookup = resolve;
+        })
+      );
+      const connectSpy = vi.spyOn(HttpProxyAgent.prototype, "connect");
 
       await expect(
         fetch("http://slow.example/", { timeout: 50 })
       ).rejects.toThrow("Request timeout after 50ms");
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      expect(lookupSpy).toHaveBeenCalledTimes(1);
+
+      resolveLookup([{ address: "192.0.2.1", family: 4 }]);
+
+      // The connect path after the lookup only runs microtasks.
+      await new Promise((resolve) => setImmediate(resolve));
+      expect(connectSpy).not.toHaveBeenCalled();
       expect(proxy.connections).toEqual(0);
     });
 

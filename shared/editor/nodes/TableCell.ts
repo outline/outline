@@ -16,12 +16,11 @@ import {
   isValidCellMarks,
   setCellAttrs,
 } from "../lib/table";
+import { hasTableRole } from "../queries/table";
 import Node from "./Node";
 import { presetColors, rgbaToHex } from "@shared/utils/color";
 import { parseToRgb, transparentize } from "polished";
 import type { RgbaColor } from "polished/lib/types/color";
-
-const isTableNode = (node: ProsemirrorNode) => !!node.type.spec.tableRole;
 
 export default class TableCell extends Node {
   /** The default opacity of the table cell background */
@@ -159,7 +158,7 @@ export default class TableCell extends Node {
             // reflect the shape of the change, so they always rebuild.
             if (
               !isRemoteTransaction(tr, newState) &&
-              isInlineTransaction(tr, isTableNode)
+              isInlineTransaction(tr, hasTableRole)
             ) {
               return pluginState.map(tr.mapping, tr.doc);
             }

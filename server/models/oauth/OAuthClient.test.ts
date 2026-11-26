@@ -39,6 +39,33 @@ describe("OAuthClient", () => {
     });
   });
 
+  describe("name", () => {
+    it("should allow a URL in the name of a dynamically registered client", async () => {
+      const client = await buildOAuthClient({
+        createdById: null,
+        name: "DCR config for Client (https://example.com/mcp)",
+      });
+
+      expect(client.name).toEqual(
+        "DCR config for Client (https://example.com/mcp)"
+      );
+    });
+
+    it("should allow a URL in the name of a metadata document client", async () => {
+      const client = await buildMetadataDocumentOAuthClient({
+        name: "Client (https://example.com/mcp)",
+      });
+
+      expect(client.name).toEqual("Client (https://example.com/mcp)");
+    });
+
+    it("should not allow a URL in the name of a user created client", async () => {
+      await expect(
+        buildOAuthClient({ name: "Client (https://example.com/mcp)" })
+      ).rejects.toThrow("Must not contain a URL");
+    });
+  });
+
   describe("constraints", () => {
     it("should not allow a client without a team unless it uses a metadata document", async () => {
       const client = await buildOAuthClient({ createdById: null });

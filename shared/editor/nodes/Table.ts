@@ -6,7 +6,6 @@ import {
   columnResizing,
   deleteTable,
   goToNextCell,
-  moveTableColumn,
   moveTableRow,
   tableEditing,
   toggleHeader,
@@ -24,6 +23,8 @@ import {
   distributeColumns,
   sortTable,
   setTableAttr,
+  moveColumn,
+  openTableFilter,
   deleteColSelection,
   deleteColumns,
   deleteRows,
@@ -47,12 +48,13 @@ import { TableColumnResizePlugin } from "../plugins/TableColumnResizePlugin";
 import { TableLayoutPlugin } from "../plugins/TableLayoutPlugin";
 import tablesRule from "../rules/tables";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
-import type { TableLayout } from "../types";
+import type { TableFilter, TableLayout } from "../types";
 import Node from "./Node";
 import { TableView } from "./TableView";
 
 export type TableAttrs = {
   layout: TableLayout | null;
+  filters: TableFilter[] | null;
 };
 
 export default class Table extends Node {
@@ -69,6 +71,11 @@ export default class Table extends Node {
       parseDOM: [{ tag: "table" }],
       attrs: {
         layout: {
+          default: null,
+        },
+        // Filters that hide rows for everyone, readers can change them for
+        // themselves without changing the document.
+        filters: {
           default: null,
         },
       },
@@ -100,7 +107,8 @@ export default class Table extends Node {
       addRowBefore,
       addRowAfter,
       moveTableRow,
-      moveTableColumn,
+      moveTableColumn: moveColumn,
+      openTableFilter,
       deleteRow: () => deleteRows(),
       deleteTable: () => deleteTable,
       exportTable,

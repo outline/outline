@@ -10,7 +10,7 @@ import {
   presentGroupMembership,
   presentPolicies,
 } from "@server/presenters";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -21,9 +21,9 @@ router.post(
   auth(),
   pagination(),
   validate(T.GroupMembershipsListSchema),
-  async (ctx: APIContext<T.GroupMembershipsListReq>) => {
+  async (ctx: Context<T.GroupMembershipsListReq>) => {
     const { groupId } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     const userId = user.id;
 
     // Filtering on the user's groups up front lets the query use the groupId

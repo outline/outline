@@ -1,6 +1,6 @@
 import Router from "@koa/router";
 import { errToString } from "@shared/utils/error";
-import { Client, NotificationEventType } from "@shared/types";
+import { Client } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
 import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
 import SigninEmail from "@server/emails/templates/SigninEmail";
@@ -10,7 +10,7 @@ import Logger from "@server/logging/Logger";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import validate from "@server/middlewares/validate";
 import { Event, User, Team } from "@server/models";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { VerificationCode } from "@server/utils/VerificationCode";
 import { signIn } from "@server/utils/authentication";
@@ -26,7 +26,7 @@ router.post(
   "email",
   rateLimiter(RateLimiterStrategy.TenPerHour),
   validate(T.EmailSchema),
-  async (ctx: APIContext<T.EmailReq>) => {
+  async (ctx: Context<T.EmailReq>) => {
     const { email, client, preferOTP } = ctx.input.body;
 
     const domain = parseDomain(ctx.request.hostname);
@@ -99,7 +99,7 @@ router.post(
   }
 );
 
-const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
+const emailCallback = async (ctx: Context<T.EmailCallbackReq>) => {
   const { query, body } = ctx.input;
   const token = query?.token || body?.token;
   const client = query?.client || body?.client || Client.Web;
@@ -195,7 +195,7 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
     });
 
     const inviter = await user.$get("invitedBy");
-    if (inviter?.subscribedToEventType(NotificationEventType.InviteAccepted)) {
+    if (inviter) {
       await new InviteAcceptedEmail({
         to: inviter.email,
         language: inviter.language,

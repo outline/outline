@@ -12,7 +12,7 @@ import {
   presentDocuments,
   presentPolicies,
 } from "@server/presenters";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { starIndexing } from "@server/utils/indexing";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
@@ -26,10 +26,10 @@ router.post(
   auth(),
   validate(T.StarsCreateSchema),
   transaction(),
-  async (ctx: APIContext<T.StarsCreateReq>) => {
-    const { transaction } = ctx.state;
+  async (ctx: Context<T.StarsCreateReq>) => {
+    const { transaction } = ctx;
     const { documentId, collectionId, index } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     if (documentId) {
       const document = await Document.findByPk(documentId, {
@@ -67,8 +67,8 @@ router.post(
   auth(),
   pagination(),
   validate(T.StarsListSchema),
-  async (ctx: APIContext<T.StarsListReq>) => {
-    const { user } = ctx.state.auth;
+  async (ctx: Context<T.StarsListReq>) => {
+    const { user } = ctx.auth;
 
     const [stars, collectionIds] = await Promise.all([
       Star.findAll({
@@ -124,10 +124,10 @@ router.post(
   auth(),
   validate(T.StarsUpdateSchema),
   transaction(),
-  async (ctx: APIContext<T.StarsUpdateReq>) => {
+  async (ctx: Context<T.StarsUpdateReq>) => {
     const { id, index } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const star = await Star.findByPk(id, {
       transaction,
@@ -149,10 +149,10 @@ router.post(
   auth(),
   validate(T.StarsDeleteSchema),
   transaction(),
-  async (ctx: APIContext<T.StarsDeleteReq>) => {
+  async (ctx: Context<T.StarsDeleteReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const star = await Star.findByPk(id, {
       transaction,

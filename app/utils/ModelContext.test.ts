@@ -79,7 +79,9 @@ describe("ModelContext", () => {
       expect(registerModelContextTool(makeTool("five"), first.signal)).toBe(
         true
       );
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await expect(registerTool.mock.results[0].value).rejects.toThrow(
+        "rejected"
+      );
 
       const second = new AbortController();
       expect(registerModelContextTool(makeTool("five"), second.signal)).toBe(
@@ -103,7 +105,9 @@ describe("ModelContext", () => {
         true
       );
       controller.abort();
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await expect(registerTool.mock.results[0].value).rejects.toThrow(
+        "signal is aborted"
+      );
 
       expect(warn).not.toHaveBeenCalled();
       warn.mockRestore();

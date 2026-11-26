@@ -6,11 +6,7 @@ import { toast } from "sonner";
 import { useTheme } from "styled-components";
 import { errToString } from "@shared/utils/error";
 import Spinner from "@shared/components/Spinner";
-import {
-  FileOperationFormat,
-  FileOperationState,
-  FileOperationType,
-} from "@shared/types";
+import { FileOperationState, FileOperationType } from "@shared/types";
 import type FileOperation from "~/models/FileOperation";
 import { Action } from "~/components/Actions";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
@@ -53,23 +49,8 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
     [FileOperationState.Error]: <WarningIcon color={theme.danger} />,
   };
 
-  const formatMapping: Record<FileOperationFormat, string> = {
-    [FileOperationFormat.JSON]: "JSON",
-    [FileOperationFormat.Notion]: "Notion",
-    [FileOperationFormat.MarkdownZip]: "Markdown",
-    [FileOperationFormat.OKFZip]: "OKF",
-    [FileOperationFormat.HTMLZip]: "HTML",
-    [FileOperationFormat.TextBundleZip]: "TextBundle",
-    [FileOperationFormat.PDF]: "PDF",
-  };
-
-  const format = formatMapping[fileOperation.format];
-  const title =
-    fileOperation.type === FileOperationType.Import ||
-    fileOperation.collectionId ||
-    fileOperation.documentId
-      ? fileOperation.name
-      : t("All collections");
+  const format = fileOperation.formatLabel;
+  const title = fileOperation.displayName;
 
   const handleDelete = React.useCallback(async () => {
     try {

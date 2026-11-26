@@ -3,7 +3,6 @@ import bodyParser from "koa-body";
 import Router from "@koa/router";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
-import { apiContext } from "@server/middlewares/apiContext";
 import cleanupMultipartFiles from "@server/middlewares/cleanupMultipartFiles";
 import coalesceBody from "@server/middlewares/coaleseBody";
 import requestContextMiddleware from "@server/middlewares/requestContext";
@@ -78,7 +77,6 @@ api.use(requestTracer());
 api.use(apiResponse());
 api.use(apiErrorHandler());
 api.use(editor());
-api.use(apiContext());
 api.use(verifyCSRFToken());
 
 // Register plugin API routes before others to allow for overrides

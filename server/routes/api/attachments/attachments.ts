@@ -5,7 +5,7 @@ import { AttachmentPreset } from "@shared/types";
 import { bytesToHumanReadable, getFileNameFromUrl } from "@shared/utils/files";
 import env from "@server/env";
 import { AttachmentValidation } from "@shared/validations";
-import { createContext } from "@server/context";
+import { withTransaction } from "@server/context";
 import {
   AuthorizationError,
   InvalidRequestError,
@@ -25,7 +25,7 @@ import pagination from "@server/routes/api/middlewares/pagination";
 import { sequelize } from "@server/storage/database";
 import FileStorage from "@server/storage/files";
 import BaseStorage from "@server/storage/files/BaseStorage";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { assertIn } from "@server/validation";
 import * as T from "./schema";
@@ -68,9 +68,9 @@ router.post(
   auth(),
   pagination(),
   validate(T.AttachmentsListSchema),
-  async (ctx: APIContext<T.AttachmentsListReq>) => {
+  async (ctx: Context<T.AttachmentsListReq>) => {
     const { documentId, userId } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const where: WhereOptions<Attachment> = {
       teamId: user.teamId,
@@ -115,9 +115,9 @@ router.post(
   auth(),
   validate(T.AttachmentsCreateSchema),
   transaction(),
-  async (ctx: APIContext<T.AttachmentCreateReq>) => {
+  async (ctx: Context<T.AttachmentCreateReq>) => {
     const { id, name, documentId, contentType, size, preset } = ctx.input.body;
-    const { auth, transaction } = ctx.state;
+    const { auth, transaction } = ctx;
     const { user } = auth;
 
     if (documentId) {
@@ -228,9 +228,9 @@ router.post(
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
   validate(T.AttachmentsCreateFromUrlSchema),
-  async (ctx: APIContext<T.AttachmentCreateFromUrlReq>) => {
+  async (ctx: Context<T.AttachmentCreateFromUrlReq>) => {
     const { id, url, documentId, preset } = ctx.input.body;
-    const { user, type } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     if (preset !== AttachmentPreset.DocumentAttachment || !documentId) {
       throw ValidationError(
@@ -252,25 +252,17 @@ router.post(
     // Does not use transaction middleware, as attachment must be persisted
     // before the job is scheduled.
     const attachment = await sequelize.transaction(async (transaction) =>
-      Attachment.createWithCtx(
-        createContext({
-          authType: type,
-          user,
-          ip: ctx.ip,
-          transaction,
-        }),
-        {
-          id: modelId,
-          key,
-          acl,
-          size: 0,
-          expiresAt: AttachmentHelper.presetToExpiry(preset),
-          contentType: "application/octet-stream",
-          documentId,
-          teamId: user.teamId,
-          userId: user.id,
-        }
-      )
+      Attachment.createWithCtx(withTransaction(ctx, transaction), {
+        id: modelId,
+        key,
+        acl,
+        size: 0,
+        expiresAt: AttachmentHelper.presetToExpiry(preset),
+        contentType: "application/octet-stream",
+        documentId,
+        teamId: user.teamId,
+        userId: user.id,
+      })
     );
 
     const job = await new UploadAttachmentFromUrlTask().schedule({
@@ -296,10 +288,10 @@ router.post(
   auth(),
   validate(T.AttachmentDeleteSchema),
   transaction(),
-  async (ctx: APIContext<T.AttachmentDeleteReq>) => {
+  async (ctx: Context<T.AttachmentDeleteReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
     const attachment = await Attachment.findByPk(id, {
       rejectOnEmpty: true,
       lock: transaction.LOCK.UPDATE,
@@ -320,11 +312,11 @@ router.post(
 );
 
 const handleAttachmentsRedirect = async (
-  ctx: APIContext<T.AttachmentsRedirectReq>
+  ctx: Context<T.AttachmentsRedirectReq>
 ) => {
   const id = (ctx.input.body.id ?? ctx.input.query.id) as string;
 
-  const user = ctx.state.auth?.user;
+  const user = ctx.auth?.user;
   const attachment = await Attachment.findByPk(id, {
     rejectOnEmpty: true,
   });

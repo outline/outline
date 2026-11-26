@@ -1,3 +1,4 @@
+import { Readable } from "node:stream";
 import {
   DocumentPermission,
   ExportContentType,
@@ -344,8 +345,8 @@ describe("#revisions.export", () => {
       createContext({ user }),
       document
     );
-    vi.spyOn(FileStorage, "getFileBuffer").mockResolvedValue(
-      Buffer.from("image-data")
+    vi.spyOn(FileStorage, "getFileStream").mockImplementation(async () =>
+      Readable.from([Buffer.from("image-data")])
     );
 
     const res = await server.post("/api/revisions.export", user, {
@@ -387,8 +388,8 @@ describe("#revisions.export", () => {
       createContext({ user }),
       document
     );
-    vi.spyOn(FileStorage, "getFileBuffer").mockResolvedValue(
-      Buffer.from("image-data")
+    vi.spyOn(FileStorage, "getFileStream").mockImplementation(async () =>
+      Readable.from([Buffer.from("image-data")])
     );
 
     const res = await server.post("/api/revisions.export", user, {

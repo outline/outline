@@ -98,6 +98,21 @@ describe("auth/redirect", () => {
     expect(second.status).toEqual(401);
   });
 
+  it("should not accept a transfer token in concurrent requests", async () => {
+    const user = await buildUser();
+    const token = user.getTransferToken();
+
+    const responses = await Promise.all(
+      [1, 2, 3].map(() =>
+        server.get(`/auth/redirect?token=${token}`, {
+          redirect: "manual",
+        })
+      )
+    );
+    const statuses = responses.map((res) => res.status).sort((a, b) => a - b);
+    expect(statuses).toEqual([302, 401, 401]);
+  });
+
   it("should not accept a transfer token on the API", async () => {
     const user = await buildUser();
     const res = await server.post("/api/auth.info", {
