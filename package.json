@@ -169,7 +169,7 @@
     "koa-logger": "^3.2.1",
     "koa-mount": "^4.2.0",
     "koa-sslify": "5.0.1",
-    "lib0": "^0.2.119",
+    "lib0": "^0.2.120",
     "mailparser": "^3.9.47",
     "mammoth": "^1.13.0",
     "markdown-it": "^14.3.3",

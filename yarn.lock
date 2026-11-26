@@ -12463,7 +12463,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lib0@npm:^0.2.109, lib0@npm:^0.2.119, lib0@npm:^0.2.46, lib0@npm:^0.2.47, lib0@npm:^0.2.85, lib0@npm:^0.2.99":
+"lib0@npm:^0.2.109, lib0@npm:^0.2.46, lib0@npm:^0.2.47, lib0@npm:^0.2.85, lib0@npm:^0.2.99":
   version: 0.2.119
   resolution: "lib0@npm:0.2.119"
   dependencies:
@@ -12473,6 +12473,19 @@ __metadata:
     0gentesthtml: bin/gentesthtml.js
     0serve: bin/0serve.js
   checksum: 10c0/722277c01158cc560c4cdc6093803435d5c1c1ed278a7ccfca4693968cc8a8ff361a0bbfcf7d76d6085c8b65716d381af81cf8d415bd9b5e48428df8896393bf
+  languageName: node
+  linkType: hard
+
+"lib0@npm:^0.2.120":
+  version: 0.2.120
+  resolution: "lib0@npm:0.2.120"
+  dependencies:
+    isomorphic.js: "npm:^0.2.4"
+  bin:
+    0ecdsa-generate-keypair: bin/0ecdsa-generate-keypair.js
+    0gentesthtml: bin/gentesthtml.js
+    0serve: bin/0serve.js
+  checksum: 10c0/c5f6b2073df5be17269c71651b9b7a28947ae208f511c514538d23b8895ee408568f9739eb335e00e884b8b4f6cb4f44ff8f241e907e8b1337a779349852681c
   languageName: node
   linkType: hard
 
@@ -14135,7 +14148,7 @@ __metadata:
     koa-logger: "npm:^3.2.1"
     koa-mount: "npm:^4.2.0"
     koa-sslify: "npm:5.0.1"
-    lib0: "npm:^0.2.119"
+    lib0: "npm:^0.2.120"
     lint-staged: "npm:^16.4.0"
     mailparser: "npm:^3.9.47"
     mammoth: "npm:^1.13.0"
