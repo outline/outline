@@ -127,7 +127,7 @@
     "date-fns": "^4.4.0",
     "dd-trace": "^5.135.0",
     "diff": "^9.0.0",
-    "email-providers": "^2.27.0",
+    "email-providers": "^2.28.0",
     "emoji-regex": "^10.6.0",
     "es-toolkit": "^1.53.0",
     "express-useragent": "^1.0.15",
