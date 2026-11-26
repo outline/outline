@@ -140,6 +140,15 @@ function mathDisplay(
   pos += blockMathDelimiter.length;
   firstLine = state.src.slice(pos, max);
 
+  // Text after the opening delimiter is only valid in the single line form.
+  const trimmedFirstLine = firstLine.trim();
+  if (
+    trimmedFirstLine &&
+    trimmedFirstLine.slice(-blockMathDelimiter.length) !== blockMathDelimiter
+  ) {
+    return false;
+  }
+
   if (silent) {
     return true;
   }
