@@ -15,6 +15,7 @@ import SearchProviderManager from "@server/utils/SearchProviderManager";
 import { QueryHelper } from "@server/storage/QueryHelper";
 import { can } from "@server/policies";
 import {
+  presentCollection,
   presentDocuments,
   presentGroup,
   presentUser,
@@ -153,15 +154,22 @@ router.post(
         ),
         withinLimit(
           "collections",
-          () =>
-            SearchProviderManager.getProvider().searchCollectionsForUser(
-              actor,
-              {
-                query,
-                offset,
-                limit,
-              }
-            ),
+          async () => {
+            const found =
+              await SearchProviderManager.getProvider().searchCollectionsForUser(
+                actor,
+                {
+                  query,
+                  offset,
+                  limit,
+                }
+              );
+            return Promise.all(
+              found.map((collection) =>
+                presentCollection(ctx, collection, { includeData: false })
+              )
+            );
+          },
           []
         ),
       ]);

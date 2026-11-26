@@ -1,5 +1,6 @@
 import { EmailDisplay, TeamPreference } from "@shared/types";
 import {
+  buildCollection,
   buildGroup,
   buildGroupUser,
   buildGuestUser,
@@ -136,6 +137,27 @@ describe("#suggestions.mention", () => {
     } finally {
       spy.mockRestore();
     }
+  });
+
+  it("should present collections", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+      name: "Elephants",
+    });
+
+    const res = await server.post("/api/suggestions.mention", user, {
+      body: { query: "Elephants" },
+    });
+    const body = await res.json();
+    const [found] = body.data.collections;
+
+    expect(res.status).toEqual(200);
+    expect(found.id).toEqual(collection.id);
+    expect(found.url).toEqual(collection.path);
+    expect(found.content).toBeUndefined();
+    expect(found.data).toBeUndefined();
   });
 
   it("should require authentication", async () => {
