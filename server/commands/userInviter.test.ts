@@ -121,6 +121,35 @@ describe("userInviter", () => {
     );
   });
 
+  it("should skip guest invites for existing members on workspace domains", async () => {
+    const planSpy = vi
+      .spyOn(Team.prototype, "plan", "get")
+      .mockReturnValue(Plan.Business);
+    onTestFinished(() => planSpy.mockRestore());
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+    await buildUser({ teamId: team.id, email: "member@acme.org" });
+
+    await TeamDomain.create({
+      teamId: team.id,
+      name: "acme.org",
+      createdById: user.id,
+    });
+
+    const response = await withContext(user, (ctx) =>
+      userInviter(ctx, {
+        invites: [
+          {
+            role: UserRole.Guest,
+            email: "member@acme.org",
+            name: "Test",
+          },
+        ],
+      })
+    );
+    expect(response.unsent.length).toEqual(1);
+  });
+
   it("should allow guest invites for other domains", async () => {
     const planSpy = vi
       .spyOn(Team.prototype, "plan", "get")

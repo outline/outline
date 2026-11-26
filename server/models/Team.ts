@@ -2,7 +2,11 @@ import crypto from "node:crypto";
 import { URL } from "node:url";
 import { addDays, subMinutes } from "date-fns";
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
-import { type FindOptions, type SaveOptions } from "sequelize";
+import {
+  type FindOptions,
+  type SaveOptions,
+  type Transaction,
+} from "sequelize";
 import { Op } from "sequelize";
 import {
   Column,
@@ -499,13 +503,15 @@ class Team extends ParanoidModel<
    * Unlike isDomainAllowed, this returns false if no domains are set.
    *
    * @param domainOrEmail The domain or email to check.
+   * @param options Options such as the transaction to query with.
    * @returns True if the domain matches a team domain.
    */
   public isTeamDomain = async function (
     this: Team,
-    domainOrEmail: string
+    domainOrEmail: string,
+    options?: { transaction?: Transaction | null }
   ): Promise<boolean> {
-    const allowedDomains = (await this.$get("allowedDomains")) || [];
+    const allowedDomains = (await this.$get("allowedDomains", options)) || [];
     const domain = isEmail(domainOrEmail)
       ? parseEmail(domainOrEmail).domain
       : domainOrEmail.toLowerCase();

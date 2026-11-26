@@ -412,7 +412,7 @@ async function updateRole(ctx: Context<T.UsersChangeRoleReq>) {
   if (role === UserRole.Guest) {
     authorize(actor, "addGuest", actor.team);
 
-    if (user.email && (await team.isTeamDomain(user.email))) {
+    if (user.email && (await team.isTeamDomain(user.email, { transaction }))) {
       throw ValidationError(
         "Users with an email on a workspace domain cannot be added as guests"
       );

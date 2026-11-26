@@ -58,17 +58,6 @@ export default async function userInviter(
     }
   }
 
-  for (const invite of normalizedInvites) {
-    if (
-      invite.role === UserRole.Guest &&
-      (await team.isTeamDomain(invite.email))
-    ) {
-      throw ValidationError(
-        "Users with an email on a workspace domain cannot be added as guests"
-      );
-    }
-  }
-
   const existingUsers = await User.findAll({
     where: {
       teamId: user.teamId,
@@ -82,6 +71,18 @@ export default async function userInviter(
     normalizedInvites,
     (invite) => existingEmails.includes(invite.email)
   );
+
+  for (const invite of filteredInvites) {
+    if (
+      invite.role === UserRole.Guest &&
+      (await team.isTeamDomain(invite.email))
+    ) {
+      throw ValidationError(
+        "Users with an email on a workspace domain cannot be added as guests"
+      );
+    }
+  }
+
   const users = [];
 
   // send and record remaining invites

@@ -191,7 +191,9 @@ function SharePopover({
                   {
                     email: idOrEmail,
                     name: idOrEmail,
-                    role: inviteRole,
+                    role: team.isTeamDomain(idOrEmail)
+                      ? team.defaultUserRole
+                      : inviteRole,
                   },
                 ]);
                 user = response[0];
@@ -287,6 +289,7 @@ function SharePopover({
       isOwnerInvite,
       t,
       inviteRole,
+      team,
       users,
     ]
   );
