@@ -23,6 +23,7 @@ import {
   toggleLink,
 } from "../commands/link";
 import { isInCode } from "../queries/isInCode";
+import { getEventTargetElement } from "../lib/eventTarget";
 
 const LINK_INPUT_REGEX = /\[([^[]+)]\((\S+)\)$/;
 
@@ -155,8 +156,7 @@ export default class Link extends Mark<LinkOptions> {
 
       // SVG anchors, such as those inside Mermaid diagrams, are handled by
       // their own extension and have a non-string href.
-      const target =
-        event.target instanceof Element ? event.target.closest("a") : null;
+      const target = getEventTargetElement(event)?.closest("a");
       if (!(target instanceof HTMLAnchorElement)) {
         return undefined;
       }

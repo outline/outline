@@ -1,6 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { buildSelectionContext } from "@shared/editor/lib/buildSelectionContext";
+import { getEventTargetElement } from "@shared/editor/lib/eventTarget";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import { isCode } from "@shared/editor/lib/isCode";
 import { findParentNodeClosestToPos } from "@shared/editor/queries/findParentNode";
@@ -81,9 +82,9 @@ export const CodeBlockHoverToolbar = observer(function CodeBlockHoverToolbar({
     "mouseover",
     (event: MouseEvent) => {
       const block =
-        event.target instanceof Element
-          ? event.target.closest<HTMLElement>(`.${EditorStyleHelper.codeBlock}`)
-          : null;
+        getEventTargetElement(event)?.closest<HTMLElement>(
+          `.${EditorStyleHelper.codeBlock}`
+        ) ?? null;
 
       if (block && (!element || block === element)) {
         cancelHide();

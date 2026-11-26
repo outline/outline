@@ -14,6 +14,7 @@ import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import emojiRule from "../rules/emoji";
 import { isUUID } from "validator";
 import type { ComponentProps } from "../types";
+import { getEventTargetElement } from "../lib/eventTarget";
 import { CustomEmoji } from "../../components/CustomEmoji";
 
 export default class Emoji extends Extension {
@@ -97,8 +98,8 @@ export default class Emoji extends Extension {
           // on the emoji will not behave the same way as clicks on text characters, this
           // plugin ensures that clicking on an emoji behaves more naturally.
           handleClickOn: (view, _pos, node, nodePos, event) => {
-            if (node.type.name === this.name) {
-              const element = event.target as HTMLElement;
+            const element = getEventTargetElement(event);
+            if (element && node.type.name === this.name) {
               const rect = element.getBoundingClientRect();
               const clickX = event.clientX - rect.left;
               const side = clickX < rect.width / 2 ? -1 : 1;
