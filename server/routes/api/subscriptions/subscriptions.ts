@@ -42,7 +42,7 @@ router.post(
       });
       authorize(user, "read", collection);
 
-      where.collectionId = collectionId;
+      where.collectionId = collection.id;
     } else {
       // documentId will be available here
       const document = await Document.findByPk(documentId!, {
@@ -51,7 +51,7 @@ router.post(
       });
       authorize(user, "read", document);
 
-      where.documentId = documentId;
+      where.documentId = document.id;
     }
 
     const subscriptions = await Subscription.findAll({
@@ -87,7 +87,7 @@ router.post(
       });
       authorize(user, "read", collection);
 
-      where.collectionId = collectionId;
+      where.collectionId = collection.id;
     } else {
       // documentId will be available here
       const document = await Document.findByPk(documentId!, {
@@ -96,7 +96,7 @@ router.post(
       });
       authorize(user, "read", document);
 
-      where.documentId = documentId;
+      where.documentId = document.id;
     }
 
     // There can be only one subscription with these props.
@@ -125,8 +125,11 @@ router.post(
     const { user } = ctx.auth;
     const { event, collectionId, documentId } = ctx.input.body;
 
+    let document: Document | null = null;
+    let collection: Collection | null = null;
+
     if (documentId) {
-      const document = await Document.findByPk(documentId, {
+      document = await Document.findByPk(documentId, {
         userId: user.id,
       });
 
@@ -134,7 +137,7 @@ router.post(
     }
 
     if (collectionId) {
-      const collection = await Collection.findByPk(collectionId, {
+      collection = await Collection.findByPk(collectionId, {
         userId: user.id,
       });
 
@@ -143,8 +146,8 @@ router.post(
 
     const subscription = await subscriptionCreator({
       ctx,
-      documentId,
-      collectionId,
+      documentId: document?.id,
+      collectionId: collection?.id,
       event,
     });
 

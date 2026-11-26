@@ -261,7 +261,7 @@ router.post(
     authorize(user, "read", group);
 
     let membership = await GroupMembership.findOneForUpdate(
-      { collectionId: id, groupId },
+      { collectionId: collection.id, groupId },
       { transaction }
     );
 
@@ -273,7 +273,7 @@ router.post(
     } else {
       membership = await GroupMembership.create(
         {
-          collectionId: id,
+          collectionId: collection.id,
           groupId,
           permission: permission ?? CollectionPermission.ReadWrite,
           createdById: user.id,
@@ -348,7 +348,7 @@ router.post(
     authorize(user, "read", collection);
 
     let where: WhereOptions<GroupMembership> = {
-      collectionId: id,
+      collectionId: collection.id,
     };
     let groupWhere;
 
@@ -423,7 +423,7 @@ router.post(
       await collection.addOwner(ctx, userId);
 
       const ownerMembership = await UserMembership.findOne({
-        where: { collectionId: id, userId },
+        where: { collectionId: collection.id, userId },
         transaction,
         rejectOnEmpty: true,
       });
@@ -439,7 +439,7 @@ router.post(
     }
 
     let membership = await UserMembership.findOneForUpdate(
-      { collectionId: id, userId },
+      { collectionId: collection.id, userId },
       { transaction }
     );
 
@@ -451,7 +451,7 @@ router.post(
     } else {
       membership = await UserMembership.create(
         {
-          collectionId: id,
+          collectionId: collection.id,
           userId,
           permission: permission || user.defaultCollectionPermission,
           createdById: actor.id,
@@ -531,7 +531,7 @@ router.post(
     authorize(user, "read", collection);
 
     let where: WhereOptions<UserMembership> = {
-      collectionId: id,
+      collectionId: collection.id,
     };
     let userWhere;
 

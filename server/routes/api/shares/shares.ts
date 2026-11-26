@@ -304,8 +304,8 @@ router.post(
 
     const [share] = await Share.findOrCreateWithCtx(ctx, {
       where: {
-        collectionId: collectionId ?? null,
-        documentId: documentId ?? null,
+        collectionId: collection?.id ?? null,
+        documentId: document?.id ?? null,
         teamId: user.teamId,
         revokedAt: null,
       },
