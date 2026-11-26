@@ -1,7 +1,7 @@
 import { traceFunction } from "@server/logging/tracing";
 import { ParamRequiredError, ValidationError } from "@server/errors";
-import { Collection, Revision } from "@server/models";
-import type { Document } from "@server/models";
+import { Transaction } from "sequelize";
+import { Collection, Document, Revision } from "@server/models";
 import { authorize } from "@server/policies";
 import type { Context } from "@server/types";
 
@@ -46,6 +46,18 @@ async function documentRestorer(
       rejectOnEmpty: true,
     });
     authorize(document, "restore", revision);
+
+    // read the state under a row lock, so the collaboration server cannot
+    // create it from the pre-restore content before this commits
+    const { state } = await Document.unscoped().findOne({
+      attributes: ["id", "state"],
+      where: { id: document.id },
+      transaction,
+      lock: Transaction.LOCK.NO_KEY_UPDATE,
+      paranoid: false,
+      rejectOnEmpty: true,
+    });
+    document.state = state;
 
     await document.restoreFromRevision(revision);
     await document.saveWithCtx(ctx, undefined, { name: "restore" });

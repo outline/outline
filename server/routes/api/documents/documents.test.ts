@@ -4,6 +4,8 @@ import path from "node:path";
 import { faker } from "@faker-js/faker";
 import { addMinutes, subDays } from "date-fns";
 import FormData from "form-data";
+import { yDocToProsemirrorJSON } from "y-prosemirror";
+import * as Y from "yjs";
 import {
   CollectionPermission,
   DocumentPermission,
@@ -16,6 +18,7 @@ import {
 } from "@shared/types";
 import { TextHelper } from "@shared/utils/TextHelper";
 import { DeprecationValidation, DocumentValidation } from "@shared/validations";
+import { APIUpdateExtension } from "@server/collaboration/APIUpdateExtension";
 import { createContext } from "@server/context";
 import { parser } from "@server/editor";
 import type { Group, User } from "@server/models";
@@ -35,7 +38,9 @@ import {
 import { RelationshipType } from "@server/models/Relationship";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import HTMLHelper from "@server/models/helpers/HTMLHelper";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import DocumentImportTask from "@server/queues/tasks/DocumentImportTask";
+import { sequelize } from "@server/storage/database";
 import FileStorage from "@server/storage/files";
 import {
   buildShare,
@@ -6199,6 +6204,171 @@ describe("#documents.restore", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.data).toEqual(previous);
+  });
+
+  it("should restore the collaborative state to a previous version", async () => {
+    const notifyUpdateSpy = vi
+      .spyOn(APIUpdateExtension, "notifyUpdate")
+      .mockResolvedValue(undefined);
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      text: "original",
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user }),
+      document
+    );
+
+    // simulate an edit made in the collaborative editor
+    const updated = parser.parse("updated")?.toJSON();
+    document.content = updated;
+    document.state = Buffer.from(
+      Y.encodeStateAsUpdate(ProsemirrorHelper.toYDoc(updated))
+    );
+    await document.save();
+
+    const res = await server.post("/api/documents.restore", user, {
+      body: {
+        id: document.id,
+        revisionId: revision.id,
+      },
+    });
+    expect(res.status).toEqual(200);
+    expect(notifyUpdateSpy).toHaveBeenCalledWith(document.id, user.id);
+    notifyUpdateSpy.mockRestore();
+
+    const reloaded = await Document.findByPk(document.id, {
+      includeState: true,
+      rejectOnEmpty: true,
+    });
+    const ydoc = new Y.Doc();
+    Y.applyUpdate(ydoc, DocumentHelper.toState(reloaded));
+    expect(yDocToProsemirrorJSON(ydoc, "default")).toEqual(revision.content);
+  });
+
+  it("should wait for the collaboration server to create the initial state", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      text: "original",
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user }),
+      document
+    );
+    document.content = parser.parse("updated")?.toJSON();
+    await document.save();
+    expect(document.state).toBeFalsy();
+
+    // hold the row lock that the collaboration server takes on first load
+    let restored = false;
+    let request: ReturnType<typeof server.post> | undefined;
+    await sequelize.transaction(async (transaction) => {
+      await Document.unscoped().findOne({
+        where: { id: document.id },
+        attributes: ["id"],
+        transaction,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
+      });
+      request = server.post("/api/documents.restore", user, {
+        body: {
+          id: document.id,
+          revisionId: revision.id,
+        },
+      });
+      void request.then(() => {
+        restored = true;
+      });
+      await new Promise((resolve) => setTimeout(resolve, 250));
+      expect(restored).toEqual(false);
+
+      await Document.unscoped().update(
+        {
+          state: Buffer.from(
+            Y.encodeStateAsUpdate(ProsemirrorHelper.toYDoc("updated"))
+          ),
+        },
+        { where: { id: document.id }, transaction }
+      );
+    });
+
+    const res = await request;
+    expect(res?.status).toEqual(200);
+
+    const reloaded = await Document.findByPk(document.id, {
+      includeState: true,
+      rejectOnEmpty: true,
+    });
+    const ydoc = new Y.Doc();
+    Y.applyUpdate(ydoc, DocumentHelper.toState(reloaded));
+    expect(yDocToProsemirrorJSON(ydoc, "default")).toEqual(revision.content);
+  });
+
+  it("should add the trailing paragraph when restoring a revision", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      content: parser.parse("- item")?.toJSON(),
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user }),
+      document
+    );
+    document.state = Buffer.from(
+      Y.encodeStateAsUpdate(ProsemirrorHelper.toYDoc("updated"))
+    );
+    await document.save();
+
+    const res = await server.post("/api/documents.restore", user, {
+      body: {
+        id: document.id,
+        revisionId: revision.id,
+      },
+    });
+    expect(res.status).toEqual(200);
+
+    const reloaded = await Document.findByPk(document.id, {
+      includeState: true,
+      rejectOnEmpty: true,
+    });
+    const ydoc = new Y.Doc();
+    Y.applyUpdate(ydoc, DocumentHelper.toState(reloaded));
+    const state = yDocToProsemirrorJSON(ydoc, "default");
+    expect(state.content?.at(-1)?.type).toEqual("paragraph");
+    expect(reloaded.content?.content?.at(-1)?.type).toEqual("paragraph");
+  });
+
+  it("should restore a revision when the collaboration server cannot be notified", async () => {
+    const notifyUpdateSpy = vi
+      .spyOn(APIUpdateExtension, "notifyUpdate")
+      .mockRejectedValue(new Error("Redis unavailable"));
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user }),
+      document
+    );
+    document.state = Buffer.from(
+      Y.encodeStateAsUpdate(ProsemirrorHelper.toYDoc("updated"))
+    );
+    await document.save();
+
+    const res = await server.post("/api/documents.restore", user, {
+      body: {
+        id: document.id,
+        revisionId: revision.id,
+      },
+    });
+    expect(res.status).toEqual(200);
+    expect(notifyUpdateSpy).toHaveBeenCalled();
+    notifyUpdateSpy.mockRestore();
   });
 
   it("should not allow restoring a revision in another document", async () => {

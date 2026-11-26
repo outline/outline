@@ -52,11 +52,14 @@ import type {
   SourceMetadata,
 } from "@shared/types";
 import { DocumentPreferenceDefaults } from "@shared/constants";
+import { withTrailingNode } from "@shared/editor/lib/trailingNode";
+import { toError } from "@shared/utils/error";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import slugify from "@server/utils/slugify";
 import { DeprecationValidation, DocumentValidation } from "@shared/validations";
 import { InvalidRequestError, ValidationError } from "@server/errors";
+import Logger from "@server/logging/Logger";
 import { afterCommit } from "@server/storage/transaction";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
@@ -696,7 +699,14 @@ class Document extends ArchivableModel<
     if (model.changed("state") && ctx.auth?.user?.id) {
       const actorId = ctx.auth.user.id;
       const notify = async () => {
-        await APIUpdateExtension.notifyUpdate(model.id, actorId);
+        try {
+          await APIUpdateExtension.notifyUpdate(model.id, actorId);
+        } catch (err) {
+          // the change is committed, so a failed notification must not fail the request
+          Logger.error("Failed to notify collaboration server", toError(err), {
+            documentId: model.id,
+          });
+        }
       };
 
       void afterCommit(ctx.transaction, notify);
@@ -1181,10 +1191,13 @@ class Document extends ArchivableModel<
       throw new Error("Revision does not belong to this document");
     }
 
-    this.content = revision.content;
+    // match the editor's normalized form so open editors do not repair it
+    const doc = withTrailingNode(DocumentHelper.toProsemirror(revision));
+    this.content = doc.toJSON();
     this.text = await DocumentHelper.toMarkdown(revision, {
       includeTitle: false,
     });
+    DocumentHelper.applyToState(this, doc);
     this.title = revision.title;
     this.icon = revision.icon;
     this.color = revision.color;
