@@ -6,6 +6,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import EventBoundary from "@shared/components/EventBoundary";
+import { getEventTargetElement } from "@shared/editor/lib/eventTarget";
 import { canDisplayAsCard } from "@shared/editor/lib/mention";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { depths, s } from "@shared/styles";
@@ -103,9 +104,7 @@ export const MentionHoverMenu = observer(function MentionHoverMenu({
       }
 
       const mention =
-        event.target instanceof Element
-          ? event.target.closest<HTMLElement>(".mention")
-          : null;
+        getEventTargetElement(event)?.closest<HTMLElement>(".mention") ?? null;
 
       if (mention && getMentionPos(view, mention) !== undefined) {
         cancelHide();
