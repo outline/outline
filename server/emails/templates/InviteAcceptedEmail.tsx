@@ -1,6 +1,7 @@
 import * as React from "react";
 import { NotificationEventType } from "@shared/types";
 import env from "@server/env";
+import { User } from "@server/models";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import type { EmailProps } from "./BaseEmail";
 import BaseEmail, { EmailMessageCategory } from "./BaseEmail";
@@ -25,7 +26,8 @@ type BeforeSend = {
 type Props = InputProps & BeforeSend;
 
 /**
- * Email sent to a user when someone they invited successfully signs up.
+ * Email sent to a user when someone they invited successfully signs up, if
+ * they are subscribed to this notification.
  */
 export default class InviteAcceptedEmail extends BaseEmail<
   InputProps,
@@ -36,6 +38,14 @@ export default class InviteAcceptedEmail extends BaseEmail<
   }
 
   protected async beforeSend(props: InputProps) {
+    const inviter = await User.findByPk(props.inviterId);
+    if (
+      !inviter ||
+      !inviter.subscribedToEventType(NotificationEventType.InviteAccepted)
+    ) {
+      return false;
+    }
+
     return {
       unsubscribeUrl: this.unsubscribeUrl(props),
     };
@@ -49,7 +59,7 @@ export default class InviteAcceptedEmail extends BaseEmail<
   }
 
   protected subject({ invitedName }: Props) {
-    return this.t("{{ invitedName }} has joined your {{ appName }} team", {
+    return this.t("{{ invitedName }} has joined your {{ appName }} workspace", {
       invitedName,
       appName: env.APP_NAME,
     });
@@ -76,7 +86,9 @@ ${this.t("Open {{ appName }}", { appName: env.APP_NAME }) + ":"} ${teamUrl}
 
         <Body>
           <Heading>
-            {this.t("{{ invitedName }} has joined your team", { invitedName })}
+            {this.t("{{ invitedName }} has joined your workspace", {
+              invitedName,
+            })}
           </Heading>
           <p>
             {this.t(

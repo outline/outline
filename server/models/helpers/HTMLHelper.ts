@@ -13,6 +13,12 @@ export default class HTMLHelper {
   public static readonly maxInlineImageSize = 100 * 1024;
 
   /**
+   * The maximum total size, in bytes, of the images inlined into one exported
+   * HTML document. Images after this limit are kept as external files.
+   */
+  public static readonly maxTotalInlineImageSize = 1024 * 1024;
+
+  /**
    * Inline a small image into exported HTML as a base64 data URI in place of
    * its redirect URL. Images are only inlined when they are small and
    * referenced exactly once — images used multiple times are kept as an
@@ -22,16 +28,25 @@ export default class HTMLHelper {
    * @param redirectUrl The redirect URL of the image within the HTML.
    * @param contentType The content type of the image, e.g. "image/png".
    * @param buffer The contents of the image.
+   * @param inlinedSize The total size, in bytes, of the images already inlined
+   *   into this document.
    * @returns The updated HTML if the image was inlined, otherwise null.
    */
   public static inlineImage(
     html: string,
     redirectUrl: string,
     contentType: string | null | undefined,
-    buffer: Buffer
+    buffer: Buffer,
+    inlinedSize = 0
   ): string | null {
     if (
-      !HTMLHelper.canInlineImage(html, redirectUrl, contentType, buffer.length)
+      !HTMLHelper.canInlineImage(
+        html,
+        redirectUrl,
+        contentType,
+        buffer.length,
+        inlinedSize
+      )
     ) {
       return null;
     }
@@ -51,18 +66,24 @@ export default class HTMLHelper {
    * @param redirectUrl The redirect URL of the image within the HTML.
    * @param contentType The content type of the image, e.g. "image/png".
    * @param size The size of the image in bytes.
+   * @param inlinedSize The total size, in bytes, of the images already inlined
+   *   into this document.
    * @returns True if the image is a candidate for inlining.
    */
   public static canInlineImage(
     html: string,
     redirectUrl: string,
     contentType: string | null | undefined,
-    size: number
+    size: number,
+    inlinedSize = 0
   ): boolean {
     if (!contentType?.startsWith("image/")) {
       return false;
     }
     if (size === 0 || size > HTMLHelper.maxInlineImageSize) {
+      return false;
+    }
+    if (inlinedSize + size > HTMLHelper.maxTotalInlineImageSize) {
       return false;
     }
 

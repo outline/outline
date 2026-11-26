@@ -1,7 +1,7 @@
-import { Table, TBody, TR, TD } from "oy-vey";
 import * as React from "react";
 import theme from "@shared/styles/theme";
 import EmptySpace from "./EmptySpace";
+import { Table, TBody, TR, TD } from "./Table";
 
 /** A notice to show at the top of the email body, such as a delay warning. */
 export const BodyNoticeContext = React.createContext<string | undefined>(

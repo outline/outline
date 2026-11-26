@@ -14,11 +14,27 @@ import type { MenuItem } from "~/types";
 import { MouseSafeArea } from "~/components/MouseSafeArea";
 import { createRef } from "react";
 
-export function toMenuItems(items: MenuItem[]) {
+/**
+ * Converts menu items to menu elements.
+ *
+ * @param items the menu items to convert.
+ * @param query an optional filter query, only matching items are returned.
+ * @returns the menu elements, or null if there are none.
+ */
+export function toMenuItems(items: MenuItem[], query?: string) {
   const filteredItems = filterMenuItems(items);
   const parentRef = createRef<HTMLDivElement>();
+  const normalizedQuery = query?.toLocaleLowerCase();
 
-  if (!filteredItems.length) {
+  // Keys use the index before the query is applied, so that the focused item
+  // keeps its element while the query changes.
+  const entries = filteredItems
+    .map((item, index) => ({ item, index }))
+    .filter(
+      ({ item }) => !normalizedQuery || matchesQuery(item, normalizedQuery)
+    );
+
+  if (!entries.length) {
     return null;
   }
 
@@ -31,12 +47,18 @@ export function toMenuItems(items: MenuItem[]) {
       !!item.icon
   );
 
-  return filteredItems.map((item, index) => {
+  return entries.map(({ item, index }) => {
     const icon = showIcon ? (
       <Components.MenuIconWrapper aria-hidden>
         {"icon" in item ? item.icon : null}
       </Components.MenuIconWrapper>
     ) : undefined;
+
+    // Children are filtered too, unless the parent title itself matches.
+    const childQuery =
+      normalizedQuery && !titleMatches(item, normalizedQuery)
+        ? normalizedQuery
+        : undefined;
 
     switch (item.type) {
       case "button":
@@ -85,7 +107,7 @@ export function toMenuItems(items: MenuItem[]) {
         );
 
       case "submenu": {
-        const submenuItems = toMenuItems(item.items);
+        const submenuItems = toMenuItems(item.items, childQuery);
 
         if (!submenuItems?.length) {
           return null;
@@ -116,7 +138,7 @@ export function toMenuItems(items: MenuItem[]) {
       }
 
       case "group": {
-        const groupItems = toMenuItems(item.items);
+        const groupItems = toMenuItems(item.items, childQuery);
 
         if (!groupItems?.length) {
           return null;
@@ -268,7 +290,7 @@ export function toMobileMenuItems(
         }
 
         return (
-          <div key={`${item.type}-${index}`}>
+          <div key={`${item.type}-${index}`} role="group">
             <Components.MenuHeader>{item.title}</Components.MenuHeader>
             {groupItems}
           </div>
@@ -287,9 +309,42 @@ export function toMobileMenuItems(
   });
 }
 
+function titleMatches(item: MenuItem, query: string): boolean {
+  return (
+    "title" in item &&
+    typeof item.title === "string" &&
+    item.title.toLocaleLowerCase().includes(query)
+  );
+}
+
+function matchesQuery(item: MenuItem, query: string): boolean {
+  if (item.visible === false) {
+    return false;
+  }
+
+  switch (item.type) {
+    case "button":
+    case "route":
+    case "link":
+      return titleMatches(item, query);
+    case "submenu":
+    case "group":
+      return (
+        titleMatches(item, query) ||
+        item.items.some((child) => matchesQuery(child, query))
+      );
+    default:
+      return false;
+  }
+}
+
 function filterMenuItems(items: MenuItem[]): MenuItem[] {
   return items
-    .filter((item) => item.visible !== false)
+    .filter(
+      (item) =>
+        item.visible !== false &&
+        (item.type !== "group" || filterMenuItems(item.items).length > 0)
+    )
     .reduce((acc, item) => {
       // trim separator when the previous item is also a separator.
       if (
@@ -301,10 +356,12 @@ function filterMenuItems(items: MenuItem[]): MenuItem[] {
       return [...acc, item];
     }, [] as MenuItem[])
     .filter((item, index, arr) => {
-      // trim when first or last item is a separator.
+      // trim when first or last item is a separator, or above a group header.
       if (
         item.type === "separator" &&
-        (index === 0 || index === arr.length - 1)
+        (index === 0 ||
+          index === arr.length - 1 ||
+          arr[index + 1]?.type === "group")
       ) {
         return false;
       }

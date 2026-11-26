@@ -1,14 +1,16 @@
 import { toJS } from "mobx";
 import { observer } from "mobx-react";
+import { ArchiveIcon, DownloadIcon, WarningIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import { s, hover, truncateMultiline } from "@shared/styles";
-import { NotificationEventType } from "@shared/types";
+import { FileOperationState, NotificationEventType } from "@shared/types";
 import type Notification from "~/models/Notification";
 import useStores from "~/hooks/useStores";
 import { Avatar, AvatarSize, AvatarVariant } from "../Avatar";
+import Button from "../Button";
 import Flex from "../Flex";
 import Text from "../Text";
 import Time from "../Time";
@@ -42,12 +44,20 @@ function NotificationListItem({ notification, onNavigate }: Props) {
     notification.event === NotificationEventType.RequestDocumentAccess &&
     notification.accessRequestStatus === "pending";
 
+  const isExport = notification.event === NotificationEventType.ExportCompleted;
+  const { fileOperation, downloadUrl } = notification;
+
   const handleClick: React.MouseEventHandler<HTMLAnchorElement> = (event) => {
     if (event.altKey) {
       event.preventDefault();
       event.stopPropagation();
       void notification.toggleRead();
       return;
+    }
+
+    if (downloadUrl) {
+      event.preventDefault();
+      window.open(downloadUrl, "_blank");
     }
 
     void notification.markAsRead();
@@ -73,19 +83,36 @@ function NotificationListItem({ notification, onNavigate }: Props) {
     <ContextMenu action={menuAction} ariaLabel={t("Notification options")}>
       <StyledLink to={notification.path ?? ""} onClick={handleClick}>
         <Container gap={8} $unread={!notification.viewedAt}>
-          <StyledAvatar model={notification.actor} />
+          {isExport ? (
+            <ExportIcon state={fileOperation?.state} />
+          ) : (
+            <StyledAvatar model={notification.actor} />
+          )}
           <Flex column>
-            <Text as="div" size="small">
-              <Text weight="bold">
-                {notification.actor?.name ?? t("Unknown")}
-              </Text>{" "}
-              {notification.eventText(t)}{" "}
-              <Text weight="bold">{notification.subject(t)}</Text>
-            </Text>
+            {isExport ? (
+              <Text as="div" size="small">
+                <Text weight="bold">{notification.subject(t)}</Text>{" "}
+                {notification.eventText(t)}
+              </Text>
+            ) : (
+              <Text as="div" size="small">
+                <Text weight="bold">
+                  {notification.actor?.name ?? t("Unknown")}
+                </Text>{" "}
+                {notification.eventText(t)}{" "}
+                <Text weight="bold">{notification.subject(t)}</Text>
+              </Text>
+            )}
             <Text type="tertiary" size="xsmall">
               <Time dateTime={notification.createdAt} addSuffix />{" "}
-              {collection && <>&middot; {collection.displayName}</>}
+              {collection && <>&middot; {collection.displayName} </>}
+              {fileOperation && <>&middot; {fileOperation.formatLabel}</>}
             </Text>
+            {downloadUrl && (
+              <DownloadButton forwardedAs="span" aria-hidden neutral>
+                {t("Download")}
+              </DownloadButton>
+            )}
             {commentData && (
               <StyledCommentEditor value={commentData} readOnly />
             )}
@@ -99,6 +126,48 @@ function NotificationListItem({ notification, onNavigate }: Props) {
     </ContextMenu>
   );
 }
+
+/**
+ * An icon that shows the state of the export in an export notification.
+ */
+function ExportIcon({ state }: { state?: FileOperationState }) {
+  const theme = useTheme();
+
+  if (state === FileOperationState.Complete) {
+    return (
+      <IconWrapper>
+        <DownloadIcon color={theme.textSecondary} />
+      </IconWrapper>
+    );
+  }
+
+  if (state === FileOperationState.Error) {
+    return (
+      <IconWrapper>
+        <WarningIcon color={theme.danger} />
+      </IconWrapper>
+    );
+  }
+
+  return (
+    <IconWrapper>
+      <ArchiveIcon color={theme.textTertiary} />
+    </IconWrapper>
+  );
+}
+
+const IconWrapper = styled.div`
+  flex-shrink: 0;
+  width: ${AvatarSize.Medium}px;
+  height: ${AvatarSize.Medium}px;
+  margin-top: 4px;
+`;
+
+// A visual cue only, as a click anywhere on the row downloads the export.
+const DownloadButton = styled(Button)`
+  align-self: flex-start;
+  margin-top: 8px;
+`;
 
 const StyledLink = styled(Link)`
   display: block;

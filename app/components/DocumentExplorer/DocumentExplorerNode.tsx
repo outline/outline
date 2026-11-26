@@ -1,4 +1,5 @@
 import { observer } from "mobx-react";
+import { CheckmarkIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -79,9 +80,14 @@ function DocumentExplorerNode({
       </Spacer>
       {icon}
       <Title>{title || t("Untitled")}</Title>
+      {selected && <SelectedIcon aria-hidden />}
     </Node>
   );
 }
+
+export const SelectedIcon = styled(CheckmarkIcon)`
+  margin-left: auto;
+`;
 
 const Title = styled(Text)`
   ${ellipsis()}

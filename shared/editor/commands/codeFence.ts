@@ -333,22 +333,19 @@ export const splitCodeBlockOnTripleBackticks: Command = (state, dispatch) => {
     return false;
   }
 
+  // The third backtick is not in the document yet, so only remove two.
+  const contentStart = (findParentNode(isCode)(selection)?.pos ?? 0) + 1;
+  const backticksStart = from - backticks.length;
+
+  // Do not split when the backticks are at the start of the block.
+  if (backticksStart <= contentStart) {
+    return false;
+  }
+
   if (dispatch) {
-    // Get position of parent node start
-    const codeBlockStart = findParentNode(isCode)(selection)?.pos || 0;
-    const backticksStart = Math.max(0, from - backticks.length - 1);
-    if (backticksStart <= codeBlockStart) {
-      return false;
-    }
-
     tr.delete(backticksStart, from);
-
-    // Split the node at the current position (minus the backticks)
-    const pos = tr.mapping.map(backticksStart);
-    tr.split(pos, 1);
-
+    tr.split(tr.mapping.map(backticksStart), 1);
     dispatch(tr);
-    return true;
   }
 
   return true;

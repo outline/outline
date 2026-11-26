@@ -368,6 +368,11 @@ export function sanitizeImageSrc(src: string | null | undefined) {
   return sanitizeUrl(src);
 }
 
+const defaultPorts: Record<string, string> = {
+  "http:": "80",
+  "https:": "443",
+};
+
 /**
  * Returns a regex to match urls that begin with the given url's origin.
  *
@@ -381,7 +386,13 @@ export function urlRegex(url: string | null | undefined): RegExp | undefined {
 
   const urlObj = new URL(sanitizeUrl(url) as string);
 
-  return new RegExp(`^${escapeRegExp(`${urlObj.protocol}//${urlObj.host}`)}`);
+  const origin = escapeRegExp(`${urlObj.protocol}//${urlObj.host}`);
+
+  // URL.host omits a default port, but the matched url can still state it.
+  const defaultPort = urlObj.port ? undefined : defaultPorts[urlObj.protocol];
+  const port = defaultPort ? `(?::${defaultPort})?` : "";
+
+  return new RegExp(`^${origin}${port}(?=[/?#]|$)`);
 }
 
 /**
@@ -425,6 +436,16 @@ export function parseShareIdFromUrl(url: string): string | undefined {
  */
 export function getUrls(text: string) {
   return Array.from(text.match(/(?:https?):\/\/[^\s]+/gi) || []);
+}
+
+/**
+ * Determine if the given text includes something that looks like a URL.
+ *
+ * @param text the text to check.
+ * @returns true if the text contains a URL, false otherwise.
+ */
+export function containsUrl(text: string) {
+  return /(www\.|file:|http:|https:)[^\s]+[\w]/.test(text);
 }
 
 /**

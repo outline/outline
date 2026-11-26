@@ -1,6 +1,8 @@
+import { Readable } from "node:stream";
 import { addHours } from "date-fns";
+import type { ZipFile } from "yazl";
 import { AttachmentPreset } from "@shared/types";
-import { errToString } from "@shared/utils/error";
+import { errToString, toError } from "@shared/utils/error";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import type Attachment from "@server/models/Attachment";
@@ -137,5 +139,71 @@ export default class AttachmentHelper {
       });
       return Buffer.from("");
     }
+  }
+
+  /**
+   * Add an attachment to an archive. The contents are streamed from storage
+   * when the archive writes the entry, so the file is never held in memory.
+   *
+   * A read that fails, or stops part way through, fails the archive, because a
+   * truncated archive looks complete. An attachment that is missing from
+   * storage is written as an empty entry, so that one missing file does not
+   * make the export impossible.
+   *
+   * @param zip The archive to add the attachment to.
+   * @param attachment The attachment to add.
+   * @param pathInZip The path of the attachment in the archive.
+   * @param signal An optional signal that stops the read when aborted.
+   */
+  static addToArchive(
+    zip: ZipFile,
+    attachment: Attachment,
+    pathInZip: string,
+    signal?: AbortSignal
+  ) {
+    zip.addReadStreamLazy(
+      pathInZip,
+      { mtime: attachment.updatedAt },
+      (callback) => {
+        if (signal?.aborted) {
+          return callback(null, Readable.from([]));
+        }
+
+        attachment.stream.then(
+          (stream) => {
+            if (!stream) {
+              Logger.warn(`Attachment is missing from storage`, {
+                attachmentId: attachment.id,
+                teamId: attachment.teamId,
+              });
+              return callback(null, Readable.from([]));
+            }
+
+            // The client can disconnect while the stream is being opened.
+            if (signal?.aborted) {
+              if (stream instanceof Readable) {
+                stream.destroy();
+              }
+              return callback(null, Readable.from([]));
+            }
+
+            // yazl ignores errors on input streams, so forward them to fail the
+            // archive; otherwise the entry never ends and the output hangs open.
+            stream.on("error", (err) => zip.emit("error", toError(err)));
+
+            if (signal && stream instanceof Readable) {
+              const handleAbort = () => stream.destroy();
+              signal.addEventListener("abort", handleAbort, { once: true });
+              stream.once("close", () =>
+                signal.removeEventListener("abort", handleAbort)
+              );
+            }
+
+            return callback(null, stream);
+          },
+          (err) => callback(toError(err), Readable.from([]))
+        );
+      }
+    );
   }
 }

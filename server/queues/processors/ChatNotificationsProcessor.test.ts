@@ -130,4 +130,31 @@ describe("ChatNotificationsProcessor", () => {
       collection.name
     );
   });
+
+  it("should only queue document events for subscribed teams", async () => {
+    const user = await buildUser();
+    const other = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    await buildPostIntegration(user, collection.id);
+    const event = (teamId: string) => ({
+      name: "documents.publish" as const,
+      documentId: collection.id,
+      collectionId: collection.id,
+      teamId,
+      actorId: user.id,
+      data: {},
+      authType: AuthenticationType.APP,
+      ip,
+    });
+
+    expect(
+      await ChatNotificationsProcessor.shouldQueue(event(user.teamId))
+    ).toBe(true);
+    expect(
+      await ChatNotificationsProcessor.shouldQueue(event(other.teamId))
+    ).toBe(false);
+  });
 });

@@ -132,7 +132,7 @@ export function DragAndDropProvider({ children }: Props) {
       onDragOver: () => undefined,
       onDragEnd: () => t("Dropped {{ title }}", { title: titleRef.current }),
       onDragCancel: () =>
-        t("Cancelled dragging {{ title }}", { title: titleRef.current }),
+        t("Canceled dragging {{ title }}", { title: titleRef.current }),
     };
     return {
       announcements,

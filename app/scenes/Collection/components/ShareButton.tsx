@@ -34,7 +34,7 @@ function ShareButton({ collection }: Props) {
   const team = useCurrentTeam();
   const share = shares.getByCollectionId(collection.id);
   const isPubliclyShared =
-    team.sharing !== false && collection?.sharing !== false && share?.published;
+    team.sharing !== false && collection?.sharing !== false && share?.isActive;
   const { preload, loading, reset } = useShareDataLoader({ collection });
 
   const handleOpenChange = useCallback(

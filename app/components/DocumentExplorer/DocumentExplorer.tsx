@@ -40,6 +40,8 @@ type Props = {
   defaultValue?: string;
   /** Whether to show child documents */
   showDocuments?: boolean;
+  /** Overrides the icon of a node, return undefined to keep the default. */
+  renderIcon?: (node: NavigationNode) => React.ReactNode;
 };
 
 const VERTICAL_PADDING = 6;
@@ -62,6 +64,7 @@ function DocumentExplorer({
   items,
   defaultValue,
   showDocuments,
+  renderIcon,
 }: Props) {
   const isMobile = useMobile();
   const { collections, documents } = useStores();
@@ -312,6 +315,8 @@ function DocumentExplorer({
           .map((a) => a.title)
           .join(" / ");
       }
+
+      renderedIcon = renderIcon?.(node) ?? renderedIcon;
 
       return deferredSearchTerm ? (
         <DocumentExplorerSearchResult

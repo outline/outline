@@ -3,6 +3,7 @@ import { prosemirrorToYDoc } from "y-prosemirror";
 import { schema } from "@server/editor";
 import { createContext } from "@server/context";
 import { Document, Event, Revision } from "@server/models";
+import { sequelize } from "@server/storage/database";
 import { buildDocument, buildUser } from "@server/test/factories";
 import documentCollaborativeUpdater from "./documentCollaborativeUpdater";
 
@@ -228,6 +229,50 @@ describe("documentCollaborativeUpdater", () => {
     await document.reload();
     expect(document.content?.content?.[0]?.content?.[0]?.text).toBe(
       "Kept edit"
+    );
+    ydoc.destroy();
+  });
+
+  it("does not wait for a concurrent foreign key insert on the document", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const ydoc = buildYDoc([
+      {
+        type: "paragraph",
+        content: [{ type: "text", text: "Saved while referenced" }],
+      },
+    ]);
+
+    // A foreign key check on insert takes FOR KEY SHARE on the parent row.
+    const other = await sequelize.transaction();
+    try {
+      await sequelize.query(
+        `SELECT id FROM documents WHERE id = :id FOR KEY SHARE`,
+        { replacements: { id: document.id }, transaction: other }
+      );
+
+      const save = documentCollaborativeUpdater({
+        documentId: document.id,
+        ydoc,
+        collaborators: { ids: [user.id] },
+        isLastConnection: true,
+        clientVersion: null,
+      }).then(() => "saved");
+      const timeout = new Promise((resolve) =>
+        setTimeout(() => resolve("blocked"), 2000)
+      );
+
+      await expect(Promise.race([save, timeout])).resolves.toBe("saved");
+    } finally {
+      await other.rollback();
+    }
+
+    await document.reload();
+    expect(document.content?.content?.[0]?.content?.[0]?.text).toBe(
+      "Saved while referenced"
     );
     ydoc.destroy();
   });

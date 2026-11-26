@@ -98,7 +98,7 @@ export function CreateGroupDialog() {
       <Text as="p" type="secondary">
         <Trans>
           Groups are for organizing your team. They work best when centered
-          around a function or a responsibility — Support or Engineering for
+          around a function or a responsibility — Support or Engineering, for
           example.
         </Trans>
       </Text>
@@ -201,8 +201,8 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
           </Trans>
         ) : (
           <Trans>
-            You can edit the name of this group at any time, however doing so
-            too often might confuse your teammates.
+            You can edit the name of this group at any time, but doing so too
+            often might confuse your teammates.
           </Trans>
         )}
       </Text>
@@ -288,7 +288,7 @@ export function DeleteGroupDialog({
         />
       ) : (
         t(
-          "Are you sure about that? Deleting {{ count }} group will cause their members to lose access to collections and documents that they are associated with.",
+          "Are you sure about that? Deleting {{ count }} group will cause its members to lose access to collections and documents that it is associated with.",
           { count: groups.length }
         )
       )}

@@ -1,4 +1,5 @@
 import { t } from "i18next";
+import type { Node as ProsemirrorNode } from "prosemirror-model";
 import { NodeSelection, Plugin, PluginKey, Selection } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 import { Decoration, DecorationSet } from "prosemirror-view";
@@ -37,7 +38,7 @@ const hoverPluginKey = new PluginKey<number | null>(HOVER_META_KEY);
 
 /**
  * Renders a floating drag handle to the left of block-level nodes when the
- * user hovers within the editor, and lets the user drag the block to reorder
+ * user hovers near the side of the editor, and lets the user drag the block to reorder
  * it. The handle is a real, always-draggable DOM element rather than a CSS
  * pseudo on the block, which keeps drag-and-drop working uniformly across
  * node types regardless of whether the schema declares `draggable: true`.
@@ -48,6 +49,9 @@ export default class DragHandle extends Extension {
   }
 
   get plugins() {
+    // The document when the mouse was last pressed in the editor.
+    let mouseDownDoc: ProsemirrorNode | null = null;
+
     return [
       // Marks the heading that owns the handle, so its level label in the
       // gutter can be hidden.
@@ -145,7 +149,20 @@ export default class DragHandle extends Extension {
             ]);
           },
           handleDOMEvents: {
-            dragstart: (view) => {
+            mousedown: (view) => {
+              mouseDownDoc = view.state.doc;
+              return false;
+            },
+            dragstart: (view, event) => {
+              const startDoc = mouseDownDoc;
+              mouseDownDoc = null;
+
+              // ProseMirror drags the node at the position from mousedown,
+              // so cancel the drag if the document changed since then.
+              if (startDoc && startDoc !== view.state.doc) {
+                event.preventDefault();
+                return true;
+              }
               view.dom.classList.add("dragging");
               return false;
             },

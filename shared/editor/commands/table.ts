@@ -12,6 +12,7 @@ import {
   toggleHeader,
   addColumn,
   deleteTable,
+  moveTableColumn,
   mergeCells,
   removeColumn,
   removeRow,
@@ -25,6 +26,11 @@ import { isCurrency, parseCurrency } from "../../utils/currency";
 import { parseDate } from "../../utils/date";
 import { isIPv4Address, parseIPv4 } from "../../utils/ip";
 import { chainTransactions } from "../lib/chainTransactions";
+import {
+  getFilteredTableRows,
+  openTableFilterMenu,
+  remapTableColumnFilters,
+} from "../plugins/TableFilterPlugin";
 import {
   getAllSelectedColumns,
   canMergeCells,
@@ -66,6 +72,26 @@ function restoreColumnSelection(
     const $pos = tr.doc.resolve(tableStart + TableMap.get(table).map[0]);
     tr.setSelection(ColumnSelection.fromIndex($pos, columnIndex));
   }
+}
+
+/**
+ * Add a column to a table, moving the column filters after it.
+ *
+ * @param tr The transaction to update.
+ * @param rect The table rect.
+ * @param position The index to insert the column at.
+ * @returns The transaction.
+ */
+function addColumnWithFilters(
+  tr: Transaction,
+  rect: TableRect,
+  position: number
+): Transaction {
+  return remapTableColumnFilters(
+    addColumn(tr, rect, position),
+    rect.tableStart - 1,
+    (column) => (column >= position ? column + 1 : column)
+  );
 }
 
 /**
@@ -589,8 +615,12 @@ export function deleteRows(): Command {
     }
 
     const rect = selectedRect(state);
-    const rows = getAllSelectedRows(state);
-    if (rows.length >= rect.map.height) {
+
+    // A selection across rows that a filter hides does not delete them, as the
+    // reader cannot see them.
+    const filtered = getFilteredTableRows(state, rect.tableStart - 1);
+    const rows = getAllSelectedRows(state).filter((row) => !filtered.has(row));
+    if (!rows.length || rows.length >= rect.map.height) {
       return false;
     }
 
@@ -637,6 +667,12 @@ export function deleteColumns(): Command {
         }
         removeColumn(tr, { ...rect, table, map: TableMap.get(table) }, column);
       }
+      remapTableColumnFilters(tr, rect.tableStart - 1, (column) => {
+        if (columns.includes(column)) {
+          return undefined;
+        }
+        return column - columns.filter((removed) => removed < column).length;
+      });
       dispatch(tr);
     }
     return true;
@@ -700,7 +736,7 @@ export function addColumnBefore({ index }: { index?: number }): Command {
 
     chainTransactions(
       headerSpecialCase ? toggleHeader("column") : undefined,
-      (s, d) => !!d?.(addColumn(s.tr, rect, position)),
+      (s, d) => !!d?.(addColumnWithFilters(s.tr, rect, position)),
       headerSpecialCase ? toggleHeader("column") : undefined,
       setCursorInCell(rect.tableStart, 0, position)
     )(state, dispatch);
@@ -755,7 +791,7 @@ export function addColumnAfter({ index }: { index?: number }): Command {
     const position = index !== undefined ? index + 1 : rect.right;
 
     chainTransactions(
-      (s, d) => !!d?.(addColumn(s.tr, rect, position)),
+      (s, d) => !!d?.(addColumnWithFilters(s.tr, rect, position)),
       setCursorInCell(rect.tableStart, 0, position)
     )(state, dispatch);
 
@@ -924,6 +960,77 @@ export function setTableAttr(attrs: { layout: TableLayout | null }): Command {
       return true;
     }
     return false;
+  };
+}
+
+/**
+ * A command that moves a column of the table, keeping the column filters on
+ * the columns they apply to.
+ *
+ * @param from The index of the column to move.
+ * @param to The index to move the column to.
+ * @returns The command
+ */
+export function moveColumn({
+  from,
+  to,
+}: {
+  from: number;
+  to: number;
+}): Command {
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
+    const rect = selectedRect(state);
+    const order = Array.from({ length: rect.map.width }, (_, index) => index);
+    order.splice(to, 0, ...order.splice(from, 1));
+
+    return moveTableColumn({ from, to })(
+      state,
+      dispatch
+        ? (tr) =>
+            dispatch(
+              remapTableColumnFilters(tr, rect.tableStart - 1, (column) =>
+                order.indexOf(column)
+              )
+            )
+        : undefined
+    );
+  };
+}
+
+/**
+ * A command that opens the filter menu for a column of the table.
+ *
+ * @param index The index of the column.
+ * @returns The command
+ */
+export function openTableFilter({ index }: { index: number }): Command {
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
+    if (dispatch) {
+      const rect = selectedRect(state);
+      if (index < 0 || index >= rect.map.width) {
+        return false;
+      }
+
+      // Collapse the column selection so that its toolbar closes.
+      const $cell = state.doc.resolve(
+        rect.tableStart + rect.map.map[index] + 1
+      );
+      dispatch(
+        openTableFilterMenu(state.tr.setSelection(TextSelection.near($cell)), {
+          pos: rect.tableStart - 1,
+          column: index,
+        })
+      );
+    }
+    return true;
   };
 }
 

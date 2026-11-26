@@ -182,7 +182,7 @@ export default class UsersStore extends Store<User> {
     );
     const userIds = groupUsers.map((groupUser) => groupUser.userId);
     const users = this.activeOrInvited.filter(
-      (user) => !userIds.includes(user.id)
+      (user) => !user.isGuest && !userIds.includes(user.id)
     );
     return queriedUsers(users, query);
   };

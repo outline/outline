@@ -57,14 +57,14 @@ function Message({ notice }: { notice: string }) {
     case "email-auth-required":
       return (
         <Trans>
-          Your account uses email sign-in, please sign in with email to
+          Your account uses email sign-in. Please sign in with email to
           continue.
         </Trans>
       );
     case "email-auth-ratelimit":
       return (
         <Trans>
-          An email sign-in link was recently sent, please check your inbox or
+          An email sign-in link was recently sent. Please check your inbox or
           try again in a few minutes.
         </Trans>
       );
@@ -86,7 +86,7 @@ function Message({ notice }: { notice: string }) {
     case "expired-token":
       return (
         <Trans>
-          Sorry, it looks like that sign-in link is no longer valid, please try
+          Sorry, it looks like that sign-in link is no longer valid. Please try
           requesting another.
         </Trans>
       );

@@ -3,7 +3,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { ellipsis } from "@shared/styles";
-import { Node as SearchResult } from "./DocumentExplorerNode";
+import { Node as SearchResult, SelectedIcon } from "./DocumentExplorerNode";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 
@@ -51,6 +51,7 @@ function DocumentExplorerSearchResult({
           {path}
         </Path>
       </Flex>
+      {selected && <SelectedIcon aria-hidden />}
     </SearchResult>
   );
 }

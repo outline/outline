@@ -78,7 +78,7 @@ function TeamNew({ user }: Props) {
           />
           .{" "}
           <Trans>
-            To create a workspace under another email please sign up from the
+            To create a workspace under another email, please sign up from the
             homepage
           </Trans>
         </Text>

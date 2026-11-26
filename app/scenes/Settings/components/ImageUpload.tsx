@@ -26,13 +26,20 @@ export type Props = {
   children?: React.ReactNode;
 };
 
-const ImageUpload: React.FC<Props> = ({
+/** Imperative handle exposed by ImageUpload. */
+export interface ImageUploadHandle {
+  /** Opens the file picker. */
+  open: () => void;
+}
+
+const ImageUpload = ({
   onSuccess,
   onError,
   submitText,
   borderRadius,
   children,
-}) => {
+  ref,
+}: Props & { ref?: React.Ref<ImageUploadHandle> }) => {
   const { dialogs } = useStores();
   const { t } = useTranslation();
 
@@ -85,7 +92,7 @@ const ImageUpload: React.FC<Props> = ({
         if (!converted) {
           onError(
             t(
-              "Your browser cannot read HEIC images, please convert the image to JPEG or PNG first"
+              "Your browser cannot read HEIC images – please convert the image to JPEG or PNG first"
             )
           );
           return;
@@ -110,10 +117,12 @@ const ImageUpload: React.FC<Props> = ({
     [t, dialogs, handleUpload, handleClose, onError, borderRadius, submitText]
   );
 
-  const { getRootProps, getInputProps } = useDropzone({
+  const { getRootProps, getInputProps, open } = useDropzone({
     accept: avatarAccept,
     onDropAccepted,
   });
+
+  React.useImperativeHandle(ref, () => ({ open }), [open]);
 
   if (isCropping) {
     return null; // onDropAccepted would have opened a modal for cropping the image.

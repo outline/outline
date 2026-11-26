@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { AttachmentPreset } from "@shared/types";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import { createContext } from "@server/context";
-import { Attachment, User } from "@server/models";
+import { Attachment, User, UserAuthentication } from "@server/models";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
 
 type Props = {
@@ -10,11 +10,17 @@ type Props = {
   userId: string;
   /** The original avatarUrl from the SSO provider */
   avatarUrl: string;
+  /**
+   * The user authentication whose access token is sent as a bearer token when
+   * fetching the avatarUrl, for providers that require authorization.
+   */
+  userAuthenticationId?: string;
 };
 
 /**
  * A task that uploads the provided avatarUrl to S3 storage and updates the
- * user's record with the new url.
+ * user's record with the new url. When a user authentication is provided, its
+ * access token is used to authorize the download.
  */
 export default class UploadUserAvatarTask extends BaseTask<Props> {
   public async perform(props: Props) {
@@ -42,12 +48,26 @@ export default class UploadUserAvatarTask extends BaseTask<Props> {
       }
     }
 
+    let fetchOptions;
+    if (props.userAuthenticationId) {
+      const authentication = await UserAuthentication.findOne({
+        where: { id: props.userAuthenticationId, userId: user.id },
+      });
+      if (!authentication?.accessToken) {
+        return;
+      }
+      fetchOptions = {
+        headers: { Authorization: `Bearer ${authentication.accessToken}` },
+      };
+    }
+
     const attachment = await attachmentCreator({
       name: hash,
       url: props.avatarUrl,
       user,
       preset: AttachmentPreset.Avatar,
       ctx: createContext({ user }),
+      fetchOptions,
     });
 
     if (attachment) {

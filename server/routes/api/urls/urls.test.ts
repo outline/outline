@@ -6,6 +6,7 @@ import env from "@server/env";
 import type { User } from "@server/models";
 import { View } from "@server/models";
 import {
+  buildAttachment,
   buildCollection,
   buildDocument,
   buildShare,
@@ -433,6 +434,82 @@ Install instructions here.`
     expect(res.status).toEqual(200);
     expect(body.id).toEqual(document.id);
     expect(body.lastActivityByViewer).toBeUndefined();
+  });
+
+  describe("preview image", () => {
+    const buildDocumentWithImage = async (src: string) =>
+      buildDocument({
+        teamId: user.teamId,
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [
+                {
+                  type: "image",
+                  attrs: { src, alt: "", width: 400, height: 300 },
+                },
+              ],
+            },
+          ],
+        },
+      });
+
+    it("should return the redirect url for a team member", async () => {
+      const attachment = await buildAttachment({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const document = await buildDocumentWithImage(attachment.redirectUrl);
+
+      const res = await server.post("/api/urls.unfurl", user, {
+        body: { url: `${env.URL}/doc/${document.urlId}` },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.thumbnailUrl).toEqual(attachment.redirectUrl);
+    });
+
+    it("should return a signed url for a public share", async () => {
+      const attachment = await buildAttachment({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const document = await buildDocumentWithImage(attachment.redirectUrl);
+      const share = await buildShare({
+        teamId: user.teamId,
+        userId: user.id,
+        documentId: document.id,
+        published: true,
+      });
+
+      const res = await server.post("/api/urls.unfurl", {
+        body: { url: `${env.URL}/s/${share.id}/doc/${document.urlId}` },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.thumbnailUrl).toBeTruthy();
+      expect(body.thumbnailUrl).not.toContain("attachments.redirect");
+    });
+
+    it("should not sign an attachment from another team for a public share", async () => {
+      const attachment = await buildAttachment();
+      const document = await buildDocumentWithImage(attachment.redirectUrl);
+      const share = await buildShare({
+        teamId: user.teamId,
+        userId: user.id,
+        documentId: document.id,
+        published: true,
+      });
+
+      const res = await server.post("/api/urls.unfurl", {
+        body: { url: `${env.URL}/s/${share.id}/doc/${document.urlId}` },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.thumbnailUrl).toEqual(attachment.redirectUrl);
+    });
   });
 
   it("should return share-scoped url in unfurl response", async () => {

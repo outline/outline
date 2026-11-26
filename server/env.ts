@@ -167,10 +167,12 @@ export class Environment {
   );
 
   /**
-   * Database connection pool configuration.
+   * Database connection pool configuration. At least two connections are
+   * needed, as some operations query outside of a transaction they hold open.
    */
   @IsNumber()
   @IsOptional()
+  @Min(2)
   public DATABASE_CONNECTION_POOL_MAX = this.toOptionalNumber(
     environment.DATABASE_CONNECTION_POOL_MAX
   );
@@ -229,6 +231,18 @@ export class Environment {
   @Min(1000)
   public REDIS_UNAVAILABLE_TIMEOUT = parseInt(
     environment.REDIS_UNAVAILABLE_TIMEOUT || "300000",
+    10
+  );
+
+  /**
+   * The timeout in milliseconds for a command on the redis connection used for
+   * ephemeral data such as caches, locks and rate limits, after which the
+   * command fails.
+   */
+  @IsNumber()
+  @Min(100)
+  public REDIS_EPHEMERAL_COMMAND_TIMEOUT = parseInt(
+    environment.REDIS_EPHEMERAL_COMMAND_TIMEOUT || "500",
     10
   );
 

@@ -1,8 +1,9 @@
-import type { Context } from "koa";
+import { subDays } from "date-fns";
 import { randomString } from "@shared/random";
 import env from "@server/env";
 import { buildShare, buildTeam } from "@server/test/factories";
 import shareDomains from "./shareDomains";
+import type { AppContext } from "@server/types";
 
 describe("shareDomains middleware", () => {
   const buildContext = (hostname: string) =>
@@ -10,7 +11,7 @@ describe("shareDomains middleware", () => {
       host: hostname,
       hostname,
       state: {},
-    }) as Context;
+    }) as AppContext;
 
   beforeEach(() => {
     vi.spyOn(env, "isCloudHosted", "get").mockReturnValue(true);
@@ -30,6 +31,22 @@ describe("shareDomains middleware", () => {
     await shareDomains()(ctx, vi.fn());
 
     expect(ctx.state.rootShare?.id).toEqual(share.id);
+  });
+
+  it("should not resolve an expired share", async () => {
+    const domain = `${randomString(10).toLowerCase()}.example.com`;
+    const team = await buildTeam();
+    await buildShare({
+      teamId: team.id,
+      published: true,
+      domain,
+      expiresAt: subDays(new Date(), 1),
+    });
+    const ctx = buildContext(domain);
+
+    await shareDomains()(ctx, vi.fn());
+
+    expect(ctx.state.rootShare).toEqual(null);
   });
 
   it("should not resolve the share when the team is deleted", async () => {

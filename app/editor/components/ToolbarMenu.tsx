@@ -16,6 +16,11 @@ import ToolbarButton from "./ToolbarButton";
 import ToolbarSeparator from "./ToolbarSeparator";
 import Tooltip from "./Tooltip";
 import { toMenuItems } from "~/components/Menu/transformer";
+import {
+  MenuFilter,
+  MenuFilterEmpty,
+  useMenuFilter,
+} from "~/components/Menu/MenuFilter";
 import { MenuContent } from "~/components/primitives/Menu";
 import { MenuProvider } from "~/components/primitives/Menu/MenuContext";
 import { Menu, MenuTrigger } from "~/components/primitives/Menu";
@@ -44,10 +49,23 @@ function ToolbarDropdown(props: ToolbarDropdownProps) {
   const { item, shortcut, tooltip } = props;
   const { state } = view;
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const {
+    query,
+    setQuery,
+    handleKeyDownCapture,
+    handleEscapeKeyDown,
+    reset: resetFilter,
+  } = useMenuFilter();
 
-  const handleOpenChange = useCallback((open: boolean) => {
-    setIsOpen(open);
-  }, []);
+  const handleOpenChange = useCallback(
+    (open: boolean) => {
+      setIsOpen(open);
+      if (open) {
+        resetFilter();
+      }
+    },
+    [resetFilter]
+  );
 
   const items: TMenuItem[] = useMemo(() => {
     if (!isOpen) {
@@ -86,8 +104,14 @@ function ToolbarDropdown(props: ToolbarDropdownProps) {
             align="end"
             aria-label={item.tooltip || t("More options")}
             onCloseAutoFocus={handleCloseAutoFocus}
+            onEscapeKeyDown={handleEscapeKeyDown}
+            onKeyDownCapture={handleKeyDownCapture}
           >
-            <EventBoundary>{toMenuItems(items)}</EventBoundary>
+            <MenuFilter query={query} onChange={setQuery} />
+            <EventBoundary>
+              {toMenuItems(items, query) ??
+                (query ? <MenuFilterEmpty /> : null)}
+            </EventBoundary>
           </MenuContent>
         </Menu>
       </MenuProvider>
@@ -174,28 +198,28 @@ function ToolbarMenu(props: Props) {
           );
         }
 
+        if (item.name === "dimensions") {
+          return <MediaDimension key={index} tooltip={item.tooltip} />;
+        }
+
         return (
           <Tooltip
             key={index}
             shortcut={item.shortcut}
             content={item.label === item.tooltip ? undefined : item.tooltip}
           >
-            {item.name === "dimensions" ? (
-              <MediaDimension key={index} />
-            ) : (
-              <Toolbar.Button asChild>
-                <ToolbarButton
-                  data-group={item.group}
-                  onClick={handleClick(item)}
-                  active={isActive && !item.label}
-                  aria-label={item.label ? undefined : item.tooltip}
-                  disabled={item.disabled}
-                >
-                  {item.label && <Label>{item.label}</Label>}
-                  {item.icon}
-                </ToolbarButton>
-              </Toolbar.Button>
-            )}
+            <Toolbar.Button asChild>
+              <ToolbarButton
+                data-group={item.group}
+                onClick={handleClick(item)}
+                active={isActive && !item.label}
+                aria-label={item.label ? undefined : item.tooltip}
+                disabled={item.disabled}
+              >
+                {item.label && <Label>{item.label}</Label>}
+                {item.icon}
+              </ToolbarButton>
+            </Toolbar.Button>
           </Tooltip>
         );
       })}

@@ -97,7 +97,7 @@ function Umami() {
           label={t("Instance URL")}
           name="umamiDomain"
           description={t(
-            "The URL of your Umami instance. If you are using Umami Cloud it will begin with {{ url }}",
+            "The URL of your Umami instance. If you are using Umami Cloud, it will begin with {{ url }}",
             {
               url: "https://cloud.umami.is/",
             }

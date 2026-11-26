@@ -1115,7 +1115,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                       "placeholder" in insertItem && !!insertItem.placeholder
                         ? insertItem.placeholder
                         : insertItem.title
-                          ? t("Paste a {{service}} link…", {
+                          ? t("Paste a link from {{service}}…", {
                               service: insertItem.title,
                             })
                           : `${t("Paste a link")}…`
@@ -1173,7 +1173,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                   "placeholder" in insertItem && !!insertItem.placeholder
                     ? insertItem.placeholder
                     : insertItem.title
-                      ? t("Paste a {{service}} link…", {
+                      ? t("Paste a link from {{service}}…", {
                           service: insertItem.title,
                         })
                       : `${t("Paste a link")}…`

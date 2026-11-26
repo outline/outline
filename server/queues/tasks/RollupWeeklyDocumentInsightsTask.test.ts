@@ -15,8 +15,6 @@ const props = {
 const daysAgo = (n: number) => subDays(new Date(), n);
 const dayStr = (d: Date) => format(d, "yyyy-MM-dd");
 
-vi.setConfig({ testTimeout: 30000 });
-
 describe("RollupWeeklyDocumentInsightsTask", () => {
   let task: RollupWeeklyDocumentInsightsTask;
 

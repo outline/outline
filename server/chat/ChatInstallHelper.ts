@@ -9,9 +9,9 @@ import {
   IntegrationAuthentication,
 } from "@server/models";
 import { authorize } from "@server/policies";
-import { createContext } from "@server/context";
+import { withTransaction } from "@server/context";
 import { sequelize } from "@server/storage/database";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import type { BaseChatProvider } from "./BaseChatProvider";
 
 /**
@@ -31,12 +31,12 @@ export class ChatInstallHelper {
    * @throws {ValidationError} if the state or the install result is not valid.
    */
   public static async install(
-    ctx: APIContext,
+    ctx: Context,
     provider: BaseChatProvider,
     state: ChatOAuthState,
     code: string
   ): Promise<void> {
-    const { user } = ctx.context.auth;
+    const { user } = ctx.auth;
     const redirectUri = ChatUtils.connectUrl(provider.service);
 
     switch (state.type) {
@@ -149,28 +149,12 @@ export class ChatInstallHelper {
     }
   }
 
-  /**
-   * Runs a callback in a transaction, with a copy of the context that holds
-   * the transaction.
-   *
-   * @param ctx the context of the request.
-   * @param callback the callback to run.
-   * @returns the result of the callback.
-   */
   private static transaction<T>(
-    ctx: APIContext,
-    callback: (txCtx: APIContext, transaction: Transaction) => Promise<T>
+    ctx: Context,
+    callback: (txCtx: Context, transaction: Transaction) => Promise<T>
   ): Promise<T> {
     return sequelize.transaction((transaction) =>
-      callback(
-        createContext({
-          user: ctx.context.auth.user,
-          authType: ctx.context.auth.type,
-          ip: ctx.context.ip,
-          transaction,
-        }),
-        transaction
-      )
+      callback(withTransaction(ctx, transaction), transaction)
     );
   }
 }

@@ -1,4 +1,5 @@
 import type { i18n } from "i18next";
+import { languages } from "@shared/i18n";
 import type { locales } from "@shared/utils/date";
 import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import { isRTLLanguage } from "@shared/utils/rtl";
@@ -27,7 +28,7 @@ export function detectLanguage() {
 
 /**
  * Changes the language of the app, and updates the spellchecker language
- * if running in the desktop shell.
+ * if running in the desktop shell. An unsupported language is ignored.
  *
  * @param locale The locale to change to, in CLDR format (en_US)
  * @param instance The i18n instance to use
@@ -36,16 +37,25 @@ export async function changeLanguage(
   locale: string | null | undefined,
   instance: i18n
 ) {
-  // Languages are stored in en_US format in the database, however the
-  // frontend translation framework (i18next) expects en-US
-  const localeBCP = locale ? unicodeCLDRtoBCP47(locale) : undefined;
+  const language = languages.find((value) => value === locale);
 
-  if (localeBCP && instance.languages?.[0] !== localeBCP) {
-    await instance.changeLanguage(localeBCP);
-    await Desktop.bridge?.setSpellCheckerLanguages(["en-US", localeBCP]);
+  // An unsupported language keeps the current language.
+  if (!language) {
+    return;
   }
 
+  // Languages are stored in en_US format in the database, however the
+  // frontend translation framework (i18next) expects en-US
+  const localeBCP = unicodeCLDRtoBCP47(language);
+
+  if (instance.languages?.[0] !== localeBCP) {
+    await instance.changeLanguage(localeBCP);
+  }
+
+  // i18n can start in this locale, so set the spellchecker in all cases.
+  await Desktop.bridge?.setSpellCheckerLanguages(["en-US", localeBCP]);
+
   if (typeof document !== "undefined") {
-    document.documentElement.dir = isRTLLanguage(locale) ? "rtl" : "ltr";
+    document.documentElement.dir = isRTLLanguage(language) ? "rtl" : "ltr";
   }
 }

@@ -1,11 +1,12 @@
 import { OAuthError } from "@node-oauth/oauth2-server";
-import type { Context, Next } from "koa";
+import type { Next } from "koa";
 import {
   ValidationError as SequelizeValidationError,
   EmptyResultError as SequelizeEmptyResultError,
 } from "sequelize";
 import { errToString } from "@shared/utils/error";
 import Logger from "@server/logging/Logger";
+import type { AppContext } from "@server/types";
 
 interface OAuthErrorBody {
   error: string;
@@ -34,7 +35,10 @@ function statusCodeFromError(err: unknown): number {
  * our standard error format.
  */
 export default function oauthErrorHandler() {
-  return async function oauthErrorHandlerMiddleware(ctx: Context, next: Next) {
+  return async function oauthErrorHandlerMiddleware(
+    ctx: AppContext,
+    next: Next
+  ) {
     try {
       await next();
     } catch (err) {

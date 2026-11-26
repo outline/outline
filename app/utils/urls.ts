@@ -54,12 +54,11 @@ export function isHash(href: string) {
   }
 
   try {
-    const outline = new URL(window.location.href);
     const parsed = new URL(href);
 
     if (
-      outline.hostname === parsed.hostname &&
-      outline.pathname === parsed.pathname &&
+      window.location.hostname === parsed.hostname &&
+      window.location.pathname === parsed.pathname &&
       !!parsed.hash
     ) {
       return true;

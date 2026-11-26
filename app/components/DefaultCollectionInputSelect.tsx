@@ -41,7 +41,7 @@ const DefaultCollectionInputSelect = observer(
             });
           } catch (error) {
             toast.error(
-              t("Collections could not be loaded, please reload the app")
+              t("Collections could not be loaded – please reload the app")
             );
             setFetchError(toError(error));
           } finally {

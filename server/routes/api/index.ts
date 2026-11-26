@@ -1,19 +1,16 @@
-import type { BaseContext } from "koa";
 import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "@koa/router";
-import type { UserAgentContext } from "koa-useragent";
-import userAgent from "koa-useragent";
 import { ChatRouter } from "@server/chat/ChatRouter";
 import { ChatService } from "@server/chat/ChatService";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
-import { apiContext } from "@server/middlewares/apiContext";
 import cleanupMultipartFiles from "@server/middlewares/cleanupMultipartFiles";
 import coalesceBody from "@server/middlewares/coaleseBody";
 import requestContextMiddleware from "@server/middlewares/requestContext";
 import requestTracer from "@server/middlewares/requestTracer";
 import { verifyCSRFToken } from "@server/middlewares/csrf";
+import { userAgent } from "@server/middlewares/userAgent";
 import type { AppState, AppContext } from "@server/types";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 import apiKeys from "./apiKeys";
@@ -77,12 +74,11 @@ api.use(
 );
 api.use(cleanupMultipartFiles());
 api.use(coalesceBody());
-api.use<BaseContext, UserAgentContext>(userAgent);
+api.use(userAgent());
 api.use(requestTracer());
 api.use(apiResponse());
 api.use(apiErrorHandler());
 api.use(editor());
-api.use(apiContext());
 api.use(verifyCSRFToken());
 
 // Register plugin API routes before others to allow for overrides

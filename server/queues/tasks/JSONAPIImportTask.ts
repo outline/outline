@@ -18,11 +18,13 @@ import attachmentCreator from "@server/commands/attachmentCreator";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
 import env from "@server/env";
+import { FileImportError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import type { ImportTask } from "@server/models";
 import { Attachment } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
+import { ImportValidation } from "@shared/validations";
 import { sequelize } from "@server/storage/database";
 import FileStorage from "@server/storage/files";
 import type {
@@ -43,7 +45,7 @@ const ATTACHMENT_NODE_TYPES = ["attachment", "image", "video"];
 interface DiscoveredDocument {
   externalId: string;
   parentExternalId?: string;
-  collectionExternalId: string;
+  rootExternalId: string;
   export: DocumentJSONExport;
   children: DiscoveredDocument[];
 }
@@ -150,49 +152,59 @@ export default class JSONAPIImportTask extends APIImportTask<Service> {
       );
       const seen = new Set<string>();
 
-      await ZipHelper.walk(handle.path, async (entry) => {
-        if (entry.isDirectory) {
-          return;
-        }
-        // Normalize to match the bootstrap-phase pathInZip (segments rejoined
-        // with `/`, no leading `./` or empty segments).
-        const normalized = entry.fileName
-          .split("/")
-          .filter((s) => s !== "" && s !== ".")
-          .join("/");
-        const item = manifestByPath.get(normalized);
-        if (!item) {
-          return;
-        }
-        seen.add(item.pathInZip);
-        const buffer = await entry.readBuffer(maxAttachmentSize);
-
-        try {
-          await sequelize.transaction(async (transaction) =>
-            attachmentCreator({
-              source: "import",
-              preset: AttachmentPreset.DocumentAttachment,
-              id: item.id,
-              name: item.name,
-              type: item.mimeType,
-              buffer,
-              user: createdBy,
-              ctx: createContext({ user: createdBy, transaction }),
-              fetchOptions: {
-                timeout: env.FILE_STORAGE_IMPORT_TIMEOUT,
-              },
-            })
-          );
-        } catch (err) {
-          // Each attachment commits in its own transaction, so a retry of
-          // this hook can re-encounter ids that already landed. Treat the
-          // unique-id collision as a no-op so the import remains resumable.
-          if (err instanceof UniqueConstraintError) {
+      await ZipHelper.walk(
+        handle.path,
+        async (entry) => {
+          if (entry.isDirectory) {
             return;
           }
-          throw err;
+          // Normalize to match the bootstrap-phase pathInZip (segments rejoined
+          // with `/`, no leading `./` or empty segments).
+          const normalized = entry.fileName
+            .split("/")
+            .filter((s) => s !== "" && s !== ".")
+            .join("/");
+          const item = manifestByPath.get(normalized);
+          if (!item) {
+            return;
+          }
+          seen.add(item.pathInZip);
+          const buffer = await entry.readBuffer(maxAttachmentSize);
+
+          try {
+            await sequelize.transaction(async (transaction) =>
+              attachmentCreator({
+                source: "import",
+                preset: AttachmentPreset.DocumentAttachment,
+                id: item.id,
+                name: item.name,
+                type: item.mimeType,
+                buffer,
+                user: createdBy,
+                ctx: createContext({ user: createdBy, transaction }),
+                fetchOptions: {
+                  timeout: env.FILE_STORAGE_IMPORT_TIMEOUT,
+                },
+              })
+            );
+          } catch (err) {
+            // Each attachment commits in its own transaction, so a retry of
+            // this hook can re-encounter ids that already landed. Treat the
+            // unique-id collision as a no-op so the import remains resumable.
+            if (err instanceof UniqueConstraintError) {
+              return;
+            }
+            throw err;
+          }
+        },
+        // Bytes read across all attachments may not exceed the upload size limit.
+        {
+          maxEntries: ImportValidation.maxZipEntries,
+          maxTotalSize: AttachmentHelper.presetToMaxUploadSize(
+            AttachmentPreset.WorkspaceImport
+          ),
         }
-      });
+      );
 
       for (const item of scratch.manifest) {
         if (!seen.has(item.pathInZip)) {
@@ -239,11 +251,16 @@ export default class JSONAPIImportTask extends APIImportTask<Service> {
               `Could not parse ${node.name}. ${err instanceof Error ? err.message : "unknown error"}`
             );
           }
+        },
+        // Text read from the archive may not exceed the upload size limit.
+        {
+          maxEntries: ImportValidation.maxZipEntries,
+          maxTotalSize: maxJSONSize,
         }
       );
 
       if (tree.children.length === 0) {
-        throw new Error("Could not find valid content in zip file");
+        throw FileImportError("Could not find valid content in zip file");
       }
 
       const metadata = jsonByPath.get("metadata.json") as
@@ -417,7 +434,7 @@ export default class JSONAPIImportTask extends APIImportTask<Service> {
     ): DiscoveredDocument => ({
       externalId: doc.id,
       parentExternalId: parentExternalId ?? doc.parentDocumentId ?? undefined,
-      collectionExternalId: externalId,
+      rootExternalId: externalId,
       export: doc,
       children: [],
     });
@@ -523,7 +540,7 @@ export default class JSONAPIImportTask extends APIImportTask<Service> {
     return {
       externalId: doc.externalId,
       parentExternalId: doc.parentExternalId,
-      collectionExternalId: doc.collectionExternalId,
+      rootExternalId: doc.rootExternalId,
       title: exported.title,
       urlId: exported.urlId,
       icon: exported.icon ?? exported.emoji,

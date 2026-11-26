@@ -235,7 +235,6 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
         menuOpen={menuOpen}
         canCreateChild={can.createChildDocument}
         onCreateChild={handleNewDoc}
-        newChildDepth={2}
         contextAction={contextMenuAction}
         isActiveOverride={isActive}
         onClickIntent={handlePrefetch}

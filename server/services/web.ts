@@ -1,5 +1,4 @@
 import { Server } from "node:https";
-import type { BaseContext } from "koa";
 import Koa from "koa";
 import compress from "koa-compress";
 import helmet from "koa-helmet";
@@ -14,6 +13,7 @@ import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
 import csp from "@server/middlewares/csp";
 import { attachCSRFToken } from "@server/middlewares/csrf";
+import { userAgent } from "@server/middlewares/userAgent";
 import { ShutdownHelper, ShutdownOrder } from "@server/utils/ShutdownHelper";
 import { initI18n } from "@server/utils/i18n";
 import routes from "../routes";
@@ -21,8 +21,6 @@ import api from "../routes/api";
 import auth from "../routes/auth";
 import mcp from "../routes/mcp";
 import oauth from "../routes/oauth";
-import type { UserAgentContext } from "koa-useragent";
-import userAgent from "koa-useragent";
 
 export default function init(app: Koa = new Koa(), server?: Server) {
   void initI18n();
@@ -65,8 +63,7 @@ export default function init(app: Koa = new Koa(), server?: Server) {
     }
   }
 
-  // Make `ctx.userAgent` available
-  app.use<BaseContext, UserAgentContext>(userAgent);
+  app.use(userAgent());
 
   app.use(compress());
 

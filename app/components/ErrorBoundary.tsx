@@ -177,14 +177,14 @@ class ErrorBoundaryClass extends React.Component<Props> {
           {this.isRepeatedError ? (
             <Text as="p" type="secondary">
               <Trans>
-                An error has occurred multiple times recently. If it continues
+                An error has occurred multiple times recently. If it continues,
                 please try clearing the cache or using a different browser.
               </Trans>
             </Text>
           ) : (
             <Text as="p" type="secondary">
               <Trans
-                defaults="Sorry, an unrecoverable error occurred{{notified}}. Please try reloading the page, it may have been a temporary glitch."
+                defaults="Sorry, an unrecoverable error occurred{{notified}}. Please try reloading the page – it may have been a temporary glitch."
                 values={{
                   notified: isReported
                     ? ` – ${t("our engineers have been notified")}`

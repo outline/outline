@@ -32,7 +32,7 @@ function ConnectionStatus() {
     },
     [AuthorizationFailed.code]: {
       title: t("Authorization failed"),
-      body: t("You may have lost access to this document, try reloading"),
+      body: t("You may have lost access to this document – try reloading"),
     },
     [TooManyConnections.code]: {
       title: t("Too many users connected to document"),

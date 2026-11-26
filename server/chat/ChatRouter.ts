@@ -1,11 +1,10 @@
 import Router from "@koa/router";
 import { ChatUtils } from "@shared/utils/ChatUtils";
-import { createContext } from "@server/context";
 import { ValidationError } from "@server/errors";
 import apexAuthRedirect from "@server/middlewares/apexAuthRedirect";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { verifyOAuthStateNonce } from "@server/utils/oauth";
 import type { BaseChatProvider } from "./BaseChatProvider";
 import { ChatInstallHelper } from "./ChatInstallHelper";
@@ -29,7 +28,7 @@ export class ChatRouter {
     const router = new Router();
 
     for (const path of provider.webhookPaths) {
-      router.post(path, async (ctx: APIContext) => {
+      router.post(path, async (ctx: Context) => {
         const request = await provider.parseRequest(ctx, path);
 
         if (request.type === "handshake") {
@@ -68,7 +67,7 @@ export class ChatRouter {
           }),
         getErrorPath: () => ChatUtils.errorPath(service, "unauthenticated"),
       }),
-      async (ctx: APIContext<T.ChatInstallReq>) => {
+      async (ctx: Context<T.ChatInstallReq>) => {
         const { code, error, state } = ctx.input.query;
 
         if (error) {
@@ -91,14 +90,7 @@ export class ChatRouter {
           throw ValidationError("code is required");
         }
 
-        // The auth app has no apiContext middleware, so build the context here.
-        const { user, type } = ctx.state.auth;
-        await ChatInstallHelper.install(
-          createContext({ user, authType: type, ip: ctx.request.ip }),
-          provider,
-          parsedState,
-          code
-        );
+        await ChatInstallHelper.install(ctx, provider, parsedState, code);
         ctx.redirect(ChatUtils.settingsPath(service));
       }
     );

@@ -7,7 +7,7 @@ import { toError } from "@shared/utils/error";
 import accountProvisioner from "@server/commands/accountProvisioner";
 import passportMiddleware from "@server/middlewares/passport";
 import type { User } from "@server/models";
-import type { AuthenticationResult } from "@server/types";
+import type { AuthenticationResult, AppContext } from "@server/types";
 import {
   getClientFromOAuthState,
   getTeamFromContext,
@@ -19,7 +19,7 @@ import {
 import { parseEmail } from "@shared/utils/email";
 import env from "../env";
 import { SlackUtils } from "plugins/slack/shared/SlackUtils";
-import { createContext } from "@server/context";
+import { withUser } from "@server/context";
 
 type SlackProfile = Profile & {
   team: {
@@ -70,20 +70,16 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
         result?: AuthenticationResult
       ) => void
     ) {
-      const context = req.ctx;
+      const context: AppContext = req.ctx;
       try {
         const team = await getTeamFromContext(context);
         const client = getClientFromOAuthState(context);
         const user =
-          context.state?.auth?.user ?? (await getUserFromOAuthState(context));
+          context.auth?.user ?? (await getUserFromOAuthState(context));
 
         const { domain } = parseEmail(profile.user.email);
 
-        const ctx = createContext({
-          ip: context.ip,
-          user,
-          authType: context.state?.auth?.type,
-        });
+        const ctx = withUser(context, user);
         const result = await accountProvisioner(ctx, {
           team: {
             teamId: team?.id,

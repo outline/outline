@@ -92,7 +92,7 @@ function GitHub() {
           <Trans>
             The owner of the GitHub account has been requested to install the{" "}
             {{ githubAppName }} GitHub app. Once approved, previews will be
-            shown for respective links.
+            shown for the respective links.
           </Trans>
         </Notice>
       )}

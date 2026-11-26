@@ -8,7 +8,7 @@ import {
   User,
   UserAuthentication,
 } from "@server/models";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import type { BaseChatProvider } from "./BaseChatProvider";
 import type { ChatInstallationRef, ChatUserRef } from "./types";
 
@@ -17,7 +17,7 @@ export interface ChatAccounts {
   /** All teams connected to the installation, oldest first. */
   teams: Team[];
   /** A context for each team in which the actor has an account. */
-  contexts: APIContext[];
+  contexts: Context[];
 }
 
 /**
@@ -38,7 +38,7 @@ export class ChatAccountHelper {
    * @returns the connected teams and the actor's contexts.
    */
   public static async findAccounts(
-    ctx: APIContext,
+    ctx: Context,
     provider: BaseChatProvider,
     installation: ChatInstallationRef,
     actor: ChatUserRef
@@ -55,7 +55,7 @@ export class ChatAccountHelper {
       }),
     ]);
 
-    const contexts: APIContext[] = [];
+    const contexts: Context[] = [];
     for (const team of teams) {
       const user = await this.findUser(provider, installation, actor, team);
       if (!user) {
@@ -66,7 +66,7 @@ export class ChatAccountHelper {
         createContext({
           user,
           authType: AuthenticationType.CHAT,
-          ip: ctx.context.ip,
+          ip: ctx.ip,
           integration: integrations.find((i) => i.teamId === team.id),
         })
       );

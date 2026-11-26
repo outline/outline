@@ -279,15 +279,14 @@ function splitViewPathFromClick(event: MouseEvent): string | undefined {
     return undefined;
   }
 
-  const url = new URL(anchor.href, window.location.origin);
   if (
-    url.origin !== window.location.origin ||
-    !isSplittablePath(url.pathname)
+    anchor.origin !== window.location.origin ||
+    !isSplittablePath(anchor.pathname)
   ) {
     return undefined;
   }
 
-  return `${url.pathname}${url.search}${url.hash}`;
+  return `${anchor.pathname}${anchor.search}${anchor.hash}`;
 }
 
 /**

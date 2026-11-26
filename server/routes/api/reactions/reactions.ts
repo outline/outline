@@ -5,7 +5,7 @@ import validate from "@server/middlewares/validate";
 import { Comment, Document, Reaction, User } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentReaction } from "@server/presenters";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -16,9 +16,9 @@ router.post(
   auth(),
   pagination(),
   validate(T.ReactionsListSchema),
-  async (ctx: APIContext<T.ReactionsListReq>) => {
+  async (ctx: Context<T.ReactionsListReq>) => {
     const { commentId } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const comment = await Comment.findByPk(commentId, {
       rejectOnEmpty: true,

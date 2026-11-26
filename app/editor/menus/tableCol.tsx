@@ -30,8 +30,10 @@ import type {
 } from "@shared/editor/types";
 import { ArrowLeftIcon, ArrowRightIcon } from "~/components/Icons/ArrowIcon";
 import CircleIcon from "~/components/Icons/CircleIcon";
+import { FilterIcon } from "~/components/Icons/FilterIcon";
 import CellBackgroundColorPicker from "../components/CellBackgroundColorPicker";
 import TableCell from "@shared/editor/nodes/TableCell";
+import { isTableFilterable } from "@shared/editor/lib/tableFilter";
 import { DottedCircleIcon } from "~/components/Icons/DottedCircleIcon";
 import type { EditorState } from "prosemirror-state";
 
@@ -154,6 +156,14 @@ export default function tableColMenuItems(ctx: SelectionContext): MenuItem[] {
           icon: <SortDescendingIcon />,
         },
       ],
+    },
+    {
+      name: "openTableFilter",
+      label: t("Filter"),
+      icon: <FilterIcon />,
+      attrs: { index },
+      disabled: !isTableFilterable(tableMap.table),
+      visible: !isMultipleColumns,
     },
     {
       label: t("Background"),

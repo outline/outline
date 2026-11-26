@@ -4,7 +4,6 @@ import { observer } from "mobx-react";
 import { CopyIcon, GlobeIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
 import { useTheme } from "styled-components";
 import { errToString } from "@shared/utils/error";
 import Squircle from "@shared/components/Squircle";
@@ -13,6 +12,11 @@ import type Collection from "~/models/Collection";
 import type Share from "~/models/Share";
 import { AvatarSize } from "~/components/Avatar";
 import CopyToClipboard from "~/components/CopyToClipboard";
+import {
+  showErrorToast,
+  showPublicLinkCopiedToast,
+} from "../components/toasts";
+import { ShareExpiredNotice } from "../components/ShareExpiredNotice";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
@@ -24,7 +28,12 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { ListItem } from "../components/ListItem";
 import ShareSettingsPopover from "../components/ShareSettingsPopover";
-import { DomainPrefix, ShareLinkInput, StyledInfoIcon } from "../components";
+import {
+  DomainPrefix,
+  ShareLinkInput,
+  ShareNotice,
+  StyledInfoIcon,
+} from "../components";
 
 type Props = {
   /** The collection to share. */
@@ -46,6 +55,11 @@ function InnerPublicAccess({ collection, share, ref }: Props) {
   const collectionAbilities = usePolicy(collection);
   const canPublish = share ? can.update : collectionAbilities.share;
   const [creating, setCreating] = React.useState(false);
+  const [settingsOpen, setSettingsOpen] = React.useState(false);
+
+  const handleUpdateExpiry = React.useCallback(() => {
+    setSettingsOpen(true);
+  }, []);
 
   React.useEffect(() => {
     setUrlId(share?.urlId);
@@ -62,16 +76,16 @@ function InnerPublicAccess({ collection, share, ref }: Props) {
             published: true,
           });
           copy(newShare.url);
-          toast.success(t("Public link copied to clipboard"));
+          showPublicLinkCopiedToast(newShare, t);
         } else if (share) {
           await share.save({ published: checked });
           if (checked) {
             copy(share.url);
-            toast.success(t("Public link copied to clipboard"));
+            showPublicLinkCopiedToast(share, t);
           }
         }
       } catch (err) {
-        toast.error(errToString(err));
+        showErrorToast(err);
       } finally {
         setCreating(false);
       }
@@ -112,8 +126,8 @@ function InnerPublicAccess({ collection, share, ref }: Props) {
   );
 
   const handleCopied = React.useCallback(() => {
-    toast.success(t("Public link copied to clipboard"));
-  }, [t]);
+    showPublicLinkCopiedToast(share, t);
+  }, [t, share]);
 
   const copyButton = (
     <Tooltip content={t("Copy public link")}>
@@ -166,17 +180,24 @@ function InnerPublicAccess({ collection, share, ref }: Props) {
               >
                 {copyButton}
               </ShareLinkInput>
-              <ShareSettingsPopover share={share} />
+              <ShareSettingsPopover
+                share={share}
+                open={settingsOpen}
+                onOpenChange={setSettingsOpen}
+              />
             </Flex>
-            <Flex align="flex-start" gap={4}>
-              <StyledInfoIcon color={theme.textTertiary} />
-              <Text type="tertiary" size="xsmall">
-                {t(
-                  "All documents in this collection will be shared on the web, including any new documents added later"
-                )}
-                .
-              </Text>
-            </Flex>
+            <ShareExpiredNotice share={share} onUpdate={handleUpdateExpiry} />
+            {!share.isExpired && (
+              <ShareNotice>
+                <StyledInfoIcon color={theme.textTertiary} />
+                <Text type="tertiary" size="xsmall">
+                  {t(
+                    "All documents in this collection will be shared on the web, including any new documents added later"
+                  )}
+                  .
+                </Text>
+              </ShareNotice>
+            )}
           </>
         )}
       </ResizingHeightContainer>

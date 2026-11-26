@@ -1,7 +1,7 @@
 import type { InferCreationAttributes } from "sequelize";
 import { traceFunction } from "@server/logging/tracing";
 import { Team } from "@server/models";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 
 type Props = {
   /** The displayed name of the team */
@@ -22,7 +22,7 @@ type Props = {
 };
 
 async function teamCreator(
-  ctx: APIContext,
+  ctx: Context,
   { name, subdomain, avatarUrl, authenticationProviders }: Props
 ): Promise<Team> {
   if (!avatarUrl?.startsWith("http")) {
@@ -30,7 +30,7 @@ async function teamCreator(
   }
 
   const availableSubdomain = await Team.findAvailableSubdomain(subdomain, {
-    transaction: ctx.state.transaction,
+    transaction: ctx.transaction,
   });
   return await Team.createWithCtx(
     ctx,

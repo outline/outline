@@ -1,5 +1,6 @@
 import { IntegrationService, type IntegrationType } from "@shared/types";
 import { toError } from "@shared/utils/error";
+import { Second } from "@shared/utils/time";
 import { BaseChatProvider } from "@server/chat/BaseChatProvider";
 import type {
   ChatCapabilities,
@@ -19,7 +20,7 @@ import Logger from "@server/logging/Logger";
 import { validateRequest } from "@server/middlewares/validate";
 import type { Integration } from "@server/models";
 import { SearchQuerySource } from "@server/models/SearchQuery";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { safeEqual } from "@server/utils/crypto";
 import fetch from "@server/utils/fetch";
 import env from "./env";
@@ -58,7 +59,7 @@ export class SlackChatProvider extends BaseChatProvider<SlackReplyTarget> {
   ];
 
   public async parseRequest(
-    ctx: APIContext,
+    ctx: Context,
     path: string
   ): Promise<ChatRequest<SlackReplyTarget>> {
     switch (path) {
@@ -74,7 +75,7 @@ export class SlackChatProvider extends BaseChatProvider<SlackReplyTarget> {
   }
 
   public async respond(
-    ctx: APIContext,
+    ctx: Context,
     event: ChatEvent<SlackReplyTarget>,
     result: ChatResult
   ): Promise<void> {
@@ -184,7 +185,7 @@ export class SlackChatProvider extends BaseChatProvider<SlackReplyTarget> {
     await this.send(target.responseUrl, { delete_original: true });
   }
 
-  private parseUnfurl(ctx: APIContext): ChatRequest<SlackReplyTarget> {
+  private parseUnfurl(ctx: Context): ChatRequest<SlackReplyTarget> {
     const { body } = validateRequest(T.HooksUnfurlSchema, ctx);
 
     // See URL verification handshake documentation on this page:
@@ -206,7 +207,7 @@ export class SlackChatProvider extends BaseChatProvider<SlackReplyTarget> {
     };
   }
 
-  private parseInteractive(ctx: APIContext): ChatRequest<SlackReplyTarget> {
+  private parseInteractive(ctx: Context): ChatRequest<SlackReplyTarget> {
     const { body } = validateRequest(T.HooksInteractiveSchema, ctx);
 
     // https://api.slack.com/interactivity/handling#payloads
@@ -252,7 +253,7 @@ export class SlackChatProvider extends BaseChatProvider<SlackReplyTarget> {
     };
   }
 
-  private parseCommand(ctx: APIContext): ChatRequest<SlackReplyTarget> {
+  private parseCommand(ctx: Context): ChatRequest<SlackReplyTarget> {
     const { body } = validateRequest(T.HooksSlackCommandSchema, ctx);
     this.verifyToken(body.token);
 
@@ -288,6 +289,7 @@ export class SlackChatProvider extends BaseChatProvider<SlackReplyTarget> {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
+      timeout: 10 * Second.ms,
     });
 
     if (!response.ok) {

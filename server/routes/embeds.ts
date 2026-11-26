@@ -1,15 +1,17 @@
+import Router from "@koa/router";
 import escape from "escape-html";
-import type { Context, Next } from "koa";
+import type { Next } from "koa";
 import env from "@server/env";
 import { InvalidRequestError } from "@server/errors";
 import { allowScriptSrc, allowStyleSrc } from "@server/middlewares/csp";
+import type { AppContext } from "@server/types";
 
 /**
  * Resize observer script that sends a message to the parent window when content is resized. Inject
  * this script into the iframe to receive resize events.
  */
 const resizeObserverScript = (
-  ctx: Context
+  ctx: AppContext
 ) => `<script nonce="${ctx.state.cspNonce}">
   const resizeObserver = new ResizeObserver((entries) => {
     for (const entry of entries) {
@@ -24,7 +26,7 @@ const resizeObserverScript = (
  * origin URL.
  */
 const iframeCheckScript = (
-  ctx: Context
+  ctx: AppContext
 ) => `<script nonce="${ctx.state.cspNonce}">
   if (window.self === window.top) {
     window.location.href = window.location.origin;
@@ -39,7 +41,7 @@ const iframeCheckScript = (
  * @param next The next middleware in the stack
  * @returns The response body
  */
-export const renderEmbed = async (ctx: Context, next: Next) => {
+export const renderEmbed = async (ctx: AppContext, next: Next) => {
   const url = escape(String(ctx.query.url));
 
   if (!url) {
@@ -224,3 +226,12 @@ ${resizeObserverScript(ctx)}
 
   return next();
 };
+
+const router = new Router();
+
+router.get(
+  ["/embeds/gitlab", "/embeds/github", "/embeds/dropbox", "/embeds/pinterest"],
+  renderEmbed
+);
+
+export default router;

@@ -1,3 +1,4 @@
+import { once } from "node:events";
 import type { RedisOptions } from "ioredis";
 import Redis from "ioredis";
 import { defaults } from "es-toolkit/compat";
@@ -210,6 +211,7 @@ export default class RedisAdapter extends Redis {
 
   private static client: RedisAdapter;
   private static subscriber: RedisAdapter;
+  private static ephemeral: RedisAdapter;
   private static collabClient: RedisAdapter;
   private static collabSubscriber: RedisAdapter;
 
@@ -230,6 +232,45 @@ export default class RedisAdapter extends Redis {
         connectionNameSuffix: "subscriber",
       }))
     );
+  }
+
+  /**
+   * A Redis adapter for ephemeral data that can be lost, such as caches, locks
+   * and rate limits. Commands fail at once when there is no connection, and
+   * after a short timeout when Redis does not reply, so that callers can
+   * continue without Redis.
+   */
+  public static get ephemeralClient(): RedisAdapter {
+    return (
+      this.ephemeral ||
+      (this.ephemeral = new this(env.REDIS_URL, {
+        commandTimeout: env.REDIS_EPHEMERAL_COMMAND_TIMEOUT,
+        enableOfflineQueue: false,
+        connectionNameSuffix: "ephemeral",
+      }))
+    );
+  }
+
+  /**
+   * Creates the ephemeral client and waits for its connection, as it fails
+   * commands at once until connected. Never rejects, so that a process can
+   * start without Redis.
+   */
+  public static async connectEphemeralClient(): Promise<void> {
+    const client = this.ephemeralClient;
+    if (client.status === "ready") {
+      return;
+    }
+
+    try {
+      await once(client, "ready", {
+        signal: AbortSignal.timeout(env.REDIS_EPHEMERAL_COMMAND_TIMEOUT),
+      });
+    } catch (err) {
+      Logger.warn("Starting before the ephemeral Redis client connected", {
+        error: err,
+      });
+    }
   }
 
   /**

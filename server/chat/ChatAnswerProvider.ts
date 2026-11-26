@@ -1,5 +1,5 @@
 import type { Document } from "@server/models";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import type { ChatMarkdown } from "./types";
 
 /** An answer to a question, with the documents that it came from. */
@@ -22,7 +22,7 @@ export interface ChatAnswerProvider {
    * @param text the text that the user typed.
    * @returns true if the provider can answer.
    */
-  canAnswer(ctx: APIContext, text: string): boolean;
+  canAnswer(ctx: Context, text: string): boolean;
 
   /**
    * Answers a question with the permissions of the user in the context.
@@ -31,5 +31,5 @@ export interface ChatAnswerProvider {
    * @param question the question.
    * @returns the answer and its source documents.
    */
-  answer(ctx: APIContext, question: string): Promise<ChatAnswer>;
+  answer(ctx: Context, question: string): Promise<ChatAnswer>;
 }

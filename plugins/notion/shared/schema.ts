@@ -16,6 +16,8 @@ export type NotionImportInput = z.infer<typeof NotionImportInputItemSchema>[];
 export const NotionImportTaskInputItemSchema =
   BaseImportTaskInputItemSchema.extend({
     type: z.enum(PageType),
+    /** External ids of the pages above this page, from the root down. */
+    ancestorExternalIds: z.array(z.string()).optional(),
   });
 
 export type NotionImportTaskInput = z.infer<

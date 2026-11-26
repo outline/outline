@@ -1,5 +1,5 @@
 import type { ColumnSort } from "@tanstack/react-table";
-import { orderBy } from "es-toolkit/compat";
+import { orderBy, uniqBy } from "es-toolkit/compat";
 import { useState, useRef, useCallback, useEffect } from "react";
 import type { FetchPageParams, PaginatedResponse } from "~/stores/base/Store";
 import { PAGINATION_SYMBOL } from "~/stores/base/Store";
@@ -9,7 +9,12 @@ const INITIAL_OFFSET = 0;
 const PAGE_SIZE = 25;
 
 type Props<T> = {
-  data: T[];
+  /**
+   * The rows to display, usually derived from a store. When omitted the rows
+   * returned by the server for the current params are displayed, which is
+   * required when the server filtering can't be reproduced on the client.
+   */
+  data?: T[];
   sort: ColumnSort;
   reqFn: (params: FetchPageParams) => Promise<PaginatedResponse<T>>;
   reqParams: Omit<FetchPageParams, "offset" | "limit">;
@@ -28,6 +33,7 @@ export function useTableRequest<T extends { id: string }>({
   reqFn,
   reqParams,
 }: Props<T>): Response<T> {
+  const [rows, setRows] = useState<T[]>([]);
   const [hasNext, setHasNext] = useState(false);
   const [offset, setOffset] = useState({ value: INITIAL_OFFSET });
   const prevParamsRef = useRef(reqParams);
@@ -48,9 +54,11 @@ export function useTableRequest<T extends { id: string }>({
     []
   );
 
-  const sortedData = data
-    ? orderBy(data, sortRef.current.id, sortRef.current.desc ? "desc" : "asc")
-    : undefined;
+  const sortedData = orderBy(
+    data ?? rows,
+    sortRef.current.id,
+    sortRef.current.desc ? "desc" : "asc"
+  );
 
   const next = !loading && hasNext ? nextPage : undefined;
 
@@ -71,6 +79,11 @@ export function useTableRequest<T extends { id: string }>({
       }
 
       sortRef.current = sort; // Change sort once we receive a response from server - avoids flicker with stale data.
+      setRows((prev) =>
+        offset.value === INITIAL_OFFSET
+          ? response
+          : uniqBy([...prev, ...response], "id")
+      );
       const pagination = response[PAGINATION_SYMBOL];
       setHasNext(
         !!pagination && pagination.offset + response.length < pagination.total

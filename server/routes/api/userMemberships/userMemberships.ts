@@ -10,7 +10,7 @@ import {
   presentMembership,
   presentPolicies,
 } from "@server/presenters";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -21,8 +21,8 @@ router.post(
   auth(),
   pagination(),
   validate(T.UserMembershipsListSchema),
-  async (ctx: APIContext<T.UserMembershipsListReq>) => {
-    const { user } = ctx.state.auth;
+  async (ctx: Context<T.UserMembershipsListReq>) => {
+    const { user } = ctx.auth;
 
     const memberships = await UserMembership.scope("withUser").findAll({
       where: {
@@ -33,6 +33,15 @@ router.post(
         sourceId: {
           [Op.eq]: null,
         },
+
+        // Documents that inherit access from a shared ancestor are shown
+        // nested under that ancestor rather than as separate roots.
+        [Op.and]: Sequelize.literal(`NOT EXISTS (
+          SELECT 1 FROM user_permissions AS sourced
+          WHERE sourced."documentId" = "user_permission"."documentId"
+            AND sourced."userId" = "user_permission"."userId"
+            AND sourced."sourceId" IS NOT NULL
+        )`),
       },
       include: [
         {
@@ -80,15 +89,15 @@ router.post(
   auth(),
   validate(T.UserMembershipsUpdateSchema),
   transaction(),
-  async (ctx: APIContext<T.UserMembershipsUpdateReq>) => {
+  async (ctx: Context<T.UserMembershipsUpdateReq>) => {
     const { id, index } = ctx.input.body;
-    const { transaction } = ctx.state;
+    const { transaction } = ctx;
 
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     const membership = await UserMembership.scope("withUser").findByPk(id, {
       transaction,
       lock: {
-        level: transaction.LOCK.UPDATE,
+        level: transaction.LOCK.NO_KEY_UPDATE,
         of: UserMembership,
       },
       rejectOnEmpty: true,

@@ -70,6 +70,7 @@ export async function loadPublicShare({
 
   if (
     !share ||
+    share.isExpired ||
     (teamId && share.teamId !== teamId) ||
     !!share.team.suspendedAt ||
     !!share.collection?.archivedAt ||
@@ -166,38 +167,49 @@ export async function loadShareWithParent({
     method: ["withCollectionPermissions", user.id],
   }).findOne({ where });
 
-  if (!share) {
+  if (collectionId || !documentId) {
+    if (!share) {
+      throw NotFoundError();
+    }
+
+    authorize(user, "read", share);
+
+    if (collectionId) {
+      authorize(user, "read", share.collection);
+    }
+
+    return { share, parentShare: null };
+  }
+
+  if (share) {
+    authorize(user, "read", share);
+    authorize(user, "read", share.document);
+  }
+
+  // A document without its own share can still inherit one from a parent.
+  const document =
+    share?.document ??
+    (await Document.findByPk(documentId, { userId: user.id }));
+
+  if (!document || !can(user, "read", document)) {
     throw NotFoundError();
   }
 
-  authorize(user, "read", share);
-
-  if (collectionId) {
-    authorize(user, "read", share.collection);
-  }
-
+  const docCollectionId = document.collectionId;
   let parentShare: Share | null = null;
 
   // Load the parent shares and return one (needed for share toggle in UI).
-  // Parent share is needed for documents only since collections don't have parents.
-  if (documentId) {
-    authorize(user, "read", share.document);
-
-    const docCollectionId = share.document.collectionId;
-
-    if (!docCollectionId) {
-      throw NotFoundError("Collection not found for the shared document");
-    }
-
-    const [docCollection, collectionShare] = await Promise.all([
-      Collection.findByPk(docCollectionId, {
-        userId: user.id,
-        includeDocumentStructure: true,
-        rejectOnEmpty: true,
-      }),
-      Share.scope({
-        method: ["withCollectionPermissions", user.id],
-      }).findOne({
+  if (docCollectionId) {
+    const [parentDocIds, collectionShare] = await Promise.all([
+      // Drafts and archived documents are not in the shared tree, so they
+      // cannot inherit a parent share.
+      document.isDraft || document.archivedAt
+        ? []
+        : document.findAllParentDocumentIds(),
+      Share.scope([
+        { method: ["withCollectionPermissions", user.id] },
+        "notExpired",
+      ]).findOne({
         where: {
           revokedAt: {
             [Op.is]: null,
@@ -216,27 +228,24 @@ export async function loadShareWithParent({
       can(user, "read", collectionShare.collection)
     ) {
       parentShare = collectionShare;
-    } else {
-      const parentDocIds = docCollection.getDocumentParents(documentId);
-
-      const allParentShares = parentDocIds
-        ? await Share.scope({
-            method: ["withCollectionPermissions", user.id],
-          }).findAll({
-            where: {
-              revokedAt: {
-                [Op.is]: null,
-              },
-              published: true,
-              teamId: user.teamId,
-              includeChildDocuments: true,
-              documentId: parentDocIds,
-            },
-          })
-        : null;
+    } else if (parentDocIds.length) {
+      const allParentShares = await Share.scope([
+        { method: ["withCollectionPermissions", user.id] },
+        "notExpired",
+      ]).findAll({
+        where: {
+          revokedAt: {
+            [Op.is]: null,
+          },
+          published: true,
+          teamId: user.teamId,
+          includeChildDocuments: true,
+          documentId: parentDocIds,
+        },
+      });
 
       parentShare =
-        allParentShares?.find(
+        allParentShares.find(
           (s) => can(user, "read", s) && can(user, "read", s.document)
         ) ?? null;
     }

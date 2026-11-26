@@ -169,14 +169,14 @@ function Authorize() {
           {clientError instanceof NotFoundError ? (
             <Text as="p" type="secondary">
               {t(
-                "The OAuth client could not be found, please check the provided client ID"
+                "The OAuth client could not be found – please check the provided client ID"
               )}
               <Pre>{clientId}</Pre>
             </Text>
           ) : clientError instanceof BadRequestError ? (
             <Text as="p" type="secondary">
               {t(
-                "The OAuth client could not be loaded, please check the redirect URI is valid"
+                "The OAuth client could not be loaded – please check that the redirect URI is valid"
               )}
               <Pre>{redirectUri}</Pre>
             </Text>
@@ -190,7 +190,7 @@ function Authorize() {
           ) : clientError instanceof AuthorizationError ? (
             <Text as="p" type="secondary">
               {t(
-                "The OAuth client could not be loaded, please check your workspace subdomain is correct"
+                "The OAuth client could not be loaded – please check that your workspace subdomain is correct"
               )}
               <Pre>{clientError.message}</Pre>
             </Text>

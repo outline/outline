@@ -3,11 +3,11 @@ import type { WhereOptions } from "sequelize";
 import { Sequelize, Op } from "sequelize";
 import type { User } from "@server/models";
 import { Pin } from "@server/models";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 
 type Props = {
   /** The request context */
-  ctx: APIContext;
+  ctx: Context;
   /** The user creating the pin */
   user: User;
   /** The document to pin */
@@ -33,7 +33,7 @@ export default async function pinCreator({
   ...rest
 }: Props): Promise<Pin> {
   let { index } = rest;
-  const { transaction } = ctx.context;
+  const { transaction } = ctx;
   const where: WhereOptions<Pin> = {
     teamId: user.teamId,
     ...(collectionId ? { collectionId } : { collectionId: { [Op.is]: null } }),

@@ -61,6 +61,9 @@ export const CollectionValidation = {
 
   /** The maximum length of the collection name */
   maxNameLength: 100,
+
+  /** The maximum number of owners of a collection */
+  maxOwners: 5,
 };
 
 export const CommentValidation = {
@@ -88,6 +91,9 @@ export const DocumentValidation = {
 
   /** The maximum length of the document text content */
   maxLength: 1500 * 1024,
+
+  /** The maximum number of owners of a document */
+  maxOwners: 5,
 };
 
 export const GroupValidation = {
@@ -100,6 +106,9 @@ export const GroupValidation = {
 export const ImportValidation = {
   /** The maximum length of the import name */
   maxNameLength: 100,
+
+  /** The maximum number of entries in an imported zip archive */
+  maxZipEntries: 250_000,
 };
 
 export const OAuthClientValidation = {
@@ -158,6 +167,9 @@ export const PinValidation = {
 };
 
 export const TeamValidation = {
+  /** The choices for the default share link expiry in days, 0 for no expiry. */
+  defaultShareExpiryDays: [0, 7, 30, 60, 90],
+
   /** The maximum number of domains per team on cloud hosted */
   maxDomains: 10,
 

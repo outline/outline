@@ -2,6 +2,7 @@ import type { Location, LocationDescriptor } from "history";
 import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
+import { flushSync } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
 import type { match } from "react-router";
@@ -149,7 +150,9 @@ function CollectionRow({
       try {
         newChildTitleRef.current?.setIsEditing(false);
         await onCreateChild(value);
-        closeAddingNewChild();
+
+        // Remove the input in the same paint as the new tree item.
+        flushSync(closeAddingNewChild);
       } catch (_err) {
         newChildTitleRef.current?.setIsEditing(true);
       }

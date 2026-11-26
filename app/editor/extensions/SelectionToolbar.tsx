@@ -12,6 +12,7 @@ import {
   type SelectionToolbarMenuDescriptor,
 } from "@shared/editor/types";
 import { CodeBlockHoverToolbar } from "../components/CodeBlockHoverToolbar";
+import { MentionHoverMenu } from "../components/MentionHoverMenu";
 import { SelectionToolbar } from "../components/SelectionToolbar";
 import getAttachmentMenuItems from "../menus/attachment";
 import getCodeMenuItems from "../menus/code";
@@ -227,11 +228,13 @@ export default class SelectionToolbarExtension extends Extension {
           canComment={editorProps.canComment}
           isTemplate={editorProps.template === true}
         />
-        {props.readOnly && (
+        {props.readOnly ? (
           <CodeBlockHoverToolbar
             rtl={props.rtl}
             isTemplate={editorProps.template === true}
           />
+        ) : (
+          <MentionHoverMenu rtl={props.rtl} />
         )}
       </>
     );

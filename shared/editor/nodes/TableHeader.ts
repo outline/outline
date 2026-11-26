@@ -1,16 +1,11 @@
 import type Token from "markdown-it/lib/token.mjs";
-import type { Node as ProsemirrorNode, NodeSpec } from "prosemirror-model";
+import type { NodeSpec } from "prosemirror-model";
 import type { EditorState } from "prosemirror-state";
 import { Plugin, PluginKey } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 import { DecorationSet, Decoration } from "prosemirror-view";
-import {
-  isInTable,
-  moveTableColumn,
-  selectedRect,
-  TableMap,
-} from "prosemirror-tables";
-import { addColumnBefore, selectColumn } from "../commands/table";
+import { isInTable, selectedRect, TableMap } from "prosemirror-tables";
+import { addColumnBefore, moveColumn, selectColumn } from "../commands/table";
 import { isMobile } from "../../utils/browser";
 import { isRemoteTransaction } from "../lib/multiplayer";
 import {
@@ -25,10 +20,12 @@ import {
   trackSpanPosition,
   untrackSpanPosition,
 } from "../lib/table";
+import { focusEditor } from "../lib/focusEditor";
 import { isInlineTransaction } from "../queries/isInlineTransaction";
 import {
   getCellsInColumn,
   getCellsInRow,
+  hasTableRole,
   hasTableSelectionChanged,
   isColumnSelected,
   isTableSelected,
@@ -157,7 +154,7 @@ function setupColumnDragTracking(
         currentToIndex < currentCols.length;
 
       if (inBounds) {
-        const moved = moveTableColumn({ from: fromIndex, to: currentToIndex })(
+        const moved = moveColumn({ from: fromIndex, to: currentToIndex })(
           view.state,
           view.dispatch
         );
@@ -220,8 +217,6 @@ function createColumnDragDecorations(state: EditorState): DecorationSet {
 
   return DecorationSet.create(state.doc, decorations);
 }
-
-const isTableNode = (node: ProsemirrorNode) => !!node.type.spec.tableRole;
 
 export default class TableHeader extends Node {
   get name() {
@@ -457,7 +452,7 @@ export default class TableHeader extends Node {
             // reflect the shape of the change, so they always rebuild.
             if (
               !isRemoteTransaction(tr, newState) &&
-              isInlineTransaction(tr, isTableNode)
+              isInlineTransaction(tr, hasTableRole)
             ) {
               return pluginState.map(tr.mapping, tr.doc);
             }
@@ -493,7 +488,7 @@ export default class TableHeader extends Node {
               (pluginState === DecorationSet.empty && isInTable(newState)) ||
               (tr.docChanged &&
                 (isRemoteTransaction(tr, newState) ||
-                  !isInlineTransaction(tr, isTableNode)))
+                  !isInlineTransaction(tr, hasTableRole)))
             ) {
               return createColumnDecorations(newState);
             }
@@ -538,6 +533,7 @@ export default class TableHeader extends Node {
                   view.state,
                   view.dispatch
                 );
+                focusEditor(view);
 
                 // Setup drag tracking for potential drag operation
                 setupColumnDragTracking(view, targetGripColumn, colIndex);

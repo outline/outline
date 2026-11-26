@@ -1,7 +1,7 @@
 import type { ChatIntegrationService, IntegrationType } from "@shared/types";
 import type { Integration } from "@server/models";
 import type { SearchQuerySource } from "@server/models/SearchQuery";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import type {
   ChatCapabilities,
   ChatEvent,
@@ -50,7 +50,7 @@ export abstract class BaseChatProvider<TTarget = unknown> {
    * @throws {ValidationError} if the request is not valid.
    */
   public abstract parseRequest(
-    ctx: APIContext,
+    ctx: Context,
     path: string
   ): Promise<ChatRequest<TTarget>>;
 
@@ -63,7 +63,7 @@ export abstract class BaseChatProvider<TTarget = unknown> {
    * @param result the result of the event.
    */
   public abstract respond(
-    ctx: APIContext,
+    ctx: Context,
     event: ChatEvent<TTarget>,
     result: ChatResult
   ): Promise<void>;

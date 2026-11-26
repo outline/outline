@@ -1,6 +1,8 @@
 import {
+  dateRangeToReadable,
   dateToReadable,
   dateToRelativeReadable,
+  dateToTimestamp,
   hasTimeComponent,
   parseISODate,
   toISODate,
@@ -166,5 +168,69 @@ describe("dateToRelativeReadable", () => {
     expect(
       normalize(dateToRelativeReadable(toISODateTime(today), t, "de_DE"))
     ).toBe("Today um 13:00");
+  });
+});
+
+describe("dateToTimestamp", () => {
+  const iso = new Date(2026, 10, 5, 19, 48, 12).toISOString();
+
+  it("includes the year and seconds", () => {
+    const result = dateToTimestamp(iso, "en_US");
+    expect(result).toContain("Nov 5, 2026");
+    expect(result).toMatch(/7:48:12\sPM/);
+  });
+
+  it("follows the word order and hour cycle of the language", () => {
+    const german = dateToTimestamp(iso, "de_DE");
+    expect(german).toContain("05.11.2026");
+    expect(german).toContain("19:48:12");
+
+    const british = dateToTimestamp(iso, "en_GB");
+    expect(british).toContain("5 Nov 2026");
+    expect(british).toContain("19:48:12");
+  });
+
+  it("includes the time zone", () => {
+    const zone = new Intl.DateTimeFormat("en-US", { timeZoneName: "short" })
+      .formatToParts(new Date(iso))
+      .find((part) => part.type === "timeZoneName")?.value;
+    expect(dateToTimestamp(iso, "en_US")).toContain(zone);
+  });
+
+  it("falls back to English without a language", () => {
+    expect(dateToTimestamp(iso)).toEqual(dateToTimestamp(iso, "en_US"));
+  });
+
+  it("returns the original string when invalid", () => {
+    expect(dateToTimestamp("not a date", "en_US")).toEqual("not a date");
+  });
+});
+
+describe("dateRangeToReadable", () => {
+  const start = new Date(2026, 10, 2);
+  const end = new Date(2026, 10, 3);
+
+  it("collapses the parts shared between the dates", () => {
+    expect(dateRangeToReadable(start, end, "en_US")).toMatch(
+      /^Nov 2\s–\s3, 2026$/
+    );
+  });
+
+  it("follows the language", () => {
+    expect(dateRangeToReadable(start, end, "de_DE")).toContain("2026");
+    expect(dateRangeToReadable(start, end, "de_DE")).toContain("03.11");
+  });
+
+  it("uses a single date for the same day", () => {
+    expect(dateRangeToReadable(start, start, "en_US")).toEqual("Nov 2, 2026");
+  });
+
+  it("uses a single date when only one bound is set", () => {
+    expect(dateRangeToReadable(start, null, "en_US")).toEqual("Nov 2, 2026");
+    expect(dateRangeToReadable(null, end, "en_US")).toEqual("Nov 3, 2026");
+  });
+
+  it("is empty without bounds", () => {
+    expect(dateRangeToReadable(null, null, "en_US")).toEqual("");
   });
 });

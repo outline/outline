@@ -1,4 +1,6 @@
 import { Op } from "sequelize";
+import isUUID from "validator/lib/isUUID";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import { Document, Relationship } from "@server/models";
 import { RelationshipType } from "@server/models/Relationship";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -20,41 +22,7 @@ export default class BacklinksProcessor extends BaseProcessor {
           return;
         }
 
-        // Note: These can be UUID or slugs
-        const linkIds = DocumentHelper.parseDocumentIds(document);
-
-        await Promise.all(
-          linkIds.map(async (linkId) => {
-            const linkedDocument = await Document.findByPk(linkId, {
-              attributes: ["id", "teamId"],
-            });
-
-            if (
-              !linkedDocument ||
-              linkedDocument.id === event.documentId ||
-              linkedDocument.teamId !== document.teamId
-            ) {
-              return;
-            }
-
-            const existing = await Relationship.findOne({
-              where: {
-                documentId: linkedDocument.id,
-                reverseDocumentId: event.documentId,
-                type: RelationshipType.Backlink,
-              },
-            });
-
-            if (!existing) {
-              await Relationship.create({
-                documentId: linkedDocument.id,
-                reverseDocumentId: event.documentId,
-                userId: document.lastModifiedById,
-                type: RelationshipType.Backlink,
-              });
-            }
-          })
-        );
+        await this.createBacklinks(document);
         break;
       }
 
@@ -69,43 +37,7 @@ export default class BacklinksProcessor extends BaseProcessor {
           return;
         }
 
-        const linkIds = DocumentHelper.parseDocumentIds(document);
-        const linkedDocumentIds: string[] = [];
-
-        // create or find existing backlink records for referenced docs
-        await Promise.all(
-          linkIds.map(async (linkId) => {
-            const linkedDocument = await Document.findByPk(linkId, {
-              attributes: ["id", "teamId"],
-            });
-
-            if (
-              !linkedDocument ||
-              linkedDocument.id === event.documentId ||
-              linkedDocument.teamId !== document.teamId
-            ) {
-              return;
-            }
-
-            const existing = await Relationship.findOne({
-              where: {
-                documentId: linkedDocument.id,
-                reverseDocumentId: event.documentId,
-                type: RelationshipType.Backlink,
-              },
-            });
-
-            if (!existing) {
-              await Relationship.create({
-                documentId: linkedDocument.id,
-                reverseDocumentId: event.documentId,
-                userId: document.lastModifiedById,
-                type: RelationshipType.Backlink,
-              });
-            }
-            linkedDocumentIds.push(linkedDocument.id);
-          })
-        );
+        const linkedDocumentIds = await this.createBacklinks(document);
 
         // delete any backlinks that no longer exist
         await Relationship.destroy({
@@ -139,5 +71,74 @@ export default class BacklinksProcessor extends BaseProcessor {
 
       default:
     }
+  }
+
+  /**
+   * Creates backlink records for every document referenced by the given document.
+   *
+   * @param document the source document.
+   * @returns the ids of the linked documents.
+   */
+  private async createBacklinks(document: Document): Promise<string[]> {
+    // Note: These can be UUID or slugs
+    const linkIds = DocumentHelper.parseDocumentIds(document);
+    const ids: string[] = [];
+    const urlIds: string[] = [];
+
+    for (const linkId of linkIds) {
+      if (isUUID(linkId)) {
+        ids.push(linkId);
+        continue;
+      }
+
+      const match = linkId.match(UrlHelper.SLUG_URL_REGEX);
+      if (match) {
+        urlIds.push(match[1]);
+      }
+    }
+
+    if (!ids.length && !urlIds.length) {
+      return [];
+    }
+
+    const linkedDocuments = await Document.unscoped().findAll({
+      attributes: ["id"],
+      where: {
+        teamId: document.teamId,
+        template: false,
+        id: { [Op.ne]: document.id },
+        [Op.or]: [{ id: ids }, { urlId: urlIds }],
+      },
+    });
+    const linkedDocumentIds = linkedDocuments.map((linked) => linked.id);
+
+    if (!linkedDocumentIds.length) {
+      return [];
+    }
+
+    const existing = await Relationship.findAll({
+      attributes: ["documentId"],
+      where: {
+        documentId: linkedDocumentIds,
+        reverseDocumentId: document.id,
+        type: RelationshipType.Backlink,
+      },
+    });
+    const existingIds = new Set(existing.map((r) => r.documentId));
+
+    await Promise.all(
+      linkedDocumentIds
+        .filter((id) => !existingIds.has(id))
+        .map((id) =>
+          Relationship.create({
+            documentId: id,
+            reverseDocumentId: document.id,
+            userId: document.lastModifiedById,
+            type: RelationshipType.Backlink,
+          })
+        )
+    );
+
+    return linkedDocumentIds;
   }
 }

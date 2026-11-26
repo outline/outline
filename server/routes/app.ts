@@ -1,7 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import util from "node:util";
-import type { Context, Next } from "koa";
+import Router from "@koa/router";
+import type { Next } from "koa";
 import { escape } from "es-toolkit/compat";
 import { isbot } from "isbot";
 import { Sequelize } from "sequelize";
@@ -26,7 +27,29 @@ import { getTeamFromContext } from "@server/utils/passport";
 import prefetchTags from "@server/utils/prefetchTags";
 import readManifestFile from "@server/utils/readManifestFile";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
+import { isInvalidAppPath } from "@server/utils/url";
 import { loadPublicShare } from "@server/commands/shareLoader";
+import {
+  getWorkspaceRedirectUrl,
+  getWorkspaceRenderOptions,
+} from "./workspace";
+import type { AppRouterContext } from "@server/types";
+
+/** Options used to render the app shell. */
+export interface AppRenderOptions {
+  title?: string;
+  description?: string;
+  content?: string;
+  canonical?: string;
+  shortcutIcon?: string;
+  image?: string;
+  siteName?: string;
+  rootShareId?: string;
+  isShare?: boolean;
+  markdownUrl?: string;
+  analytics?: Integration<IntegrationType.Analytics>[];
+  allowIndexing?: boolean;
+}
 
 const readFile = util.promisify(fs.readFile);
 const entry = "app/index.tsx";
@@ -137,22 +160,9 @@ const readIndexFile = async (): Promise<Buffer> => {
 };
 
 export const renderApp = async (
-  ctx: Context,
+  ctx: AppRouterContext,
   next: Next,
-  options: {
-    title?: string;
-    description?: string;
-    content?: string;
-    canonical?: string;
-    shortcutIcon?: string;
-    image?: string;
-    siteName?: string;
-    rootShareId?: string;
-    isShare?: boolean;
-    markdownUrl?: string;
-    analytics?: Integration<IntegrationType.Analytics>[];
-    allowIndexing?: boolean;
-  } = {}
+  options: AppRenderOptions = {}
 ) => {
   const {
     title = env.APP_NAME,
@@ -282,10 +292,10 @@ export const renderApp = async (
     .replace(/\{head-tags\}/g, () => headTags)
     .replace(/\{slack-app-id\}/g, env.public.SLACK_APP_ID || "")
     .replace(/\{script-tags\}/g, scriptTags)
-    .replace(/\{csp-nonce\}/g, ctx.state.cspNonce);
+    .replace(/\{csp-nonce\}/g, ctx.state.cspNonce ?? "");
 };
 
-export const renderShare = async (ctx: Context, next: Next) => {
+export const renderShare = async (ctx: AppRouterContext, next: Next) => {
   const rootShareId = ctx.state?.rootShare?.id;
   const shareId = rootShareId ?? ctx.params.shareId;
   const collectionSlug = ctx.params.collectionSlug;
@@ -444,3 +454,23 @@ export const renderShare = async (ctx: Context, next: Next) => {
     markdownUrl: document || collection ? markdownUrl : undefined,
   });
 };
+
+const router = new Router();
+
+router.get("{/*path}", async (ctx, next) => {
+  if (isInvalidAppPath(ctx.path)) {
+    ctx.status = 404;
+    return;
+  }
+
+  const team = await getTeamFromContext(ctx);
+  const redirectUrl = await getWorkspaceRedirectUrl(ctx, team);
+  if (redirectUrl) {
+    ctx.redirect(redirectUrl);
+    return;
+  }
+
+  return renderApp(ctx, next, await getWorkspaceRenderOptions(team));
+});
+
+export default router;

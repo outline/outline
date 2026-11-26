@@ -20,7 +20,7 @@ import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import { ValidationError } from "@server/errors";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 
 export enum AccessRequestStatus {
   Pending = "pending",
@@ -113,11 +113,11 @@ class AccessRequest extends IdModel<
   /**
    * Approve this access request, setting the status and responder, and persist.
    *
-   * @param ctx the API context; the authenticated user is recorded as responder.
+   * @param ctx the context; the authenticated user is recorded as responder.
    */
-  public approve(ctx: APIContext) {
+  public approve(ctx: Context) {
     this.status = AccessRequestStatus.Approved;
-    this.responderId = ctx.state.auth.user.id;
+    this.responderId = ctx.auth.user.id;
     this.respondedAt = new Date();
     return this.saveWithCtx(ctx);
   }
@@ -125,11 +125,11 @@ class AccessRequest extends IdModel<
   /**
    * Dismiss this access request, setting the status and responder, and persist.
    *
-   * @param ctx the API context; the authenticated user is recorded as responder.
+   * @param ctx the context; the authenticated user is recorded as responder.
    */
-  public dismiss(ctx: APIContext) {
+  public dismiss(ctx: Context) {
     this.status = AccessRequestStatus.Dismissed;
-    this.responderId = ctx.state.auth.user.id;
+    this.responderId = ctx.auth.user.id;
     this.respondedAt = new Date();
     return this.saveWithCtx(ctx);
   }

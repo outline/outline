@@ -16,7 +16,7 @@ import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { User, Team } from "@server/models";
+import { GroupUser, User, Team } from "@server/models";
 import {
   buildWhere,
   combineFilters,
@@ -26,7 +26,7 @@ import {
 import { UserFlag } from "@server/models/User";
 import { can, authorize } from "@server/policies";
 import { presentUser, presentPolicies } from "@server/presenters";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { safeEqual } from "@server/utils/crypto";
@@ -42,7 +42,7 @@ router.post(
   auth(),
   pagination(),
   validate(T.UsersListSchema),
-  async (ctx: APIContext<T.UsersListReq>) => {
+  async (ctx: Context<T.UsersListReq>) => {
     const {
       sort,
       direction,
@@ -54,7 +54,7 @@ router.post(
       filters: rawFilters,
     } = ctx.input.body;
 
-    const actor = ctx.state.auth.user;
+    const actor = ctx.auth.user;
     authorize(actor, "listUsers", actor.team);
 
     const where: WhereOptions<User> & {
@@ -154,9 +154,9 @@ router.post(
   "users.info",
   auth(),
   validate(T.UsersInfoSchema),
-  async (ctx: APIContext<T.UsersInfoReq>) => {
+  async (ctx: Context<T.UsersInfoReq>) => {
     const { id } = ctx.input.body;
-    const actor = ctx.state.auth.user;
+    const actor = ctx.auth.user;
     const user = id ? await User.findByPk(id) : actor;
     authorize(actor, "read", user);
     const includeDetails = !!can(actor, "readDetails", user);
@@ -175,12 +175,12 @@ router.post(
   rateLimiter(RateLimiterStrategy.TenPerHour),
   auth({ type: AuthenticationType.APP }),
   validate(T.UsersUpdateEmailSchema),
-  async (ctx: APIContext<T.UsersUpdateEmailReq>) => {
+  async (ctx: Context<T.UsersUpdateEmailReq>) => {
     if (!env.EMAIL_ENABLED) {
       throw ValidationError("Email support is not set up for this instance");
     }
 
-    const { user: actor } = ctx.state.auth;
+    const { user: actor } = ctx.auth;
     const { id } = ctx.input.body;
     const { team } = actor;
     const user = id ? await User.findByPk(id) : actor;
@@ -218,12 +218,12 @@ router.get(
   auth({ type: AuthenticationType.APP }),
   transaction(),
   validate(T.UsersUpdateEmailConfirmSchema),
-  async (ctx: APIContext<T.UsersUpdateEmailConfirmReq>) => {
+  async (ctx: Context<T.UsersUpdateEmailConfirmReq>) => {
     if (!env.EMAIL_ENABLED) {
       throw ValidationError("Email support is not set up for this instance");
     }
 
-    const { transaction } = ctx.state;
+    const { transaction } = ctx;
     const { code, follow } = ctx.input.query;
 
     // The link in the email does not include the follow query param, this
@@ -237,7 +237,7 @@ router.get(
     try {
       const res = await getDetailsForEmailUpdateToken(code as string, {
         transaction,
-        lock: transaction.LOCK.UPDATE,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
       });
       user = res.user;
       email = res.email;
@@ -246,7 +246,7 @@ router.get(
       return;
     }
 
-    const { user: actor } = ctx.state.auth;
+    const { user: actor } = ctx.auth;
     authorize(actor, "update", user);
 
     // Check if email domain is allowed
@@ -270,8 +270,8 @@ router.post(
   auth(),
   validate(T.UsersUpdateSchema),
   transaction(),
-  async (ctx: APIContext<T.UsersUpdateReq>) => {
-    const { auth, transaction } = ctx.state;
+  async (ctx: Context<T.UsersUpdateReq>) => {
+    const { auth, transaction } = ctx;
     const actor = auth.user;
     const { id, name, avatarUrl, language, preferences, timezone } =
       ctx.input.body;
@@ -281,7 +281,7 @@ router.post(
       user = await User.findByPk(id, {
         rejectOnEmpty: true,
         transaction,
-        lock: transaction.LOCK.UPDATE,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
       });
     }
     authorize(actor, "update", user);
@@ -328,8 +328,8 @@ router.post(
   auth({ role: UserRole.Admin }),
   validate(T.UsersPromoteSchema),
   transaction(),
-  (ctx: APIContext<T.UsersPromoteReq>) => {
-    const forward = ctx as unknown as APIContext<T.UsersChangeRoleReq>;
+  (ctx: Context<T.UsersPromoteReq>) => {
+    const forward = ctx as unknown as Context<T.UsersChangeRoleReq>;
     forward.input = {
       ...ctx.input,
       body: {
@@ -352,8 +352,8 @@ router.post(
   auth({ role: UserRole.Admin }),
   validate(T.UsersDemoteSchema),
   transaction(),
-  (ctx: APIContext<T.UsersDemoteReq>) => {
-    const forward = ctx as unknown as APIContext<T.UsersChangeRoleReq>;
+  (ctx: Context<T.UsersDemoteReq>) => {
+    const forward = ctx as unknown as Context<T.UsersChangeRoleReq>;
     forward.input = {
       ...ctx.input,
       body: {
@@ -374,21 +374,21 @@ router.post(
   updateRole
 );
 
-async function updateRole(ctx: APIContext<T.UsersChangeRoleReq>) {
-  const { transaction } = ctx.state;
+async function updateRole(ctx: Context<T.UsersChangeRoleReq>) {
+  const { transaction } = ctx;
   const userId = ctx.input.body.id;
   const role = ctx.input.body.role;
-  const actor = ctx.state.auth.user;
+  const actor = ctx.auth.user;
 
   const user = await User.findByPk(userId, {
     transaction,
-    lock: transaction.LOCK.UPDATE,
+    lock: transaction.LOCK.NO_KEY_UPDATE,
   });
   authorize(actor, "update", user);
 
   await Team.findByPk(user.teamId, {
     transaction,
-    lock: transaction.LOCK.UPDATE,
+    lock: transaction.LOCK.NO_KEY_UPDATE,
   });
 
   let name;
@@ -413,6 +413,20 @@ async function updateRole(ctx: APIContext<T.UsersChangeRoleReq>) {
   }
 
   await user.updateWithCtx(ctx, { role }, { name });
+
+  // Guests cannot be members of groups, remove any existing memberships
+  if (role === UserRole.Guest) {
+    const groupUsers = await GroupUser.unscoped().findAll({
+      where: { userId: user.id },
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+
+    for (const groupUser of groupUsers) {
+      await groupUser.destroyWithCtx(ctx, { name: "remove_user" });
+    }
+  }
+
   const includeDetails = !!can(actor, "readDetails", user);
 
   ctx.body = {
@@ -428,14 +442,14 @@ router.post(
   auth(),
   validate(T.UsersSuspendSchema),
   transaction(),
-  async (ctx: APIContext<T.UsersSuspendReq>) => {
-    const { transaction } = ctx.state;
+  async (ctx: Context<T.UsersSuspendReq>) => {
+    const { transaction } = ctx;
     const userId = ctx.input.body.id;
-    const actor = ctx.state.auth.user;
+    const actor = ctx.auth.user;
     const user = await User.findByPk(userId, {
       rejectOnEmpty: true,
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      lock: transaction.LOCK.NO_KEY_UPDATE,
     });
     authorize(actor, "suspend", user);
 
@@ -465,14 +479,14 @@ router.post(
   auth(),
   validate(T.UsersActivateSchema),
   transaction(),
-  async (ctx: APIContext<T.UsersActivateReq>) => {
-    const { transaction } = ctx.state;
+  async (ctx: Context<T.UsersActivateReq>) => {
+    const { transaction } = ctx;
     const userId = ctx.input.body.id;
-    const actor = ctx.state.auth.user;
+    const actor = ctx.auth.user;
     const user = await User.findByPk(userId, {
       rejectOnEmpty: true,
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      lock: transaction.LOCK.NO_KEY_UPDATE,
     });
     authorize(actor, "activate", user);
 
@@ -503,9 +517,9 @@ router.post(
   auth(),
   validate(T.UsersInviteSchema),
   transaction(),
-  async (ctx: APIContext<T.UsersInviteReq>) => {
+  async (ctx: Context<T.UsersInviteReq>) => {
     const { invites, suppressEmail } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     if (invites.length > UserValidation.maxInvitesPerRequest) {
       throw ValidationError(
@@ -533,13 +547,13 @@ router.post(
   auth(),
   validate(T.UsersResendInviteSchema),
   transaction(),
-  async (ctx: APIContext<T.UsersResendInviteReq>) => {
+  async (ctx: Context<T.UsersResendInviteReq>) => {
     const { id } = ctx.input.body;
-    const { auth, transaction } = ctx.state;
+    const { auth, transaction } = ctx;
     const actor = auth.user;
 
     const user = await User.findByPk(id, {
-      lock: transaction.LOCK.UPDATE,
+      lock: transaction.LOCK.NO_KEY_UPDATE,
       transaction,
     });
     authorize(actor, "resendInvite", user);
@@ -580,12 +594,12 @@ router.post(
   "users.requestDelete",
   rateLimiter(RateLimiterStrategy.FivePerHour),
   auth(),
-  async (ctx: APIContext) => {
+  async (ctx: Context) => {
     if (!env.EMAIL_ENABLED) {
       throw ValidationError("Email support is not set up for this instance");
     }
 
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     authorize(user, "delete", user);
 
     await new ConfirmUserDeleteEmail({
@@ -608,17 +622,17 @@ router.post(
   auth(),
   validate(T.UsersDeleteSchema),
   transaction(),
-  async (ctx: APIContext<T.UsersDeleteSchemaReq>) => {
-    const { transaction } = ctx.state;
+  async (ctx: Context<T.UsersDeleteSchemaReq>) => {
+    const { transaction } = ctx;
     const { id, code } = ctx.input.body;
-    const actor = ctx.state.auth.user;
+    const actor = ctx.auth.user;
     let user: User;
 
     if (id) {
       user = await User.findByPk(id, {
         rejectOnEmpty: true,
         transaction,
-        lock: transaction.LOCK.UPDATE,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
       });
     } else {
       user = actor;
@@ -648,9 +662,9 @@ router.post(
   auth(),
   validate(T.UsersNotificationsSubscribeSchema),
   transaction(),
-  async (ctx: APIContext<T.UsersNotificationsSubscribeReq>) => {
+  async (ctx: Context<T.UsersNotificationsSubscribeReq>) => {
     const { eventType } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     const eventTypes = eventType
       ? [eventType]
       : Object.values(NotificationEventType);
@@ -672,9 +686,9 @@ router.post(
   auth(),
   validate(T.UsersNotificationsUnsubscribeSchema),
   transaction(),
-  async (ctx: APIContext<T.UsersNotificationsUnsubscribeReq>) => {
+  async (ctx: Context<T.UsersNotificationsUnsubscribeReq>) => {
     const { eventType } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     const eventTypes = eventType
       ? [eventType]
       : Object.values(NotificationEventType);

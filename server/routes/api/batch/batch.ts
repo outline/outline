@@ -2,13 +2,19 @@ import { omit, snakeCase } from "es-toolkit/compat";
 import type { Middleware } from "koa";
 import compose from "koa-compose";
 import Router from "@koa/router";
+import {
+  addTags,
+  getRootSpanFromRequestContext,
+  setError,
+} from "@server/logging/tracer";
+import { traceFunction } from "@server/logging/tracing";
 import auth from "@server/middlewares/authentication";
 import {
   defaultRateLimiter,
   rateLimiter,
 } from "@server/middlewares/rateLimiter";
 import validate from "@server/middlewares/validate";
-import type { APIContext, AppContext } from "@server/types";
+import type { Context, AppContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { BatchableApiMethods } from "@shared/constants";
@@ -109,9 +115,11 @@ function createSubContext(
   body: T.BatchRequestBody
 ) {
   const sub: AppContext = Object.create(ctx);
-  // A shallow copy so middleware writes (auth, transaction) don't leak between
-  // concurrent sub-requests or back to the parent.
+  // Own copies so middleware writes don't leak between concurrent sub-requests
+  // or back to the parent.
   sub.state = { ...ctx.state };
+  sub.auth = ctx.auth;
+  sub.transaction = ctx.transaction;
   sub.request = Object.create(ctx.request);
   // The parent's credential is the actor for every sub-request, so a token in
   // the sub-request body must not re-authenticate it as a different one.
@@ -146,16 +154,6 @@ function createSubContext(
     set: (value: number) => {
       captured.status = value;
     },
-  });
-  // Re-bind ctx.context to this child so mutations use the child's transaction
-  // rather than the parent's (the getter from apiContext closes over its ctx).
-  Object.defineProperty(sub, "context", {
-    configurable: true,
-    get: () => ({
-      auth: sub.state.auth,
-      transaction: sub.state.transaction,
-      ip: sub.request.ip,
-    }),
   });
 
   return { sub, captured };
@@ -196,6 +194,7 @@ async function dispatch(
     };
   } catch (err) {
     const error: HttpError = toError(err);
+    setError(error);
     return {
       status: typeof error.status === "number" ? error.status : 500,
       ok: false,
@@ -203,6 +202,28 @@ async function dispatch(
       message: error.message,
     };
   }
+}
+
+/**
+ * Dispatches a single sub-request in its own APM span, named for the method.
+ *
+ * @param ctx The parent request context.
+ * @param method The RPC method name to invoke.
+ * @param body The request body for the method.
+ * @returns the result, shaped like a standard API response envelope.
+ */
+function tracedDispatch(
+  ctx: AppContext,
+  method: string,
+  body: T.BatchRequestBody
+): Promise<BatchResult> {
+  return traceFunction({ spanName: "batch.request", resourceName: method })(
+    async () => {
+      const result = await dispatch(ctx, method, body);
+      addTags({ "http.status_code": result.status });
+      return result;
+    }
+  )();
 }
 
 /**
@@ -246,8 +267,17 @@ router.post(
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth({ type: AuthenticationType.APP }),
   validate(T.BatchSchema),
-  async (ctx: APIContext<T.BatchReq>) => {
+  async (ctx: Context<T.BatchReq>) => {
     const { requests } = ctx.input.body;
+
+    // Sub-request routes would otherwise be appended to the APM route name.
+    addTags(
+      {
+        "resource.name": "POST /batch",
+        "batch.methods": requests.map((request) => request.method).join(","),
+      },
+      getRootSpanFromRequestContext(ctx)
+    );
 
     // Allow 1s per sub-request, clamped between a 15s floor and 25s ceiling.
     const originalTimeout = ctx.req.socket.timeout || 0;
@@ -260,7 +290,7 @@ router.post(
       for (const group of groupRequests(requests)) {
         const results = await Promise.all(
           group.map((request) =>
-            dispatch(ctx, request.method, request.body ?? {})
+            tracedDispatch(ctx, request.method, request.body ?? {})
           )
         );
         data.push(...results);

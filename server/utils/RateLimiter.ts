@@ -40,7 +40,7 @@ export default class RateLimiter {
   static get defaultRateLimiter(): RateLimiterRedis {
     if (!this._defaultRateLimiter) {
       this._defaultRateLimiter = new RateLimiterRedis({
-        storeClient: Redis.defaultClient,
+        storeClient: Redis.ephemeralClient,
         points: env.RATE_LIMITER_REQUESTS,
         duration: env.RATE_LIMITER_DURATION_WINDOW,
         keyPrefix: this.RATE_LIMITER_REDIS_KEY_PREFIX,
@@ -125,7 +125,7 @@ export default class RateLimiter {
    */
   static async cacheUserForToken(token: string, userId: string): Promise<void> {
     try {
-      await Redis.defaultClient.set(
+      await Redis.ephemeralClient.set(
         this.tokenCacheKey(token),
         userId,
         "EX",
@@ -145,7 +145,7 @@ export default class RateLimiter {
    */
   static async getCachedUserIdForToken(token: string): Promise<string | null> {
     try {
-      return await Redis.defaultClient.get(this.tokenCacheKey(token));
+      return await Redis.ephemeralClient.get(this.tokenCacheKey(token));
     } catch (err) {
       Logger.warn(
         "Failed to read cached user for rate limiter token",
@@ -163,7 +163,7 @@ export default class RateLimiter {
    */
   static async clearCachedToken(token: string): Promise<void> {
     try {
-      await Redis.defaultClient.del(this.tokenCacheKey(token));
+      await Redis.ephemeralClient.del(this.tokenCacheKey(token));
     } catch (err) {
       Logger.warn("Failed to clear cached rate limiter token", toError(err));
     }

@@ -94,8 +94,8 @@ function Shares() {
   }, [query, updateParams]);
 
   return (
-    <Scene title={t("Shared links")} icon={<GlobeIcon />} wide>
-      <Heading>{t("Shared links")}</Heading>
+    <Scene title={t("Public links")} icon={<GlobeIcon />} wide>
+      <Heading>{t("Public links")}</Heading>
 
       {can.update && !canShareDocuments && (
         <>
@@ -114,7 +114,7 @@ function Shares() {
 
       <Text as="p" type="secondary">
         <Trans>
-          Documents that have been shared are listed below. Anyone that has the
+          Documents that have been shared are listed below. Anyone with the
           public link can access a read-only version of the document until the
           link has been revoked.
         </Trans>

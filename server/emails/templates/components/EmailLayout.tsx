@@ -1,7 +1,7 @@
-import { Table, TBody, TR, TD } from "oy-vey";
 import * as React from "react";
 import theme from "@shared/styles/theme";
 import { DirectionContext } from "./Direction";
+import { Table, TBody, TR, TD } from "./Table";
 
 const EmailLayout: React.FC<
   React.PropsWithChildren<{
@@ -75,17 +75,7 @@ const EmailLayout: React.FC<
 
 export default EmailLayout;
 
-export const baseStyles = `
-  #__bodyTable__ {
-    font-family: ${theme.fontFamily};
-    font-size: 16px;
-    line-height: 1.5;
-  }
+// Minified by hand to keep the delivered head styles small.
+const fontFamily = theme.fontFamily.replace(/,\s+/g, ",");
 
-  @media (prefers-color-scheme: dark) {
-    .email-button {
-      background: #FFFFFF !important;
-      color: #000000 !important;
-    }
-  }
-`;
+export const baseStyles = `#__bodyTable__{font-family:${fontFamily};font-size:16px;line-height:1.5}@media (prefers-color-scheme:dark){.email-button{background:#fff!important;color:#000!important}}`;

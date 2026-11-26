@@ -24,6 +24,7 @@ import { LRUCache } from "../../utils/LRUCache";
 import { sanitizeUrl } from "../../utils/urls";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { isModKey } from "../../utils/keyboard";
+import { getEventTargetElement } from "../lib/eventTarget";
 
 export const pluginKey = new PluginKey("mermaid");
 
@@ -576,7 +577,7 @@ export default function Mermaid({ editor }: { editor: Editor }) {
       },
       handleDOMEvents: {
         click(_view, event: MouseEvent) {
-          const target = event.target as HTMLElement;
+          const target = getEventTargetElement(event);
           const anchor = target?.closest("a");
 
           if (anchor instanceof SVGAElement) {
@@ -588,7 +589,7 @@ export default function Mermaid({ editor }: { editor: Editor }) {
           return true;
         },
         mousedown(view, event) {
-          const target = event.target as HTMLElement;
+          const target = getEventTargetElement(event);
           const diagram = target?.closest(
             `.${EditorStyleHelper.mermaidDiagram}`
           );
@@ -640,7 +641,7 @@ export default function Mermaid({ editor }: { editor: Editor }) {
           return true;
         },
         mouseup(view, event) {
-          const target = event.target as HTMLElement;
+          const target = getEventTargetElement(event);
           const diagram = target?.closest(
             `.${EditorStyleHelper.mermaidDiagram}`
           );

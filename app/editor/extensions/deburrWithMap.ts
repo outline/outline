@@ -5,11 +5,10 @@ import { deburr } from "es-toolkit/compat";
  * any index in the stripped string back to the corresponding index in the
  * original string.
  *
- * `deburr` normalizes to NFD form, which can change the length of the string –
- * most notably it decomposes precomposed CJK/Hangul syllables (e.g. "강" is a
- * single UTF-16 code unit but decomposes into three jamo). When that happens a
- * naive offset no longer lines up with the original, so the source index of
- * every emitted code unit is recorded instead.
+ * `deburr` can change the length of the string – it expands some letters (e.g.
+ * "ß" is a single UTF-16 code unit but becomes "ss") and removes combining
+ * marks. When that happens a naive offset no longer lines up with the original,
+ * so the source index of every emitted code unit is recorded instead.
  *
  * When deburring does not change the length – the common case for ASCII and
  * ordinary accented Latin text – indices line up one-to-one and the cheap
@@ -31,17 +30,17 @@ export function deburrWithMap(text: string): {
     return { deburred, toOriginalIndex: (index) => index };
   }
 
-  // Slow path: deburring changed the length (e.g. NFD decomposed a CJK/Hangul
-  // syllable or expanded a ligature). Rebuild the deburred string per code
-  // point so it stays consistent with the index map, recording the original
-  // index of every emitted code unit plus a sentinel for the end position.
+  // Slow path: deburring changed the length (e.g. it expanded a letter or
+  // removed a combining mark). Rebuild the deburred string per code point so it
+  // stays consistent with the index map, recording the original index of every
+  // emitted code unit plus a sentinel for the end position.
   const parts: string[] = [];
   const map: number[] = [];
   let originalIndex = 0;
 
   // Iterate by code point so surrogate pairs are deburred as a unit.
   for (const char of text) {
-    // ASCII characters are never altered or decomposed by deburr, so emit them
+    // ASCII characters are never altered by deburr, so emit them
     // directly and skip the comparatively expensive normalization.
     if (char.charCodeAt(0) < 0x80) {
       map.push(originalIndex);

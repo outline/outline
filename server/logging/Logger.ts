@@ -1,12 +1,13 @@
 /* oxlint-disable no-console */
 import type { IncomingMessage } from "node:http";
 import { styleText } from "node:util";
-import { isArray, isEmpty, isObject } from "es-toolkit/compat";
+import { isEmpty } from "es-toolkit/compat";
 import winston from "winston";
 import env from "@server/env";
 import Metrics from "@server/logging/Metrics";
 import Sentry from "@server/logging/sentry";
 import { ShutdownHelper } from "@server/utils/ShutdownHelper";
+import { sanitize } from "./sanitize";
 import * as Tracing from "./tracer";
 
 type LogCategory =
@@ -142,8 +143,9 @@ class Logger {
       sentry.withScope((scope) => {
         scope.setLevel("error");
 
-        for (const key in extra) {
-          scope.setExtra(key, this.sanitize(extra[key]));
+        const sanitizedExtra = this.sanitize(extra);
+        for (const key in sanitizedExtra) {
+          scope.setExtra(key, sanitizedExtra[key]);
         }
 
         if (request) {
@@ -187,61 +189,13 @@ class Logger {
    * @param input The data to sanitize
    * @returns The sanitized data
    */
-  private sanitize = <T>(input: T, level = 0): T => {
-    // Errors have non-enumerable message/stack which are dropped by spreads
-    // and JSON serialization, so convert them to a plain object up-front.
-    if (input instanceof Error) {
-      return {
-        name: input.name,
-        message: input.message,
-        stack: input.stack,
-      } as unknown as T;
-    }
-
+  private sanitize = <T>(input: T): T => {
     // Short circuit if we're not in production to enable easier debugging
-    if (!env.isProduction) {
+    if (!env.isProduction && !(input instanceof Error)) {
       return input;
     }
 
-    const sensitiveFields = [
-      "accessToken",
-      "refreshToken",
-      "token",
-      "password",
-      "content",
-    ];
-
-    if (level > 3) {
-      // oxlint-disable-next-line @typescript-eslint/no-explicit-any
-      return "[…]" as any as T;
-    }
-
-    if (isArray(input)) {
-      // oxlint-disable-next-line @typescript-eslint/no-explicit-any
-      return input.map((item) => this.sanitize(item, level + 1)) as any as T;
-    }
-
-    if (isObject(input)) {
-      // oxlint-disable-next-line @typescript-eslint/no-explicit-any
-      const output: Record<string, any> = { ...input };
-
-      for (const key of Object.keys(output)) {
-        if (sensitiveFields.includes(key)) {
-          output[key] = "[Filtered]";
-        } else if (isObject(output[key])) {
-          output[key] = this.sanitize(output[key], level + 1);
-        } else if (isArray(output[key])) {
-          output[key] = output[key].map((value: unknown) =>
-            this.sanitize(value, level + 1)
-          );
-        } else {
-          output[key] = this.sanitize(output[key], level + 1);
-        }
-      }
-      return output as T;
-    }
-
-    return input;
+    return sanitize(input);
   };
 }
 

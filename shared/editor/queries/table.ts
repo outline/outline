@@ -16,6 +16,16 @@ import type { Node } from "prosemirror-model";
 import type { Selection } from "prosemirror-state";
 
 /**
+ * Whether a node is part of a table: the table, a row or a cell.
+ *
+ * @param node the node.
+ * @returns true if the node has a table role.
+ */
+export function hasTableRole(node: Node): boolean {
+  return !!node.type.spec.tableRole;
+}
+
+/**
  * Checks if the current selection is a column selection.
  * @param state The editor state.
  * @returns True if the selection is a column selection, false otherwise.

@@ -107,6 +107,7 @@ export const TeamPreferenceDefaults: TeamPreferences = {
   [TeamPreference.MCP]: true,
   [TeamPreference.DisabledEmbeds]: [],
   [TeamPreference.PersonalDocs]: true,
+  [TeamPreference.DefaultShareExpiryDays]: 0,
 };
 
 export const DocumentPreferenceDefaults: DocumentPreferences = {

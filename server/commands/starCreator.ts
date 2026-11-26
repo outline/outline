@@ -3,7 +3,7 @@ import type { WhereOptions } from "sequelize";
 import { Sequelize } from "sequelize";
 import type { User } from "@server/models";
 import { Star } from "@server/models";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 
 type Props = {
   /** The user creating the star */
@@ -15,7 +15,7 @@ type Props = {
   /** The sorted index for the star in the sidebar If no index is provided then it will be at the end */
   index?: string;
   /** The request context */
-  ctx: APIContext;
+  ctx: Context;
 };
 
 /**
@@ -48,7 +48,7 @@ export default async function starCreator({
         Sequelize.literal('"star"."index" collate "C"'),
         ["updatedAt", "DESC"],
       ],
-      transaction: ctx.state.transaction,
+      transaction: ctx.transaction,
     });
 
     // create a star at the beginning of the list

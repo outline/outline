@@ -283,7 +283,7 @@ const Application = observer(function Application({ oauthClient }: Props) {
             name="clientSecret"
             label={t("OAuth client secret")}
             description={t(
-              "Store this value securely, do not expose it publicly"
+              "Store this value securely – do not expose it publicly"
             )}
           >
             <Input

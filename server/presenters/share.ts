@@ -37,6 +37,7 @@ export default function presentShare(share: Share, options: Options = {}) {
     showTOC: share.showTOC,
     title: share.title,
     iconUrl: share.iconUrl,
+    expiresAt: share.expiresAt,
     lastAccessedAt: share.lastAccessedAt || undefined,
     views: share.views || 0,
     domain: share.domain,

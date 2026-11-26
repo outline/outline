@@ -12,7 +12,7 @@ import { InvalidRequestError, NotFoundError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { Comment, Document, SearchQuery } from "@server/models";
 import type { IntegrationAuthentication, Team, User } from "@server/models";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { opts } from "@server/utils/i18n";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 import SearchProviderManager from "@server/utils/SearchProviderManager";
@@ -61,7 +61,7 @@ export class ChatService {
    * @returns the result to send to the platform.
    */
   public static async handle<TTarget>(
-    ctx: APIContext,
+    ctx: Context,
     provider: BaseChatProvider<TTarget>,
     event: ChatEvent<TTarget>
   ): Promise<ChatResult> {
@@ -88,8 +88,8 @@ export class ChatService {
     return PluginManager.getHooks(Hook.ChatAnswerProvider)[0]?.value;
   }
 
-  private static userOf(ctx: APIContext): User {
-    return ctx.context.auth.user;
+  private static userOf(ctx: Context): User {
+    return ctx.auth.user;
   }
 
   private static async handleCommand<TTarget>(
@@ -322,9 +322,9 @@ export class ChatService {
    * @throws {AuthorizationError} if the user cannot read the document.
    */
   private static async loadDocument(
-    contexts: APIContext[],
+    contexts: Context[],
     documentId: string
-  ): Promise<{ ctx: APIContext; document: Document }> {
+  ): Promise<{ ctx: Context; document: Document }> {
     // This lookup excludes deleted documents, which documentLoader returns to
     // users that can restore them.
     const found = await Document.findByPk(documentId);
@@ -351,9 +351,9 @@ export class ChatService {
    * @returns the document and the context of the user that loaded it, if any.
    */
   private static async tryLoadDocument(
-    contexts: APIContext[],
+    contexts: Context[],
     documentId: string
-  ): Promise<{ ctx: APIContext; document: Document } | undefined> {
+  ): Promise<{ ctx: Context; document: Document } | undefined> {
     try {
       return await this.loadDocument(contexts, documentId);
     } catch (err) {
@@ -406,7 +406,7 @@ export class ChatService {
 
   private static async search(
     provider: BaseChatProvider,
-    contexts: APIContext[],
+    contexts: Context[],
     query: string
   ): Promise<ChatMessage> {
     const user = this.userOf(contexts[0]);
@@ -441,7 +441,7 @@ export class ChatService {
   }
 
   private static async searchTeam(
-    ctx: APIContext,
+    ctx: Context,
     provider: BaseChatProvider,
     query: string,
     showTeam: boolean
@@ -498,7 +498,7 @@ export class ChatService {
    * the answer fails. It never rejects, so it can run detached.
    */
   private static async replyWithAnswer<TTarget>(
-    ctx: APIContext,
+    ctx: Context,
     provider: BaseChatProvider<TTarget>,
     target: TTarget,
     answerProvider: ChatAnswerProvider,
@@ -525,7 +525,7 @@ export class ChatService {
   }
 
   private static async answerMessage(
-    ctx: APIContext,
+    ctx: Context,
     provider: BaseChatProvider,
     answerProvider: ChatAnswerProvider,
     query: string

@@ -11,6 +11,7 @@ import {
   buildUser,
   buildTeam,
   buildAdmin,
+  buildInvite,
   buildSubdomain,
 } from "@server/test/factories";
 import { mockTaskSchedule, setSelfHosted } from "@server/test/support";
@@ -22,6 +23,123 @@ describe("accountProvisioner", () => {
   const ip = faker.internet.ip();
   const ctx = createContext({ ip });
   const schedule = mockTaskSchedule();
+
+  describe("invites", () => {
+    it("should record invite_accepted against the invited user and team", async () => {
+      const team = await buildTeam();
+      const invite = await buildInvite({ teamId: team.id });
+      const providers = await team.$get("authenticationProviders");
+
+      const result = await accountProvisioner(ctx, {
+        user: {
+          name: invite.name,
+          email: invite.email!,
+          avatarUrl: invite.avatarUrl,
+          emailVerified: true,
+        },
+        team: {
+          teamId: team.id,
+          name: team.name,
+          avatarUrl: team.avatarUrl,
+          subdomain: faker.internet.domainWord(),
+        },
+        authenticationProvider: {
+          name: providers[0].name,
+          providerId: providers[0].providerId,
+        },
+        authentication: {
+          providerId: randomUUID(),
+          accessToken: "123",
+          scopes: ["read"],
+        },
+      });
+
+      expect(result.user.id).toEqual(invite.id);
+      expect(result.isNewUser).toEqual(true);
+
+      const event = await Event.findLatest({
+        name: "users.invite_accepted",
+        userId: invite.id,
+      });
+      expect(event?.teamId).toEqual(team.id);
+      expect(event?.actorId).toEqual(invite.id);
+      expect(event?.ip).toEqual(ip);
+    });
+
+    it("should not attribute invite_accepted to the user of an existing session", async () => {
+      const team = await buildTeam();
+      const invite = await buildInvite({ teamId: team.id });
+      const providers = await team.$get("authenticationProviders");
+      const sessionUser = await buildUser();
+
+      await accountProvisioner(createContext({ ip, user: sessionUser }), {
+        user: {
+          name: invite.name,
+          email: invite.email!,
+          avatarUrl: invite.avatarUrl,
+          emailVerified: true,
+        },
+        team: {
+          teamId: team.id,
+          name: team.name,
+          avatarUrl: team.avatarUrl,
+          subdomain: faker.internet.domainWord(),
+        },
+        authenticationProvider: {
+          name: providers[0].name,
+          providerId: providers[0].providerId,
+        },
+        authentication: {
+          providerId: randomUUID(),
+          accessToken: "123",
+          scopes: ["read"],
+        },
+      });
+
+      const event = await Event.findLatest({
+        name: "users.invite_accepted",
+        userId: invite.id,
+      });
+      expect(event?.teamId).toEqual(team.id);
+      expect(event?.actorId).toEqual(invite.id);
+    });
+  });
+
+  it("should not record invite_accepted for a user that was not invited", async () => {
+    const team = await buildTeam();
+    const providers = await team.$get("authenticationProviders");
+
+    const result = await accountProvisioner(ctx, {
+      user: {
+        name: faker.person.fullName(),
+        email: faker.internet.email().toLowerCase(),
+        emailVerified: true,
+      },
+      team: {
+        teamId: team.id,
+        name: team.name,
+        avatarUrl: team.avatarUrl,
+        subdomain: faker.internet.domainWord(),
+      },
+      authenticationProvider: {
+        name: providers[0].name,
+        providerId: providers[0].providerId,
+      },
+      authentication: {
+        providerId: randomUUID(),
+        accessToken: "123",
+        scopes: ["read"],
+      },
+    });
+
+    expect(result.isNewUser).toEqual(true);
+    await expect(
+      Event.findLatest({
+        name: "users.invite_accepted",
+        userId: result.user.id,
+      })
+    ).resolves.toBeNull();
+  });
 
   describe("group sync", () => {
     async function provisionExistingUser({
@@ -714,6 +832,163 @@ describe("accountProvisioner", () => {
 
       const providers = await team.$get("authenticationProviders");
       expect(providers.find((p) => p.name === "google")).toBeTruthy();
+    });
+
+    it("should reconnect an existing authentication provider in place", async () => {
+      const admin = await buildAdmin();
+      const team = admin.team;
+      const [existingProvider] = await team.$get("authenticationProviders");
+      const member = await buildUser({ teamId: team.id });
+      const [memberAuth] = await member.$get("authentications");
+      const providerId = randomUUID();
+
+      await accountProvisioner(createContext({ ip, user: admin }), {
+        user: {
+          name: admin.name,
+          email: admin.email!,
+        },
+        team: {
+          teamId: team.id,
+          subdomain: team.subdomain!,
+        },
+        authenticationProvider: {
+          name: existingProvider.name,
+          providerId,
+        },
+        authentication: {
+          providerId: randomUUID(),
+          scopes: ["read"],
+        },
+      });
+
+      const providers = await team.$get("authenticationProviders");
+      expect(providers.length).toEqual(1);
+      expect(providers[0].id).toEqual(existingProvider.id);
+      expect(providers[0].providerId).toEqual(providerId);
+
+      // A member signs in with the same external user id and a new email.
+      const newEmail = faker.internet.email();
+      const { user, isNewUser } = await accountProvisioner(ctx, {
+        user: {
+          name: member.name,
+          email: newEmail,
+          emailVerified: true,
+        },
+        team: {
+          teamId: team.id,
+          subdomain: team.subdomain!,
+        },
+        authenticationProvider: {
+          name: existingProvider.name,
+          providerId,
+        },
+        authentication: {
+          providerId: memberAuth.providerId,
+          scopes: ["read"],
+        },
+      });
+
+      expect(user.id).toEqual(member.id);
+      expect(user.email).toEqual(newEmail);
+      expect(isNewUser).toEqual(false);
+    });
+
+    it("should not connect or reconnect an authentication provider with an empty providerId", async () => {
+      const admin = await buildAdmin();
+      const team = admin.team;
+      const [existingProvider] = await team.$get("authenticationProviders");
+
+      await expect(
+        accountProvisioner(createContext({ ip, user: admin }), {
+          user: {
+            name: admin.name,
+            email: admin.email!,
+          },
+          team: {
+            teamId: team.id,
+            subdomain: team.subdomain!,
+          },
+          authenticationProvider: {
+            name: existingProvider.name,
+            providerId: "",
+          },
+          authentication: {
+            providerId: randomUUID(),
+            scopes: ["read"],
+          },
+        })
+      ).rejects.toThrow();
+
+      const providers = await team.$get("authenticationProviders");
+      expect(providers.length).toEqual(1);
+      expect(providers[0].providerId).toEqual(existingProvider.providerId);
+    });
+
+    it("should allow an admin through an already connected provider with an empty providerId", async () => {
+      const team = await buildTeam({
+        authenticationProviders: [{ name: "discord", providerId: "" }],
+      });
+      const admin = await buildAdmin({ teamId: team.id });
+
+      const { user } = await accountProvisioner(
+        createContext({ ip, user: admin }),
+        {
+          user: {
+            name: admin.name,
+            email: admin.email!,
+          },
+          team: {
+            teamId: team.id,
+            subdomain: team.subdomain!,
+          },
+          authenticationProvider: {
+            name: "discord",
+            providerId: "",
+          },
+          authentication: {
+            providerId: randomUUID(),
+            scopes: ["read"],
+          },
+        }
+      );
+
+      expect(user.id).toEqual(admin.id);
+      const providers = await team.$get("authenticationProviders");
+      expect(providers.length).toEqual(1);
+    });
+
+    it("should add an authentication provider when the team has several of the same type", async () => {
+      const team = await buildTeam({
+        authenticationProviders: [
+          { name: "google", providerId: faker.internet.domainName() },
+          { name: "google", providerId: faker.internet.domainName() },
+        ],
+      });
+      const admin = await buildAdmin({ teamId: team.id });
+      const providerId = faker.internet.domainName();
+
+      await accountProvisioner(createContext({ ip, user: admin }), {
+        user: {
+          name: admin.name,
+          email: admin.email!,
+        },
+        team: {
+          teamId: team.id,
+          subdomain: team.subdomain!,
+        },
+        authenticationProvider: {
+          name: "google",
+          providerId,
+        },
+        authentication: {
+          providerId: randomUUID(),
+          scopes: ["read"],
+        },
+      });
+
+      const providers = await team.$get("authenticationProviders");
+      expect(providers.length).toEqual(3);
+      expect(providers.map((p) => p.providerId)).toContain(providerId);
     });
   });
 

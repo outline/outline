@@ -22,7 +22,7 @@ import {
   ImportTaskState,
 } from "@shared/types";
 import { toError } from "@shared/utils/error";
-import { isExternalUrl } from "@shared/utils/urls";
+import { isBase64Url, isExternalUrl, isUrl } from "@shared/utils/urls";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
 import Logger from "@server/logging/Logger";
@@ -71,10 +71,12 @@ export default abstract class APIImportTask<
       return;
     }
 
-    // Don't process any further when the associated import is canceled by the user.
-    if (importTask.import.state === ImportState.Canceled) {
-      importTask.state = ImportTaskState.Canceled;
-      await importTask.save();
+    // Stop when the import has ended, or its tasks are all processed already.
+    if (this.isFinished(importTask.import.state)) {
+      if (importTask.state !== ImportTaskState.Completed) {
+        importTask.state = ImportTaskState.Canceled;
+        await importTask.save();
+      }
       return;
     }
 
@@ -132,15 +134,8 @@ export default abstract class APIImportTask<
       const importTask = await ImportTask.findByPk<ImportTask<T>>(
         importTaskId,
         {
-          include: [
-            {
-              model: Import,
-              as: "import",
-              required: true,
-            },
-          ],
           transaction,
-          lock: Transaction.LOCK.UPDATE,
+          lock: { level: Transaction.LOCK.NO_KEY_UPDATE, of: ImportTask },
         }
       );
 
@@ -148,10 +143,24 @@ export default abstract class APIImportTask<
         return;
       }
 
-      importTask.state = ImportTaskState.Errored;
-      await importTask.save({ transaction });
+      const associatedImport = await this.lockImport(
+        importTask.importId,
+        transaction
+      );
+      if (!associatedImport) {
+        return;
+      }
 
-      const associatedImport = importTask.import;
+      // Keep the outcome of a cancel or of a finished import.
+      if (this.isFinished(associatedImport.state)) {
+        return;
+      }
+
+      if (importTask.state !== ImportTaskState.Completed) {
+        importTask.state = ImportTaskState.Errored;
+        await importTask.save({ transaction });
+      }
+
       associatedImport.error = importTask.error; // copy error from ImportTask that caused the failure.
       associatedImport.state = ImportState.Errored;
       await associatedImport.saveWithCtx(
@@ -257,7 +266,16 @@ export default abstract class APIImportTask<
     await this.onAllTasksCompleted(importTask);
 
     await sequelize.transaction(async (transaction) => {
-      const associatedImport = importTask.import;
+      const associatedImport = await this.lockImport(
+        importTask.importId,
+        transaction
+      );
+
+      // The import may have been canceled while this task was running.
+      if (!associatedImport || this.isFinished(associatedImport.state)) {
+        return;
+      }
+
       associatedImport.state = ImportState.Processed;
       await associatedImport.saveWithCtx(
         createContext({
@@ -267,6 +285,32 @@ export default abstract class APIImportTask<
         undefined,
         { name: "processed" }
       );
+    });
+  }
+
+  /**
+   * Whether the import has ended, or its tasks are all processed already.
+   *
+   * @param state state of the import.
+   * @returns true if no more import tasks should change the import.
+   */
+  private isFinished(state: ImportState) {
+    return (
+      state === ImportState.Processed || Import.terminalStates.includes(state)
+    );
+  }
+
+  /**
+   * Load the import with a row lock so that concurrent state changes are not lost.
+   *
+   * @param importId id of the import.
+   * @param transaction transaction to hold the lock in.
+   * @returns the locked import, or null if it does not exist.
+   */
+  private lockImport(importId: string, transaction: Transaction) {
+    return Import.findByPk<Import<T>>(importId, {
+      transaction,
+      lock: { level: transaction.LOCK.NO_KEY_UPDATE, of: Import },
     });
   }
 
@@ -383,7 +427,7 @@ export default abstract class APIImportTask<
         return { url, name: name.length !== 0 ? name : node.type.name };
       }),
       "url"
-    ).filter((item) => isExternalUrl(item.url));
+    ).filter((item) => isDownloadableUrl(item.url));
 
     // Nothing remote to download — content already points at internal
     // attachments (e.g. a Markdown zip's local files resolved to redirect
@@ -514,4 +558,17 @@ export default abstract class APIImportTask<
       },
     };
   }
+}
+
+/**
+ * Whether the url points to content that can be downloaded into an attachment.
+ *
+ * @param url the url of an image, video, or attachment node.
+ * @returns true if the url is a remote absolute url or base64 data.
+ */
+function isDownloadableUrl(url: string) {
+  return (
+    isExternalUrl(url) &&
+    (!!isBase64Url(url) || isUrl(url, { requireHostname: true }))
+  );
 }

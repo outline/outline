@@ -1,6 +1,5 @@
 import { addMinutes, subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
-import type { Context } from "koa";
 import { errToString } from "@shared/utils/error";
 import { randomString } from "@shared/random";
 import { getCookieDomain } from "@shared/utils/domains";
@@ -13,6 +12,7 @@ import {
 } from "../errors";
 import { safeEqual } from "./crypto";
 import fetch, { type Response } from "./fetch";
+import type { AppContext } from "@server/types";
 
 /**
  * Generate a random nonce, persist it in a same-origin cookie, and return it
@@ -25,7 +25,7 @@ import fetch, { type Response } from "./fetch";
  * @returns The generated nonce.
  */
 export function generateOAuthStateNonce(
-  ctx: Context,
+  ctx: AppContext,
   cookieName: string
 ): string {
   const nonce = randomString(32);
@@ -51,7 +51,7 @@ export function generateOAuthStateNonce(
  *   or when they do not match.
  */
 export function verifyOAuthStateNonce(
-  ctx: Context,
+  ctx: AppContext,
   cookieName: string,
   stateNonce: string | undefined
 ): void {

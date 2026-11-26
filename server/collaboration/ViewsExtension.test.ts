@@ -1,6 +1,7 @@
 import type { onChangePayload } from "@hocuspocus/server";
 import { subMinutes } from "date-fns";
-import { User } from "@server/models";
+import { DatabaseError } from "sequelize";
+import { User, View } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
 import { ViewsExtension } from "./ViewsExtension";
 
@@ -34,5 +35,23 @@ describe("ViewsExtension", () => {
 
     const reloaded = await User.findByPk(user.id, { rejectOnEmpty: true });
     expect(reloaded.lastActiveAt).toEqual(recent);
+  });
+
+  it("should not throw when the database is read-only", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({ teamId: user.teamId });
+    const spy = vi.spyOn(View, "touch").mockRejectedValue(
+      new DatabaseError(
+        Object.assign(new Error("read-only transaction"), {
+          sql: "",
+          code: "25006",
+        })
+      )
+    );
+
+    await expect(
+      change(user, document.id, "socket-1")
+    ).resolves.toBeUndefined();
+    spy.mockRestore();
   });
 });

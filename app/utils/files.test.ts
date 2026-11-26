@@ -20,4 +20,17 @@ describe("#toDropzoneAccept", () => {
       "image/heif": [],
     });
   });
+
+  it("should keep extensions when there are no mime types", () => {
+    const accept = toDropzoneAccept([".png", ".jpg"]);
+    const entries = Object.entries(accept);
+
+    expect(entries).toHaveLength(1);
+    expect(entries[0][0]).toMatch(/^application\/x-/);
+    expect(entries[0][1]).toEqual([".png", ".jpg"]);
+  });
+
+  it("should return an empty map when there are no types", () => {
+    expect(toDropzoneAccept([])).toEqual({});
+  });
 });

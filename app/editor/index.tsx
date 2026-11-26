@@ -344,16 +344,8 @@ export class Editor extends React.PureComponent<
       }
     }
 
-    // When transitioning from readOnly to editable, reinitialize to create
-    // editing extensions, keymaps, input rules, and commands that were skipped.
     if (prevProps.readOnly && !this.props.readOnly) {
-      const docJSON = this.view.state.doc.toJSON();
-      this.view.destroy();
-      this.init();
-      const newState = this.createState(docJSON);
-      this.view.updateState(newState);
-      this.syncObservableState();
-      this.forceUpdate();
+      this.setEditable();
     } else if (!prevProps.readOnly && this.props.readOnly) {
       // pass readOnly changes through to underlying editor instance
       this.view.update({
@@ -533,35 +525,33 @@ export class Editor extends React.PureComponent<
   }
 
   private createState(value?: string | ProsemirrorData | ProsemirrorNode) {
-    const doc = this.createDocument(value || this.props.defaultValue);
-
-    if (this.props.readOnly) {
-      return EditorState.create({
-        schema: this.schema,
-        doc,
-        plugins: [...this.plugins, anchorPlugin()],
-      });
-    }
-
     return EditorState.create({
       schema: this.schema,
-      doc,
-      plugins: [
-        ...this.plugins,
-        ...this.keymaps,
-        anchorPlugin(),
-        dropCursor({
-          color: this.props.theme.accent,
-          width: 2,
-          class: EditorStyleHelper.dropCursor,
-        }),
-        gapCursor(),
-        inputRules({
-          rules: this.inputRules,
-        }),
-        keymap(baseKeymap),
-      ],
+      doc: this.createDocument(value || this.props.defaultValue),
+      plugins: this.createStatePlugins(),
     });
+  }
+
+  private createStatePlugins() {
+    if (this.props.readOnly) {
+      return [...this.plugins, anchorPlugin()];
+    }
+
+    return [
+      ...this.plugins,
+      ...this.keymaps,
+      anchorPlugin(),
+      dropCursor({
+        color: this.props.theme.accent,
+        width: 2,
+        class: EditorStyleHelper.dropCursor,
+      }),
+      gapCursor(),
+      inputRules({
+        rules: this.inputRules,
+      }),
+      keymap(baseKeymap),
+    ];
   }
 
   private createDocument(content: string | object | ProsemirrorNode) {
@@ -725,6 +715,50 @@ export class Editor extends React.PureComponent<
 
   private syncObservableState() {
     runInAction(() => this.observableState.set(this.view.state));
+  }
+
+  /**
+   * Make the editor editable. The document, schema and node views are kept, so
+   * the editor DOM is not redrawn.
+   */
+  private setEditable() {
+    this.view.setProps({
+      attributes: { translate: "no" },
+      editable: () => !this.props.readOnly,
+    });
+
+    // Changing the plugins recreates every plugin view, so only do it once.
+    if (this.extensions.readOnly) {
+      this.addEditingExtensions();
+    }
+
+    this.syncObservableState();
+    Array.from(this.nodeRenderers).forEach((view) =>
+      view.setProp("isEditable", true)
+    );
+    this.forceUpdate();
+  }
+
+  /**
+   * Add the extensions, keymaps, input rules and commands that were skipped in
+   * read-only mode.
+   */
+  private addEditingExtensions() {
+    this.extensions.setEditable(this.props.extensions, this);
+    this.plugins = this.createPlugins();
+    this.rulePlugins = this.createRulePlugins();
+    this.cachedSerializer = undefined;
+    this.cachedParser = undefined;
+    this.cachedPasteParser = undefined;
+    this.widgets = this.createWidgets();
+    this.keymaps = this.createKeymaps();
+    this.inputRules = this.createInputRules();
+
+    this.view.updateState(
+      this.view.state.reconfigure({ plugins: this.createStatePlugins() })
+    );
+    this.commands = this.createCommands();
+    this.selectionToolbarMenus = this.extensions.selectionToolbarMenus;
   }
 
   private calculateDir = () => {

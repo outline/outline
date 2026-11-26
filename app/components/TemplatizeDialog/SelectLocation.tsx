@@ -77,7 +77,7 @@ const SelectLocation = ({ defaultCollectionId, onSelect }: Props) => {
   );
 
   if (error) {
-    toast.error(t("Collections could not be loaded, please reload the app"));
+    toast.error(t("Collections could not be loaded – please reload the app"));
   }
 
   if (loading || !options.length) {

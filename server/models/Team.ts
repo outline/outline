@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { URL } from "node:url";
-import { subMinutes } from "date-fns";
+import { addDays, subMinutes } from "date-fns";
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import { type FindOptions, type SaveOptions } from "sequelize";
 import { Op } from "sequelize";
@@ -27,8 +27,8 @@ import {
 import slugify from "slugify";
 import { isEmail } from "validator";
 import { TeamPreferenceDefaults } from "@shared/constants";
-import type { Plan, PlanFeature, TeamPreferences } from "@shared/types";
-import { TeamPreference, UserRole } from "@shared/types";
+import type { Plan, TeamPreferences } from "@shared/types";
+import { PlanFeature, TeamPreference, UserRole } from "@shared/types";
 import {
   getBaseDomain,
   parseDomain,
@@ -278,6 +278,23 @@ class Team extends ParanoidModel<
   }
 
   /**
+   * Returns the expiry for a share created now, if the team has a default.
+   */
+  get defaultShareExpiresAt(): Date | undefined {
+    const days = this.getPreference(TeamPreference.DefaultShareExpiryDays);
+
+    if (
+      typeof days !== "number" ||
+      days === 0 ||
+      !this.entitlements.includes(PlanFeature.AdvancedSecurity)
+    ) {
+      return undefined;
+    }
+
+    return addDays(new Date(), days);
+  }
+
+  /**
    * Returns whether the team has email login enabled. For self-hosted installs
    * this also considers whether SMTP connection details have been configured.
    *
@@ -288,10 +305,9 @@ class Team extends ParanoidModel<
   }
 
   get url() {
-    const url = new URL(env.URL);
-
     // custom domain
     if (this.domain) {
+      const url = new URL(env.URL);
       return `${url.protocol}//${this.domain}${url.port ? `:${url.port}` : ""}`;
     }
 
@@ -299,6 +315,7 @@ class Team extends ParanoidModel<
       return env.URL;
     }
 
+    const url = new URL(env.URL);
     url.host = `${this.subdomain}.${getBaseDomain()}`;
     return url.href.replace(/\/$/, "");
   }

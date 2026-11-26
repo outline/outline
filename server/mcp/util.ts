@@ -6,7 +6,7 @@ import { Collection, Share, type Team, type User } from "@server/models";
 import { addTags } from "@server/logging/tracer";
 import { traceFunction } from "@server/logging/tracing";
 import { can } from "@server/policies";
-import { type APIContext, AuthenticationType } from "@server/types";
+import { type Context, AuthenticationType } from "@server/types";
 import type { NavigationNode } from "@shared/types";
 
 interface McpContext {
@@ -24,11 +24,11 @@ export function getActorFromContext(context: McpContext) {
 }
 
 /**
- * Constructs a minimal APIContext from the MCP request context for use with
+ * Constructs a minimal Context from the MCP request context for use with
  * server commands that require a Koa-style context.
  *
  * @param context - the MCP request context.
- * @returns a partial APIContext suitable for command functions.
+ * @returns a partial Context suitable for command functions.
  */
 export function buildAPIContext(context: McpContext) {
   const user = context.http?.authInfo?.extra?.user as User;
@@ -42,11 +42,11 @@ export function buildAPIContext(context: McpContext) {
   };
 
   return {
-    state: { auth },
-    context: { auth, ip },
+    auth,
+    ip,
     request: { secure: env.URL.startsWith("https://") },
     cookies: { get: () => undefined, set: () => undefined },
-  } as unknown as APIContext;
+  } as unknown as Context;
 }
 
 /**

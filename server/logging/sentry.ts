@@ -23,17 +23,17 @@ export function requestErrorHandler(error: any, ctx: AppContext) {
         scope.setTag("request_id", requestId as string);
       }
 
-      const authType = ctx.state?.auth?.type ?? undefined;
+      const authType = ctx.auth?.type ?? undefined;
       if (authType) {
         scope.setTag("auth_type", authType);
       }
 
-      const teamId = ctx.state?.auth?.user?.teamId ?? undefined;
+      const teamId = ctx.auth?.user?.teamId ?? undefined;
       if (teamId) {
         scope.setTag("team_id", teamId);
       }
 
-      const userId = ctx.state?.auth?.user?.id ?? undefined;
+      const userId = ctx.auth?.user?.id ?? undefined;
       if (userId) {
         scope.setUser({
           id: userId,
@@ -59,6 +59,10 @@ function loadSentry(dsn: string): typeof SentryNode {
     environment: env.ENVIRONMENT,
     release: env.RELEASE,
     maxBreadcrumbs: 0,
+    integrations: [
+      // Request bodies can contain document content and credentials.
+      sentry.httpIntegration({ maxIncomingRequestBodySize: "none" }),
+    ],
     ignoreErrors: [
       // These errors are expected in normal running of the application and
       // don't need to be reported.
@@ -80,6 +84,8 @@ function loadSentry(dsn: string): typeof SentryNode {
       "Premature close",
     ],
     beforeSend(event) {
+      scrubRequest(event);
+
       try {
         switch (event.level) {
           case "warning":
@@ -96,4 +102,30 @@ function loadSentry(dsn: string): typeof SentryNode {
     },
   });
   return sentry;
+}
+
+const SensitiveHeaderPattern =
+  /auth|cookie|token|secret|key|session|signature/i;
+
+/**
+ * Removes the request body, cookies, and sensitive headers from an event.
+ *
+ * @param event the event to scrub in place.
+ */
+function scrubRequest(event: SentryNode.ErrorEvent) {
+  const { request } = event;
+  if (!request) {
+    return;
+  }
+
+  delete request.data;
+  delete request.cookies;
+
+  if (request.headers) {
+    request.headers = Object.fromEntries(
+      Object.entries(request.headers).filter(
+        ([name]) => !SensitiveHeaderPattern.test(name)
+      )
+    );
+  }
 }

@@ -194,8 +194,7 @@ export function useDropToReorderSidebarSection(
     drop: (item) => {
       const order = getNewOrder(item.id);
       if (order) {
-        user.setPreference(UserPreference.SidebarSectionOrder, order);
-        void user.save();
+        void user.savePreference(UserPreference.SidebarSectionOrder, order);
       }
     },
     canDrop: (item) => !!getNewOrder(item.id),

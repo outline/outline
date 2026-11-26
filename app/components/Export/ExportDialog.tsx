@@ -126,7 +126,7 @@ export const ExportDialog = observer(({ collection, onSubmit }: Props) => {
               {t("Include attachments")}
             </Text>
             <Text size="small" type="secondary">
-              {t("Including uploaded images and files in the exported data")}.
+              {t("Include uploaded images and files in the exported data")}.
             </Text>
           </div>
         </Option>
@@ -144,7 +144,7 @@ export const ExportDialog = observer(({ collection, onSubmit }: Props) => {
               </Text>
               <Text size="small" type="secondary">
                 {t(
-                  "As an admin you can export collections you are not currently a member of"
+                  "As an admin, you can export collections you are not currently a member of"
                 )}
                 .
               </Text>

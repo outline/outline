@@ -1,29 +1,52 @@
 import RawData from "@emoji-mart/data";
-import type { EmojiMartData, Skin } from "@emoji-mart/data";
-import { init, Data } from "emoji-mart";
+import type { EmojiMartData, Emoji as RawEmoji, Skin } from "@emoji-mart/data";
 import FuzzySearch from "fuzzy-search";
 import { capitalize, sortBy } from "es-toolkit/compat";
 import type { Emoji, EmojiVariants } from "../types";
 import { EmojiCategory, EmojiSkinTone } from "../types";
 
-init({ data: RawData });
+/**
+ * Build the string that an emoji is matched against when searching.
+ *
+ * @param emoji the emoji to build the string for.
+ * @returns the lowercase search terms followed by the native skin variants, each preceded by a comma.
+ */
+export function getEmojiSearchString(emoji: RawEmoji): string {
+  const terms = [
+    emoji.id,
+    ...emoji.name.split(/[-|_\s]+/),
+    ...emoji.keywords,
+    ...(emoji.emoticons ?? []),
+  ]
+    .map((term) => term.toLowerCase())
+    .filter((term) => term.trim());
+  const natives = emoji.skins.map(({ native }) => `,${native}`);
 
-// Data has the pre-processed "search" terms.
-const TypedData = Data as EmojiMartData;
+  return `,${terms.join(",")}${natives.join("")}`;
+}
 
-// Slightly modified version of https://github.com/koala-interactive/is-emoji-supported/blob/master/src/is-emoji-supported.ts
-const isFlagEmojiSupported = (): boolean => {
-  const emoji = "🇺🇸";
-  let ctx = null;
+const TypedData = RawData as EmojiMartData;
+
+const createCanvasContext = () => {
   try {
-    ctx = document
+    return document
       .createElement("canvas")
       .getContext("2d", { willReadFrequently: true });
+  } catch {
+    return null;
+  }
+};
 
-    if (!ctx) {
-      return false;
-    }
+const canvasContext = createCanvasContext();
 
+// Slightly modified version of https://github.com/koala-interactive/is-emoji-supported/blob/master/src/is-emoji-supported.ts
+const isEmojiSupported = (emoji: string): boolean => {
+  const ctx = canvasContext;
+  if (!ctx) {
+    return false;
+  }
+
+  try {
     const CANVAS_HEIGHT = 25;
     const CANVAS_WIDTH = 20;
     const textSize = Math.floor(CANVAS_HEIGHT / 2);
@@ -77,31 +100,49 @@ const isFlagEmojiSupported = (): boolean => {
   return true;
 };
 
-const allowFlagEmoji = isFlagEmojiSupported();
+const allowFlagEmoji = isEmojiSupported("🇺🇸");
 
-const flagEmojiIds =
-  TypedData.categories
-    .filter(({ id }) => id === EmojiCategory.Flags.toLowerCase())
-    .map(({ emojis }) => emojis)[0] ?? [];
+// An emoji introduced in each Emoji version, newest first.
+const EMOJI_VERSIONS = [
+  { version: 15, emoji: "\uD83E\uDEE8" },
+  { version: 14, emoji: "\uD83E\uDEE0" },
+  { version: 13.1, emoji: "\uD83D\uDE36\u200D\uD83C\uDF2B\uFE0F" },
+  { version: 13, emoji: "\uD83E\uDD78" },
+  { version: 12.1, emoji: "\uD83E\uDDD1\u200D\uD83E\uDDB0" },
+  { version: 12, emoji: "\uD83E\uDD71" },
+  { version: 11, emoji: "\uD83E\uDD70" },
+  { version: 5, emoji: "\uD83E\uDD29" },
+  { version: 4, emoji: "\uD83D\uDC71\u200D\u2640\uFE0F" },
+  { version: 3, emoji: "\uD83E\uDD23" },
+  { version: 2, emoji: "\uD83D\uDC41\uFE0F\u200D\uD83D\uDDE8\uFE0F" },
+  { version: 1, emoji: "\uD83D\uDE43" },
+];
 
-const Categories = allowFlagEmoji
-  ? TypedData.categories
-  : TypedData.categories.filter(
-      ({ id }) => capitalize(id) !== EmojiCategory.Flags
-    );
+const latestEmojiVersion = EMOJI_VERSIONS.find(({ emoji }) =>
+  isEmojiSupported(emoji)
+)?.version;
 
-const Emojis = allowFlagEmoji
-  ? TypedData.emojis
-  : Object.fromEntries(
-      Object.entries(TypedData.emojis).filter(
-        ([id]) => !flagEmojiIds.includes(id)
-      )
-    );
+const Emojis = TypedData.emojis;
 
-const searcher = new FuzzySearch(Object.values(Emojis), ["search"], {
-  caseSensitive: false,
-  sort: true,
-});
+// Categories without the emoji that this platform cannot render.
+const Categories = TypedData.categories
+  .filter(({ id }) => allowFlagEmoji || capitalize(id) !== EmojiCategory.Flags)
+  .map((category) => ({
+    ...category,
+    emojis: category.emojis.filter(
+      (id) => !latestEmojiVersion || Emojis[id].version <= latestEmojiVersion
+    ),
+  }));
+
+const searchableEmojiIds = new Set(Categories.flatMap(({ emojis }) => emojis));
+
+const searcher = new FuzzySearch(
+  Object.values(Emojis)
+    .filter(({ id }) => searchableEmojiIds.has(id))
+    .map((emoji) => ({ ...emoji, search: getEmojiSearchString(emoji) })),
+  ["search"],
+  { caseSensitive: false, sort: true }
+);
 
 // Codes defined by unicode.org
 const SKINTONE_CODE_TO_ENUM = {

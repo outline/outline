@@ -11,7 +11,7 @@ import {
   SearchQuery,
 } from "@server/models";
 import type { Team, User } from "@server/models";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { SearchQuerySource } from "@server/models/SearchQuery";
 import { TestChatProvider, type TestChatTarget } from "@server/test/ChatHelper";
 import {
@@ -126,7 +126,7 @@ describe("ChatService", () => {
         userId: user.id,
         teamId: user.teamId,
       });
-      const answer = vi.fn(async (_ctx: APIContext, _question: string) => ({
+      const answer = vi.fn(async (_ctx: Context, _question: string) => ({
         answer: "**It is**",
         documents: [document],
       }));
@@ -137,8 +137,8 @@ describe("ChatService", () => {
 
       const [answerCtx, question] = answer.mock.calls[0];
       expect(question).toEqual("what is this?");
-      expect(answerCtx.context.auth.user.id).toEqual(user.id);
-      expect(answerCtx.context.auth.type).toEqual(AuthenticationType.CHAT);
+      expect(answerCtx.auth.user.id).toEqual(user.id);
+      expect(answerCtx.auth.type).toEqual(AuthenticationType.CHAT);
 
       await vi.waitFor(() => expect(provider.replies).toHaveLength(1));
       const [reply] = provider.replies;

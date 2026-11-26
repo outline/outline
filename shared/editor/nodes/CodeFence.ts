@@ -63,6 +63,7 @@ import {
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { getMarkRange } from "../queries/getMarkRange";
 import { isInCode } from "../queries/isInCode";
+import { getEventTargetElement } from "../lib/eventTarget";
 import { CodeFenceView } from "./CodeFenceView";
 import Node from "./Node";
 
@@ -618,8 +619,7 @@ export default class CodeFence extends Node<CodeFenceOptions> {
         props: {
           handleDOMEvents: {
             mousedown: (view: EditorView, event: MouseEvent) => {
-              const target = event.target as HTMLElement;
-              const button = target.closest(
+              const button = getEventTargetElement(event)?.closest(
                 `.${EditorStyleHelper.codeBlockToggle}`
               );
               if (!button) {

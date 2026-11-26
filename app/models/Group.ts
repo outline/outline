@@ -1,6 +1,7 @@
 import { computed, observable } from "mobx";
 import type GroupMembership from "./GroupMembership";
 import Model from "./base/Model";
+import NavigableModel from "./base/NavigableModel";
 import Field from "./decorators/Field";
 import { GroupPermission } from "@shared/types";
 import type { Searchable } from "./interfaces/Searchable";
@@ -110,6 +111,7 @@ class Group extends Model implements Searchable {
   /**
    * Returns the direct memberships that this group has to documents. Documents that the current
    * user already has access to through a collection, archived, and trashed documents are not included.
+   * Documents nested under another shared document in the list are also not included.
    *
    * @returns A list of group memberships
    */
@@ -118,7 +120,7 @@ class Group extends Model implements Searchable {
     const { groupMemberships, groupUsers, documents, policies, auth } =
       this.store.rootStore;
 
-    return groupMemberships.orderedData
+    const memberships = groupMemberships.orderedData
       .filter((groupMembership) =>
         groupUsers.orderedData.some(
           (groupUser) =>
@@ -136,6 +138,8 @@ class Group extends Model implements Searchable {
           : undefined;
         return !policy?.abilities?.readDocument && !!document?.isActive;
       });
+
+    return NavigableModel.filterRoots(memberships, documents);
   }
 }
 

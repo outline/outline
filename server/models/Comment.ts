@@ -293,7 +293,7 @@ class Comment extends ParanoidModel<
       },
       transaction: options.transaction,
       lock: options.transaction
-        ? { level: options.transaction.LOCK.UPDATE, of: this }
+        ? { level: options.transaction.LOCK.NO_KEY_UPDATE, of: this }
         : undefined,
     });
     if (!parent) {

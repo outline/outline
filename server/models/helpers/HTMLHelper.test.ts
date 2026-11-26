@@ -78,6 +78,29 @@ describe("HTMLHelper", () => {
       expect(result).toBeNull();
     });
 
+    it("should not inline images past the total size limit", () => {
+      const html = `<p><img src="${redirectUrl}"></p>`;
+
+      expect(
+        HTMLHelper.inlineImage(
+          html,
+          redirectUrl,
+          "image/png",
+          buffer,
+          HTMLHelper.maxTotalInlineImageSize - buffer.length
+        )
+      ).not.toBeNull();
+      expect(
+        HTMLHelper.inlineImage(
+          html,
+          redirectUrl,
+          "image/png",
+          buffer,
+          HTMLHelper.maxTotalInlineImageSize - buffer.length + 1
+        )
+      ).toBeNull();
+    });
+
     it("should not inline an empty buffer", () => {
       const html = `<p><img src="${redirectUrl}"></p>`;
       const result = HTMLHelper.inlineImage(

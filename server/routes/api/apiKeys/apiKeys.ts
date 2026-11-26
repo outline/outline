@@ -7,7 +7,7 @@ import validate from "@server/middlewares/validate";
 import { ApiKey, User } from "@server/models";
 import { authorize, cannot } from "@server/policies";
 import { presentApiKey } from "@server/presenters";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { QueryHelper } from "@server/storage/QueryHelper";
@@ -24,9 +24,9 @@ router.post(
   }),
   validate(T.APIKeysCreateSchema),
   transaction(),
-  async (ctx: APIContext<T.APIKeysCreateReq>) => {
+  async (ctx: Context<T.APIKeysCreateReq>) => {
     const { name, scope, expiresAt } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     authorize(user, "createApiKey", user.team);
 
@@ -50,10 +50,10 @@ router.post(
   auth(),
   pagination(),
   validate(T.APIKeysListSchema),
-  async (ctx: APIContext<T.APIKeysListReq>) => {
+  async (ctx: Context<T.APIKeysListReq>) => {
     const { userId, query, sort, direction } = ctx.input.body;
     const { pagination } = ctx.state;
-    const actor = ctx.state.auth.user;
+    const actor = ctx.auth.user;
 
     let userWhere: WhereOptions<User> = {
       teamId: actor.teamId,
@@ -120,10 +120,10 @@ router.post(
   }),
   validate(T.APIKeysDeleteSchema),
   transaction(),
-  async (ctx: APIContext<T.APIKeysDeleteReq>) => {
+  async (ctx: Context<T.APIKeysDeleteReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const key = await ApiKey.scope("withUser").findByPk(id, {
       lock: {

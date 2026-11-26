@@ -146,7 +146,8 @@ export { dataUrlToBlob };
 /**
  * Converts a list of mime types and file extensions to the accept map used by
  * react-dropzone. The map is flattened into a single accept attribute, so the
- * extensions are grouped under the first mime type.
+ * extensions are grouped under the first mime type, or a placeholder if there
+ * is none.
  *
  * @param types the mime types and file extensions, such as "image/png" or ".png".
  * @returns the accept map.
@@ -155,6 +156,10 @@ export const toDropzoneAccept = (types: readonly string[]): Accept => {
   const mimeTypes = types.filter((type) => !type.startsWith("."));
   const extensions = types.filter((type) => type.startsWith("."));
 
+  if (mimeTypes.length === 0 && extensions.length > 0) {
+    return { [extensionOnlyMimeType]: extensions };
+  }
+
   return Object.fromEntries(
     mimeTypes.map((mimeType, index) => [
       mimeType,
@@ -162,6 +167,9 @@ export const toDropzoneAccept = (types: readonly string[]): Accept => {
     ])
   );
 };
+
+/** A key for extensions with no mime type, no file reports this type. */
+const extensionOnlyMimeType = "application/x-outline-extension-only";
 
 /**
  * Header names the browser controls itself - it silently ignores an attempt to

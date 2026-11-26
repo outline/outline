@@ -107,6 +107,24 @@ describe("list_templates", () => {
     expect(ids).toEqual([template.id]);
   });
 
+  it("fails for an admin who is not a member of a private collection", async () => {
+    const { user, accessToken } = await buildOAuthUser({ role: "admin" });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      permission: null,
+    });
+    await buildTemplate({
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "list_templates", {
+      collectionId: collection.id,
+    });
+
+    expect(res?.result?.isError).toBe(true);
+  });
+
   it("does not return templates from collections the user cannot access", async () => {
     const owner = await buildUser();
     const otherUser = await buildUser({ teamId: owner.teamId });

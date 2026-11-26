@@ -11,13 +11,15 @@ import { randomBytes } from "node:crypto";
 import { toError } from "@shared/utils/error";
 import { User, UserPasskey, Team } from "@server/models";
 import auth from "@server/middlewares/authentication";
+import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import env from "@server/env";
 import { AuthorizationError, ValidationError } from "@server/errors";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import Logger from "@server/logging/Logger";
 import Redis from "@server/storage/redis";
+import ValidateSSOAccessTask from "@server/queues/tasks/ValidateSSOAccessTask";
 import { signIn } from "@server/utils/authentication";
 import { generatePasskeyName, PasskeyBrand } from "@shared/utils/passkeys";
 import * as T from "./schema";
@@ -30,16 +32,16 @@ const rpName = env.APP_NAME;
 const CHALLENGE_EXPIRY_MS = Minute.ms * 5;
 
 // Helper to get RP ID (domain) - for simplicity, we can use the hostname but strip port.
-const getRpID = (ctx: APIContext) => ctx.request.hostname;
+const getRpID = (ctx: Context) => ctx.request.hostname;
 
 /**
  * Helper to get the expected origin for WebAuthn.
  * Properly handles non-standard ports by checking X-Forwarded-Port header.
  *
- * @param ctx - the API context.
+ * @param ctx - the context.
  * @returns the expected origin (protocol://host:port).
  */
-export const getExpectedOrigin = (ctx: APIContext): string => {
+export const getExpectedOrigin = (ctx: Context): string => {
   const protocol = ctx.protocol;
   const hostname = ctx.request.hostname;
 
@@ -106,8 +108,8 @@ export const isUniqueAuthenticator = (aaguid: string | undefined): boolean =>
 router.post(
   "passkeys.generateRegistrationOptions",
   auth({ type: AuthenticationType.APP }),
-  async (ctx: APIContext) => {
-    const { user } = ctx.state.auth;
+  async (ctx: Context) => {
+    const { user } = ctx.auth;
     authorize(user, "createUserPasskey", user.team);
 
     // Fetch existing passkeys to exclude them from registration
@@ -146,13 +148,14 @@ router.post(
   "passkeys.verifyRegistration",
   auth({ type: AuthenticationType.APP }),
   validate(T.PasskeysVerifyRegistrationSchema),
-  async (ctx: APIContext<T.PasskeysVerifyRegistrationReq>) => {
-    const { user } = ctx.state.auth;
+  transaction(),
+  async (ctx: Context<T.PasskeysVerifyRegistrationReq>) => {
+    const { user } = ctx.auth;
     const body = ctx.input.body;
     authorize(user, "createUserPasskey", user.team);
 
-    // Retrieve challenge from Redis
-    const expectedChallenge = await Redis.defaultClient.get(
+    // Consume the challenge atomically so it can only be used once
+    const expectedChallenge = await Redis.defaultClient.getdel(
       getRegistrationChallengeKey(user.id)
     );
 
@@ -232,8 +235,6 @@ router.post(
         });
       }
 
-      // Delete challenge from Redis
-      await Redis.defaultClient.del(getRegistrationChallengeKey(user.id));
       ctx.body = { data: { verified: true } };
     } else {
       throw ValidationError("Verification failed");
@@ -262,14 +263,14 @@ export const getPasskeyLoginRedirect = (
  * ceremony and returns the authenticated session via the outline:// deep link,
  * mirroring the existing SSO desktop flow.
  */
-router.get("passkey", (ctx: APIContext) => {
+router.get("passkey", (ctx: Context) => {
   ctx.redirect(getPasskeyLoginRedirect(ctx.query.client));
 });
 
 router.post(
   "passkeys.generateAuthenticationOptions",
   validate(T.PasskeysGenerateAuthenticationOptionsSchema),
-  async (ctx: APIContext<T.PasskeysGenerateAuthenticationOptionsReq>) => {
+  async (ctx: Context<T.PasskeysGenerateAuthenticationOptionsReq>) => {
     const options = await generateAuthenticationOptions({
       rpID: getRpID(ctx),
       userVerification: "preferred",
@@ -291,12 +292,12 @@ router.post(
 router.post(
   "passkeys.verifyAuthentication",
   validate(T.PasskeysVerifyAuthenticationSchema),
-  async (ctx: APIContext<T.PasskeysVerifyAuthenticationReq>) => {
+  async (ctx: Context<T.PasskeysVerifyAuthenticationReq>) => {
     const body = ctx.input.body;
     const { challengeId, client = Client.Web } = body;
 
-    // Retrieve challenge from Redis
-    const expectedChallenge = await Redis.defaultClient.get(
+    // Consume the challenge atomically so it can only be used once
+    const expectedChallenge = await Redis.defaultClient.getdel(
       getAuthenticationChallengeKey(challengeId)
     );
 
@@ -365,9 +366,6 @@ router.post(
       passkey.lastActiveAt = new Date();
       await passkey.save({ silent: true });
 
-      // Delete challenge from Redis
-      await Redis.defaultClient.del(getAuthenticationChallengeKey(challengeId));
-
       // Use the signIn utility which handles all sign-in logic
       await signIn(ctx, "passkeys", {
         user,
@@ -376,6 +374,15 @@ router.post(
         isNewTeam: false,
         client,
       });
+
+      // Revoke the session if the user also has SSO and lost access there.
+      await new ValidateSSOAccessTask()
+        .schedule({ userId: user.id })
+        .catch((err) => {
+          Logger.warn("passkeys: Failed to schedule SSO validation", {
+            error: toError(err).message,
+          });
+        });
     } else {
       throw ValidationError("Verification failed");
     }

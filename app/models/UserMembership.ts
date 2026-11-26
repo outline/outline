@@ -29,7 +29,7 @@ class UserMembership extends NavigableModel {
   document?: Document;
 
   /** The source ID points to the root membership from which this inherits */
-  sourceId?: string;
+  sourceId?: string | null;
 
   /** The source points to the root membership from which this inherits */
   @Relation(() => UserMembership, { onDelete: "cascade" })

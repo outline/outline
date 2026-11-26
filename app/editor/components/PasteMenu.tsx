@@ -1,11 +1,11 @@
 import { observer } from "mobx-react";
 import { v4 as uuidv4 } from "uuid";
-import { EmailIcon, LinkIcon } from "outline-icons";
+import { AlignImageRightIcon, EmailIcon, LinkIcon } from "outline-icons";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { EmbedDescriptor } from "@shared/editor/embeds";
 import type { MenuItem } from "@shared/editor/types";
-import { MentionType } from "@shared/types";
+import { MentionDisplay, MentionType } from "@shared/types";
 import { isInternalUrl, isUrl } from "@shared/utils/urls";
 import type Integration from "~/models/Integration";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -141,6 +141,21 @@ function useItems({
           actorId: user?.id,
         },
         appendSpace: true,
+      },
+      {
+        name: "mention",
+        title: t("Card"),
+        icon: <AlignImageRightIcon />,
+        visible: mentionType === MentionType.URL && !isInternal,
+        attrs: {
+          id: uuidv4(),
+          type: MentionType.URL,
+          label: pastedText,
+          href: pastedText,
+          modelId: uuidv4(),
+          actorId: user?.id,
+          display: MentionDisplay.Card,
+        },
       },
       {
         name: "embed",

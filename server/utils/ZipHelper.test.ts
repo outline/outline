@@ -262,6 +262,58 @@ describe("ZipHelper.walk", () => {
     ).rejects.toThrow("Collection/page.md is too large");
   });
 
+  it("rejects an archive with more entries than allowed", async () => {
+    const buffer = await buildZip({ "a.md": "a", "b.md": "b", "c.md": "c" });
+    const onEntry = vi.fn();
+
+    await expect(
+      ZipHelper.walk(buffer, onEntry, { maxEntries: 2 })
+    ).rejects.toMatchObject({
+      id: "import_error",
+      message: "The archive contains too many files - the maximum is 2",
+    });
+    expect(onEntry).not.toHaveBeenCalled();
+  });
+
+  it("rejects reads that exceed the total size across entries", async () => {
+    const buffer = await buildZip({
+      "a.md": "x".repeat(600),
+      "b.md": "x".repeat(600),
+    });
+
+    await expect(
+      ZipHelper.walk(
+        buffer,
+        async (entry) => {
+          await entry.readBuffer(1024);
+        },
+        { maxTotalSize: 1024 }
+      )
+    ).rejects.toMatchObject({
+      id: "import_error",
+      message: expect.stringContaining("too large when uncompressed"),
+    });
+  });
+
+  it("does not count skipped entries toward the total size", async () => {
+    const buffer = await buildZip({
+      "a.md": "x".repeat(600),
+      "b.png": "x".repeat(600),
+    });
+
+    await expect(
+      ZipHelper.walk(
+        buffer,
+        async (entry) => {
+          if (entry.fileName.endsWith(".md")) {
+            await entry.readBuffer(1024);
+          }
+        },
+        { maxTotalSize: 1024 }
+      )
+    ).resolves.toBeUndefined();
+  });
+
   it("rejects a file that is not a zip archive as an import error", async () => {
     const filePath = tmp.fileSync({ postfix: ".zip" }).name;
     await fs.writeFile(filePath, "not a zip file");

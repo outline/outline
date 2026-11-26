@@ -1,5 +1,7 @@
+import { subMinutes } from "date-fns";
 import type { MockInstance } from "vitest";
 import { Plan } from "@shared/types";
+import type { User } from "@server/models";
 import { Team } from "@server/models";
 import {
   buildAdmin,
@@ -7,6 +9,8 @@ import {
   buildDocument,
   buildEvent,
   buildUser,
+  buildUserPasskey,
+  buildWebhookSubscription,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
@@ -75,8 +79,9 @@ describe("#events.list", () => {
       collectionId: collection.id,
       teamId: user.teamId,
     });
-    // audit event
+    // audit event, older than the next event as timestamps can tie within a millisecond
     const auditEvent = await buildEvent({
+      createdAt: subMinutes(new Date(), 1),
       name: "users.promote",
       teamId: user.teamId,
       actorId: admin.id,
@@ -510,5 +515,192 @@ describe("#events.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(event.id);
+  });
+
+  describe("audit log coverage", () => {
+    /**
+     * Returns the latest audit log entry with the given name.
+     *
+     * @param admin the user listing the audit log.
+     * @param name the name of the event.
+     * @returns the presented event.
+     */
+    async function latestAuditEvent(admin: User, name: string) {
+      const res = await server.post("/api/events.list", admin, {
+        body: { auditLog: true, name },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data[0]?.name).toEqual(name);
+      return body.data[0];
+    }
+
+    it("should include passkey events", async () => {
+      const admin = await buildAdmin();
+      const passkey = await buildUserPasskey({ userId: admin.id });
+
+      const update = await server.post("/api/passkeys.update", admin, {
+        body: { id: passkey.id, name: "Work laptop" },
+      });
+      expect(update.status).toEqual(200);
+
+      const updated = await latestAuditEvent(admin, "passkeys.update");
+      expect(updated.actorId).toEqual(admin.id);
+      expect(updated.userId).toEqual(admin.id);
+      expect(updated.modelId).toEqual(passkey.id);
+      expect(updated.changes.attributes.name).toEqual("Work laptop");
+
+      const remove = await server.post("/api/passkeys.delete", admin, {
+        body: { id: passkey.id },
+      });
+      expect(remove.status).toEqual(200);
+
+      const deleted = await latestAuditEvent(admin, "passkeys.delete");
+      expect(deleted.actorId).toEqual(admin.id);
+      expect(deleted.modelId).toEqual(passkey.id);
+      expect(deleted.data.name).toEqual("Work laptop");
+    });
+
+    it("should include OAuth client events without exposing the secret", async () => {
+      const admin = await buildAdmin();
+
+      const create = await server.post("/api/oauthClients.create", admin, {
+        body: {
+          name: "Audited client",
+          redirectUris: ["https://example.com/callback"],
+        },
+      });
+      const { data: client } = await create.json();
+      expect(create.status).toEqual(200);
+
+      const created = await latestAuditEvent(admin, "oauthClients.create");
+      expect(created.actorId).toEqual(admin.id);
+      expect(created.modelId).toEqual(client.id);
+      expect(created.changes.attributes.name).toEqual("Audited client");
+      expect(JSON.stringify(created)).not.toContain(client.clientSecret);
+
+      const update = await server.post("/api/oauthClients.update", admin, {
+        body: { id: client.id, description: "Changed" },
+      });
+      expect(update.status).toEqual(200);
+
+      const updated = await latestAuditEvent(admin, "oauthClients.update");
+      expect(updated.data.name).toEqual("Audited client");
+      expect(updated.changes.attributes.description).toEqual("Changed");
+
+      const rotate = await server.post(
+        "/api/oauthClients.rotate_secret",
+        admin,
+        {
+          body: { id: client.id },
+        }
+      );
+      const { data: rotated } = await rotate.json();
+      expect(rotate.status).toEqual(200);
+      expect(rotated.clientSecret).not.toEqual(client.clientSecret);
+
+      const rotation = await latestAuditEvent(admin, "oauthClients.update");
+      expect(rotation.id).not.toEqual(updated.id);
+      expect(rotation.data).toEqual({
+        name: "Audited client",
+        secretRotated: true,
+      });
+      expect(JSON.stringify(rotation)).not.toContain(rotated.clientSecret);
+
+      const remove = await server.post("/api/oauthClients.delete", admin, {
+        body: { id: client.id },
+      });
+      expect(remove.status).toEqual(200);
+
+      const deleted = await latestAuditEvent(admin, "oauthClients.delete");
+      expect(deleted.actorId).toEqual(admin.id);
+      expect(deleted.data.name).toEqual("Audited client");
+    });
+
+    it("should include webhookSubscriptions.update without exposing the secret", async () => {
+      const admin = await buildAdmin();
+      const webhook = await buildWebhookSubscription({
+        teamId: admin.teamId,
+        createdById: admin.id,
+        name: "Audited webhook",
+      });
+
+      const update = await server.post(
+        "/api/webhookSubscriptions.update",
+        admin,
+        {
+          body: {
+            id: webhook.id,
+            name: webhook.name,
+            url: "https://example.com/changed",
+            events: ["*"],
+            secret: "super-secret-value",
+          },
+        }
+      );
+      expect(update.status).toEqual(200);
+
+      const updated = await latestAuditEvent(
+        admin,
+        "webhookSubscriptions.update"
+      );
+      expect(updated.actorId).toEqual(admin.id);
+      expect(updated.modelId).toEqual(webhook.id);
+      expect(updated.data.name).toEqual("Audited webhook");
+      expect(updated.changes.attributes.url).toEqual(
+        "https://example.com/changed"
+      );
+      expect(JSON.stringify(updated)).not.toContain("super-secret-value");
+
+      const remove = await server.post(
+        "/api/webhookSubscriptions.delete",
+        admin,
+        { body: { id: webhook.id } }
+      );
+      expect(remove.status).toEqual(200);
+
+      const deleted = await latestAuditEvent(
+        admin,
+        "webhookSubscriptions.delete"
+      );
+      expect(deleted.data.name).toEqual("Audited webhook");
+    });
+
+    it("should include documents.unpublish", async () => {
+      const admin = await buildAdmin();
+      const document = await buildDocument({
+        userId: admin.id,
+        teamId: admin.teamId,
+      });
+
+      const res = await server.post("/api/documents.unpublish", admin, {
+        body: { id: document.id },
+      });
+      expect(res.status).toEqual(200);
+
+      const event = await latestAuditEvent(admin, "documents.unpublish");
+      expect(event.actorId).toEqual(admin.id);
+      expect(event.documentId).toEqual(document.id);
+      expect(event.data.title).toEqual(document.title);
+    });
+
+    it("should not include newly covered events outside of the audit log", async () => {
+      const admin = await buildAdmin();
+      await buildEvent({
+        name: "passkeys.delete",
+        teamId: admin.teamId,
+        actorId: admin.id,
+        userId: admin.id,
+      });
+
+      const res = await server.post("/api/events.list", admin, {
+        body: { name: "passkeys.delete" },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(
+        body.data.filter((e: { name: string }) => e.name === "passkeys.delete")
+      ).toEqual([]);
+    });
   });
 });

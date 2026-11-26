@@ -5,7 +5,7 @@ import {
   TeamPreference,
   UserRole,
 } from "@shared/types";
-import { Document, UserMembership } from "@server/models";
+import { Document, User, UserMembership } from "@server/models";
 import {
   buildUser,
   buildTeam,
@@ -902,6 +902,42 @@ describe("personal collection", () => {
     expect(abilities.manageUsers).toEqual(false);
   });
 
+  for (const permission of [
+    DocumentPermission.Read,
+    DocumentPermission.ReadWrite,
+  ]) {
+    it(`should not allow a workspace admin with ${permission} membership to manage users`, async () => {
+      const { team, owner, doc } = await buildPersonal();
+      const admin = await buildAdmin({ teamId: team.id });
+      admin.team = team;
+      await UserMembership.create({
+        documentId: doc.id,
+        userId: admin.id,
+        permission,
+        createdById: owner.id,
+      });
+      const document = await Document.findByPk(doc.id, { userId: admin.id });
+      const abilities = serialize(admin, document);
+      expect(abilities.read).toBeTruthy();
+      expect(abilities.manageUsers).toEqual(false);
+      expect(abilities.archive).toEqual(false);
+    });
+  }
+
+  it("should allow a workspace admin with admin membership to manage users", async () => {
+    const { team, owner, doc } = await buildPersonal();
+    const admin = await buildAdmin({ teamId: team.id });
+    admin.team = team;
+    await UserMembership.create({
+      documentId: doc.id,
+      userId: admin.id,
+      permission: DocumentPermission.Admin,
+      createdById: owner.id,
+    });
+    const document = await Document.findByPk(doc.id, { userId: admin.id });
+    expect(serialize(admin, document).manageUsers).toBeTruthy();
+  });
+
   it("should be read-only when personal documents are turned off", async () => {
     const { team, owner, doc } = await buildPersonal();
     const collaborator = await buildUser({ teamId: team.id });
@@ -932,5 +968,78 @@ describe("personal collection", () => {
     expect(collaboratorAbilities.read).toBeTruthy();
     expect(collaboratorAbilities.update).toEqual(false);
     expect(collaboratorAbilities.move).toEqual(false);
+  });
+});
+
+describe("document owners", () => {
+  const setup = async (permission: DocumentPermission, isOwner: boolean) => {
+    const team = await buildTeam();
+    const member = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: null,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+      ownerIds: isOwner ? [member.id] : [],
+    });
+    await UserMembership.create({
+      createdById: member.id,
+      documentId: doc.id,
+      userId: member.id,
+      permission,
+    });
+    const user = await User.scope("withTeam").findByPk(member.id, {
+      rejectOnEmpty: true,
+    });
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    return serialize(user, document);
+  };
+
+  it("should allow an owner with edit access to manage the document", async () => {
+    const abilities = await setup(DocumentPermission.ReadWrite, true);
+    expect(abilities.update).toBeTruthy();
+    expect(abilities.manageUsers).toBeTruthy();
+    expect(abilities.manageOwners).toBeTruthy();
+    expect(abilities.archive).toBeTruthy();
+  });
+
+  it("should not allow an editor that is not an owner to manage the document", async () => {
+    const abilities = await setup(DocumentPermission.ReadWrite, false);
+    expect(abilities.update).toBeTruthy();
+    expect(abilities.manageUsers).toEqual(false);
+    expect(abilities.manageOwners).toEqual(false);
+    expect(abilities.archive).toEqual(false);
+  });
+
+  it("should not grant an owner with read access any further abilities", async () => {
+    const abilities = await setup(DocumentPermission.Read, true);
+    expect(abilities.read).toBeTruthy();
+    expect(abilities.update).toEqual(false);
+    expect(abilities.manageUsers).toEqual(false);
+    expect(abilities.manageOwners).toEqual(false);
+    expect(abilities.archive).toEqual(false);
+  });
+
+  it("should not grant access to an owner without a membership", async () => {
+    const team = await buildTeam();
+    const member = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: null,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+      ownerIds: [member.id],
+    });
+    const user = await User.scope("withTeam").findByPk(member.id, {
+      rejectOnEmpty: true,
+    });
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    const abilities = serialize(user, document);
+    expect(abilities.read).toEqual(false);
+    expect(abilities.manageUsers).toEqual(false);
   });
 });

@@ -1,8 +1,10 @@
 import "./bootstrap";
 import { styleText } from "node:util";
+import type { Transaction } from "sequelize";
 import { isEmpty } from "es-toolkit/compat";
 import { toError, errToString } from "@shared/utils/error";
-import { Minute } from "@shared/utils/time";
+import { Second } from "@shared/utils/time";
+import { sleep } from "@shared/utils/timers";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import AuthenticationProvider from "@server/models/AuthenticationProvider";
@@ -12,8 +14,8 @@ import {
   migrations,
   sequelize,
 } from "@server/storage/database";
+import { LockHelper } from "@server/storage/LockHelper";
 import { getArg } from "@server/utils/args";
-import { MutexLock } from "@server/utils/MutexLock";
 import { ShutdownHelper } from "@server/utils/ShutdownHelper";
 
 /**
@@ -21,11 +23,9 @@ import { ShutdownHelper } from "@server/utils/ShutdownHelper";
  * --no-migrate flag was passed in which case the process exits with an error.
  */
 async function checkPendingMigrations() {
-  let lock;
+  let lock: Transaction | undefined;
   try {
-    lock = await MutexLock.acquire("migrations", 10 * Minute.ms, {
-      releaseOnShutdown: true,
-    });
+    lock = await acquireMigrationsLock();
 
     const pending = await migrations.pending();
     if (!isEmpty(pending)) {
@@ -58,9 +58,44 @@ async function checkPendingMigrations() {
       Logger.fatal(styleText("red", message), error);
     }
   } finally {
-    if (lock) {
-      await MutexLock.release(lock);
+    await lock?.rollback().catch((err) => {
+      Logger.warn("Failed to release migrations lock", toError(err));
+    });
+  }
+}
+
+/**
+ * Acquires the migrations lock, waiting while another instance holds it. The
+ * lock is held by the returned transaction until it ends, while the migrations
+ * themselves run on other connections.
+ *
+ * @returns the transaction that holds the lock.
+ */
+async function acquireMigrationsLock(): Promise<Transaction> {
+  let isWaiting = false;
+
+  for (;;) {
+    const transaction = await sequelize.transaction();
+    try {
+      if (await LockHelper.tryAcquire(sequelize, "migrations", transaction)) {
+        return transaction;
+      }
+    } catch (err) {
+      await transaction.rollback();
+      throw err;
     }
+
+    // Poll instead of blocking, a blocked statement holds a snapshot that
+    // CREATE INDEX CONCURRENTLY in the lock holder's migrations waits on.
+    await transaction.rollback();
+    if (!isWaiting) {
+      isWaiting = true;
+      Logger.info(
+        "database",
+        "Waiting for another instance to run migrations…"
+      );
+    }
+    await sleep(Second.ms);
   }
 }
 

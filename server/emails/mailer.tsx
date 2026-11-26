@@ -2,7 +2,8 @@ import type { MailboxAddress } from "nodemailer/lib/addressparser";
 import type { Transporter } from "nodemailer";
 import nodemailer from "nodemailer";
 import type SMTPTransport from "nodemailer/lib/smtp-transport";
-import Oy from "oy-vey";
+import { escape } from "es-toolkit/compat";
+import { renderToStaticMarkup } from "react-dom/server";
 import { toError } from "@shared/utils/error";
 import env from "@server/env";
 import { InternalError } from "@server/errors";
@@ -42,6 +43,21 @@ type SendMailOptions = {
   /** Tags used for reporting, where supported by the email provider. */
   tags?: EmailTags;
 };
+
+interface TemplateOptions {
+  /** The escaped title of the email. */
+  title: string;
+  /** The rendered HTML body of the email. */
+  bodyContent: string;
+  /** The CSS to inject into the head of the email. */
+  headCSS?: string;
+  /** The background color of the email. */
+  bgColor?: string;
+  /** The escaped language of the email in BCP47 format. */
+  lang?: string;
+  /** The text direction of the email. */
+  dir?: "ltr" | "rtl";
+}
 
 type EmailTags = {
   /** The broad category of the email, e.g. "notification". */
@@ -90,7 +106,7 @@ export class Mailer {
     bgColor = "#FFFFFF",
     lang,
     dir = "ltr" /* https://www.w3.org/TR/html4/struct/dirlang.html#blocklevel-bidi */,
-  }: Oy.CustomTemplateRenderOptions) => {
+  }: TemplateOptions) => {
     if (!title) {
       throw InternalError("`title` is a required option for `renderTemplate`");
     }
@@ -172,16 +188,13 @@ export class Mailer {
       return;
     }
 
-    const html = Oy.renderTemplate(
-      data.component,
-      {
-        title: data.subject,
-        lang: data.lang,
-        dir: data.dir ?? "ltr",
-        headCSS: [baseStyles, data.headCSS].join(" "),
-      } as Oy.RenderOptions,
-      this.template
-    );
+    const html = this.template({
+      title: escape(data.subject),
+      lang: data.lang && escape(data.lang),
+      dir: data.dir ?? "ltr",
+      headCSS: [baseStyles, data.headCSS].filter(Boolean).join(" "),
+      bodyContent: renderToStaticMarkup(data.component),
+    });
 
     try {
       Logger.info("email", `Sending email "${data.subject}" to ${data.to}`);

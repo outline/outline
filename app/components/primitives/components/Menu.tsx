@@ -68,7 +68,9 @@ const BaseMenuItemCSS = css<BaseMenuItemProps>`
     `
       &[data-highlighted],
       &[data-state="open"],
-      &:focus-visible {
+      &:focus-visible,
+      [data-radix-menu-content]:has([data-menu-filter-input]:focus)
+        &[data-menu-filter-highlighted] {
         color: ${props.theme.accentText};
         background: ${props.$dangerous ? props.theme.danger : props.theme.accent};
         outline-color: ${
@@ -126,13 +128,22 @@ export const MenuLabel = styled.div`
 `;
 
 export const MenuHeader = styled.h3`
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
+  font-size: 13px;
+  font-weight: 500;
   color: ${s("sidebarText")};
-  letter-spacing: 0.04em;
   margin: 1em 12px 0.5em;
   user-select: none;
+
+  // Remove the top margin when nothing visible is above the header, except in
+  // the mobile drawer, which has less padding.
+  ${breakpoint("tablet")`
+    &:first-child:not([role="group"] > *),
+    [data-menu-hidden]:first-child + &,
+    [role="group"]:first-child > &:first-child,
+    [data-menu-hidden]:first-child + [role="group"] > &:first-child {
+      margin-top: 0;
+    }
+  `}
 `;
 
 export const MenuDisclosure = styled(ExpandedIcon)`
@@ -192,6 +203,10 @@ export const MenuShortcut = styled.span`
 type MenuContentProps = {
   maxHeightVar: string;
   transformOriginVar: string;
+  /** The largest height of the menu, defaults to 85vh. */
+  maxHeight?: string;
+  /** Show the menu at once, without the opening animation. */
+  $skipAnimation?: boolean;
 };
 
 export const MenuContent = styled(Scrollable).attrs<MenuContentProps>(
@@ -205,7 +220,8 @@ export const MenuContent = styled(Scrollable).attrs<MenuContentProps>(
   min-width: 180px;
   max-width: 320px;
   min-height: 44px;
-  max-height: ${({ maxHeightVar }) => `min(85vh, var(${maxHeightVar}))`};
+  max-height: ${({ maxHeight = "85vh", maxHeightVar }) =>
+    `min(${maxHeight}, var(${maxHeightVar}))`};
   font-weight: normal;
 
   background: ${s("menuBackground")};
@@ -225,9 +241,13 @@ export const MenuContent = styled(Scrollable).attrs<MenuContentProps>(
 
   transform-origin: ${({ transformOriginVar }) => `var(${transformOriginVar})`};
 
-  &[data-state="open"] {
-    animation: ${fadeAndScaleIn} 150ms ease-out;
-  }
+  ${({ $skipAnimation }) =>
+    !$skipAnimation &&
+    css`
+      &[data-state="open"] {
+        animation: ${fadeAndScaleIn} 150ms ease-out;
+      }
+    `}
 
   @media print {
     display: none;

@@ -3,6 +3,7 @@ import { observer } from "mobx-react";
 import { keymap } from "prosemirror-keymap";
 import { MarkdownParser } from "prosemirror-markdown";
 import type { MarkSpec, NodeSpec, Schema } from "prosemirror-model";
+import type { Plugin } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 import type { Editor } from "~/editor";
 import type Mark from "../marks/Mark";
@@ -23,42 +24,26 @@ export default class ExtensionManager {
     editor?: Editor
   ) {
     this.readOnly = editor?.props.readOnly ?? false;
+    this.extensions = this.createExtensions(extensions, editor);
+  }
 
-    extensions.forEach((ext) => {
-      let extension: AnyExtension;
-
-      if (typeof ext === "function") {
-        // Check the prototype before instantiation to avoid constructor cost
-        // for extensions not needed in read-only mode.
-        if (
-          this.readOnly &&
-          ext.prototype.type === "extension" &&
-          !ext.prototype.allowInReadOnly
-        ) {
-          return;
-        }
-
-        // Cast away abstract: registration treats all classes uniformly and
-        // concrete subclasses are required at the public boundary.
-        const Ctor = ext as new (
-          options?: Record<string, unknown>
-        ) => AnyExtension;
-        extension = new Ctor(editor?.props);
-      } else {
-        // For already-instantiated extensions, check the instance.
-        if (this.readOnly && ext.type === "extension" && !ext.allowInReadOnly) {
-          return;
-        }
-
-        extension = ext;
-      }
-
-      if (editor) {
-        extension.bindEditor(editor);
-      }
-
-      this.extensions.push(extension);
-    });
+  /**
+   * Leave read-only mode by creating the extensions that it skipped. Existing
+   * instances are kept, so the schema, node views and plugins do not change.
+   *
+   * @param extensions the extensions that were passed to the constructor.
+   * @param editor the editor to bind the new extensions to.
+   */
+  setEditable(
+    extensions: (AnyExtensionClass | AnyExtension)[] = [],
+    editor?: Editor
+  ) {
+    this.readOnly = false;
+    this.extensions = this.createExtensions(
+      extensions,
+      editor,
+      this.extensions
+    );
   }
 
   get widgets() {
@@ -180,7 +165,14 @@ export default class ExtensionManager {
   get plugins() {
     return this.extensions
       .filter((extension) => "plugins" in extension)
-      .reduce((allPlugins, { plugins }) => [...allPlugins, ...plugins], []);
+      .reduce((allPlugins, extension) => {
+        let plugins = this.pluginCache.get(extension);
+        if (!plugins) {
+          plugins = extension.plugins;
+          this.pluginCache.set(extension, plugins);
+        }
+        return [...allPlugins, ...plugins];
+      }, []);
   }
 
   get rulePlugins() {
@@ -313,5 +305,61 @@ export default class ExtensionManager {
           ...commands,
         };
       }, {});
+  }
+
+  private pluginCache = new WeakMap<AnyExtension, Plugin[]>();
+
+  private createExtensions(
+    extensions: (AnyExtensionClass | AnyExtension)[],
+    editor?: Editor,
+    existing: AnyExtension[] = []
+  ) {
+    const result: AnyExtension[] = [];
+
+    extensions.forEach((ext) => {
+      const current = existing.find(
+        (extension) => extension === ext || extension.constructor === ext
+      );
+      if (current) {
+        result.push(current);
+        return;
+      }
+
+      let extension: AnyExtension;
+
+      if (typeof ext === "function") {
+        // Check the prototype before instantiation to avoid constructor cost
+        // for extensions not needed in read-only mode.
+        if (
+          this.readOnly &&
+          ext.prototype.type === "extension" &&
+          !ext.prototype.allowInReadOnly
+        ) {
+          return;
+        }
+
+        // Cast away abstract: registration treats all classes uniformly and
+        // concrete subclasses are required at the public boundary.
+        const Ctor = ext as new (
+          options?: Record<string, unknown>
+        ) => AnyExtension;
+        extension = new Ctor(editor?.props);
+      } else {
+        // For already-instantiated extensions, check the instance.
+        if (this.readOnly && ext.type === "extension" && !ext.allowInReadOnly) {
+          return;
+        }
+
+        extension = ext;
+      }
+
+      if (editor) {
+        extension.bindEditor(editor);
+      }
+
+      result.push(extension);
+    });
+
+    return result;
   }
 }

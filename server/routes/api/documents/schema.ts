@@ -28,6 +28,9 @@ const documentFilterFields = {
   // `userId` maps to the collaboratorIds array column and only supports
   // membership checks.
   userId: { kind: "uuid", operators: ["eq", "in"] },
+  // `ownerIds` maps to the ownerIds array column and only supports membership
+  // checks.
+  ownerIds: { kind: "uuid", operators: ["eq", "in"] },
   documentId: "uuid",
   parentDocumentId: "uuid",
 } as const;
@@ -451,8 +454,8 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     /** @deprecated Version of the API to be used, remove in a few releases */
     apiVersion: z.number().optional(),
 
-    /** Whether the editing session is complete */
-    done: z.boolean().optional(),
+    /** IDs of the users that own the doc */
+    ownerIds: z.array(z.uuid()).max(DocumentValidation.maxOwners).optional(),
   }),
 })
   .refine(
@@ -638,6 +641,9 @@ export const DocumentsCreateSchema = BaseSchema.extend({
         headingPrefix: z.enum(HeadingPrefixStyle).optional(),
       })
       .nullish(),
+
+    /** IDs of the users that own the document */
+    ownerIds: z.array(z.uuid()).max(DocumentValidation.maxOwners).optional(),
   }),
 }).refine(
   (req) =>
@@ -672,8 +678,16 @@ export const DocumentsAddUserSchema = BaseSchema.extend({
     userId: z.uuid(),
     /** Permission to be granted to the added user */
     permission: z.enum(DocumentPermission).optional(),
+    /** Whether the user is an owner of the document, owners can manage it */
+    owner: z.boolean().optional(),
   }),
-});
+}).refine(
+  (req) =>
+    !req.body.owner ||
+    req.body.permission === undefined ||
+    req.body.permission === DocumentPermission.Admin,
+  { message: "Owners must have the manage permission" }
+);
 
 export type DocumentsAddUserReq = z.infer<typeof DocumentsAddUserSchema>;
 

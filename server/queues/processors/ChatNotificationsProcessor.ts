@@ -26,6 +26,38 @@ export default class ChatNotificationsProcessor extends BaseProcessor {
     "integrations.create",
   ];
 
+  /**
+   * Only queue document events when the team has a chat post integration
+   * subscribed to the event.
+   *
+   * @param event the event about to be queued.
+   * @returns true if the event may need to be posted to a chat channel.
+   */
+  static async shouldQueue(event: Event): Promise<boolean> {
+    if (event.name === "integrations.create") {
+      return true;
+    }
+
+    const eventName =
+      event.name === "revisions.create" ? "documents.update" : event.name;
+    const integrations = (
+      await Promise.all(
+        ChatService.getProviders().map((provider) =>
+          Integration.findEnabledByTeamIdAndService(
+            event.teamId,
+            provider.service
+          )
+        )
+      )
+    ).flat();
+
+    return integrations.some(
+      (integration) =>
+        integration.type === IntegrationType.Post &&
+        !!integration.events?.includes(eventName)
+    );
+  }
+
   async perform(event: Event) {
     const services = ChatService.getProviders().map(
       (provider) => provider.service

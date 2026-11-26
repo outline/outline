@@ -1,5 +1,5 @@
 import httpErrors from "http-errors";
-import type { Context, Next } from "koa";
+import type { Next } from "koa";
 import {
   ValidationError as SequelizeValidationError,
   EmptyResultError as SequelizeEmptyResultError,
@@ -7,9 +7,19 @@ import {
 } from "sequelize";
 import {
   AuthorizationError,
+  DatabaseReadOnlyError,
   NotFoundError,
+  RequestTimeoutError,
+  ServiceUnavailableError,
   ValidationError,
 } from "@server/errors";
+import Metrics from "@server/logging/Metrics";
+import {
+  isDatabaseReadOnlyError,
+  isDatabaseUnavailableError,
+  isQueryCanceledError,
+} from "@server/storage/database";
+import type { AppContext } from "@server/types";
 
 /** Postgres codes for a requested date the database cannot represent. */
 const DATE_RANGE_ERROR_CODES = new Set(["22008", "22015"]);
@@ -29,7 +39,7 @@ function sqlStateOf(err: SequelizeDatabaseError): string | undefined {
 }
 
 export default function apiErrorHandler() {
-  return async function apiErrorHandlerMiddleware(ctx: Context, next: Next) {
+  return async function apiErrorHandlerMiddleware(ctx: AppContext, next: Next) {
     try {
       await next();
     } catch (err) {
@@ -60,6 +70,20 @@ export default function apiErrorHandler() {
         transformedErr = ValidationError(
           "Date value in request is out of range"
         );
+      }
+
+      if (isQueryCanceledError(err)) {
+        transformedErr = RequestTimeoutError();
+      }
+
+      if (isDatabaseReadOnlyError(err)) {
+        Metrics.increment("database.read_only", { source: "api" });
+        transformedErr = DatabaseReadOnlyError();
+      }
+
+      if (isDatabaseUnavailableError(err)) {
+        Metrics.increment("database.unavailable", { source: "api" });
+        transformedErr = ServiceUnavailableError();
       }
 
       if (

@@ -59,6 +59,7 @@ export const SharesUpdateSchema = BaseSchema.extend({
     allowSubscriptions: z.boolean().optional(),
     showLastUpdated: z.boolean().optional(),
     showTOC: z.boolean().optional(),
+    expiresAt: z.coerce.date().nullish(),
     title: z.string().max(ShareValidation.maxTitleLength).nullish(),
     iconUrl: z
       .string()
@@ -89,6 +90,7 @@ export const SharesCreateSchema = BaseSchema.extend({
       allowSubscriptions: z.boolean().optional(),
       showLastUpdated: z.boolean().optional(),
       showTOC: z.boolean().optional(),
+      expiresAt: z.coerce.date().nullish(),
       urlId: z
         .string()
         .regex(UrlHelper.SHARE_URL_SLUG_REGEX, {

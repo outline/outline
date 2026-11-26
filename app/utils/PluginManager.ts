@@ -6,6 +6,7 @@ import type {
   IntegrationSettings,
   IntegrationType,
   MentionType,
+  PlanFeature,
 } from "@shared/types";
 import type Integration from "~/models/Integration";
 import type Team from "~/models/Team";
@@ -43,6 +44,10 @@ type PluginValueMap = {
     description?: string;
     /** Whether the plugin is enabled in the current context. */
     enabled?: (team: Team, user: User) => boolean;
+    /** The plan feature needed for this page. Without it, an upsell page shows instead. */
+    entitlement?: PlanFeature;
+    /** Whether the page is only an upsell, removed when a real page needs the same entitlement. */
+    placeholder?: boolean;
   };
   [Hook.Imports]: {
     /** The title of the import. */

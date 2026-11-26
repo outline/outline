@@ -1,7 +1,7 @@
 import { Transaction } from "sequelize";
 import { traceFunction } from "@server/logging/tracing";
 import { Document, Collection, Pin } from "@server/models";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 
 type Props = {
   /** Document which is being moved */
@@ -21,7 +21,7 @@ type Result = {
 };
 
 async function documentMover(
-  ctx: APIContext,
+  ctx: Context,
   {
     document,
     collectionId,
@@ -30,8 +30,8 @@ async function documentMover(
     index,
   }: Props
 ): Promise<Result> {
-  const { user } = ctx.state.auth;
-  const { transaction } = ctx.state;
+  const { user } = ctx.auth;
+  const { transaction } = ctx;
 
   const collectionChanged = collectionId !== document.collectionId;
   const previousCollectionId = document.collectionId;
@@ -189,34 +189,22 @@ async function documentMover(
       })
     );
 
-    // If the document was pinned to the collection then we also need to
-    // automatically remove the pin to prevent a confusing situation where
-    // a document is pinned from another collection. Use the command to ensure
-    // the correct events are emitted.
-    const pin = await Pin.findOne({
+    // Remove pins of the moved documents to the previous collection, to prevent
+    // a document being pinned from another collection. Pins are not shown for
+    // documents in a personal collection, so pins to home are removed there too.
+    const pins = await Pin.findAll({
       where: {
-        documentId: document.id,
-        collectionId: previousCollectionId,
+        documentId: [document.id, ...childDocumentIds],
+        ...(newCollection?.isPersonal
+          ? {}
+          : { collectionId: previousCollectionId }),
       },
       transaction,
       lock: Transaction.LOCK.UPDATE,
     });
 
-    await pin?.destroyWithCtx(ctx);
-
-    // Pins are not shown for documents in a personal collection, so any pin of
-    // the moved documents, including pins to home, is removed.
-    if (newCollection?.isPersonal) {
-      const pins = await Pin.findAll({
-        where: {
-          documentId: [document.id, ...childDocumentIds],
-        },
-        transaction,
-        lock: Transaction.LOCK.UPDATE,
-      });
-      for (const personalPin of pins) {
-        await personalPin.destroyWithCtx(ctx);
-      }
+    for (const pin of pins) {
+      await pin.destroyWithCtx(ctx);
     }
   }
 
