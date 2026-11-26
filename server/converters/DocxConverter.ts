@@ -67,6 +67,7 @@ export class DocxConverter extends BaseConverter {
   private static async readParts(buffer: Buffer): Promise<Map<string, Buffer>> {
     const parts = new Map<string, Buffer>();
     let expansion = 0;
+    let totalSize = 0;
     let tooLarge = false;
 
     try {
@@ -78,7 +79,13 @@ export class DocxConverter extends BaseConverter {
           }
 
           const remaining = DOCX_MAX_EXPANSION - expansion;
-          if (entry.uncompressedSize - entry.compressedSize > remaining) {
+
+          // Entries can share stored data, so also bound the total bytes read.
+          if (
+            entry.uncompressedSize - entry.compressedSize > remaining ||
+            totalSize + entry.uncompressedSize >
+              buffer.length + DOCX_MAX_EXPANSION
+          ) {
             tooLarge = true;
             throw FileImportError(
               "The Word document is too large to import when uncompressed"
@@ -88,6 +95,7 @@ export class DocxConverter extends BaseConverter {
           // The read limit also covers entries whose declared size is wrong.
           const data = await entry.readBuffer(entry.compressedSize + remaining);
           expansion += Math.max(0, data.length - entry.compressedSize);
+          totalSize += data.length;
           parts.set(path.posix.normalize(entry.fileName), data);
         },
         { maxEntries: DOCX_MAX_ENTRIES }
