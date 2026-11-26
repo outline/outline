@@ -17,6 +17,7 @@ import {
   setCellAttrs,
 } from "../lib/table";
 import { hasTableRole } from "../queries/table";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import Node from "./Node";
 import { presetColors, rgbaToHex } from "@shared/utils/color";
 import { parseToRgb, transparentize } from "polished";
@@ -169,6 +170,25 @@ export default class TableCell extends Node {
         props: {
           decorations(state) {
             return this.getState(state);
+          },
+        },
+      }),
+      new Plugin({
+        key: new PluginKey("table-cell-active"),
+        props: {
+          decorations: (state) => {
+            const { $from } = state.selection;
+            for (let depth = $from.depth; depth > 0; depth--) {
+              const role = $from.node(depth).type.spec.tableRole;
+              if (role === "cell" || role === "header_cell") {
+                return DecorationSet.create(state.doc, [
+                  Decoration.node($from.before(depth), $from.after(depth), {
+                    class: EditorStyleHelper.tableCellActive,
+                  }),
+                ]);
+              }
+            }
+            return null;
           },
         },
       }),
