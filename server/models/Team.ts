@@ -494,6 +494,27 @@ class Team extends ParanoidModel<
     );
   };
 
+  /**
+   * Find whether the passed domain or email matches one of the team's domains.
+   * Unlike isDomainAllowed, this returns false if no domains are set.
+   *
+   * @param domainOrEmail The domain or email to check.
+   * @returns True if the domain matches a team domain.
+   */
+  public isTeamDomain = async function (
+    this: Team,
+    domainOrEmail: string
+  ): Promise<boolean> {
+    const allowedDomains = (await this.$get("allowedDomains")) || [];
+    const domain = isEmail(domainOrEmail)
+      ? parseEmail(domainOrEmail).domain
+      : domainOrEmail.toLowerCase();
+
+    return allowedDomains.some(
+      (d: TeamDomain) => d.name.toLowerCase() === domain
+    );
+  };
+
   // associations
 
   @HasMany(() => Collection)

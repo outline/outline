@@ -1,9 +1,9 @@
 import { faker } from "@faker-js/faker";
-import { UserRole } from "@shared/types";
-import { buildTeam, buildUser } from "@server/test/factories";
+import { Plan, UserRole } from "@shared/types";
+import { buildAdmin, buildTeam, buildUser } from "@server/test/factories";
 import userInviter from "./userInviter";
 import { withContext } from "@server/test/support";
-import { TeamDomain } from "@server/models";
+import { Team, TeamDomain } from "@server/models";
 
 describe("userInviter", () => {
   it("should return sent invites", async () => {
@@ -88,6 +88,65 @@ describe("userInviter", () => {
 
     expect(response.sent.length).toEqual(1);
     expect(response.sent[0].email).toEqual(`test@${allowedDomain}`);
+  });
+
+  it("should error on guest invites for workspace domains", async () => {
+    const planSpy = vi
+      .spyOn(Team.prototype, "plan", "get")
+      .mockReturnValue(Plan.Business);
+    onTestFinished(() => planSpy.mockRestore());
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+
+    await TeamDomain.create({
+      teamId: team.id,
+      name: "acme.org",
+      createdById: user.id,
+    });
+
+    await withContext(user, (ctx) =>
+      expect(
+        userInviter(ctx, {
+          invites: [
+            {
+              role: UserRole.Guest,
+              email: "Test@Acme.org",
+              name: "Test",
+            },
+          ],
+        })
+      ).rejects.toThrow(
+        "Users with an email on a workspace domain cannot be added as guests"
+      )
+    );
+  });
+
+  it("should allow guest invites for other domains", async () => {
+    const planSpy = vi
+      .spyOn(Team.prototype, "plan", "get")
+      .mockReturnValue(Plan.Business);
+    onTestFinished(() => planSpy.mockRestore());
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+
+    await TeamDomain.create({
+      teamId: team.id,
+      name: "acme.org",
+      createdById: user.id,
+    });
+
+    const response = await withContext(user, (ctx) =>
+      userInviter(ctx, {
+        invites: [
+          {
+            role: UserRole.Guest,
+            email: "test@other.com",
+            name: "Test",
+          },
+        ],
+      })
+    );
+    expect(response.sent.length).toEqual(1);
   });
 
   it("should filter obviously bunk emails", async () => {

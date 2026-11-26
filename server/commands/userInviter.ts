@@ -6,7 +6,7 @@ import Logger from "@server/logging/Logger";
 import { User, Team } from "@server/models";
 import { UserFlag } from "@server/models/User";
 import type { Context } from "@server/types";
-import { DomainNotAllowedError } from "@server/errors";
+import { DomainNotAllowedError, ValidationError } from "@server/errors";
 import { authorize, can } from "@server/policies";
 
 export type Invite = {
@@ -55,6 +55,17 @@ export default async function userInviter(
       if (!(await team.isDomainAllowed(email))) {
         throw DomainNotAllowedError();
       }
+    }
+  }
+
+  for (const invite of normalizedInvites) {
+    if (
+      invite.role === UserRole.Guest &&
+      (await team.isTeamDomain(invite.email))
+    ) {
+      throw ValidationError(
+        "Users with an email on a workspace domain cannot be added as guests"
+      );
     }
   }
 

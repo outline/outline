@@ -386,9 +386,10 @@ async function updateRole(ctx: Context<T.UsersChangeRoleReq>) {
   });
   authorize(actor, "update", user);
 
-  await Team.findByPk(user.teamId, {
+  const team = await Team.findByPk(user.teamId, {
     transaction,
     lock: transaction.LOCK.NO_KEY_UPDATE,
+    rejectOnEmpty: true,
   });
 
   let name;
@@ -410,6 +411,12 @@ async function updateRole(ctx: Context<T.UsersChangeRoleReq>) {
   }
   if (role === UserRole.Guest) {
     authorize(actor, "addGuest", actor.team);
+
+    if (user.email && (await team.isTeamDomain(user.email))) {
+      throw ValidationError(
+        "Users with an email on a workspace domain cannot be added as guests"
+      );
+    }
   }
 
   await user.updateWithCtx(ctx, { role }, { name });
