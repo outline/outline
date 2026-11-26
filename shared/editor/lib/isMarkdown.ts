@@ -16,13 +16,13 @@ export default function isMarkdown(text: string): boolean {
     signals += latex.length;
   }
 
-  // link-ish, link text excludes brackets and newlines so matching stays linear.
-  const links = text.match(/\[[^[\]\n]+\]\(https?:\/\/\S+\)/g);
+  // link-ish, text and destination stop at the next bracket so matching stays linear.
+  const links = text.match(/\[[^[\]\n]+\]\(https?:\/\/[^\s)[]+\)/g);
   if (links) {
     signals += links.length * 2;
   }
 
-  const relativeLinks = text.match(/\[[^[\]\n]+\]\(\/\S+\)/g);
+  const relativeLinks = text.match(/\[[^[\]\n]+\]\(\/[^\s)[]+\)/g);
   if (relativeLinks) {
     signals += relativeLinks.length * 2;
   }
