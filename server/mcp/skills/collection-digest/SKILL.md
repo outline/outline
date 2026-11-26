@@ -30,5 +30,5 @@ All tools named in this skill are tools of the Outline MCP server.
 
 - `list_collections` – resolve the collection ID.
 - `list_documents` – `{ collectionId, includeArchived?, offset, limit }`; each result has `document.updatedAt`, `document.createdAt`, and `document.url`.
-- `fetch` – `{ resource: "document", id }` to read the full markdown.
+- `fetch` – `{ resource: "document", id, offset? }` to read the markdown. If the metadata has `nextOffset`, call `fetch` again with that `offset` to read the next page.
 - `list_comments` – `{ collectionId, statusFilter: ["unresolved"] }` to include open discussions.

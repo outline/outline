@@ -108,6 +108,8 @@ describe("fetch", () => {
     expect(metadata.document.id).toEqual(document.id);
     expect(metadata.document.title).toEqual(document.title);
     expect(metadata.document.url).toMatch(/^https?:\/\//);
+    expect(metadata.textLength).toBeUndefined();
+    expect(metadata.nextOffset).toBeUndefined();
 
     // Second content is markdown text
     expect(res!.result!.content![1].text).toContain("Hello");
@@ -252,5 +254,110 @@ describe("fetch", () => {
     expect(metadata.url).toMatch(/^https?:\/\//);
 
     expect(res!.result!.content![1].text).toContain("Body of the template");
+  });
+
+  it("pages long document text on line boundaries", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const lines = Array.from({ length: 50 }, (_, i) => `Line ${i}`);
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      text: lines.join("\n\n"),
+    });
+
+    let offset = 0;
+    let combined = "";
+    let pages = 0;
+    let textLength = 0;
+
+    do {
+      const res = await callMcpTool(server, accessToken, "fetch", {
+        resource: "document",
+        id: document.id,
+        offset,
+        limit: 100,
+      });
+      const metadata = JSON.parse(res!.result!.content![0].text ?? "{}");
+      const text = res!.result!.content![1].text ?? "";
+
+      expect(text.length).toBeLessThanOrEqual(100);
+      if (metadata.nextOffset !== undefined) {
+        expect(text.endsWith("\n")).toBe(true);
+      }
+
+      combined += text;
+      textLength = metadata.textLength ?? textLength;
+      offset = metadata.nextOffset;
+      pages++;
+    } while (offset !== undefined);
+
+    expect(pages).toBeGreaterThan(1);
+    expect(combined.length).toEqual(textLength);
+    expect(combined).toContain("Line 0");
+    expect(combined).toContain("Line 49");
+  });
+
+  it("cuts a line longer than the limit", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      text: "a".repeat(250),
+    });
+
+    const res = await callMcpTool(server, accessToken, "fetch", {
+      resource: "document",
+      id: document.id,
+      limit: 100,
+    });
+    const metadata = JSON.parse(res!.result!.content![0].text ?? "{}");
+
+    expect(res!.result!.content![1].text).toEqual("a".repeat(100));
+    expect(metadata.nextOffset).toEqual(100);
+  });
+
+  it("does not split a surrogate pair between pages", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      text: `${"a".repeat(99)}😀b`,
+    });
+
+    const first = await callMcpTool(server, accessToken, "fetch", {
+      resource: "document",
+      id: document.id,
+      limit: 100,
+    });
+    const firstMetadata = JSON.parse(first!.result!.content![0].text ?? "{}");
+
+    expect(first!.result!.content![1].text).toEqual(`${"a".repeat(99)}😀`);
+    expect(firstMetadata.nextOffset).toEqual(101);
+
+    const second = await callMcpTool(server, accessToken, "fetch", {
+      resource: "document",
+      id: document.id,
+      offset: 99,
+      limit: 1,
+    });
+    const secondMetadata = JSON.parse(second!.result!.content![0].text ?? "{}");
+
+    expect(second!.result!.content![1].text).toEqual("😀");
+    expect(secondMetadata.nextOffset).toEqual(101);
   });
 });

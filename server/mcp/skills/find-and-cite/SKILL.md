@@ -15,7 +15,7 @@ All tools named in this skill are tools of the Outline MCP server.
 
 1. Search with `list_documents` and a short `query` of key terms. Every word in the query must match. To match any of several terms, put “or” between them. To match an exact phrase, put the whole query in double quotes. Run separate searches for different phrasings.
 2. Use the `context` snippet in each result to pick the best candidates. Narrow with `collectionId` when the user names a collection.
-3. Read the top candidates with `fetch` (`resource: "document"`). The second content block is the full markdown.
+3. Read the top candidates with `fetch` (`resource: "document"`). The second content block is the markdown. If the metadata has `nextOffset`, call `fetch` again with that `offset` to read the next page.
 4. Answer the question in your own words, then quote the passage that supports it and link to the document `url`. Include the `breadcrumb`, when present, so the user knows where the document sits.
 5. When documents disagree, say so, and show the `updatedAt` date of each so the user can judge which is current.
 
@@ -29,5 +29,5 @@ All tools named in this skill are tools of the Outline MCP server.
 ## Tool reference
 
 - `list_documents` – `{ query, collectionId?, includeArchived?, limit }`; results include `document` and, with a `query`, `context`. `breadcrumb` and `shareUrl` are optional.
-- `fetch` – `{ resource: "document", id }`; accepts an ID or a document URL.
+- `fetch` – `{ resource: "document", id, offset? }`; accepts an ID or a document URL.
 - `list_collection_documents` – `{ collectionId }` to browse a collection’s structure when search is not enough.

@@ -14,10 +14,10 @@ All tools named in this skill are tools of the Outline MCP server.
 ## Quick start
 
 1. Collect the meeting name, date, attendees, and purpose. Ask for anything missing that the template needs.
-2. Find a template with `list_templates`. Prefer a template whose title contains “meeting”, “notes”, “agenda”, or “1:1”. Each result includes the template body as markdown. Results are newest first, 25 for each page; use `offset` to see more.
+2. Find a template with `list_templates`. Prefer a template whose title contains “meeting”, “notes”, “agenda”, or “1:1”. Results are newest first, 25 for each page; use `offset` to see more.
 3. Choose how to use the template:
    - Unchanged: pass its `id` as `templateId` to `create_document`.
-   - Adapted: edit the returned `text`, fill in the known fields, and pass the result as `text`.
+   - Adapted: read the body with `fetch` (`resource: "template"`), fill in the known fields, and pass the result as `text`.
 4. Resolve the destination collection with `list_collections`. Use the template’s `collectionId` when it has one.
 5. Create the document with `create_document` and share the `url`.
 6. After the meeting, add decisions and action items with `update_document`. Use `editMode: "patch"` and set `findText` to the exact markdown of the section to fill, so the rest of the document keeps its formatting. When there is no such section, use `editMode: "append"`.
@@ -31,7 +31,8 @@ All tools named in this skill are tools of the Outline MCP server.
 
 ## Tool reference
 
-- `list_templates` – `{ collectionId?, offset?, limit? }`; results include `id`, `title`, `collectionId`, `text`.
+- `list_templates` – `{ collectionId?, offset?, limit? }`; results include `id`, `title`, `collectionId`.
+- `fetch` – `{ resource: "template", id }`; the second content block is the template body as markdown.
 - `create_document` – `{ title, templateId?, text?, collectionId, publish }`.
 - `update_document` – `{ id, editMode: "patch", findText, text }` or `editMode: "append"`.
 - `list_users` – `{ query }` to resolve attendee IDs.
