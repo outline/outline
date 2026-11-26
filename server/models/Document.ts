@@ -1502,8 +1502,8 @@ class Document extends ArchivableModel<
         })
       : undefined;
 
-    // check to see if the documents parent hasn't been archived also
-    // If it has then restore the document to the collection root.
+    // If the parent is not an active, published document in the destination
+    // collection then restore the document to the collection root.
     if (this.parentDocumentId) {
       const parent = await (this.constructor as typeof Document).findOne({
         where: {
@@ -1511,7 +1511,11 @@ class Document extends ArchivableModel<
         },
         transaction,
       });
-      if (parent?.isDraft || !parent?.isActive) {
+      if (
+        parent?.isDraft ||
+        !parent?.isActive ||
+        parent.collectionId !== collectionId
+      ) {
         this.parentDocumentId = null;
       }
     }

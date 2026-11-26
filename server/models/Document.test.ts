@@ -55,6 +55,66 @@ describe("#restoreTo", () => {
       expect(document.deprecatedReason).toBeNull();
     }
   );
+
+  it.each(["archived", "deleted"])(
+    "should move an %s document to the root when restored into another collection",
+    async (status) => {
+      const user = await buildUser();
+      const [source, destination] = await Promise.all([
+        buildCollection({ userId: user.id, teamId: user.teamId }),
+        buildCollection({ userId: user.id, teamId: user.teamId }),
+      ]);
+      const parent = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: source.id,
+      });
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: source.id,
+        parentDocumentId: parent.id,
+        archivedAt: status === "archived" ? new Date() : null,
+        deletedAt: status === "deleted" ? new Date() : null,
+      });
+
+      await withAPIContext(user, (ctx) =>
+        document.restoreTo(ctx, { collectionId: destination.id })
+      );
+      await Promise.all([document.reload(), destination.reload()]);
+      expect(document.collectionId).toBe(destination.id);
+      expect(document.parentDocumentId).toBeNull();
+      expect(destination.documentStructure?.map((node) => node.id)).toContain(
+        document.id
+      );
+    }
+  );
+
+  it("should keep the parent when restored into the same collection", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const parent = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      parentDocumentId: parent.id,
+      archivedAt: new Date(),
+    });
+
+    await withAPIContext(user, (ctx) =>
+      document.restoreTo(ctx, { collectionId: collection.id })
+    );
+    await document.reload();
+    expect(document.parentDocumentId).toBe(parent.id);
+  });
 });
 
 describe("#getSummary", () => {

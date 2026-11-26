@@ -4,6 +4,7 @@ import type {
   CollectionEvent,
   CollectionGroupEvent,
   CollectionUserEvent,
+  DocumentEvent,
   DocumentGroupEvent,
   DocumentMovedEvent,
   DocumentUserEvent,
@@ -21,6 +22,7 @@ type ReceivedEvent =
   | DocumentUserEvent
   | DocumentGroupEvent
   | DocumentMovedEvent
+  | DocumentEvent
   | GroupEvent;
 
 /**
@@ -34,6 +36,8 @@ export default class NotificationsRevokeProcessor extends BaseProcessor {
     "documents.remove_user",
     "documents.remove_group",
     "documents.move",
+    "documents.restore",
+    "documents.unarchive",
     "groups.remove_user",
     "groups.delete",
   ];
@@ -79,16 +83,23 @@ export default class NotificationsRevokeProcessor extends BaseProcessor {
         return this.handlePermissionChanged(event);
 
       case "documents.move":
-        return this.handleDocumentMoved(event);
+        return this.handleDocumentMoved(
+          event.documentId,
+          event.data.documentIds
+        );
+
+      case "documents.restore":
+      case "documents.unarchive":
+        return this.handleDocumentRestored(event.documentId);
     }
   }
 
-  // A move carries the document into a different collection, which the recipient of a notification
-  // about it may not be able to read.
-  private async handleDocumentMoved(event: DocumentMovedEvent) {
+  // A move carries the document into a different collection or parent, which the recipient of a
+  // notification about it may not be able to read.
+  private async handleDocumentMoved(documentId: string, documentIds: string[]) {
     const notifications = await Notification.unscoped().findAll({
       attributes: ["userId"],
-      where: { documentId: event.data.documentIds },
+      where: { documentId: documentIds },
       group: ["notification.userId"],
     });
 
@@ -96,10 +107,24 @@ export default class NotificationsRevokeProcessor extends BaseProcessor {
       notifications.map((notification) =>
         new RevokeUserNotificationsTask().schedule({
           userId: notification.userId,
-          documentId: event.documentId,
+          documentId,
         })
       )
     );
+  }
+
+  // A restore can place the document in a different collection or parent, in the same way as a move.
+  private async handleDocumentRestored(documentId: string) {
+    const document = await Document.findByPk(documentId);
+    if (!document) {
+      return;
+    }
+
+    const childDocumentIds = await document.findAllChildDocumentIds();
+    return this.handleDocumentMoved(document.id, [
+      document.id,
+      ...childDocumentIds,
+    ]);
   }
 
   private async handleRemoveGroup(groupId: string, scope: RevokeScope) {
