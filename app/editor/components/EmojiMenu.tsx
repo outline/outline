@@ -1,3 +1,4 @@
+import { compact, zip } from "es-toolkit";
 import { capitalize } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { useCallback, useMemo, useEffect } from "react";
@@ -11,12 +12,8 @@ import { determineIconType } from "@shared/utils/icon";
 import { EmojiSkinTone, IconType } from "@shared/types";
 import type { Emoji as EmojiData } from "@shared/types";
 import type EmojiModel from "~/models/Emoji";
-import Storage from "@shared/utils/Storage";
 import type { MenuItem } from "@shared/editor/types";
-import {
-  emojiSkinToneKey,
-  iconFrequencies,
-} from "~/components/IconPicker/utils";
+import { iconFrequencies } from "~/components/IconPicker/utils";
 
 type Emoji = {
   id: string;
@@ -108,20 +105,26 @@ interface RecentEmojiIds {
   custom: string[];
 }
 
-/** Resolve recent emoji ids, skipping custom emojis that are not loaded. */
+/**
+ * Resolve recent emoji ids, interleaving standard and custom emojis so both
+ * appear within the result limit, and skipping custom emojis that are not loaded.
+ */
 const getRecentEmojis = (
   recent: RecentEmojiIds,
   customEmojis: EmojiModel[]
-): EmojiData[] => [
-  ...getEmojis({
+): EmojiData[] => {
+  // Emoji nodes store only the shortcode, so skin tones would not be inserted.
+  const standard = getEmojis({
     ids: recent.emojis,
-    skinTone: Storage.get(emojiSkinToneKey) ?? EmojiSkinTone.Default,
-  }),
-  ...recent.custom.flatMap((id) => {
+    skinTone: EmojiSkinTone.Default,
+  });
+  const custom = recent.custom.flatMap((id) => {
     const emoji = customEmojis.find((e) => e.id === id);
     return emoji ? [{ id: emoji.id, name: emoji.name, value: emoji.id }] : [];
-  }),
-];
+  });
+
+  return compact(zip(standard, custom).flat());
+};
 
 const toMenuItem = (item: EmojiData): Emoji => {
   // We snake_case the shortcode for backwards compatibility with gemoji to
