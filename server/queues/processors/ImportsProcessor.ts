@@ -23,7 +23,6 @@ import {
   ImportTaskState,
   MentionType,
 } from "@shared/types";
-import { colorPalette } from "@shared/constants";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { errToString } from "@shared/utils/error";
 import { CollectionValidation } from "@shared/validations";
@@ -37,6 +36,7 @@ import {
   Document,
   GroupMembership,
   Import,
+  Team,
   User,
   UserMembership,
 } from "@server/models";
@@ -533,6 +533,10 @@ export default abstract class ImportsProcessor<
       );
       collectionIdx = firstCollection?.index ?? null;
     }
+
+    const colorPalette = await Team.getColorPalette(importModel.teamId, {
+      transaction,
+    });
 
     // Pre-pass: allocate new urlIds for every collection and document in this
     // import so internal link hrefs in document content can be rewritten to

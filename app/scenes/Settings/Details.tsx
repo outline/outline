@@ -24,6 +24,7 @@ import { InputSelect } from "~/components/InputSelect";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
+import useColorPalette from "~/hooks/useColorPalette";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
@@ -31,6 +32,7 @@ import useStores from "~/hooks/useStores";
 import type Team from "~/models/Team";
 import isCloudHosted from "~/utils/isCloudHosted";
 import TeamDelete from "../TeamDelete";
+import { ColorPalette } from "./components/ColorPalette";
 import ImageInput from "./components/ImageInput";
 import SettingRow from "./components/SettingRow";
 import { SettingsSection } from "./components/SettingsSection";
@@ -56,6 +58,8 @@ function Details() {
   const [name, setName] = useState(team.name);
   const [description, setDescription] = useState(team.description || "");
   const [subdomain, setSubdomain] = useState(team.subdomain);
+  const initialPalette = useColorPalette();
+  const [palette, setPalette] = useState<string[]>(initialPalette);
 
   const customTheme: Partial<CustomTheme> = React.useMemo(
     () =>
@@ -165,6 +169,25 @@ function Details() {
     saveTheme.cancel();
     void savePreference(TeamPreference.CustomTheme, {});
   }, [saveTheme, savePreference]);
+
+  const savePalette = React.useMemo(
+    () =>
+      debounce((colors: string[]) => {
+        void savePreference(TeamPreference.ColorPalette, colors);
+      }, 500),
+    [savePreference]
+  );
+
+  // Save a pending palette change when the user leaves the page.
+  React.useEffect(() => () => savePalette.flush(), [savePalette]);
+
+  const handlePaletteChange = React.useCallback(
+    (colors: string[]) => {
+      setPalette(colors);
+      savePalette(colors);
+    },
+    [savePalette]
+  );
 
   const handleSubmit = React.useCallback((ev: React.FormEvent) => {
     ev.preventDefault();
@@ -375,6 +398,15 @@ function Details() {
                 onAccentChange={handleAccentChange}
                 onAccentTextChange={handleAccentTextChange}
               />
+            </SettingRow>
+            <SettingRow
+              label={t("Color palette")}
+              name={TeamPreference.ColorPalette}
+              description={t(
+                "The colors offered when choosing icons and backgrounds. Pick a preset, then adjust any color."
+              )}
+            >
+              <ColorPalette value={palette} onChange={handlePaletteChange} />
             </SettingRow>
             {(team.avatarUrl || team.description) && (
               <SettingRow

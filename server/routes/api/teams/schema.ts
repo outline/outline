@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { colorPalette } from "@shared/constants";
 import {
   CommentingAccess,
   EmailDisplay,
@@ -9,6 +10,7 @@ import {
 import { validateColorHex } from "@shared/utils/color";
 import { TeamValidation } from "@shared/validations";
 import { BaseSchema } from "@server/routes/api/schema";
+import { ValidateColor } from "@server/validation";
 
 export const TeamsUpdateSchema = BaseSchema.extend({
   body: z.object({
@@ -89,6 +91,14 @@ export const TeamsUpdateSchema = BaseSchema.extend({
               error: "must be one of the available expiry periods",
             }
           ),
+        /** The preset colors offered when choosing an icon color. */
+        [TeamPreference.ColorPalette]: z
+          .array(
+            z
+              .string()
+              .regex(ValidateColor.regex, { message: ValidateColor.message })
+          )
+          .length(colorPalette.length),
       })
       .partial()
       .optional(),
