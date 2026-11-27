@@ -1,4 +1,5 @@
 import env from "@server/env";
+import { BaseTask } from "@server/queues/tasks/base/BaseTask";
 import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
@@ -47,6 +48,23 @@ describe("GET /api/cron.daily", () => {
     const body = await res.json();
     expect(res.status).toEqual(401);
     expect(body.message).toBe("Invalid secret token");
+  });
+
+  it("should use limit from query", async () => {
+    const res = await server.get(
+      `/api/cron.daily?token=${env.UTILS_SECRET}&limit=50`
+    );
+    expect(res.status).toEqual(200);
+
+    const schedule = vi.mocked(BaseTask.prototype.schedule);
+    expect(schedule).toHaveBeenCalledWith(
+      expect.objectContaining({ limit: 50 }),
+      expect.anything()
+    );
+    expect(schedule).not.toHaveBeenCalledWith(
+      expect.objectContaining({ limit: 500 }),
+      expect.anything()
+    );
   });
 
   it("should validate limit", async () => {
