@@ -73,7 +73,7 @@ router.post(
   async (ctx: Context<T.StarsListReq>) => {
     const { user } = ctx.auth;
 
-    let stars = await Star.findAll({
+    const stars = await Star.findAll({
       where: {
         userId: user.id,
       },
@@ -99,19 +99,12 @@ router.post(
       .filter(Boolean) as string[];
     const documents = documentIds.length
       ? await Document.findAllWithCtx(ctx, {
+          includeDrafts: true,
           where: {
             id: documentIds,
           },
         })
       : [];
-
-    // Stars are not removed with access, so only return those for documents
-    // the user can read.
-    stars = stars.filter(
-      (star) =>
-        !star.documentId ||
-        documents.some((document) => document.id === star.documentId)
-    );
 
     const policies = presentPolicies(user, [...documents, ...stars]);
 
