@@ -312,7 +312,7 @@ router.post(
       authorize(user, "read", collection);
     }
 
-    const [share] = await Share.findOrCreateWithCtx(ctx, {
+    const [share, created] = await Share.findOrCreateWithCtx(ctx, {
       where: {
         collectionId: collection?.id ?? null,
         documentId: document?.id ?? null,
@@ -333,6 +333,22 @@ router.post(
       },
     });
 
+    share.team = user.team;
+    share.collection = collection;
+    share.document = document;
+
+    // Defaults only apply to new rows, so publish an existing share explicitly.
+    if (!created && published && !share.published) {
+      authorize(user, "share", user.team);
+      authorize(user, "update", share);
+      share.published = true;
+      share.includeChildDocuments = true;
+      if (expiresAt !== undefined) {
+        share.expiresAt = expiresAt;
+      }
+      await share.saveWithCtx(ctx);
+    }
+
     if (share.published) {
       authorize(user, "share", user.team);
       if (document) {
@@ -343,10 +359,10 @@ router.post(
       }
     }
 
-    share.team = user.team;
-    share.user = user;
-    share.collection = collection;
-    share.document = document;
+    // An existing share already loads its creator through the default scope.
+    if (created) {
+      share.user = user;
+    }
 
     ctx.body = {
       data: presentShare(share),
