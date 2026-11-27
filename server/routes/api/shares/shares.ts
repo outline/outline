@@ -224,6 +224,7 @@ router.post(
           // Memberships are needed to compute the share policies.
           model: Document.scope([
             "withDrafts",
+            "withoutContent",
             { method: ["withMembership", user.id] },
           ]),
           required: false,
