@@ -1580,7 +1580,7 @@ router.post(
 
       // The copy is created in the destination collection, so create permission
       // is required there rather than on the source.
-      if (collection) {
+      if (collectionId || collection) {
         authorize(user, "createDocument", collection);
       }
     }

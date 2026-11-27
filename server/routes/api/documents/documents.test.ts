@@ -9768,6 +9768,24 @@ describe("#documents.duplicate", () => {
     expect(res.status).toEqual(401);
   });
 
+  it("should fail with status 403 for an unknown collectionId", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/documents.duplicate", user, {
+      body: {
+        id: document.id,
+        collectionId: faker.string.uuid(),
+        publish: true,
+      },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
   it("should duplicate a document with fullWidth property", async () => {
     const user = await buildUser();
     const document = await buildDocument({
