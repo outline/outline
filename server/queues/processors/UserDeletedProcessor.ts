@@ -85,7 +85,8 @@ export default class UserDeletedProcessor extends BaseProcessor {
         {
           where: {
             teamId: event.teamId,
-            ownerIds: { [Op.contains]: [event.userId] },
+            // The non-empty check lets Postgres use the partial owner index.
+            ownerIds: { [Op.contains]: [event.userId], [Op.ne]: [] },
           },
           paranoid: false,
           silent: true,
