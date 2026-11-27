@@ -17,6 +17,8 @@ export interface ZipEntryHandle {
   fileName: string;
   /** Size of the uncompressed entry in bytes. */
   uncompressedSize: number;
+  /** Size of the compressed entry in bytes. */
+  compressedSize: number;
   /** True when this entry is a directory marker rather than a file. */
   isDirectory: boolean;
   /**
@@ -178,6 +180,7 @@ export default class ZipHelper {
           const handle: ZipEntryHandle = {
             fileName,
             uncompressedSize: entry.uncompressedSize,
+            compressedSize: entry.compressedSize,
             isDirectory: fileName.endsWith("/"),
             readBuffer: (maxSize) =>
               new Promise<Buffer>((res, rej) => {
