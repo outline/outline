@@ -62,6 +62,7 @@ import slugify from "@server/utils/slugify";
 import { DeprecationValidation, DocumentValidation } from "@shared/validations";
 import { InvalidRequestError, ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
+import { QueryHelper } from "@server/storage/QueryHelper";
 import { afterCommit } from "@server/storage/transaction";
 import { generateUrlId } from "@server/utils/url";
 import Collection from "./Collection";
@@ -133,16 +134,6 @@ type AdditionalFindOptions = {
   /** Whether to reject the query if no document is found. */
   rejectOnEmpty?: boolean | Error;
 };
-
-/** Sequelize types the query generator as unknown; this narrows to the single
- * method used to build a raw SQL filter fragment. */
-interface QueryGeneratorWithWhere {
-  getWhereConditions(
-    where: WhereOptions<Document>,
-    tableName: string,
-    factory: typeof Document
-  ): string;
-}
 
 // Documents that are visible by default: published, not a template, and not
 // created as part of a trial.
@@ -881,6 +872,7 @@ class Document extends ArchivableModel<
     const collectionIds = await user.collectionIds({ transaction, paranoid });
 
     return {
+      teamId: user.teamId,
       [Op.or]: [
         { collectionId: collectionIds },
         Document.membershipWhere(user.id),
@@ -900,20 +892,6 @@ class Document extends ArchivableModel<
     return {
       id: { [Op.in]: Sequelize.literal(`(${membershipSubquery(userId)})`) },
     };
-  }
-
-  /**
-   * Renders a where condition as SQL, for queries that cannot be written with
-   * Sequelize.
-   *
-   * @param where the where condition.
-   * @param table the name or alias of the documents table in the query.
-   * @returns the SQL condition.
-   */
-  static whereToSql(where: WhereOptions<Document>, table = "documents") {
-    const queryGenerator = this.sequelize!.getQueryInterface()
-      .queryGenerator as QueryGeneratorWithWhere;
-    return queryGenerator.getWhereConditions(where, table, this);
   }
 
   /**
@@ -1227,10 +1205,11 @@ class Document extends ArchivableModel<
     options?: FindOptions<Document>
   ): Promise<string[]> => {
     const paranoid = options?.paranoid ?? true;
-    const whereConditions = Document.whereToSql({
-      ...(paranoid ? { deletedAt: null } : {}),
-      ...where,
-    });
+    const whereConditions = QueryHelper.whereToSql(
+      Document,
+      { ...(paranoid ? { deletedAt: null } : {}), ...where },
+      "documents"
+    );
     const anchorFilter = whereConditions ? `AND (${whereConditions})` : "";
     const recursiveFilter = whereConditions ? `WHERE (${whereConditions})` : "";
 
@@ -1909,7 +1888,7 @@ class Document extends ArchivableModel<
 /** The columns that the access condition uses, shared by documents and templates. */
 type AccessibleAttributes = Pick<
   Document,
-  "id" | "collectionId" | "createdById"
+  "id" | "teamId" | "collectionId" | "createdById"
 >;
 
 /** A scope for a document query. `null` removes the default scope. */

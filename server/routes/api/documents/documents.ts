@@ -200,7 +200,6 @@ router.post(
     const where: WhereOptions<Document> & {
       [Op.and]: WhereOptions<Document>[];
     } = {
-      teamId: user.teamId,
       [Op.and]: [
         {
           deletedAt: {
@@ -467,7 +466,6 @@ router.post(
 
     const documents = await Document.findAllWithCtx(ctx, {
       where: {
-        teamId: user.teamId,
         archivedAt: {
           [Op.ne]: null,
         },
@@ -500,7 +498,6 @@ router.post(
     const where: WhereOptions<Document> & {
       [Op.and]: WhereOptions<Document>[];
     } = {
-      teamId: user.teamId,
       deletedAt: {
         [Op.ne]: null,
       },
@@ -604,7 +601,6 @@ router.post(
     }
 
     const where: WhereOptions = {
-      teamId: user.teamId,
       createdById: user.id,
       publishedAt: {
         [Op.is]: null,

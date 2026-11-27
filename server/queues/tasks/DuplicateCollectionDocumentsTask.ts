@@ -38,7 +38,6 @@ export default class DuplicateCollectionDocumentsTask extends BaseTask<Props> {
       {
         includeViews: false,
         where: {
-          teamId: original.teamId,
           collectionId: original.id,
           parentDocumentId: {
             [Op.is]: null,

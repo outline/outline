@@ -14,6 +14,7 @@ import {
   Scopes,
 } from "sequelize-typescript";
 import type { Context } from "@server/types";
+import { QueryHelper } from "@server/storage/QueryHelper";
 import Document from "./Document";
 import Event from "./Event";
 import User from "./User";
@@ -150,18 +151,22 @@ class View extends IdModel<
       limit: number;
     }
   ): Promise<string[]> {
-    const accessible = Document.whereToSql({
-      [Op.and]: [
-        await Document.accessibleWhere(user),
-        {
-          [Op.or]: [
-            { publishedAt: { [Op.ne]: null } },
-            { createdById: user.id },
-            Document.membershipWhere(user.id),
-          ],
-        },
-      ],
-    });
+    const accessible = QueryHelper.whereToSql<Document>(
+      Document,
+      {
+        [Op.and]: [
+          await Document.accessibleWhere(user),
+          {
+            [Op.or]: [
+              { publishedAt: { [Op.ne]: null } },
+              { createdById: user.id },
+              Document.membershipWhere(user.id),
+            ],
+          },
+        ],
+      },
+      "documents"
+    );
     const column = sort === "createdAt" ? "createdAt" : "updatedAt";
     const order = direction === "ASC" ? "ASC" : "DESC";
 
@@ -175,7 +180,6 @@ class View extends IdModel<
         SELECT 1
         FROM documents
         WHERE documents.id = views."documentId"
-          AND documents."teamId" = :teamId
           AND documents."deletedAt" IS NULL
           AND ${accessible}
         OFFSET 0
@@ -187,7 +191,6 @@ class View extends IdModel<
       {
         replacements: {
           userId: user.id,
-          teamId: user.teamId,
           limit,
           offset,
         },

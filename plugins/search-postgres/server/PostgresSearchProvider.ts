@@ -389,7 +389,6 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
         Document.findAllWithCtx(createContext({ user }), {
           includeDrafts: true,
           where: {
-            teamId: user.teamId,
             id: map(search.results, "id"),
           },
         }),

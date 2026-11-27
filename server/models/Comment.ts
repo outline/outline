@@ -175,7 +175,6 @@ class Comment extends ParanoidModel<
             required: true,
             attributes: [],
             where: {
-              teamId: user.teamId,
               [Op.and]: [
                 await Document.accessibleWhere(user, {
                   transaction: ctx.transaction,

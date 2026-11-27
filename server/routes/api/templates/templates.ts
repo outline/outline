@@ -85,7 +85,6 @@ router.post(
     const where: WhereOptions<Template> & {
       [Op.and]: WhereOptions<Template>[];
     } = {
-      teamId: user.teamId,
       [Op.and]: [
         {
           deletedAt: {

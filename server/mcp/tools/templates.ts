@@ -84,7 +84,6 @@ export function templateTools(server: McpServer, scopes: string[]) {
             const where: WhereOptions<Template> & {
               [Op.and]: WhereOptions<Template>[];
             } = {
-              teamId: user.teamId,
               [Op.and]: [
                 { deletedAt: { [Op.eq]: null } },
                 // drafts are only visible to the user that created them

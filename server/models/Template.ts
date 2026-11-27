@@ -356,6 +356,7 @@ class Template extends ParanoidModel<
     ctx: Context
   ): Promise<WhereOptions<Template>> {
     return {
+      teamId: ctx.auth.user.teamId,
       [Op.or]: [
         // Workspace templates have no collection and every user can read them.
         { collectionId: { [Op.is]: null } },
