@@ -1361,6 +1361,49 @@ describe("#documents.list", () => {
     expect(body3.data[4].id).toEqual(expectedOrder[24].id);
   });
 
+  it("should return total and page from the end with collection index sort", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    for (let i = 0; i < 25; i++) {
+      await buildDocument({
+        userId: user.id,
+        collectionId: collection.id,
+        teamId: user.teamId,
+      });
+    }
+    await collection.reload();
+    const structureIds = (collection.documentStructure ?? []).map(
+      (node) => node.id
+    );
+    const body = { collectionId: collection.id, sort: "index", limit: 10 };
+
+    const res = await server.post("/api/documents.list", user, {
+      body: { ...body, direction: "ASC" },
+    });
+    const json = await res.json();
+    expect(res.status).toEqual(200);
+    expect(json.pagination.total).toEqual(25);
+
+    const clientRes = await server.post("/api/documents.list", user, {
+      body: { ...body, direction: "ASC" },
+      headers: { "x-client-version": "1" },
+    });
+    const clientJson = await clientRes.json();
+    expect(clientJson.data).toHaveLength(10);
+    expect(clientJson.pagination.total).toEqual(11);
+
+    const descRes = await server.post("/api/documents.list", user, {
+      body: { ...body, direction: "DESC" },
+    });
+    const descJson = await descRes.json();
+    expect(descJson.data.map((doc: { id: string }) => doc.id)).toEqual(
+      structureIds.slice(15).reverse()
+    );
+  });
+
   it("should allow filtering by collection", async () => {
     const user = await buildUser();
     const document = await buildDocument({
