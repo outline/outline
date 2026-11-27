@@ -15,7 +15,7 @@ export async function collectionIndexing(
   teamId: string,
   { transaction }: FindOptions<Collection>
 ) {
-  const collections = await Collection.findAll({
+  const collections = await Collection.unsafeFindAll({
     where: {
       teamId,
     },

@@ -164,18 +164,16 @@ router.post(
     const { sort, direction, query } = ctx.input.body;
     const { user } = ctx.auth;
     authorize(user, "listShares", user.team);
-    const [collectionIds, accessibleWhere] = await Promise.all([
-      // oxlint-disable-next-line access/no-direct-collection-ids -- Collection shares check collection access, not document access.
-      user.collectionIds(),
+    const [collectionIncludeWhere, accessibleWhere] = await Promise.all([
+      Collection.accessibleWhere(user),
       Document.accessibleWhere(user),
     ]);
 
+    // The includes only join collections and documents that pass these conditions.
     const collectionWhere: WhereAttributeHash<Share> = {
-      "$collection.id$": collectionIds,
       "$collection.teamId$": user.teamId,
     };
 
-    // The document include only joins documents that pass this condition.
     const documentIncludeWhere: WhereOptions<Document> = user.isAdmin
       ? // Admins also see the shares of other users' drafts without a collection.
         { [Op.or]: [accessibleWhere, { collectionId: { [Op.is]: null } }] }
@@ -217,6 +215,7 @@ router.post(
           model: Collection.scope({
             method: ["withMembership", user.id],
           }),
+          where: collectionIncludeWhere,
           as: "collection",
           required: false,
         },

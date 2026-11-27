@@ -204,7 +204,10 @@ export function documentTools(server: McpServer, scopes: string[]) {
                 ...filteredResults.map((r) => r.document),
               ];
               const [breadcrumbs, shareUrls] = await Promise.all([
-                getBreadcrumbsForDocuments(matchedDocuments, user),
+                getBreadcrumbsForDocuments(
+                  buildAPIContext(extra),
+                  matchedDocuments
+                ),
                 getPublicShareUrlsForDocuments(
                   user.team,
                   matchedDocuments.map((doc) => doc.id)
@@ -303,7 +306,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             const documents = results.map((result) => result.document);
 
             const [breadcrumbs, shareUrls] = await Promise.all([
-              getBreadcrumbsForDocuments(documents, user),
+              getBreadcrumbsForDocuments(buildAPIContext(extra), documents),
               getPublicShareUrlsForDocuments(
                 user.team,
                 documents.map((document) => document.id)

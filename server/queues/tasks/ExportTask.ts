@@ -180,7 +180,8 @@ export default abstract class ExportTask extends BaseTask<Props> {
     }
 
     const collections = await sequelizeReadOnly.transaction((transaction) =>
-      Collection.scope("withDocumentStructure").findAll({
+      Collection.unsafeFindAll({
+        scope: "withDocumentStructure",
         where,
         transaction,
       })

@@ -27,7 +27,7 @@ export default async function removeIndexCollision(
     return index;
   }
 
-  const nextCollection = await Collection.findAll({
+  const nextCollection = await Collection.unsafeFindAll({
     where: {
       teamId,
       deletedAt: null,

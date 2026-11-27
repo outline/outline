@@ -460,7 +460,7 @@ class Team extends ParanoidModel<
   };
 
   public collectionIds = async (paranoid = true) => {
-    const models = await Collection.findAll({
+    const models = await Collection.unsafeFindAll({
       attributes: ["id"],
       where: {
         teamId: this.id,

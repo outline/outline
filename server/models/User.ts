@@ -481,99 +481,14 @@ class User extends ParanoidModel<
     (await this.groups(options)).map((g) => g.id);
 
   /**
-   * Returns the user's active collection ids. This includes collections the user
-   * has access to through group memberships.
+   * Returns the ids of the collections whose documents the user can read.
    *
-   * @param options Additional options to pass to the find, set `skipCache` to bypass the cached response
-   * @returns An array of collection ids
+   * @param options find options, set `skipCache` to bypass the cache.
+   * @returns a promise that resolves to the collection ids.
    */
-  public collectionIds = async (
+  public collectionIds = (
     options: FindOptions<Collection> & { skipCache?: boolean } = {}
-  ) => {
-    const { skipCache, ...findOptions } = options;
-    const hasOptions =
-      findOptions.transaction ||
-      findOptions.paranoid === false ||
-      findOptions.lock;
-
-    const fetchCollectionIds = async () => {
-      const collectionStubs = await Collection.findAll({
-        attributes: ["id"],
-        where: {
-          teamId: this.teamId,
-          // Only the owner can access a personal collection.
-          ownerId: {
-            [Op.or]: [{ [Op.is]: null }, { [Op.eq]: this.id }],
-          },
-          [Op.or]: [
-            ...(this.isGuest
-              ? []
-              : [
-                  {
-                    permission: {
-                      [Op.in]: Object.values(CollectionPermission),
-                    },
-                  },
-                ]),
-            {
-              "$memberships.id$": { [Op.ne]: null },
-            },
-            {
-              "$groupMemberships.id$": { [Op.ne]: null },
-            },
-          ],
-        },
-        include: [
-          {
-            association: "memberships",
-            attributes: [],
-            required: false,
-            where: {
-              userId: this.id,
-            },
-          },
-          {
-            association: "groupMemberships",
-            attributes: [],
-            required: false,
-            include: [
-              {
-                association: "group",
-                attributes: [],
-                required: true,
-                include: [
-                  {
-                    association: "groupUsers",
-                    attributes: [],
-                    required: true,
-                    where: {
-                      userId: this.id,
-                    },
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-        paranoid: true,
-        ...findOptions,
-      });
-
-      return Array.from(new Set(collectionStubs.map((c) => c.id)));
-    };
-
-    if (hasOptions || skipCache) {
-      return fetchCollectionIds();
-    }
-
-    return (
-      (await CacheHelper.getDataOrSet<string[]>(
-        RedisPrefixHelper.getUserCollectionIdsKey(this.id),
-        fetchCollectionIds,
-        10
-      )) ?? []
-    );
-  };
+  ) => Collection.accessibleIds(this, options);
 
   /**
    * Updates the lastActiveAt timestamp, at most once every five minutes.

@@ -1,8 +1,10 @@
 import fractionalIndex from "fractional-index";
 import { find, findIndex, isNil, keyBy, remove, uniq } from "es-toolkit/compat";
 import type {
+  CountOptions,
   Identifier,
   Transaction,
+  WhereOptions,
   DestroyOptions,
   FindOptions,
   NonNullFindOptions,
@@ -805,6 +807,180 @@ class Collection extends ParanoidModel<
   }
 
   /**
+   * Returns the ids of the collections whose documents the user can read. The
+   * result is cached briefly, and the membership hooks clear the cache.
+   *
+   * @param user the user.
+   * @param options find options, set `skipCache` to bypass the cache.
+   * @returns a promise that resolves to the collection ids.
+   */
+  static async accessibleIds(
+    user: User,
+    options: FindOptions<Collection> & { skipCache?: boolean } = {}
+  ): Promise<string[]> {
+    const { skipCache, ...findOptions } = options;
+    const hasOptions =
+      findOptions.transaction ||
+      findOptions.paranoid === false ||
+      findOptions.lock;
+
+    const fetchCollectionIds = async () => {
+      const collectionStubs = await this.findAll({
+        attributes: ["id"],
+        where: {
+          teamId: user.teamId,
+          // Only the owner can access a personal collection.
+          ownerId: {
+            [Op.or]: [{ [Op.is]: null }, { [Op.eq]: user.id }],
+          },
+          [Op.or]: [
+            ...(user.isGuest
+              ? []
+              : [
+                  {
+                    permission: {
+                      [Op.in]: Object.values(CollectionPermission),
+                    },
+                  },
+                ]),
+            {
+              "$memberships.id$": { [Op.ne]: null },
+            },
+            {
+              "$groupMemberships.id$": { [Op.ne]: null },
+            },
+          ],
+        },
+        include: [
+          {
+            association: "memberships",
+            attributes: [],
+            required: false,
+            where: {
+              userId: user.id,
+            },
+          },
+          {
+            association: "groupMemberships",
+            attributes: [],
+            required: false,
+            include: [
+              {
+                association: "group",
+                attributes: [],
+                required: true,
+                include: [
+                  {
+                    association: "groupUsers",
+                    attributes: [],
+                    required: true,
+                    where: {
+                      userId: user.id,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+        paranoid: true,
+        ...findOptions,
+      });
+
+      return Array.from(new Set(collectionStubs.map((c) => c.id)));
+    };
+
+    if (hasOptions || skipCache) {
+      return fetchCollectionIds();
+    }
+
+    return (
+      (await CacheHelper.getDataOrSet<string[]>(
+        RedisPrefixHelper.getUserCollectionIdsKey(user.id),
+        fetchCollectionIds,
+        10
+      )) ?? []
+    );
+  }
+
+  /**
+   * Returns the condition that limits a collection query to the collections
+   * whose documents the user can read.
+   *
+   * @param user the user that reads the collections.
+   * @param options.transaction the transaction to read in.
+   * @returns a promise that resolves to the where condition.
+   */
+  static async accessibleWhere(
+    user: User,
+    options: { transaction?: Transaction | null } = {}
+  ): Promise<WhereOptions<Collection>> {
+    return {
+      teamId: user.teamId,
+      id: await this.accessibleIds(user, { transaction: options.transaction }),
+    };
+  }
+
+  /**
+   * Finds the collections that match the options and that the user in the
+   * context can read. The memberships of the user are loaded, so that
+   * policies can be presented for the collections.
+   *
+   * @param ctx the context with the user and the transaction.
+   * @param options the find options.
+   * @returns a promise that resolves to the collections.
+   */
+  static async findAllWithCtx(
+    ctx: Context,
+    options: FindOptions<Collection> & { includeArchivedBy?: boolean } = {}
+  ): Promise<Collection[]> {
+    const { includeArchivedBy, ...findOptions } = options;
+    const transaction = findOptions.transaction ?? ctx.transaction;
+
+    return this.scope([
+      // Named scopes replace the default scope, so it is applied explicitly.
+      "defaultScope",
+      { method: ["withMembership", ctx.auth.user.id] },
+      ...(includeArchivedBy ? ["withArchivedBy"] : []),
+    ]).findAll({
+      ...findOptions,
+      transaction,
+      where: {
+        [Op.and]: [
+          findOptions.where ?? {},
+          await this.accessibleWhere(ctx.auth.user, { transaction }),
+        ],
+      },
+    });
+  }
+
+  /**
+   * Counts the collections that match the options and that the user in the
+   * context can read.
+   *
+   * @param ctx the context with the user and the transaction.
+   * @param options the count options.
+   * @returns a promise that resolves to the number of collections.
+   */
+  static async countWithCtx(
+    ctx: Context,
+    options: Omit<CountOptions<Collection>, "group"> = {}
+  ): Promise<number> {
+    const transaction = options.transaction ?? ctx.transaction;
+
+    return this.count({
+      ...options,
+      transaction,
+      where: {
+        [Op.and]: [
+          options.where ?? {},
+          await this.accessibleWhere(ctx.auth.user, { transaction }),
+        ],
+      },
+    });
+  }
+
+  /**
    * Find the first collection that the specified user has access to.
    *
    * @param user User to find the collection for
@@ -815,13 +991,14 @@ class Collection extends ParanoidModel<
     user: User,
     options: FindOptions = {}
   ) {
-    // oxlint-disable-next-line access/no-direct-collection-ids -- Finds a collection, not documents.
-    const id = await user.collectionIds({ transaction: options.transaction });
     return this.findOne({
       where: {
-        teamId: user.teamId,
         ownerId: null,
-        id,
+        [Op.and]: [
+          await this.accessibleWhere(user, {
+            transaction: options.transaction,
+          }),
+        ],
       },
       order: [
         // using LC_COLLATE:"C" because we need byte order to drive the sorting

@@ -23,7 +23,7 @@ export async function checkUpdates() {
     await Promise.all([
       User.count(),
       Team.count(),
-      Collection.count(),
+      Collection.unsafeCount(),
       Document.unsafeCount(),
     ]);
   const body = JSON.stringify({

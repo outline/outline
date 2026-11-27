@@ -33,12 +33,12 @@ function isAllowedFile(context, paths) {
 
 const FIND_METHODS = new Set(["findAll", "count", "findAndCountAll"]);
 const SCOPE_METHODS = new Set(["scope", "unscoped"]);
-const DOCUMENT_MODELS = new Set(["Document", "Template"]);
+const GATED_MODELS = new Set(["Document", "Template", "Collection"]);
 
-/** Returns true if the node is `Document` or a scoped `Document` model. */
-function isDocumentModel(node) {
+/** Returns true if the node is a gated model or a scoped gated model. */
+function isGatedModel(node) {
   if (node?.type === "Identifier") {
-    return DOCUMENT_MODELS.has(node.name);
+    return GATED_MODELS.has(node.name);
   }
 
   return (
@@ -46,7 +46,7 @@ function isDocumentModel(node) {
     node.callee.type === "MemberExpression" &&
     !node.callee.computed &&
     SCOPE_METHODS.has(node.callee.property.name) &&
-    isDocumentModel(node.callee.object)
+    isGatedModel(node.callee.object)
   );
 }
 
@@ -60,18 +60,20 @@ const plugin = {
         type: "problem",
         docs: {
           description:
-            "Disallow `collectionIds()` outside the access gate. Use `Document.accessibleWhere` for document reads.",
+            "Disallow collection id lists outside the access gates. Use the `WithCtx` methods or `accessibleWhere`.",
         },
         messages: {
           forbidden:
-            "Use `Document.accessibleWhere(user)` to limit a document query. For a collection-access query, add `// oxlint-disable-next-line access/no-direct-collection-ids -- <reason>`.",
+            "Use `findAllWithCtx` or `accessibleWhere` to limit a query. Where the ids themselves are needed, add `// oxlint-disable-next-line access/no-direct-collection-ids -- <reason>`.",
         },
       },
       create(context) {
         if (
           isAllowedFile(context, [
-            "server/models/User.ts",
+            "server/models/Collection.ts",
             "server/models/Document.ts",
+            "server/models/Team.ts",
+            "server/models/User.ts",
           ])
         ) {
           return {};
@@ -79,28 +81,32 @@ const plugin = {
 
         return {
           CallExpression(node) {
-            if (isProperty(node.callee, "collectionIds")) {
+            if (
+              isProperty(node.callee, "accessibleIds") ||
+              isProperty(node.callee, "collectionIds")
+            ) {
               context.report({ node: node.callee, messageId: "forbidden" });
             }
           },
         };
       },
     },
-    "no-unsafe-document-find": {
+    "no-unsafe-find": {
       meta: {
         type: "problem",
         docs: {
           description:
-            "Disallow Sequelize list queries on documents and templates. Use the `WithCtx` methods, or `unsafe` methods for reads that are not for a user.",
+            "Disallow Sequelize list queries on gated models. Use the `WithCtx` methods, or `unsafe` methods for reads that are not for a user.",
         },
         messages: {
           forbidden:
-            "Use `findAllWithCtx` or `countWithCtx` so that the query only returns documents the user can read. For a read that is not for a user, use `unsafeFindAll` or `unsafeCount`.",
+            "Use `findAllWithCtx` or `countWithCtx` so that the query only returns rows the user can read. For a read that is not for a user, use `unsafeFindAll` or `unsafeCount`.",
         },
       },
       create(context) {
         if (
           isAllowedFile(context, [
+            "server/models/Collection.ts",
             "server/models/Document.ts",
             "server/models/Template.ts",
           ])
@@ -115,7 +121,7 @@ const plugin = {
               callee.type === "MemberExpression" &&
               !callee.computed &&
               FIND_METHODS.has(callee.property.name) &&
-              isDocumentModel(callee.object)
+              isGatedModel(callee.object)
             ) {
               context.report({ node: callee, messageId: "forbidden" });
             }

@@ -342,10 +342,7 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
   ): Promise<Collection[]> {
     const { limit = 15, offset = 0, query } = options;
 
-    // oxlint-disable-next-line access/no-direct-collection-ids -- Collection search checks collection access, not document access.
-    const collectionIds = await user.collectionIds();
-
-    return Collection.findAll({
+    return Collection.findAllWithCtx(createContext({ user }), {
       where: {
         [Op.and]: query
           ? {
@@ -356,8 +353,6 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
               ],
             }
           : {},
-        id: collectionIds,
-        teamId: user.teamId,
       },
       order: [["name", "ASC"]],
       replacements: { query: QueryHelper.likeContains(query ?? "") },

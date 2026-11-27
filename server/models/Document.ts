@@ -869,7 +869,10 @@ class Document extends ArchivableModel<
     options: AccessibleOptions = {}
   ): Promise<WhereOptions<AccessibleAttributes>> {
     const { transaction, paranoid } = options;
-    const collectionIds = await user.collectionIds({ transaction, paranoid });
+    const collectionIds = await Collection.accessibleIds(user, {
+      transaction,
+      paranoid,
+    });
 
     return {
       teamId: user.teamId,
@@ -942,30 +945,6 @@ class Document extends ArchivableModel<
     return (includeDrafts ? this.unscoped() : this.scope("defaultScope")).count(
       countOptions
     );
-  }
-
-  /**
-   * Finds documents without an access check. Use it only for reads that are
-   * not returned or copied for a user, such as locks and background work.
-   *
-   * @param options the find options and the scope.
-   * @returns a promise that resolves to the documents.
-   */
-  static unsafeFindAll(options: ScopedFindOptions = {}): Promise<Document[]> {
-    const { scope, ...findOptions } = options;
-    return scopedModel(this, scope).findAll(findOptions);
-  }
-
-  /**
-   * Counts documents without an access check. Use it only for counts that are
-   * not shown to a user.
-   *
-   * @param options the count options and the scope.
-   * @returns a promise that resolves to the number of documents.
-   */
-  static unsafeCount(options: ScopedCountOptions = {}): Promise<number> {
-    const { scope, ...countOptions } = options;
-    return scopedModel(this, scope).count(countOptions);
   }
 
   /**
@@ -1891,17 +1870,6 @@ type AccessibleAttributes = Pick<
   "id" | "teamId" | "collectionId" | "createdById"
 >;
 
-/** A scope for a document query. `null` removes the default scope. */
-type DocumentScope =
-  | string
-  | ScopeOptions
-  | readonly (string | ScopeOptions)[]
-  | null;
-
-type ScopedFindOptions = FindOptions<Document> & { scope?: DocumentScope };
-type ScopedCountOptions = Omit<CountOptions<Document>, "group"> & {
-  scope?: DocumentScope;
-};
 type AccessibleFindOptions = FindOptions<Document> & {
   /** Set to true to include drafts. */
   includeDrafts?: boolean;
@@ -1918,17 +1886,6 @@ interface AccessibleOptions {
   transaction?: Transaction;
   /** Set to false to include deleted collections. */
   paranoid?: boolean;
-}
-
-/**
- * Returns the model with the scope applied, or the model when there is no scope.
- *
- * @param model the document model.
- * @param scope the scope, or null to remove the default scope.
- * @returns the scoped model.
- */
-function scopedModel(model: typeof Document, scope: DocumentScope | undefined) {
-  return scope === undefined ? model : model.scope(scope ?? undefined);
 }
 
 /**

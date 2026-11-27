@@ -243,7 +243,7 @@ async function accountProvisioner(
     // failed. In this case we have a valid previously created team but no
     // onboarding collection.
     if (!isNewTeam) {
-      const count = await Collection.count({
+      const count = await Collection.unsafeCount({
         where: {
           teamId: team.id,
           ownerId: null,

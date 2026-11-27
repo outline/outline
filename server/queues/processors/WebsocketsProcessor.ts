@@ -266,7 +266,7 @@ export default class WebsocketsProcessor {
             ],
           });
         });
-        const moveCollections = await Collection.findAll({
+        const moveCollections = await Collection.unsafeFindAll({
           where: { id: event.data.collectionIds },
           attributes: ["id", "updatedAt"],
         });
@@ -1009,7 +1009,7 @@ export default class WebsocketsProcessor {
         });
 
         if (user.isGuest) {
-          const teamCollections = await Collection.findAll({
+          const teamCollections = await Collection.unsafeFindAll({
             attributes: ["id"],
             where: { teamId: user.teamId },
           });

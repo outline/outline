@@ -365,7 +365,7 @@ export default abstract class ImportsProcessor<
 
     // Collections created by this import (destination mode creates none — a
     // pre-existing destination collection has no apiImportId, so it's skipped).
-    const collections = await Collection.findAll({
+    const collections = await Collection.unsafeFindAll({
       transaction,
       lock: transaction.LOCK.NO_KEY_UPDATE,
       where: {
