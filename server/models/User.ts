@@ -8,7 +8,7 @@ import type {
   InferAttributes,
   InferCreationAttributes,
 } from "sequelize";
-import { QueryTypes, Op } from "sequelize";
+import { QueryTypes, Op, Sequelize } from "sequelize";
 import { type InstanceUpdateOptions } from "sequelize";
 import {
   Table,
@@ -996,7 +996,12 @@ class User extends ParanoidModel<
     return this.findOne({
       where: {
         teamId: ctx.auth.user.teamId,
-        email: email.trim().toLowerCase(),
+        [Op.and]: [
+          Sequelize.where(
+            Sequelize.fn("lower", Sequelize.col("email")),
+            email.trim().toLowerCase()
+          ),
+        ],
       },
       ...toHookContext(ctx),
     });
