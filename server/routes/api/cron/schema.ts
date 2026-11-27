@@ -5,7 +5,7 @@ import { BaseSchema } from "../schema";
 export const CronSchema = BaseSchema.extend({
   body: z.object({
     token: z.string().optional(),
-    limit: z.coerce.number().gt(0).prefault(500),
+    limit: z.coerce.number().gt(0).optional(),
   }),
   query: z.object({
     token: z.string().optional(),
