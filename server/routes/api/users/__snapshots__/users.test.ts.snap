@@ -18,33 +18,6 @@ exports[`#users.delete > should require authentication 1`] = `
 }
 `;
 
-exports[`#users.demote > should not allow demoting self 1`] = `
-{
-  "error": "validation_error",
-  "message": "You cannot change your own role",
-  "ok": false,
-  "status": 400,
-}
-`;
-
-exports[`#users.demote > should require admin 1`] = `
-{
-  "error": "authorization_error",
-  "message": "Admin role required",
-  "ok": false,
-  "status": 403,
-}
-`;
-
-exports[`#users.promote > should require admin 1`] = `
-{
-  "error": "authorization_error",
-  "message": "Admin role required",
-  "ok": false,
-  "status": 403,
-}
-`;
-
 exports[`#users.suspend > should not allow suspending self 1`] = `
 {
   "error": "authorization_error",
