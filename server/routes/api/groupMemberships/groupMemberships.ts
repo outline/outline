@@ -92,9 +92,8 @@ router.post(
     const documentIds = memberships
       .map((p) => p.documentId)
       .filter(Boolean) as string[];
-    const documents = await Document.withMembershipScope(userId, {
+    const documents = await Document.findAllWithCtx(ctx, {
       includeDrafts: true,
-    }).findAll({
       where: {
         id: documentIds,
       },

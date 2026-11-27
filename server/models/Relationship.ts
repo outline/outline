@@ -49,16 +49,13 @@ class Relationship extends IdModel<
   type: RelationshipType;
 
   /**
-   * Find all backlinks for a document that the user has access to.
+   * Find the ids of the documents that link to a document. The caller must
+   * limit the documents to those the user can read.
    *
    * @param documentId The document ID to find backlinks for.
-   * @param user The user to check access for.
    * @deprecated
    */
-  public static async findSourceDocumentIdsForUser(
-    documentId: string,
-    user: User
-  ) {
+  public static async findSourceDocumentIds(documentId: string) {
     const relationships = await this.findAll({
       attributes: ["reverseDocumentId"],
       where: {
@@ -67,17 +64,7 @@ class Relationship extends IdModel<
       },
     });
 
-    const documents = await Document.findByIds(
-      relationships.map((relationship) => relationship.reverseDocumentId),
-      {
-        attributes: ["id", "createdById"],
-        userId: user.id,
-        includeState: false,
-        includeViews: false,
-      }
-    );
-
-    return documents.map((doc) => doc.id);
+    return relationships.map((relationship) => relationship.reverseDocumentId);
   }
 
   /**

@@ -118,28 +118,24 @@ router.post(
       authorize(user, "read", collection);
     }
 
-    const [pins, collectionIds] = await Promise.all([
-      Pin.findAll({
-        where: {
-          ...(collectionId
-            ? { collectionId }
-            : { collectionId: { [Op.is]: null } }),
-          teamId: user.teamId,
-        },
-        order: [
-          Sequelize.literal('"pin"."index" collate "C"'),
-          ["updatedAt", "DESC"],
-        ],
-        offset: ctx.state.pagination.offset,
-        limit: ctx.state.pagination.limit,
-      }),
-      user.collectionIds(),
-    ]);
+    const pins = await Pin.findAll({
+      where: {
+        ...(collectionId
+          ? { collectionId }
+          : { collectionId: { [Op.is]: null } }),
+        teamId: user.teamId,
+      },
+      order: [
+        Sequelize.literal('"pin"."index" collate "C"'),
+        ["updatedAt", "DESC"],
+      ],
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+    });
 
-    const documents = await Document.withMembershipScope(user.id).findAll({
+    const documents = await Document.findAllWithCtx(ctx, {
       where: {
         id: pins.map((pin) => pin.documentId),
-        collectionId: collectionIds,
       },
     });
 

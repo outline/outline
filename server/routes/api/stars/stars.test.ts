@@ -1,4 +1,9 @@
-import { buildUser, buildStar, buildDocument } from "@server/test/factories";
+import {
+  buildDocument,
+  buildDraftDocument,
+  buildStar,
+  buildUser,
+} from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
@@ -56,6 +61,23 @@ describe("#stars.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.stars.length).toEqual(1);
     expect(body.data.stars[0].id).toEqual(star.id);
+  });
+
+  it("should return a starred draft", async () => {
+    const user = await buildUser();
+    const draft = await buildDraftDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: null,
+    });
+    const star = await buildStar({ userId: user.id, documentId: draft.id });
+
+    const res = await server.post("/api/stars.list", user);
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.stars.map((s: { id: string }) => s.id)).toEqual([star.id]);
+    expect(body.data.documents[0].id).toEqual(draft.id);
   });
 
   it("should require authentication", async () => {

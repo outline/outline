@@ -15,6 +15,7 @@ import { DirectionFilter, SortFilter } from "@shared/types";
 import { regexIndexOf, regexLastIndexOf } from "@shared/utils/string";
 import { getUrls } from "@shared/utils/urls";
 import { ValidationError } from "@server/errors";
+import { createContext } from "@server/context";
 import Collection from "@server/models/Collection";
 import type Comment from "@server/models/Comment";
 import Document from "@server/models/Document";
@@ -270,7 +271,7 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
 
       // Final query to get associated document data
       const [documents, count] = await Promise.all([
-        Document.findAll({
+        Document.unsafeFindAll({
           where: {
             id: map(search.results, "id"),
             teamId: team.id,
@@ -321,9 +322,8 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
       });
     }
 
-    return Document.withMembershipScope(user.id, {
+    return Document.findAllWithCtx(createContext({ user }), {
       includeDrafts: true,
-    }).findAll({
       where,
       order: [
         [
@@ -342,9 +342,7 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
   ): Promise<Collection[]> {
     const { limit = 15, offset = 0, query } = options;
 
-    const collectionIds = await user.collectionIds();
-
-    return Collection.findAll({
+    return Collection.findAllWithCtx(createContext({ user }), {
       where: {
         [Op.and]: query
           ? {
@@ -355,8 +353,6 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
               ],
             }
           : {},
-        id: collectionIds,
-        teamId: user.teamId,
       },
       order: [["name", "ASC"]],
       replacements: { query: QueryHelper.likeContains(query ?? "") },
@@ -385,9 +381,9 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
 
       // Final query to get associated document data
       const [documents, count] = await Promise.all([
-        Document.withMembershipScope(user.id, { includeDrafts: true }).findAll({
+        Document.findAllWithCtx(createContext({ user }), {
+          includeDrafts: true,
           where: {
-            teamId: user.teamId,
             id: map(search.results, "id"),
           },
         }),
@@ -588,7 +584,8 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
   }): Promise<RankedDocument[]> {
     return sequelizeReadOnly.transaction(
       (transaction) =>
-        Document.unscoped().findAll({
+        Document.unsafeFindAll({
+          scope: null,
           ...findOptions,
           where,
           limit,
@@ -622,7 +619,8 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
 
     return sequelizeReadOnly.transaction(
       (transaction) =>
-        Document.unscoped().count({
+        Document.unsafeCount({
+          scope: null,
           replacements,
           where,
           transaction,
@@ -784,44 +782,30 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
     //     access (covers own drafts in shared collections — collection access
     //     alone does not grant visibility into other users' drafts)
     //
-    // Membership and collection access are resolved to id lists upfront so the
-    // search query needs no membership joins. Status/date narrowing is applied
-    // separately via `filter`.
+    // Access is applied with `Document.accessibleWhere`, and the draft rule is
+    // added on top. Status/date narrowing is applied separately via `filter`.
     //
     // For Team contexts (share-based search), the caller is privileged and has
     // done its own authorization — narrow to the filter's collectionId if
     // specified, otherwise to the team's publicly-permissioned set.
     if (model instanceof User) {
-      const [membershipDocumentIds, collectionIds] = await Promise.all([
-        Document.membershipDocumentIds(model.id),
-        model.collectionIds(),
-      ]);
-      if (membershipDocumentIds.length) {
-        where[Op.or].push({ id: membershipDocumentIds });
-      }
-      where[Op.or].push({
-        createdById: model.id,
-        collectionId: { [Op.is]: null },
-      });
-      if (collectionIds.length) {
-        where[Op.or].push(
-          {
-            collectionId: collectionIds,
-            publishedAt: { [Op.ne]: null },
-          },
-          {
-            createdById: model.id,
-            collectionId: collectionIds,
-          }
-        );
-      }
+      where[Op.and].push(await Document.accessibleWhere(model));
+
+      // Collection access alone does not grant visibility into other users' drafts.
+      where[Op.or].push(
+        { publishedAt: { [Op.ne]: null } },
+        { createdById: model.id },
+        Document.membershipWhere(model.id)
+      );
     } else {
       const explicitCollectionIds = filter
         ? collectEqValues(filter, "collectionId")
         : [];
-      const collectionIds = explicitCollectionIds.length
-        ? explicitCollectionIds
-        : await model.collectionIds();
+      let collectionIds = explicitCollectionIds;
+      if (!collectionIds.length) {
+        // oxlint-disable-next-line access/no-direct-collection-ids -- A team has no user to gate on, and share search authorizes before this.
+        collectionIds = await model.collectionIds();
+      }
       if (collectionIds.length) {
         where[Op.or].push({ collectionId: collectionIds });
       }

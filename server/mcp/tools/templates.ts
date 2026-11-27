@@ -8,6 +8,7 @@ import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import {
   error,
   success,
+  buildAPIContext,
   getActorFromContext,
   optionalString,
   pathToUrl,
@@ -83,7 +84,6 @@ export function templateTools(server: McpServer, scopes: string[]) {
             const where: WhereOptions<Template> & {
               [Op.and]: WhereOptions<Template>[];
             } = {
-              teamId: user.teamId,
               [Op.and]: [
                 { deletedAt: { [Op.eq]: null } },
                 // drafts are only visible to the user that created them
@@ -102,24 +102,17 @@ export function templateTools(server: McpServer, scopes: string[]) {
               });
               authorize(user, "readDocument", collection);
               where[Op.and].push({ collectionId: collection.id });
-            } else {
-              where[Op.and].push({
-                [Op.or]: [
-                  { collectionId: { [Op.eq]: null } },
-                  { collectionId: await user.collectionIds() },
-                ],
-              });
             }
 
-            const templates = await Template.scope([
-              "defaultScope",
-              { method: ["withMembership", user.id] },
-            ]).findAll({
-              where,
-              order: [["updatedAt", "DESC"]],
-              offset: effectiveOffset,
-              limit: effectiveLimit,
-            });
+            const templates = await Template.findAllWithCtx(
+              buildAPIContext(extra),
+              {
+                where,
+                order: [["updatedAt", "DESC"]],
+                offset: effectiveOffset,
+                limit: effectiveLimit,
+              }
+            );
 
             return success(
               templates.map((template) =>

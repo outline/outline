@@ -73,20 +73,17 @@ router.post(
   async (ctx: Context<T.StarsListReq>) => {
     const { user } = ctx.auth;
 
-    const [stars, collectionIds] = await Promise.all([
-      Star.findAll({
-        where: {
-          userId: user.id,
-        },
-        order: [
-          Sequelize.literal('"star"."index" collate "C"'),
-          ["updatedAt", "DESC"],
-        ],
-        offset: ctx.state.pagination.offset,
-        limit: ctx.state.pagination.limit,
-      }),
-      user.collectionIds(),
-    ]);
+    const stars = await Star.findAll({
+      where: {
+        userId: user.id,
+      },
+      order: [
+        Sequelize.literal('"star"."index" collate "C"'),
+        ["updatedAt", "DESC"],
+      ],
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+    });
 
     const nullIndex = stars.findIndex((star) => star.index === null);
 
@@ -101,10 +98,10 @@ router.post(
       .map((star) => star.documentId)
       .filter(Boolean) as string[];
     const documents = documentIds.length
-      ? await Document.withMembershipScope(user.id).findAll({
+      ? await Document.findAllWithCtx(ctx, {
+          includeDrafts: true,
           where: {
             id: documentIds,
-            collectionId: collectionIds,
           },
         })
       : [];

@@ -168,6 +168,7 @@ async function duplicateRoots(
     // Structural fields only – content is re-fetched per document in
     // `duplicateItem`, so a large tree isn't held in memory at once.
     const childDocuments = await original.findChildDocuments(
+      ctx,
       {
         archivedAt: original.archivedAt
           ? {
@@ -184,14 +185,18 @@ async function duplicateRoots(
         ],
       },
       {
-        ...ctx,
         attributes: { exclude: ["state", "content", "text"] },
       }
     );
 
+    const [tree] =
+      (await originalCollection?.structureFor(ctx.auth.user, {
+        documentId: original.id,
+        transaction: ctx.transaction,
+      })) ?? [];
     const sorted = DocumentHelper.sortDocumentsByStructure(
       childDocuments,
-      originalCollection?.getDocumentTree(original.id)?.children ?? []
+      tree?.children ?? []
     ).reverse(); // we have to reverse since the child documents will be added in reverse order
 
     const items: DuplicateItem[] = [];

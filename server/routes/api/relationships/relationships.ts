@@ -94,10 +94,10 @@ router.post(
     const relatedDocumentId = (relationship: Relationship) =>
       documentId ? relationship.reverseDocumentId : relationship.documentId;
 
-    const documents = await Document.findByIds(
-      relationships.map(relatedDocumentId),
-      { userId: user.id }
-    );
+    const documents = await Document.findAllWithCtx(ctx, {
+      includeDrafts: true,
+      where: { id: relationships.map(relatedDocumentId) },
+    });
 
     const documentIds = new Set(documents.map((d) => d.id));
     const filteredRelationships = relationships.filter((relationship) =>

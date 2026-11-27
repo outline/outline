@@ -119,9 +119,10 @@ export default abstract class ExportTask extends BaseTask<Props> {
         })
       );
 
-      const documentStructure = document.collection?.getDocumentTree(
-        document.id
-      );
+      const [documentStructure] =
+        (await document.collection?.structureFor(user, {
+          documentId: document.id,
+        })) ?? [];
 
       if (!documentStructure) {
         throw new Error("Document not found in collection tree");
@@ -179,24 +180,28 @@ export default abstract class ExportTask extends BaseTask<Props> {
     }
 
     const collections = await sequelizeReadOnly.transaction((transaction) =>
-      Collection.scope("withDocumentStructure").findAll({
+      Collection.unsafeFindAll({
+        scope: "withDocumentStructure",
         where,
         transaction,
       })
     );
 
-    return this.exportCollections(collections, fileOperation);
+    return this.exportCollections(collections, fileOperation, user);
   }
 
   /**
    * Transform the data in all of the passed collections into a single Buffer.
    *
    * @param collections The collections to export
+   * @param fileOperation The file operation of the export
+   * @param user The user that requested the export
    * @returns A promise that resolves to a temporary file path
    */
   protected abstract exportCollections(
     collections: Collection[],
-    fileOperation: FileOperation
+    fileOperation: FileOperation,
+    user: User
   ): Promise<string>;
 
   /**

@@ -281,23 +281,22 @@ export async function getDocumentBreadcrumb(
     return undefined;
   }
 
-  const structure = await collection.getCachedDocumentStructure();
+  const structure = await collection.structureFor(user);
   return buildBreadcrumb(document.id, structure, collection.name);
 }
 
 /**
  * Resolves breadcrumb strings for a batch of documents in a single pass.
- * Loads all referenced collections (with the user's memberships) in one
- * query, filters by collection-level read access, then loads each
- * collection's cached documentStructure once.
+ * Loads the referenced collections that the user can read in one query, then
+ * loads each collection's cached documentStructure once.
  *
+ * @param ctx - the context with the user performing the action.
  * @param documents - the documents to build breadcrumbs for.
- * @param user - the user performing the action, used to authorize collection access.
  * @returns a map from document ID to breadcrumb string.
  */
 export async function getBreadcrumbsForDocuments(
-  documents: { id: string; collectionId?: string | null }[],
-  user: User
+  ctx: Context,
+  documents: { id: string; collectionId?: string | null }[]
 ): Promise<Map<string, string>> {
   const breadcrumbs = new Map<string, string>();
 
@@ -312,28 +311,22 @@ export async function getBreadcrumbsForDocuments(
     return breadcrumbs;
   }
 
-  const collections = await Collection.scope([
-    "defaultScope",
-    { method: ["withMembership", user.id] },
-  ]).findAll({
+  const collections = await Collection.findAllWithCtx(ctx, {
     where: { id: collectionIds },
   });
 
   // Each collection's structure is resolved once, concurrently, and walked
   // once — the same collection is typically shared by many of the documents.
-  const readable = collections.filter((collection) =>
-    can(user, "read", collection)
-  );
   const byCollection = new Map(
     await Promise.all(
-      readable.map(
+      collections.map(
         async (collection) =>
           [
             collection.id,
             {
               name: collection.name,
               breadcrumbs: buildBreadcrumbMap(
-                await collection.getCachedDocumentStructure(),
+                await collection.structureFor(ctx.auth.user),
                 collection.name
               ),
             },

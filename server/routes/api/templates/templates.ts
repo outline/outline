@@ -85,7 +85,6 @@ router.post(
     const where: WhereOptions<Template> & {
       [Op.and]: WhereOptions<Template>[];
     } = {
-      teamId: user.teamId,
       [Op.and]: [
         {
           deletedAt: {
@@ -115,19 +114,6 @@ router.post(
         userId: user.id,
       });
       authorize(user, "readDocument", collection);
-    } else {
-      where[Op.and].push({
-        [Op.or]: [
-          {
-            collectionId: {
-              [Op.eq]: null,
-            },
-          },
-          {
-            collectionId: await user.collectionIds(),
-          },
-        ],
-      });
     }
 
     if (query) {
@@ -141,19 +127,14 @@ router.post(
     const replacements = { query: QueryHelper.likeContains(query ?? "") };
 
     const [templates, total] = await Promise.all([
-      Template.scope([
-        "defaultScope",
-        {
-          method: ["withMembership", user.id],
-        },
-      ]).findAll({
+      Template.findAllWithCtx(ctx, {
         where,
         replacements,
         order: [[sort, direction]],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
       }),
-      Template.count({
+      Template.countWithCtx(ctx, {
         where,
         replacements,
       }),

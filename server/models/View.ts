@@ -14,6 +14,7 @@ import {
   Scopes,
 } from "sequelize-typescript";
 import type { Context } from "@server/types";
+import { QueryHelper } from "@server/storage/QueryHelper";
 import Document from "./Document";
 import Event from "./Event";
 import User from "./User";
@@ -150,10 +151,22 @@ class View extends IdModel<
       limit: number;
     }
   ): Promise<string[]> {
-    const [collectionIds, documentIds] = await Promise.all([
-      user.collectionIds(),
-      Document.membershipDocumentIds(user.id),
-    ]);
+    const accessible = QueryHelper.whereToSql<Document>(
+      Document,
+      {
+        [Op.and]: [
+          await Document.accessibleWhere(user),
+          {
+            [Op.or]: [
+              { publishedAt: { [Op.ne]: null } },
+              { createdById: user.id },
+              Document.membershipWhere(user.id),
+            ],
+          },
+        ],
+      },
+      "documents"
+    );
     const column = sort === "createdAt" ? "createdAt" : "updatedAt";
     const order = direction === "ASC" ? "ASC" : "DESC";
 
@@ -167,18 +180,8 @@ class View extends IdModel<
         SELECT 1
         FROM documents
         WHERE documents.id = views."documentId"
-          AND documents."teamId" = :teamId
           AND documents."deletedAt" IS NULL
-          AND (
-            documents."collectionId" = ANY(ARRAY[:collectionIds]::uuid[])
-            OR documents.id = ANY(ARRAY[:documentIds]::uuid[])
-            OR (documents."createdById" = :userId AND documents."collectionId" IS NULL)
-          )
-          AND (
-            documents."publishedAt" IS NOT NULL
-            OR documents."createdById" = :userId
-            OR documents.id = ANY(ARRAY[:documentIds]::uuid[])
-          )
+          AND ${accessible}
         OFFSET 0
       ) AS accessible
       WHERE views."userId" = :userId
@@ -188,9 +191,6 @@ class View extends IdModel<
       {
         replacements: {
           userId: user.id,
-          teamId: user.teamId,
-          collectionIds,
-          documentIds,
           limit,
           offset,
         },

@@ -172,7 +172,7 @@ async function documentMover(
     }
 
     // We must reload from the database to get the relationship data
-    const documents = await Document.findAll({
+    const documents = await Document.unsafeFindAll({
       where: {
         id: childDocumentIds,
       },

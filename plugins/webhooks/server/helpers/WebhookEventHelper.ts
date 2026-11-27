@@ -66,7 +66,8 @@ export class WebhookEventHelper {
       return false;
     }
 
-    const count = await Collection.unscoped().count({
+    const count = await Collection.unsafeCount({
+      scope: null,
       where: {
         id: collectionIds,
         ownerId: { [Op.ne]: null },

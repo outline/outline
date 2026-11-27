@@ -3,6 +3,7 @@ import { isUndefined, omitBy } from "es-toolkit";
 import { isArray, isObject, pick } from "es-toolkit/compat";
 import type {
   Attributes,
+  CountOptions,
   CreateOptions,
   CreationAttributes,
   DestroyOptions,
@@ -11,6 +12,7 @@ import type {
   ModelStatic,
   NonAttribute,
   SaveOptions,
+  ScopeOptions,
 } from "sequelize";
 import { DataTypes, Op, UniqueConstraintError } from "sequelize";
 import {
@@ -50,6 +52,13 @@ type EventOptions = EventOverrideOptions & {
 };
 
 export type HookContext = HookContextFields & { event?: EventOptions };
+
+/** A scope for a query. `null` removes the default scope. */
+type ModelScope =
+  | string
+  | ScopeOptions
+  | readonly (string | ScopeOptions)[]
+  | null;
 
 class Model<
   // oxlint-disable-next-line @typescript-eslint/no-explicit-any -- Sequelize's Attributes<M> resolves to never under object default; load-bearing for static helpers like saveWithCtx<M extends Model>.
@@ -230,6 +239,42 @@ class Model<
       },
     };
     return this.destroy(hookContext);
+  }
+
+  /**
+   * Finds rows without an access check. Use it only for reads that are not
+   * returned or copied for a user, such as locks and background work.
+   *
+   * @param options the find options, and a scope where `null` removes the
+   * default scope.
+   * @returns a promise that resolves to the rows.
+   */
+  public static unsafeFindAll<M extends Model>(
+    this: ModelStatic<M>,
+    options: FindOptions<Attributes<M>> & { scope?: ModelScope } = {}
+  ): Promise<M[]> {
+    const { scope, ...findOptions } = options;
+    const model = scope === undefined ? this : this.scope(scope ?? undefined);
+    return model.findAll(findOptions);
+  }
+
+  /**
+   * Counts rows without an access check. Use it only for counts that are not
+   * shown to a user.
+   *
+   * @param options the count options, and a scope where `null` removes the
+   * default scope.
+   * @returns a promise that resolves to the number of rows.
+   */
+  public static unsafeCount<M extends Model>(
+    this: ModelStatic<M>,
+    options: Omit<CountOptions<Attributes<M>>, "group"> & {
+      scope?: ModelScope;
+    } = {}
+  ): Promise<number> {
+    const { scope, ...countOptions } = options;
+    const model = scope === undefined ? this : this.scope(scope ?? undefined);
+    return model.count(countOptions);
   }
 
   /**

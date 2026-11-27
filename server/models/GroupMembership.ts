@@ -30,7 +30,6 @@ import type { HookContextFields } from "@server/context";
 import Collection from "./Collection";
 import Document from "./Document";
 import Group from "./Group";
-import GroupUser from "./GroupUser";
 import User from "./User";
 import UserMembership from "./UserMembership";
 import { type HookContext } from "./base/Model";
@@ -260,11 +259,6 @@ class GroupMembership extends ParanoidModel<
     });
   }
 
-  @AfterCreate
-  static async invalidateDocumentIdsAfterCreate(model: GroupMembership) {
-    await model.invalidateMembershipDocumentIds();
-  }
-
   @AfterUpdate
   static async updateSourcedMemberships(
     model: GroupMembership,
@@ -362,11 +356,6 @@ class GroupMembership extends ParanoidModel<
     });
   }
 
-  @AfterDestroy
-  static async invalidateDocumentIdsAfterDestroy(model: GroupMembership) {
-    await model.invalidateMembershipDocumentIds();
-  }
-
   /**
    * Recreate all sourced permissions for a given permission.
    *
@@ -446,25 +435,6 @@ class GroupMembership extends ParanoidModel<
         transaction,
         hooks: false,
       }
-    );
-  }
-
-  /**
-   * Invalidates the cached document membership IDs of every user in the group,
-   * as a document granted to a group is reachable by all of its members.
-   */
-  private async invalidateMembershipDocumentIds() {
-    if (!this.documentId) {
-      return;
-    }
-
-    const groupUsers = await GroupUser.findAll({
-      attributes: ["userId"],
-      where: { groupId: this.groupId },
-    });
-
-    await Document.invalidateMembershipDocumentIds(
-      groupUsers.map((groupUser) => groupUser.userId)
     );
   }
 

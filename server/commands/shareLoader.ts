@@ -94,10 +94,15 @@ export async function loadPublicShare({
   let document: Document | null = null;
 
   if (share.collection) {
-    sharedTree = associatedCollection?.toNavigationNode() ?? null;
+    sharedTree = share.collection.toNavigationNode(
+      await share.collection.structureFor(null)
+    );
   } else if (share.document && share.includeChildDocuments) {
-    sharedTree =
-      associatedCollection?.getDocumentTree(share.document.id) ?? null;
+    const [node] =
+      (await associatedCollection?.structureFor(null, {
+        documentId: share.document.id,
+      })) ?? [];
+    sharedTree = node ?? null;
   }
 
   if (sharedTree && share.domain) {

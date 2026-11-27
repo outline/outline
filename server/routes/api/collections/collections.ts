@@ -2,7 +2,7 @@ import Router from "@koa/router";
 import { randomUUID } from "node:crypto";
 import { difference } from "es-toolkit";
 import { truncate } from "es-toolkit/compat";
-import type { WhereOptions } from "sequelize";
+import type { FindOptions, WhereOptions } from "sequelize";
 import { Sequelize, Op } from "sequelize";
 import type { Filter } from "@shared/helpers/FilterHelper";
 import {
@@ -189,10 +189,8 @@ router.post(
 
     authorize(user, "readDocument", collection);
 
-    const documentStructure = await collection.getCachedDocumentStructure();
-
     ctx.body = {
-      data: documentStructure || [],
+      data: await collection.structureFor(user),
     };
   }
 );
@@ -793,12 +791,9 @@ router.post(
     } = ctx.input.body;
     const { user } = ctx.auth;
     const { transaction } = ctx;
-    const collectionIds = await user.collectionIds({ transaction });
-
     const where: WhereOptions<Collection> & {
       [Op.and]: WhereOptions<Collection>[];
     } = {
-      teamId: user.teamId,
       [Op.and]: [
         {
           deletedAt: {
@@ -829,42 +824,50 @@ router.post(
       where[Op.and].push({ archivedAt: { [Op.eq]: null } });
     }
 
-    // Admins can restore any archived collection, including private ones they
-    // are not a member of, so they must be able to see them listed.
-    if (!user.isAdmin || !(includeListOnly || includeArchived)) {
-      where[Op.and].push({ id: collectionIds });
-    } else {
-      where[Op.and].push({
-        ownerId: { [Op.or]: [{ [Op.is]: null }, { [Op.eq]: user.id }] },
-      });
-    }
-
     if (filter) {
       where[Op.and].push(buildWhere<Collection>(filter));
     }
 
-    const [collections, total] = await Promise.all([
-      Collection.scope([
-        // Named scopes replace the default scope, so it must be applied
-        // explicitly to keep the documentStructure column out of the result.
-        "defaultScope",
-        { method: ["withMembership", user.id] },
-        ...(includeArchived ? ["withArchivedBy"] : []),
-      ]).findAll({
-        where,
-        order: [
-          Sequelize.literal('"collection"."index" collate "C"'),
-          ["updatedAt", "DESC"],
-        ],
-        offset: ctx.state.pagination.offset,
-        limit: ctx.state.pagination.limit,
-        transaction,
-      }),
-      Collection.count({
-        where,
-        transaction,
-      }),
-    ]);
+    // Admins can restore any archived collection, including private ones they
+    // are not a member of, so they must be able to see them listed.
+    const isAdminListing = user.isAdmin && (includeListOnly || includeArchived);
+    if (isAdminListing) {
+      where[Op.and].push({
+        teamId: user.teamId,
+        ownerId: { [Op.or]: [{ [Op.is]: null }, { [Op.eq]: user.id }] },
+      });
+    }
+
+    const findOptions: FindOptions<Collection> = {
+      where,
+      order: [
+        Sequelize.literal('"collection"."index" collate "C"'),
+        ["updatedAt", "DESC"],
+      ],
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+      transaction,
+    };
+
+    const [collections, total] = isAdminListing
+      ? await Promise.all([
+          Collection.unsafeFindAll({
+            ...findOptions,
+            scope: [
+              "defaultScope",
+              { method: ["withMembership", user.id] },
+              ...(includeArchived ? ["withArchivedBy"] : []),
+            ],
+          }),
+          Collection.unsafeCount({ where, transaction }),
+        ])
+      : await Promise.all([
+          Collection.findAllWithCtx(ctx, {
+            ...findOptions,
+            includeArchivedBy: includeArchived,
+          }),
+          Collection.countWithCtx(ctx, { where }),
+        ]);
 
     const nullIndex = collections.findIndex(
       (collection) => collection.index === null

@@ -1,3 +1,4 @@
+import { createContext } from "@server/context";
 import { CollectionPermission, type NavigationNode } from "@shared/types";
 import {
   buildCollection,
@@ -124,7 +125,9 @@ describe("getBreadcrumbsForDocuments", () => {
       collectionId: collection.id,
     });
 
-    const result = await getBreadcrumbsForDocuments([doc], user);
+    const result = await getBreadcrumbsForDocuments(createContext({ user }), [
+      doc,
+    ]);
     expect(result.get(doc.id)).toBe("Engineering");
   });
 
@@ -147,7 +150,9 @@ describe("getBreadcrumbsForDocuments", () => {
       parentDocumentId: parent.id,
     });
 
-    const result = await getBreadcrumbsForDocuments([child], user);
+    const result = await getBreadcrumbsForDocuments(createContext({ user }), [
+      child,
+    ]);
     expect(result.get(child.id)).toBe("Engineering › Onboarding");
   });
 
@@ -164,22 +169,26 @@ describe("getBreadcrumbsForDocuments", () => {
       collectionId: collection.id,
     });
 
-    const result = await getBreadcrumbsForDocuments([doc], user);
+    const result = await getBreadcrumbsForDocuments(createContext({ user }), [
+      doc,
+    ]);
     expect(result.has(doc.id)).toBe(false);
   });
 
   it("returns an empty map for empty input", async () => {
     const user = await buildUser();
-    const result = await getBreadcrumbsForDocuments([], user);
+    const result = await getBreadcrumbsForDocuments(
+      createContext({ user }),
+      []
+    );
     expect(result.size).toBe(0);
   });
 
   it("omits documents that have no collection", async () => {
     const user = await buildUser();
-    const result = await getBreadcrumbsForDocuments(
-      [{ id: "doc-without-collection", collectionId: null }],
-      user
-    );
+    const result = await getBreadcrumbsForDocuments(createContext({ user }), [
+      { id: "doc-without-collection", collectionId: null },
+    ]);
     expect(result.has("doc-without-collection")).toBe(false);
   });
 
@@ -192,10 +201,9 @@ describe("getBreadcrumbsForDocuments", () => {
       name: "Engineering",
     });
 
-    const result = await getBreadcrumbsForDocuments(
-      [{ id: "not-in-structure", collectionId: collection.id }],
-      user
-    );
+    const result = await getBreadcrumbsForDocuments(createContext({ user }), [
+      { id: "not-in-structure", collectionId: collection.id },
+    ]);
     expect(result.get("not-in-structure")).toBe("Engineering");
   });
 
@@ -215,7 +223,10 @@ describe("getBreadcrumbsForDocuments", () => {
     const d1 = await buildDocument({ teamId: team.id, collectionId: c1.id });
     const d2 = await buildDocument({ teamId: team.id, collectionId: c2.id });
 
-    const result = await getBreadcrumbsForDocuments([d1, d2], user);
+    const result = await getBreadcrumbsForDocuments(createContext({ user }), [
+      d1,
+      d2,
+    ]);
     expect(result.get(d1.id)).toBe("One");
     expect(result.get(d2.id)).toBe("Two");
   });

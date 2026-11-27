@@ -101,7 +101,8 @@ export default class BacklinksProcessor extends BaseProcessor {
       return [];
     }
 
-    const linkedDocuments = await Document.unscoped().findAll({
+    const linkedDocuments = await Document.unsafeFindAll({
+      scope: null,
       attributes: ["id"],
       where: {
         teamId: document.teamId,

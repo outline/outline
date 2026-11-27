@@ -5,7 +5,7 @@ import type { McpServer } from "@modelcontextprotocol/server";
 import { Collection, Team } from "@server/models";
 import { buildWhere } from "@server/models/helpers/Filters";
 import { sequelize } from "@server/storage/database";
-import { authorize } from "@server/policies";
+import { authorize, can } from "@server/policies";
 import { presentCollection as presentCollectionBase } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
@@ -90,12 +90,9 @@ export function collectionTools(server: McpServer, scopes: string[]) {
         async ({ query, offset, limit }, extra) => {
           try {
             const user = getActorFromContext(extra);
-            const collectionIds = await user.collectionIds();
-
             const and: WhereOptions<Collection>[] = [
               { deletedAt: { [Op.eq]: null } },
               { archivedAt: { [Op.eq]: null } },
-              { id: collectionIds },
             ];
 
             if (query) {
@@ -109,14 +106,11 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             }
 
             const where: WhereOptions<Collection> = {
-              teamId: user.teamId,
               [Op.and]: and,
             };
 
             const [collections, exactMatchCandidate] = await Promise.all([
-              Collection.scope({
-                method: ["withMembership", user.id],
-              }).findAll({
+              Collection.findAllWithCtx(buildAPIContext(extra), {
                 where,
                 order: [
                   Sequelize.literal('"collection"."index" collate "C"'),
@@ -134,7 +128,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             ]);
             const exactMatch =
               exactMatchCandidate &&
-              collectionIds.includes(exactMatchCandidate.id)
+              can(user, "readDocument", exactMatchCandidate)
                 ? exactMatchCandidate
                 : null;
 

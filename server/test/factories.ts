@@ -677,7 +677,10 @@ export async function buildDocumentWithAttachment(
   overrides: { teamId?: string; userId?: string } = {}
 ) {
   const teamId = overrides.teamId ?? (await buildTeam()).id;
-  const userId = overrides.userId ?? (await buildUser({ teamId })).id;
+  const user = overrides.userId
+    ? await User.findByPk(overrides.userId, { rejectOnEmpty: true })
+    : await buildUser({ teamId });
+  const userId = user.id;
 
   const collection = await buildCollection({ teamId, createdById: userId });
   const attachment = await buildAttachment({ teamId, userId });
@@ -692,7 +695,7 @@ export async function buildDocumentWithAttachment(
 
   const fileOperation = await buildFileOperation({ teamId, userId });
 
-  return { collection, document, attachment, fileOperation };
+  return { collection, document, attachment, fileOperation, user };
 }
 
 export async function buildEmoji(

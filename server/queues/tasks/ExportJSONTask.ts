@@ -2,7 +2,7 @@ import type { ZipFile } from "yazl";
 import { omit } from "es-toolkit/compat";
 import type { NavigationNode } from "@shared/types";
 import env from "@server/env";
-import type { Collection, FileOperation } from "@server/models";
+import type { Collection, FileOperation, User } from "@server/models";
 import { Attachment, Document } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -18,7 +18,8 @@ import ExportTask from "./ExportTask";
 export default class ExportJSONTask extends ExportTask {
   public async exportCollections(
     collections: Collection[],
-    fileOperation: FileOperation
+    fileOperation: FileOperation,
+    user: User
   ) {
     const usedFilenames = new Set<string>();
 
@@ -35,6 +36,7 @@ export default class ExportJSONTask extends ExportTask {
         await this.addCollectionToArchive(
           zip,
           collection,
+          user,
           fileOperation.options?.includeAttachments ?? true,
           filename
         );
@@ -71,16 +73,18 @@ export default class ExportJSONTask extends ExportTask {
   private async addCollectionToArchive(
     zip: ZipFile,
     collection: Collection,
+    user: User,
     includeAttachments: boolean,
     filename: string
   ) {
+    const structure = await collection.structureFor(user);
     const output: CollectionJSONExport = {
       collection: {
         ...(omit(await presentCollection(undefined, collection), [
           "url",
           "description",
         ]) as CollectionJSONExport["collection"]),
-        documentStructure: collection.documentStructure,
+        documentStructure: structure,
       },
       documents: {},
       attachments: {},
@@ -181,9 +185,7 @@ export default class ExportJSONTask extends ExportTask {
 
     addAttachments(collectionAttachments);
 
-    if (collection.documentStructure) {
-      await addDocumentTree(collection.documentStructure);
-    }
+    await addDocumentTree(structure);
 
     zip.addBuffer(
       Buffer.from(

@@ -13,6 +13,7 @@
     "./.oxlint/mobx.mjs",
     "./.oxlint/bundle.mjs",
     "./.oxlint/sequelize.mjs",
+    "./.oxlint/access.mjs",
     "./.oxlint/vitest.mjs",
     "./.oxlint/editor.mjs",
     "./.oxlint/koa.mjs",
@@ -24,6 +25,9 @@
   "rules": {
     "mobx/observable-needs-initializer": "error",
     "sequelize/prefer-after-commit-helper": "error",
+    "access/no-direct-collection-ids": "error",
+    "access/no-raw-document-structure": "error",
+    "access/no-unsafe-find": "error",
     "vitest/consistent-test-it": [
       "error",
       { "fn": "it", "withinDescribe": "it" }
