@@ -91,6 +91,12 @@ router.post(
               { "$collection.ownerId$": user.id },
             ],
           },
+          {
+            [Op.or]: [
+              { "$document.collection.ownerId$": null },
+              { "$document.collection.ownerId$": user.id },
+            ],
+          },
         ],
       },
       order: [[sort, direction]],
@@ -105,6 +111,20 @@ router.post(
           as: "collection",
           attributes: [],
           paranoid: false,
+        },
+        {
+          model: Document.unscoped(),
+          as: "document",
+          attributes: [],
+          paranoid: false,
+          include: [
+            {
+              model: Collection.unscoped(),
+              as: "collection",
+              attributes: [],
+              paranoid: false,
+            },
+          ],
         },
       ],
       offset: ctx.state.pagination.offset,
