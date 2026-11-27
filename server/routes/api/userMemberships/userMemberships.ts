@@ -67,8 +67,9 @@ router.post(
     const documentIds = memberships
       .map((p) => p.documentId)
       .filter(Boolean) as string[];
-    const documents = await Document.findByIds(documentIds, {
-      userId: user.id,
+    const documents = await Document.findAllWithCtx(ctx, {
+      includeDrafts: true,
+      where: { id: documentIds },
     });
 
     const policies = presentPolicies(user, [...documents, ...memberships]);

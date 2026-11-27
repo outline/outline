@@ -24,7 +24,7 @@ export async function checkUpdates() {
       User.count(),
       Team.count(),
       Collection.count(),
-      Document.count(),
+      Document.unsafeCount(),
     ]);
   const body = JSON.stringify({
     id,

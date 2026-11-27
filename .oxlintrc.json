@@ -27,6 +27,7 @@
     "sequelize/prefer-after-commit-helper": "error",
     "access/no-direct-collection-ids": "error",
     "access/no-raw-document-structure": "error",
+    "access/no-unsafe-document-find": "error",
     "vitest/consistent-test-it": [
       "error",
       { "fn": "it", "withinDescribe": "it" }

@@ -7,7 +7,7 @@ import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Collection, Document, Template } from "@server/models";
+import { Collection, Template } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentPolicies, presentTemplate } from "@server/presenters";
 import type { Context } from "@server/types";
@@ -115,18 +115,6 @@ router.post(
         userId: user.id,
       });
       authorize(user, "readDocument", collection);
-    } else {
-      // Workspace templates have no collection and every user can read them.
-      where[Op.and].push({
-        [Op.or]: [
-          {
-            collectionId: {
-              [Op.eq]: null,
-            },
-          },
-          await Document.accessibleWhere(user, { includeMemberships: false }),
-        ],
-      });
     }
 
     if (query) {
@@ -140,19 +128,14 @@ router.post(
     const replacements = { query: QueryHelper.likeContains(query ?? "") };
 
     const [templates, total] = await Promise.all([
-      Template.scope([
-        "defaultScope",
-        {
-          method: ["withMembership", user.id],
-        },
-      ]).findAll({
+      Template.findAllWithCtx(ctx, {
         where,
         replacements,
         order: [[sort, direction]],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
       }),
-      Template.count({
+      Template.countWithCtx(ctx, {
         where,
         replacements,
       }),

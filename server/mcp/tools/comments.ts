@@ -128,15 +128,18 @@ export function commentTools(server: McpServer, scopes: string[]) {
               resolvedCollectionId = collection.id;
             }
 
-            const { comments } = await Comment.findAllForUser(user, {
-              document,
-              collectionId: resolvedCollectionId,
-              parentCommentId,
-              statusFilter,
-              includeDocuments: true,
-              offset: offset ?? 0,
-              limit: limit ?? 25,
-            });
+            const { comments } = await Comment.findAllWithCtx(
+              buildAPIContext(extra),
+              {
+                document,
+                collectionId: resolvedCollectionId,
+                parentCommentId,
+                statusFilter,
+                includeDocuments: true,
+                offset: offset ?? 0,
+                limit: limit ?? 25,
+              }
+            );
 
             return success(
               comments.map((comment) => presentCommentWithText(comment))

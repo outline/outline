@@ -2378,17 +2378,18 @@ describe("#documents.list", () => {
         userId: otherUser.id,
         collectionId: privateCollection.id,
       });
-      const child = await buildDocument({
-        teamId: viewer.teamId,
-        userId: otherUser.id,
-        collectionId: privateCollection.id,
-        parentDocumentId: parent.id,
-      });
       await UserMembership.create({
         createdById: otherUser.id,
         documentId: parent.id,
         userId: viewer.id,
         permission: DocumentPermission.Read,
+      });
+      // Made after the membership, so the viewer has no membership on it.
+      const child = await buildDocument({
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        collectionId: privateCollection.id,
+        parentDocumentId: parent.id,
       });
       const ownCollection = await buildCollection({
         teamId: viewer.teamId,

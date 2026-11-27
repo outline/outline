@@ -1,3 +1,4 @@
+import { createContext } from "@server/context";
 import { createHash } from "node:crypto";
 import { EmptyResultError, Op, QueryTypes } from "sequelize";
 import { CollectionPermission, DocumentPermission } from "@shared/types";
@@ -569,10 +570,19 @@ describe("#membershipUserIds", () => {
   });
 });
 
-describe("#membershipDocumentIds", () => {
+describe("#membershipWhere", () => {
+  const membershipIds = async (userId: string) =>
+    (
+      await Document.unsafeFindAll({
+        scope: null,
+        attributes: ["id"],
+        where: Document.membershipWhere(userId),
+      })
+    ).map((document) => document.id);
+
   it("should return empty array when the user has no document memberships", async () => {
     const user = await buildUser();
-    const ids = await Document.membershipDocumentIds(user.id);
+    const ids = await membershipIds(user.id);
     expect(ids).toEqual([]);
   });
 
@@ -591,7 +601,7 @@ describe("#membershipDocumentIds", () => {
       permission: DocumentPermission.Read,
     });
 
-    const ids = await Document.membershipDocumentIds(user.id);
+    const ids = await membershipIds(user.id);
     expect(ids).toEqual([document.id]);
   });
 
@@ -612,7 +622,7 @@ describe("#membershipDocumentIds", () => {
       permission: DocumentPermission.Read,
     });
 
-    const ids = await Document.membershipDocumentIds(user.id);
+    const ids = await membershipIds(user.id);
     expect(ids).toEqual([document.id]);
   });
 
@@ -639,7 +649,7 @@ describe("#membershipDocumentIds", () => {
       permission: DocumentPermission.Read,
     });
 
-    const ids = await Document.membershipDocumentIds(user.id);
+    const ids = await membershipIds(user.id);
     expect(ids).toEqual([document.id]);
   });
 
@@ -671,7 +681,7 @@ describe("#membershipDocumentIds", () => {
       permission: CollectionPermission.Read,
     });
 
-    const ids = await Document.membershipDocumentIds(user.id);
+    const ids = await membershipIds(user.id);
     expect(ids).toEqual([]);
   });
 
@@ -693,11 +703,11 @@ describe("#membershipDocumentIds", () => {
     });
     await membership.destroy();
 
-    const ids = await Document.membershipDocumentIds(user.id);
+    const ids = await membershipIds(user.id);
     expect(ids).toEqual([]);
   });
 
-  it("should invalidate the cache when a direct membership is added or removed", async () => {
+  it("should update when a direct membership is added or removed", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const otherUser = await buildUser({ teamId: team.id });
@@ -706,7 +716,7 @@ describe("#membershipDocumentIds", () => {
       userId: otherUser.id,
     });
 
-    expect(await Document.membershipDocumentIds(user.id)).toEqual([]);
+    expect(await membershipIds(user.id)).toEqual([]);
 
     const membership = await UserMembership.create({
       createdById: otherUser.id,
@@ -714,15 +724,13 @@ describe("#membershipDocumentIds", () => {
       userId: user.id,
       permission: DocumentPermission.Read,
     });
-    expect(await Document.membershipDocumentIds(user.id)).toEqual([
-      document.id,
-    ]);
+    expect(await membershipIds(user.id)).toEqual([document.id]);
 
     await membership.destroy();
-    expect(await Document.membershipDocumentIds(user.id)).toEqual([]);
+    expect(await membershipIds(user.id)).toEqual([]);
   });
 
-  it("should invalidate the cache when a group membership is added or removed", async () => {
+  it("should update when a group membership is added or removed", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const otherUser = await buildUser({ teamId: team.id });
@@ -733,7 +741,7 @@ describe("#membershipDocumentIds", () => {
     const group = await buildGroup({ teamId: team.id });
     await group.$add("user", user, { through: { createdById: otherUser.id } });
 
-    expect(await Document.membershipDocumentIds(user.id)).toEqual([]);
+    expect(await membershipIds(user.id)).toEqual([]);
 
     const membership = await GroupMembership.create({
       createdById: otherUser.id,
@@ -741,15 +749,13 @@ describe("#membershipDocumentIds", () => {
       documentId: document.id,
       permission: DocumentPermission.Read,
     });
-    expect(await Document.membershipDocumentIds(user.id)).toEqual([
-      document.id,
-    ]);
+    expect(await membershipIds(user.id)).toEqual([document.id]);
 
     await membership.destroy();
-    expect(await Document.membershipDocumentIds(user.id)).toEqual([]);
+    expect(await membershipIds(user.id)).toEqual([]);
   });
 
-  it("should invalidate the cache when the user joins or leaves a group", async () => {
+  it("should update when the user joins or leaves a group", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const otherUser = await buildUser({ teamId: team.id });
@@ -765,42 +771,17 @@ describe("#membershipDocumentIds", () => {
       permission: DocumentPermission.Read,
     });
 
-    expect(await Document.membershipDocumentIds(user.id)).toEqual([]);
+    expect(await membershipIds(user.id)).toEqual([]);
 
     const groupUser = await GroupUser.create({
       groupId: group.id,
       userId: user.id,
       createdById: otherUser.id,
     });
-    expect(await Document.membershipDocumentIds(user.id)).toEqual([
-      document.id,
-    ]);
+    expect(await membershipIds(user.id)).toEqual([document.id]);
 
     await groupUser.destroy();
-    expect(await Document.membershipDocumentIds(user.id)).toEqual([]);
-  });
-
-  it("should read through to the database when skipCache is set", async () => {
-    const team = await buildTeam();
-    const user = await buildUser({ teamId: team.id });
-    const otherUser = await buildUser({ teamId: team.id });
-    const document = await buildDocument({
-      teamId: team.id,
-      userId: otherUser.id,
-    });
-
-    expect(await Document.membershipDocumentIds(user.id)).toEqual([]);
-
-    await UserMembership.create({
-      createdById: otherUser.id,
-      documentId: document.id,
-      userId: user.id,
-      permission: DocumentPermission.Read,
-    });
-
-    expect(
-      await Document.membershipDocumentIds(user.id, { skipCache: true })
-    ).toEqual([document.id]);
+    expect(await membershipIds(user.id)).toEqual([]);
   });
 });
 
@@ -922,7 +903,7 @@ describe("#findByPk", () => {
   });
 });
 
-describe("#withMembershipScope", () => {
+describe("#findAllWithCtx", () => {
   it("should not load text for documents with content", async () => {
     const user = await buildUser();
     const document = await buildDocument({
@@ -931,7 +912,7 @@ describe("#withMembershipScope", () => {
       text: "Hello world",
     });
 
-    const [loaded] = await Document.withMembershipScope(user.id).findAll({
+    const [loaded] = await Document.findAllWithCtx(createContext({ user }), {
       where: { id: document.id },
     });
 
@@ -951,7 +932,7 @@ describe("#withMembershipScope", () => {
       { replacements: { id: document.id } }
     );
 
-    const [loaded] = await Document.withMembershipScope(user.id).findAll({
+    const [loaded] = await Document.findAllWithCtx(createContext({ user }), {
       where: { id: document.id },
     });
 
@@ -959,26 +940,17 @@ describe("#withMembershipScope", () => {
   });
 });
 
-describe("findByIds", () => {
-  it("should return documents by ids", async () => {
-    const document1 = await buildDocument();
-    const document2 = await buildDocument();
-    const documents = await Document.findByIds([document1.id, document2.id]);
-    expect(documents.length).toBe(2);
-  });
-
+describe("#findAllWithCtx access", () => {
   it("should return documents filtered to user access", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const document1 = await buildDocument({ teamId: team.id });
     const document2 = await buildDocument({ teamId: team.id });
     const document3 = await buildDocument();
-    const documents = await Document.findByIds(
-      [document1.id, document2.id, document3.id],
-      {
-        userId: user.id,
-      }
-    );
+    const documents = await Document.findAllWithCtx(createContext({ user }), {
+      includeDrafts: true,
+      where: { id: [document1.id, document2.id, document3.id] },
+    });
     expect(documents.length).toBe(2);
   });
 
@@ -995,12 +967,10 @@ describe("findByIds", () => {
     });
     const document2 = await buildDocument({ teamId: team.id });
     const document3 = await buildDocument();
-    const documents = await Document.findByIds(
-      [document1.id, document2.id, document3.id],
-      {
-        userId: user.id,
-      }
-    );
+    const documents = await Document.findAllWithCtx(createContext({ user }), {
+      includeDrafts: true,
+      where: { id: [document1.id, document2.id, document3.id] },
+    });
     expect(documents.length).toBe(1);
   });
 
@@ -1020,12 +990,10 @@ describe("findByIds", () => {
       collectionId: collection.id,
     });
     const document3 = await buildDocument();
-    const documents = await Document.findByIds(
-      [document1.id, document2.id, document3.id],
-      {
-        userId: user.id,
-      }
-    );
+    const documents = await Document.findAllWithCtx(createContext({ user }), {
+      includeDrafts: true,
+      where: { id: [document1.id, document2.id, document3.id] },
+    });
     expect(documents.length).toBe(1);
   });
 
@@ -1038,8 +1006,9 @@ describe("findByIds", () => {
       userId: author.id,
       collectionId: null,
     });
-    const documents = await Document.findByIds([draft.id], {
-      userId: user.id,
+    const documents = await Document.findAllWithCtx(createContext({ user }), {
+      includeDrafts: true,
+      where: { id: [draft.id] },
     });
     expect(documents.length).toBe(0);
   });
@@ -1052,8 +1021,9 @@ describe("findByIds", () => {
       userId: user.id,
       collectionId: null,
     });
-    const documents = await Document.findByIds([draft.id], {
-      userId: user.id,
+    const documents = await Document.findAllWithCtx(createContext({ user }), {
+      includeDrafts: true,
+      where: { id: [draft.id] },
     });
     expect(documents.length).toBe(1);
   });
@@ -1073,8 +1043,9 @@ describe("findByIds", () => {
       userId: user.id,
       permission: DocumentPermission.Read,
     });
-    const documents = await Document.findByIds([draft.id], {
-      userId: user.id,
+    const documents = await Document.findAllWithCtx(createContext({ user }), {
+      includeDrafts: true,
+      where: { id: [draft.id] },
     });
     expect(documents.length).toBe(1);
   });

@@ -195,7 +195,7 @@ router.post(
       authorize(user, "readDocument", collection);
     }
 
-    const { comments, total } = await Comment.findAllForUser(user, {
+    const { comments, total } = await Comment.findAllWithCtx(ctx, {
       document,
       collectionId: collection?.id,
       parentCommentId,

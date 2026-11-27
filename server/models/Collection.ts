@@ -446,7 +446,8 @@ class Collection extends ParanoidModel<
     };
 
     // The bulk update below skips the Document destroy hook, so pins are removed here.
-    const documents = await Document.scope("published").findAll({
+    const documents = await Document.unsafeFindAll({
+      scope: "published",
       attributes: ["id"],
       where,
       transaction: ctx.transaction,
@@ -1206,7 +1207,7 @@ class Collection extends ParanoidModel<
     ).reverse();
 
     if (childDocumentIds.length) {
-      const childDocuments = await Document.findAll({
+      const childDocuments = await Document.unsafeFindAll({
         transaction,
         where: {
           id: childDocumentIds,

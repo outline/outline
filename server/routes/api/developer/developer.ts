@@ -85,7 +85,7 @@ router.post(
     ];
 
     const [documents, actors] = await Promise.all([
-      Document.findAll({
+      Document.findAllWithCtx(ctx, {
         where: { teamId: user.teamId },
         limit: 25,
       }),

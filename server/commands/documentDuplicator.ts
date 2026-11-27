@@ -168,6 +168,7 @@ async function duplicateRoots(
     // Structural fields only – content is re-fetched per document in
     // `duplicateItem`, so a large tree isn't held in memory at once.
     const childDocuments = await original.findChildDocuments(
+      ctx,
       {
         archivedAt: original.archivedAt
           ? {
@@ -182,14 +183,8 @@ async function duplicateRoots(
           { publishedAt: { [Op.ne]: null } },
           { createdById: ctx.auth.user.id },
         ],
-        [Op.and]: [
-          await Document.accessibleWhere(ctx.auth.user, {
-            transaction: ctx.transaction,
-          }),
-        ],
       },
       {
-        ...ctx,
         attributes: { exclude: ["state", "content", "text"] },
       }
     );

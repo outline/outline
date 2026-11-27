@@ -274,13 +274,6 @@ class UserMembership extends IdModel<
     await this.invalidateCollectionIds(model, options);
   }
 
-  @AfterCreate
-  static async invalidateDocumentIdsAfterCreate(model: UserMembership) {
-    if (model.documentId) {
-      await Document.invalidateMembershipDocumentIds([model.userId]);
-    }
-  }
-
   @AfterUpdate
   static async updateSourcedMemberships(
     model: UserMembership,
@@ -362,13 +355,6 @@ class UserMembership extends IdModel<
     options: InstanceDestroyOptions
   ) {
     await this.invalidateCollectionIds(model, options);
-  }
-
-  @AfterDestroy
-  static async invalidateDocumentIdsAfterDestroy(model: UserMembership) {
-    if (model.documentId) {
-      await Document.invalidateMembershipDocumentIds([model.userId]);
-    }
   }
 
   /**

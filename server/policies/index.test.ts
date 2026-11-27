@@ -91,7 +91,7 @@ describe("memoization", () => {
     );
 
     // Endpoints reach documents through Document.findByPk and
-    // Document.withMembershipScope, and every scope() mints a fresh subclass.
+    // Document.findAllWithCtx, and every scope() mints a fresh subclass.
     for (let i = 0; i < 10; i++) {
       const scoped = Document.scope([
         { method: ["withMembership", user.id, false] },

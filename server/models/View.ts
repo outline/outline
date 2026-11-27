@@ -150,10 +150,18 @@ class View extends IdModel<
       limit: number;
     }
   ): Promise<string[]> {
-    const [accessible, documentIds] = await Promise.all([
-      Document.accessibleSql(user, "documents"),
-      Document.membershipDocumentIds(user.id),
-    ]);
+    const accessible = Document.whereToSql({
+      [Op.and]: [
+        await Document.accessibleWhere(user),
+        {
+          [Op.or]: [
+            { publishedAt: { [Op.ne]: null } },
+            { createdById: user.id },
+            Document.membershipWhere(user.id),
+          ],
+        },
+      ],
+    });
     const column = sort === "createdAt" ? "createdAt" : "updatedAt";
     const order = direction === "ASC" ? "ASC" : "DESC";
 
@@ -169,12 +177,7 @@ class View extends IdModel<
         WHERE documents.id = views."documentId"
           AND documents."teamId" = :teamId
           AND documents."deletedAt" IS NULL
-          AND ${accessible.sql}
-          AND (
-            documents."publishedAt" IS NOT NULL
-            OR documents."createdById" = :userId
-            OR documents.id = ANY(ARRAY[:documentIds]::uuid[])
-          )
+          AND ${accessible}
         OFFSET 0
       ) AS accessible
       WHERE views."userId" = :userId
@@ -183,10 +186,8 @@ class View extends IdModel<
       `,
       {
         replacements: {
-          ...accessible.replacements,
           userId: user.id,
           teamId: user.teamId,
-          documentIds,
           limit,
           offset,
         },

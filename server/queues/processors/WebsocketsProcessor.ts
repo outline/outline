@@ -237,7 +237,7 @@ export default class WebsocketsProcessor {
       }
 
       case "documents.move": {
-        const documents = await Document.findAll({
+        const documents = await Document.unsafeFindAll({
           where: {
             id: event.data.documentIds,
           },

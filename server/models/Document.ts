@@ -6,6 +6,7 @@ import type {
   NonNullFindOptions,
   SaveOptions,
   ScopeOptions,
+  CountOptions,
   FindOptions,
   ProjectionAlias,
   WhereOptions,
@@ -62,8 +63,6 @@ import { DeprecationValidation, DocumentValidation } from "@shared/validations";
 import { InvalidRequestError, ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { afterCommit } from "@server/storage/transaction";
-import { CacheHelper } from "@server/utils/CacheHelper";
-import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import { generateUrlId } from "@server/utils/url";
 import Collection from "./Collection";
 import Comment from "./Comment";
@@ -337,9 +336,6 @@ class Document extends ArchivableModel<
   InferAttributes<Document>,
   Partial<InferCreationAttributes<Document>>
 > {
-  /** Seconds for which a user's document membership IDs are cached. */
-  static membershipDocumentIdsCacheTTL = 10;
-
   @SimpleLength({
     min: 10,
     max: 10,
@@ -562,7 +558,6 @@ class Document extends ArchivableModel<
 
     // Keep a loaded collection so that its membership data stays available.
     if (model.collection?.id === collection.id) {
-      // oxlint-disable-next-line access/no-raw-document-structure -- Copies the structure onto the loaded collection after a write.
       model.collection.documentStructure = collection.documentStructure;
     } else {
       model.collection = collection;
@@ -868,97 +863,6 @@ class Document extends ArchivableModel<
   }
 
   /**
-   * Returns an array of unique document IDs that the user is a member of,
-   * either via direct membership or through a group membership.
-   *
-   * The result is cached briefly, mirroring `User.collectionIds`, as it is
-   * resolved on every search request.
-   *
-   * @param userId The user ID to find document memberships for.
-   * @param options Set `skipCache` to always read through to the database.
-   * @returns A promise resolving to an array of document IDs.
-   */
-  static async membershipDocumentIds(
-    userId: string,
-    options: { skipCache?: boolean } = {}
-  ): Promise<string[]> {
-    const fetchDocumentIds = async () => {
-      const [memberships, groupMemberships] = await Promise.all([
-        UserMembership.findAll({
-          attributes: ["documentId"],
-          where: {
-            userId,
-            documentId: {
-              [Op.ne]: null,
-            },
-          },
-        }),
-        GroupMembership.findAll({
-          attributes: ["documentId"],
-          where: {
-            documentId: {
-              [Op.ne]: null,
-            },
-          },
-          include: [
-            {
-              model: Group,
-              as: "group",
-              attributes: [],
-              required: true,
-              include: [
-                {
-                  model: GroupUser,
-                  as: "groupUsers",
-                  attributes: [],
-                  required: true,
-                  where: {
-                    userId,
-                  },
-                },
-              ],
-            },
-          ],
-        }),
-      ]);
-
-      return uniq(
-        [...memberships, ...groupMemberships]
-          .map((membership) => membership.documentId)
-          .filter((id): id is string => !isNil(id))
-      );
-    };
-
-    if (options.skipCache) {
-      return fetchDocumentIds();
-    }
-
-    return (
-      (await CacheHelper.getDataOrSet<string[]>(
-        RedisPrefixHelper.getUserMembershipDocumentIdsKey(userId),
-        fetchDocumentIds,
-        Document.membershipDocumentIdsCacheTTL
-      )) ?? []
-    );
-  }
-
-  /**
-   * Invalidates the cached result of `membershipDocumentIds` so a permission
-   * change takes effect immediately rather than at the end of the cache TTL.
-   *
-   * @param userIds The users whose document memberships changed.
-   */
-  static async invalidateMembershipDocumentIds(userIds: string[]) {
-    await Promise.all(
-      uniq(userIds).map((userId) =>
-        CacheHelper.removeData(
-          RedisPrefixHelper.getUserMembershipDocumentIdsKey(userId)
-        )
-      )
-    );
-  }
-
-  /**
    * Returns the condition that limits a document query to the documents the
    * user can read. This is the list form of the document `read` policy, and
    * every query that returns or copies documents for a user must use it.
@@ -967,83 +871,123 @@ class Document extends ArchivableModel<
    * @param user the user that reads the documents.
    * @param options.transaction the transaction to load collection access in.
    * @param options.paranoid set to false to include deleted collections.
-   * @param options.includeMemberships set to false to exclude documents that
-   * the user can read only through a document membership.
    * @returns a promise that resolves to the where condition.
    */
   static async accessibleWhere(
     user: User,
     options: AccessibleOptions = {}
   ): Promise<WhereOptions<AccessibleAttributes>> {
-    const { includeMemberships = true, transaction, paranoid } = options;
+    const { transaction, paranoid } = options;
     const collectionIds = await user.collectionIds({ transaction, paranoid });
 
     return {
       [Op.or]: [
         { collectionId: collectionIds },
-        ...(includeMemberships
-          ? [
-              {
-                id: {
-                  [Op.in]: Sequelize.literal(
-                    `(${membershipSubquery(user.id)})`
-                  ),
-                },
-              },
-            ]
-          : []),
+        Document.membershipWhere(user.id),
         { collectionId: { [Op.is]: null }, createdById: user.id },
       ],
     };
   }
 
   /**
-   * Returns the same condition as `accessibleWhere` as a raw SQL fragment,
-   * for queries that cannot be written with Sequelize.
+   * Returns the condition that matches the documents that the user has a
+   * direct or group membership on.
    *
-   * @param user the user that reads the documents.
-   * @param table the quoted name or alias of the documents table in the query.
-   * @param options the same options as `accessibleWhere`.
-   * @returns a promise that resolves to the SQL fragment and the replacements
-   * that the query must include.
+   * @param userId the id of the user.
+   * @returns the where condition.
    */
-  static async accessibleSql(
-    user: User,
-    table: string,
-    options: AccessibleOptions = {}
-  ): Promise<{
-    sql: string;
-    replacements: { accessibleCollectionIds: string[] };
-  }> {
-    const { includeMemberships = true, transaction, paranoid } = options;
-    const collectionIds = await user.collectionIds({ transaction, paranoid });
-    const memberships = membershipSubquery(user.id);
-    const clauses = [
-      `${table}."collectionId" = ANY(ARRAY[:accessibleCollectionIds]::uuid[])`,
-      ...(includeMemberships ? [`${table}.id IN (${memberships})`] : []),
-      `(${table}."collectionId" IS NULL AND ${table}."createdById" = '${user.id}')`,
-    ];
-
+  static membershipWhere(userId: string): WhereOptions<AccessibleAttributes> {
     return {
-      sql: `(${clauses.join(" OR ")})`,
-      replacements: { accessibleCollectionIds: collectionIds },
+      id: { [Op.in]: Sequelize.literal(`(${membershipSubquery(userId)})`) },
     };
   }
 
-  static withMembershipScope(
-    userId: string,
-    options?: FindOptions<Document> & { includeDrafts?: boolean }
-  ) {
+  /**
+   * Renders a where condition as SQL, for queries that cannot be written with
+   * Sequelize.
+   *
+   * @param where the where condition.
+   * @param table the name or alias of the documents table in the query.
+   * @returns the SQL condition.
+   */
+  static whereToSql(where: WhereOptions<Document>, table = "documents") {
+    const queryGenerator = this.sequelize!.getQueryInterface()
+      .queryGenerator as QueryGeneratorWithWhere;
+    return queryGenerator.getWhereConditions(where, table, this);
+  }
+
+  /**
+   * Finds the documents that match the options and that the user in the
+   * context can read. The views and memberships of the user are loaded, so
+   * that policies can be presented for the documents.
+   *
+   * @param ctx the context with the user and the transaction.
+   * @param options the find options and the access options.
+   * @returns a promise that resolves to the documents.
+   */
+  static async findAllWithCtx(
+    ctx: Context,
+    options: AccessibleFindOptions = {}
+  ): Promise<Document[]> {
+    const {
+      includeDrafts,
+      includeViews = true,
+      ...findOptions
+    } = await withAccess(ctx, options);
+    const userId = ctx.auth.user.id;
+
     return this.scope([
-      options?.includeDrafts ? "withDrafts" : "defaultScope",
+      includeDrafts ? "withDrafts" : "defaultScope",
       "withoutStateOrText",
-      {
-        method: ["withViews", userId],
-      },
-      {
-        method: ["withMembership", userId, options?.paranoid],
-      },
-    ]);
+      ...((includeViews
+        ? [{ method: ["withViews", userId] }]
+        : []) as ScopeOptions[]),
+      { method: ["withMembership", userId, findOptions.paranoid] },
+    ]).findAll(findOptions);
+  }
+
+  /**
+   * Counts the documents that match the options and that the user in the
+   * context can read.
+   *
+   * @param ctx the context with the user and the transaction.
+   * @param options the count options and the access options.
+   * @returns a promise that resolves to the number of documents.
+   */
+  static async countWithCtx(
+    ctx: Context,
+    options: AccessibleCountOptions = {}
+  ): Promise<number> {
+    const { includeDrafts, ...countOptions } = await withAccess(ctx, options);
+
+    // Membership joins are not needed to count, and can count a row twice.
+    return (includeDrafts ? this.unscoped() : this.scope("defaultScope")).count(
+      countOptions
+    );
+  }
+
+  /**
+   * Finds documents without an access check. Use it only for reads that are
+   * not returned or copied for a user, such as locks and background work.
+   *
+   * @param options the find options and the scope.
+   * @returns a promise that resolves to the documents.
+   */
+  static unsafeFindAll(options: ScopedFindOptions = {}): Promise<Document[]> {
+    const { scope, ...findOptions } = options;
+    return scopedModel(this, scope).findAll(findOptions);
+  }
+
+  /**
+   * Counts documents without an access check. Use it only for counts that are
+   * not shown to a user.
+   *
+   * @param options the count options and the scope.
+   * @returns a promise that resolves to the number of documents.
+   */
+  static unsafeCount(options: ScopedCountOptions = {}): Promise<number> {
+    const { scope, ...countOptions } = options;
+    return scopedModel(this, scope).count(countOptions);
   }
 
   /**
@@ -1138,66 +1082,6 @@ class Document extends ArchivableModel<
     }
 
     return document;
-  }
-
-  /**
-   * Find many documents by their id, supports filtering by user memberships when `userId`
-   * is specified in the options.
-   *
-   * @param ids An array of document ids
-   * @param options FindOptions
-   * @returns A promise resolving to the list of documents
-   */
-  static async findByIds(
-    ids: string[],
-    options: Omit<FindOptions<Document>, "where"> &
-      Omit<AdditionalFindOptions, "rejectOnEmpty"> = {}
-  ): Promise<Document[]> {
-    const { userId, includeViews = true, includeState, ...rest } = options;
-
-    const user = userId ? await User.findByPk(userId) : null;
-    const documents = await this.scope([
-      "withDrafts",
-      includeState ? "withState" : "withoutState",
-      ...((includeViews
-        ? [
-            {
-              method: ["withViews", userId],
-            },
-          ]
-        : []) as ScopeOptions[]),
-      {
-        method: ["withMembership", userId],
-      },
-    ]).findAll({
-      where: {
-        ...(user && { teamId: user.teamId }),
-        id: ids,
-      },
-      ...rest,
-    });
-
-    if (!userId) {
-      return documents;
-    }
-
-    return documents.filter((doc) => {
-      if (doc.memberships.length > 0 || doc.groupMemberships.length > 0) {
-        return true;
-      }
-
-      // A document without a collection is either an unfiled draft or lives in
-      // a collection the user cannot see – access is limited to the creator.
-      if (!doc.collection) {
-        return doc.createdById === userId;
-      }
-
-      return (
-        (!doc.collection.isPrivate && !user?.isGuest) ||
-        doc.collection.memberships.length > 0 ||
-        doc.collection.groupMemberships.length > 0
-      );
-    });
   }
 
   // instance methods
@@ -1302,22 +1186,32 @@ class Document extends ArchivableModel<
     });
 
   /**
-   * Find all of the child documents for this document
+   * Find the child documents of this document that the user in the context
+   * can read.
    *
-   * @param where Omit<WhereOptions<Document>, "parentDocumentId">
+   * @param ctx the context with the user and the transaction.
+   * @param where conditions to further filter the child documents.
    * @param options FindOptions
    * @returns A promise that resolve to a list of documents
    */
   findChildDocuments = async (
+    ctx: Context,
     where?: Omit<WhereOptions<Document>, "parentDocumentId">,
     options?: FindOptions<Document>
   ): Promise<Document[]> =>
     await (this.constructor as typeof Document).findAll({
+      transaction: ctx.transaction,
+      ...options,
       where: {
         parentDocumentId: this.id,
-        ...where,
+        [Op.and]: [
+          where ?? {},
+          await Document.accessibleWhere(ctx.auth.user, {
+            transaction: ctx.transaction,
+            paranoid: options?.paranoid,
+          }),
+        ],
       },
-      ...options,
     });
 
   /**
@@ -1332,16 +1226,11 @@ class Document extends ArchivableModel<
     where?: Omit<WhereOptions<Document>, "parentDocumentId">,
     options?: FindOptions<Document>
   ): Promise<string[]> => {
-    const model = this.constructor as typeof Document;
-    const queryGenerator = this.sequelize!.getQueryInterface()
-      .queryGenerator as QueryGeneratorWithWhere;
-
     const paranoid = options?.paranoid ?? true;
-    const whereConditions = queryGenerator.getWhereConditions(
-      { ...(paranoid ? { deletedAt: null } : {}), ...where },
-      "documents",
-      model
-    );
+    const whereConditions = Document.whereToSql({
+      ...(paranoid ? { deletedAt: null } : {}),
+      ...where,
+    });
     const anchorFilter = whereConditions ? `AND (${whereConditions})` : "";
     const recursiveFilter = whereConditions ? `WHERE (${whereConditions})` : "";
 
@@ -1575,7 +1464,6 @@ class Document extends ArchivableModel<
       if (collection) {
         await collection.addDocumentToStructure(this, index, { transaction });
         if (this.collection) {
-          // oxlint-disable-next-line access/no-raw-document-structure -- Copies the structure onto the loaded collection after a write.
           this.collection.documentStructure = collection.documentStructure;
         }
       }
@@ -1662,7 +1550,6 @@ class Document extends ArchivableModel<
     if (collection) {
       await collection.removeDocumentInStructure(this, { transaction });
       if (this.collection) {
-        // oxlint-disable-next-line access/no-raw-document-structure -- Copies the structure onto the loaded collection after a write.
         this.collection.documentStructure = collection.documentStructure;
       }
     }
@@ -1716,7 +1603,6 @@ class Document extends ArchivableModel<
     if (collection) {
       await collection.removeDocumentInStructure(this, { transaction });
       if (this.collection) {
-        // oxlint-disable-next-line access/no-raw-document-structure -- Copies the structure onto the loaded collection after a write.
         this.collection.documentStructure = collection.documentStructure;
       }
     }
@@ -1778,7 +1664,6 @@ class Document extends ArchivableModel<
 
     if (this.collection && collection) {
       // updating the document structure in memory just in case it's later accessed somewhere
-      // oxlint-disable-next-line access/no-raw-document-structure -- Copies the structure onto the loaded collection after a write.
       this.collection.documentStructure = collection.documentStructure;
     }
     return this;
@@ -2027,13 +1912,71 @@ type AccessibleAttributes = Pick<
   "id" | "collectionId" | "createdById"
 >;
 
+/** A scope for a document query. `null` removes the default scope. */
+type DocumentScope =
+  | string
+  | ScopeOptions
+  | readonly (string | ScopeOptions)[]
+  | null;
+
+type ScopedFindOptions = FindOptions<Document> & { scope?: DocumentScope };
+type ScopedCountOptions = Omit<CountOptions<Document>, "group"> & {
+  scope?: DocumentScope;
+};
+type AccessibleFindOptions = FindOptions<Document> & {
+  /** Set to true to include drafts. */
+  includeDrafts?: boolean;
+  /** Set to false to not load the views of the user (default: true). */
+  includeViews?: boolean;
+};
+type AccessibleCountOptions = Omit<CountOptions<Document>, "group"> & {
+  /** Set to true to include drafts. */
+  includeDrafts?: boolean;
+};
+
 interface AccessibleOptions {
   /** The transaction to load collection access in. */
   transaction?: Transaction;
   /** Set to false to include deleted collections. */
   paranoid?: boolean;
-  /** Set to false to exclude documents readable only through a membership. */
-  includeMemberships?: boolean;
+}
+
+/**
+ * Returns the model with the scope applied, or the model when there is no scope.
+ *
+ * @param model the document model.
+ * @param scope the scope, or null to remove the default scope.
+ * @returns the scoped model.
+ */
+function scopedModel(model: typeof Document, scope: DocumentScope | undefined) {
+  return scope === undefined ? model : model.scope(scope ?? undefined);
+}
+
+/**
+ * Adds the access condition for the user in the context to query options.
+ *
+ * @param ctx the context with the user and the transaction.
+ * @param options the query options.
+ * @returns a promise that resolves to the options with the access condition.
+ */
+async function withAccess<
+  T extends {
+    where?: WhereOptions<Document>;
+    paranoid?: boolean;
+    transaction?: Transaction | null;
+  },
+>(ctx: Context, options: T): Promise<T> {
+  const transaction = options.transaction ?? ctx.transaction;
+  const accessibleWhere = await Document.accessibleWhere(ctx.auth.user, {
+    transaction: transaction ?? undefined,
+    paranoid: options.paranoid,
+  });
+
+  return {
+    ...options,
+    transaction,
+    where: { [Op.and]: [options.where ?? {}, accessibleWhere] },
+  };
 }
 
 /**

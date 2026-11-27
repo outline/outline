@@ -167,7 +167,7 @@ router.post(
     const [collectionIds, accessibleWhere] = await Promise.all([
       // oxlint-disable-next-line access/no-direct-collection-ids -- Collection shares check collection access, not document access.
       user.collectionIds(),
-      Document.accessibleWhere(user, { includeMemberships: false }),
+      Document.accessibleWhere(user),
     ]);
 
     const collectionWhere: WhereAttributeHash<Share> = {

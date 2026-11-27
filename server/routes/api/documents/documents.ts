@@ -6,7 +6,7 @@ import contentDisposition from "content-disposition";
 import Router from "@koa/router";
 import { escapeRegExp, uniq } from "es-toolkit/compat";
 import mime from "mime-types";
-import type { Order, ScopeOptions, WhereOptions } from "sequelize";
+import type { Order, WhereOptions } from "sequelize";
 import type { Filter } from "@shared/helpers/FilterHelper";
 import { Op, Sequelize } from "sequelize";
 import { randomUUID } from "node:crypto";
@@ -173,10 +173,7 @@ async function expandDocumentIdLeaves(
  * @returns an array of OR-able Sequelize conditions.
  */
 async function draftVisibilityClauses(user: User): Promise<WhereOptions[]> {
-  return [
-    { createdById: user.id },
-    { id: await Document.membershipDocumentIds(user.id) },
-  ];
+  return [{ createdById: user.id }, Document.membershipWhere(user.id)];
 }
 
 router.post(
@@ -224,11 +221,8 @@ router.post(
         ? extractTopLevelEqValue(normalizedFilter, "parentDocumentId")
         : undefined);
 
-    // Membership escape: if the caller is filtering by a parent document they
-    // are a direct member of (or have group membership to), bypass the default
-    // collection access check. Mirrors the prior behavior of pushing then
-    // removing the legacy collectionId predicate.
-    let collectionScopeDropped = false;
+    // A member of the parent document may not have access to its collection, so
+    // the legacy collectionId filter is dropped for them.
     if (parentDocumentId) {
       const [groupMembership, membership] = await Promise.all([
         GroupMembership.findOne({
@@ -253,7 +247,6 @@ router.post(
       ]);
 
       if (groupMembership || membership) {
-        collectionScopeDropped = true;
         legacyCollectionId = undefined;
       }
     }
@@ -314,17 +307,9 @@ router.post(
       where[Op.and].push(buildWhere<Document>(mapped, user.teamId));
     }
 
-    if (!backlinkDocumentId && !collectionScopeDropped) {
-      where[Op.and].push(
-        await Document.accessibleWhere(user, { includeMemberships: false })
-      );
-    }
-
     if (backlinkDocumentId) {
-      const sourceDocumentIds = await Relationship.findSourceDocumentIdsForUser(
-        backlinkDocumentId,
-        user
-      );
+      const sourceDocumentIds =
+        await Relationship.findSourceDocumentIds(backlinkDocumentId);
 
       where[Op.and].push({ id: sourceDocumentIds });
     }
@@ -426,7 +411,8 @@ router.post(
     const { results: documents, pagination } = await paginateQuery(
       ctx,
       ({ offset: queryOffset, limit: queryLimit }) =>
-        Document.withMembershipScope(user.id, { includeDrafts }).findAll({
+        Document.findAllWithCtx(ctx, {
+          includeDrafts,
           where,
           order: orderClause as Order,
           offset: sort === "index" ? 0 : queryOffset,
@@ -439,10 +425,10 @@ router.post(
       // the total can be counted without them.
       async () =>
         indexTotal ??
-        (includeDrafts
-          ? Document.unscoped()
-          : Document.scope("defaultScope")
-        ).count({ where })
+        Document.countWithCtx(ctx, {
+          includeDrafts,
+          where,
+        })
     );
 
     const data = await presentDocuments(ctx, documents);
@@ -471,29 +457,22 @@ router.post(
       );
     }
 
-    const where: WhereOptions<Document> & {
-      [Op.and]: WhereOptions<Document>[];
-    } = {
-      teamId: user.teamId,
-      archivedAt: {
-        [Op.ne]: null,
-      },
-      [Op.and]: [
-        await Document.accessibleWhere(user, { includeMemberships: false }),
-      ],
-    };
-
     // if a specific collection is passed then we need to check auth to view it
     if (collectionId) {
-      where[Op.and].push({ collectionId });
       const collection = await Collection.findByPk(collectionId, {
         userId: user.id,
       });
       authorize(user, "readDocument", collection);
     }
 
-    const documents = await Document.withMembershipScope(user.id).findAll({
-      where,
+    const documents = await Document.findAllWithCtx(ctx, {
+      where: {
+        teamId: user.teamId,
+        archivedAt: {
+          [Op.ne]: null,
+        },
+        ...(collectionId && { collectionId }),
+      },
       order: [[sort, direction]],
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
@@ -518,13 +497,6 @@ router.post(
   async (ctx: Context<T.DocumentsDeletedReq>) => {
     const { sort, direction, filters: rawFilters } = ctx.input.body;
     const { user } = ctx.auth;
-    const membershipScope: Readonly<ScopeOptions> = {
-      method: ["withMembership", user.id],
-    };
-    const viewScope: Readonly<ScopeOptions> = {
-      method: ["withViews", user.id],
-    };
-
     const where: WhereOptions<Document> & {
       [Op.and]: WhereOptions<Document>[];
     } = {
@@ -533,10 +505,6 @@ router.post(
         [Op.ne]: null,
       },
       [Op.and]: [
-        await Document.accessibleWhere(user, {
-          paranoid: false,
-          includeMemberships: false,
-        }),
         {
           [Op.or]: [
             { publishedAt: { [Op.ne]: null } },
@@ -552,11 +520,8 @@ router.post(
       where[Op.and].push(buildWhere<Document>(filter, user.teamId));
     }
 
-    const documents = await Document.scope([
-      membershipScope,
-      viewScope,
-      "withDrafts",
-    ]).findAll({
+    const documents = await Document.findAllWithCtx(ctx, {
+      includeDrafts: true,
       where,
       paranoid: false,
       order: [[sort, direction]],
@@ -644,10 +609,7 @@ router.post(
       publishedAt: {
         [Op.is]: null,
       },
-      [Op.and]: [
-        await Document.accessibleWhere(user, { includeMemberships: false }),
-        ...(collectionId ? [{ collectionId }] : []),
-      ],
+      ...(collectionId && { collectionId }),
     };
 
     if (dateFilter) {
@@ -658,9 +620,8 @@ router.post(
       delete where.updatedAt;
     }
 
-    const documents = await Document.withMembershipScope(user.id, {
+    const documents = await Document.findAllWithCtx(ctx, {
       includeDrafts: true,
-    }).findAll({
       where,
       order: [[sort, direction]],
       offset: ctx.state.pagination.offset,
@@ -2339,17 +2300,15 @@ router.post(
   async (ctx: Context) => {
     const { user } = ctx.auth;
 
-    const documents = await Document.scope("withDrafts").findAll({
+    const documents = await Document.findAllWithCtx(ctx, {
+      includeDrafts: true,
+      includeViews: false,
       attributes: ["id"],
       where: {
         deletedAt: {
           [Op.ne]: null,
         },
         [Op.and]: [
-          await Document.accessibleWhere(user, {
-            paranoid: false,
-            includeMemberships: false,
-          }),
           {
             [Op.or]: [
               { publishedAt: { [Op.ne]: null } },

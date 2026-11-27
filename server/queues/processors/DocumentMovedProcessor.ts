@@ -34,7 +34,8 @@ export default class DocumentMovedProcessor extends BaseProcessor {
 
       // Load the subtree once so that the published children of each
       // membership document are found without a query per membership.
-      const documents = await Document.unscoped().findAll({
+      const documents = await Document.unsafeFindAll({
+        scope: null,
         attributes: ["id", "parentDocumentId", "publishedAt"],
         where: { id: documentIds },
         transaction,

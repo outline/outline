@@ -87,7 +87,8 @@ export default async function documentPermanentDeleter(documents: Document[]) {
   // Re-check deletedAt in the database to exclude documents that were restored
   // between the caller's query and now. Otherwise the parentDocumentId clear
   // below would detach children of a restored parent, breaking the hierarchy.
-  const stillDeleted = await Document.unscoped().findAll({
+  const stillDeleted = await Document.unsafeFindAll({
+    scope: null,
     attributes: ["id"],
     where: {
       id: documentIds,

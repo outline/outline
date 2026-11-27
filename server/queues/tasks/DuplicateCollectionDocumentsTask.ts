@@ -33,19 +33,22 @@ export default class DuplicateCollectionDocumentsTask extends BaseTask<Props> {
       return;
     }
 
-    const rootDocuments = await Document.findAll({
-      where: {
-        teamId: original.teamId,
-        collectionId: original.id,
-        parentDocumentId: {
-          [Op.is]: null,
+    const rootDocuments = await Document.findAllWithCtx(
+      createContext({ user: actor }),
+      {
+        includeViews: false,
+        where: {
+          teamId: original.teamId,
+          collectionId: original.id,
+          parentDocumentId: {
+            [Op.is]: null,
+          },
+          archivedAt: {
+            [Op.is]: null,
+          },
         },
-        archivedAt: {
-          [Op.is]: null,
-        },
-        [Op.and]: [await Document.accessibleWhere(actor)],
-      },
-    });
+      }
+    );
 
     if (!rootDocuments.length) {
       return;

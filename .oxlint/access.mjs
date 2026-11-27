@@ -31,6 +31,25 @@ function isAllowedFile(context, paths) {
   return paths.some((path) => filename.endsWith(path));
 }
 
+const FIND_METHODS = new Set(["findAll", "count", "findAndCountAll"]);
+const SCOPE_METHODS = new Set(["scope", "unscoped"]);
+const DOCUMENT_MODELS = new Set(["Document", "Template"]);
+
+/** Returns true if the node is `Document` or a scoped `Document` model. */
+function isDocumentModel(node) {
+  if (node?.type === "Identifier") {
+    return DOCUMENT_MODELS.has(node.name);
+  }
+
+  return (
+    node?.type === "CallExpression" &&
+    node.callee.type === "MemberExpression" &&
+    !node.callee.computed &&
+    SCOPE_METHODS.has(node.callee.property.name) &&
+    isDocumentModel(node.callee.object)
+  );
+}
+
 const plugin = {
   meta: {
     name: "access",
@@ -67,6 +86,43 @@ const plugin = {
         };
       },
     },
+    "no-unsafe-document-find": {
+      meta: {
+        type: "problem",
+        docs: {
+          description:
+            "Disallow Sequelize list queries on documents and templates. Use the `WithCtx` methods, or `unsafe` methods for reads that are not for a user.",
+        },
+        messages: {
+          forbidden:
+            "Use `findAllWithCtx` or `countWithCtx` so that the query only returns documents the user can read. For a read that is not for a user, use `unsafeFindAll` or `unsafeCount`.",
+        },
+      },
+      create(context) {
+        if (
+          isAllowedFile(context, [
+            "server/models/Document.ts",
+            "server/models/Template.ts",
+          ])
+        ) {
+          return {};
+        }
+
+        return {
+          CallExpression(node) {
+            const { callee } = node;
+            if (
+              callee.type === "MemberExpression" &&
+              !callee.computed &&
+              FIND_METHODS.has(callee.property.name) &&
+              isDocumentModel(callee.object)
+            ) {
+              context.report({ node: callee, messageId: "forbidden" });
+            }
+          },
+        };
+      },
+    },
     "no-raw-document-structure": {
       meta: {
         type: "problem",
@@ -83,6 +139,7 @@ const plugin = {
         if (
           isAllowedFile(context, [
             "server/models/Collection.ts",
+            "server/models/Document.ts",
             "server/commands/documentMover.ts",
             "server/queues/tasks/JSONAPIImportTask.ts",
           ])

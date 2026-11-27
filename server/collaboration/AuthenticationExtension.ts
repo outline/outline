@@ -205,7 +205,8 @@ export default class AuthenticationExtension implements Extension {
     }
 
     if (scope.collectionId && affected.length) {
-      const documents = await Document.unscoped().findAll({
+      const documents = await Document.unsafeFindAll({
+        scope: null,
         attributes: ["id"],
         where: {
           id: uniq(affected.map((item) => item.documentId)),

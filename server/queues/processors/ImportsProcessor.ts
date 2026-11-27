@@ -383,7 +383,8 @@ export default abstract class ImportsProcessor<
 
     // Documents created by this import that live in a pre-existing destination
     // (the destination itself has no apiImportId, so it survives).
-    const created = await Document.unscoped().findAll({
+    const created = await Document.unsafeFindAll({
+      scope: null,
       attributes: ["id", "collectionId", "parentDocumentId"],
       transaction,
       where: {
@@ -423,7 +424,8 @@ export default abstract class ImportsProcessor<
     // A document added below imported content after the import completed must
     // survive deletion of the import. Move each such subtree to the nearest
     // parent that was not created by this import before deleting imported rows.
-    const children = await Document.unscoped().findAll({
+    const children = await Document.unsafeFindAll({
+      scope: null,
       transaction,
       lock: transaction.LOCK.NO_KEY_UPDATE,
       where: {
