@@ -4134,6 +4134,84 @@ describe("#documents.search", () => {
       expect(returnedIds).toEqual([parentA.id, parentB.id].sort());
     });
 
+    it("should expand many documentId values with one subtree query", async () => {
+      const user = await buildUser();
+      const otherUser = await buildUser({ teamId: user.teamId });
+      const privateCollection = await buildCollection({
+        teamId: user.teamId,
+        userId: otherUser.id,
+        permission: null,
+      });
+      const secretDoc = await buildDocument({
+        teamId: user.teamId,
+        userId: otherUser.id,
+        collectionId: privateCollection.id,
+      });
+      const parents = await Promise.all(
+        [1, 2, 3].map(() =>
+          buildDocument({
+            text: "search term",
+            teamId: user.teamId,
+            userId: user.id,
+          })
+        )
+      );
+      const child = await buildDocument({
+        text: "search term",
+        teamId: user.teamId,
+        userId: user.id,
+        parentDocumentId: parents[0].id,
+        collectionId: parents[0].collectionId,
+      });
+      const querySpy = vi.spyOn(sequelize, "query");
+      const countSubtreeQueries = () =>
+        querySpy.mock.calls.filter(
+          ([sql]) => typeof sql === "string" && sql.includes("WITH RECURSIVE")
+        ).length;
+
+      try {
+        const res = await server.post("/api/documents.search", user, {
+          body: {
+            query: "search term",
+            filters: [
+              {
+                field: "documentId",
+                operator: "in",
+                value: parents.map((doc) => doc.id),
+              },
+            ],
+          },
+        });
+        const body = await res.json();
+        expect(res.status).toEqual(200);
+        const returnedIds = body.data
+          .map((r: { document: { id: string } }) => r.document.id)
+          .sort();
+        expect(returnedIds).toEqual(
+          [...parents.map((doc) => doc.id), child.id].sort()
+        );
+        expect(countSubtreeQueries()).toEqual(1);
+
+        querySpy.mockClear();
+        const denied = await server.post("/api/documents.search", user, {
+          body: {
+            query: "search term",
+            filters: [
+              {
+                field: "documentId",
+                operator: "in",
+                value: [...parents.map((doc) => doc.id), secretDoc.id],
+              },
+            ],
+          },
+        });
+        expect(denied.status).toEqual(403);
+        expect(countSubtreeQueries()).toEqual(0);
+      } finally {
+        querySpy.mockRestore();
+      }
+    });
+
     it("should reject unsupported operators for documentId", async () => {
       const user = await buildUser();
       const res = await server.post("/api/documents.search", user, {
