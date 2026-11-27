@@ -135,30 +135,37 @@ async function expandDocumentIdLeaves(
     return filter;
   }
 
-  const expandedIds = new Map<string, string[]>();
-  await Promise.all(
-    documentIds.map(async (documentId) => {
-      if ("user" in context) {
-        const document = await Document.findByPk(documentId, {
-          userId: context.user.id,
-        });
-        authorize(context.user, "read", document);
-        expandedIds.set(documentId, [
-          documentId,
-          ...(await document.findAllChildDocumentIds()),
-        ]);
-      } else {
-        const document = await Document.unscoped().findOne({
-          where: { id: documentId, teamId: context.teamId },
-        });
-        expandedIds.set(
-          documentId,
-          document
-            ? [documentId, ...(await document.findAllChildDocumentIds())]
-            : [documentId]
-        );
-      }
-    })
+  let foundIds: string[];
+  if ("user" in context) {
+    const userId = context.user.id;
+    const documents = await Document.scope([
+      "withDrafts",
+      "withoutContent",
+      { method: ["withMembership", userId] },
+    ]).findAll({ where: { id: documentIds, template: false } });
+    const documentsById = new Map(documents.map((doc) => [doc.id, doc]));
+    for (const documentId of documentIds) {
+      authorize(
+        context.user,
+        "read",
+        documentsById.get(documentId.toLowerCase())
+      );
+    }
+    foundIds = documents.map((doc) => doc.id);
+  } else {
+    const documents = await Document.unscoped().findAll({
+      attributes: ["id"],
+      where: { id: documentIds, teamId: context.teamId },
+    });
+    foundIds = documents.map((doc) => doc.id);
+  }
+
+  const childIds = await Document.findAllChildDocumentIdsByParent(foundIds);
+  const expandedIds = new Map(
+    documentIds.map((documentId) => [
+      documentId,
+      [documentId, ...(childIds.get(documentId.toLowerCase()) ?? [])],
+    ])
   );
 
   return expandDocumentIdInFilter(filter, expandedIds);

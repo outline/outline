@@ -1127,6 +1127,71 @@ class Document extends ArchivableModel<
     });
   }
 
+  /**
+   * Calculate the descendant document ids of each given parent document with
+   * one recursive query.
+   *
+   * @param parentDocumentIds the ids of the parent documents.
+   * @param where query options to further filter the documents.
+   * @param options FindOptions.
+   * @returns a promise resolving to a map of parent id to descendant ids, breadth-first.
+   */
+  static async findAllChildDocumentIdsByParent(
+    parentDocumentIds: string[],
+    where?: Omit<WhereOptions<Document>, "parentDocumentId">,
+    options?: FindOptions<Document>
+  ): Promise<Map<string, string[]>> {
+    const result = new Map<string, string[]>(
+      parentDocumentIds.map((id) => [id, []])
+    );
+    if (parentDocumentIds.length === 0) {
+      return result;
+    }
+
+    const queryGenerator = this.sequelize!.getQueryInterface()
+      .queryGenerator as QueryGeneratorWithWhere;
+
+    const paranoid = options?.paranoid ?? true;
+    const whereConditions = queryGenerator.getWhereConditions(
+      { ...(paranoid ? { deletedAt: null } : {}), ...where },
+      "documents",
+      this
+    );
+    const anchorFilter = whereConditions ? `AND (${whereConditions})` : "";
+    const recursiveFilter = whereConditions ? `WHERE (${whereConditions})` : "";
+
+    // A single recursive CTE walks every subtree in one round-trip rather
+    // than issuing one query per level of nesting (N+1). Rows are ordered by
+    // depth to ensure breadth-first result ordering. UNION ALL is safe as the
+    // tree is acyclic, so each descendant id is reached once per root.
+    const rows = await this.sequelize!.query<{ rootId: string; id: string }>(
+      `
+      WITH RECURSIVE children AS (
+        SELECT documents."parentDocumentId" AS "rootId", documents.id, 1 AS depth
+        FROM documents
+        WHERE documents."parentDocumentId" IN (:parentDocumentIds)
+          ${anchorFilter}
+        UNION ALL
+        SELECT children."rootId", documents.id, children.depth + 1
+        FROM documents
+        INNER JOIN children ON documents."parentDocumentId" = children.id
+        ${recursiveFilter}
+      )
+      SELECT "rootId", id FROM children ORDER BY depth
+      `,
+      {
+        replacements: { parentDocumentIds },
+        transaction: options?.transaction,
+        type: QueryTypes.SELECT,
+      }
+    );
+
+    for (const row of rows) {
+      result.get(row.rootId)?.push(row.id);
+    }
+    return result;
+  }
+
   // instance methods
 
   /**
@@ -1260,45 +1325,12 @@ class Document extends ArchivableModel<
     options?: FindOptions<Document>
   ): Promise<string[]> => {
     const model = this.constructor as typeof Document;
-    const queryGenerator = this.sequelize!.getQueryInterface()
-      .queryGenerator as QueryGeneratorWithWhere;
-
-    const paranoid = options?.paranoid ?? true;
-    const whereConditions = queryGenerator.getWhereConditions(
-      { ...(paranoid ? { deletedAt: null } : {}), ...where },
-      "documents",
-      model
+    const childIds = await model.findAllChildDocumentIdsByParent(
+      [this.id],
+      where,
+      options
     );
-    const anchorFilter = whereConditions ? `AND (${whereConditions})` : "";
-    const recursiveFilter = whereConditions ? `WHERE (${whereConditions})` : "";
-
-    // A single recursive CTE walks the entire subtree in one round-trip rather
-    // than issuing one query per level of nesting (N+1). Rows are ordered by
-    // depth to ensure breadth-first result ordering. UNION ALL is safe as the
-    // tree is acyclic, so each descendant id is reached exactly once.
-    const rows = await this.sequelize!.query<{ id: string }>(
-      `
-      WITH RECURSIVE children AS (
-        SELECT documents.id, 1 AS depth
-        FROM documents
-        WHERE documents."parentDocumentId" = :parentDocumentId
-          ${anchorFilter}
-        UNION ALL
-        SELECT documents.id, children.depth + 1
-        FROM documents
-        INNER JOIN children ON documents."parentDocumentId" = children.id
-        ${recursiveFilter}
-      )
-      SELECT id FROM children ORDER BY depth
-      `,
-      {
-        replacements: { parentDocumentId: this.id },
-        transaction: options?.transaction,
-        type: QueryTypes.SELECT,
-      }
-    );
-
-    return rows.map((row) => row.id);
+    return childIds.get(this.id) ?? [];
   };
 
   /**
