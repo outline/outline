@@ -8,6 +8,7 @@ import {
   buildCollection,
   buildDocument,
   buildEvent,
+  buildPersonalCollection,
   buildUser,
   buildUserPasskey,
   buildWebhookSubscription,
@@ -482,6 +483,48 @@ describe("#events.list", () => {
     // admin SHOULD see events for documents without a collection
     const eventIds = body.data.map((e: { id: string }) => e.id);
     expect(eventIds).toContain(draftEvent.id);
+  });
+
+  it("should not return events in other users' personal collections to admins", async () => {
+    const user = await buildUser();
+    const admin = await buildAdmin({ teamId: user.teamId });
+    const collection = await buildPersonalCollection(user);
+    const ownEvent = await buildEvent({
+      name: "collections.create",
+      collectionId: (await buildPersonalCollection(admin)).id,
+      teamId: user.teamId,
+      actorId: admin.id,
+    });
+    const otherEvent = await buildEvent({
+      name: "documents.delete",
+      collectionId: collection.id,
+      teamId: user.teamId,
+      actorId: user.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const revisionEvent = await buildEvent({
+      name: "revisions.create",
+      documentId: document.id,
+      collectionId: null,
+      teamId: user.teamId,
+      actorId: user.id,
+    });
+
+    for (const auditLog of [false, true]) {
+      const res = await server.post("/api/events.list", admin, {
+        body: { auditLog },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const eventIds = body.data.map((e: { id: string }) => e.id);
+      expect(eventIds).toContain(ownEvent.id);
+      expect(eventIds).not.toContain(otherEvent.id);
+      expect(eventIds).not.toContain(revisionEvent.id);
+    }
   });
 
   it("should allow non-admins to list events when collectionId is specified", async () => {
