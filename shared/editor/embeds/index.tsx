@@ -476,7 +476,7 @@ const embeds: EmbedDescriptor[] = [
     defaultHidden: true,
     visible: false,
     regexMatch: [
-      /^https:\/\/(invis\.io\/.*)|(projects\.invisionapp\.com\/share\/.*)$/,
+      /^https:\/\/(invis\.io\/.*|projects\.invisionapp\.com\/share\/.*)$/,
       /^https:\/\/(opal\.invisionapp\.com\/static-signed\/live-embed\/.*)$/,
     ],
     icon: <Img src="/images/invision.png" alt="InVision" />,
@@ -684,7 +684,7 @@ const embeds: EmbedDescriptor[] = [
     title: "Vimeo",
     keywords: "video",
     regexMatch: [
-      /(http|https)?:\/\/(www\.)?vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/([^/]*)\/videos\/|)(\d+)(?:\/|\?)?([\d\w]+)?/,
+      /^(http|https)?:\/\/(www\.)?vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/([^/]*)\/videos\/|)(\d+)(?:\/|\?)?([\d\w]+)?/,
     ],
     icon: <Img src="/images/vimeo.png" alt="Vimeo" />,
     component: Vimeo,
@@ -718,7 +718,7 @@ const embeds: EmbedDescriptor[] = [
     title: "YouTube",
     keywords: "google video",
     regexMatch: [
-      /(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?\/?.*(?:watch|embed)?(?:.*v=|v\/|\/)([a-zA-Z0-9_-]{11})([&?](.*))?$/i,
+      /^(?:https?:\/\/)?(?:www\.|m\.)?(?:youtube(?:-nocookie)?\.com|youtu\.be)(?=\/).*(?:watch|embed)?(?:.*v=|v\/|\/)([a-zA-Z0-9_-]{11})([&?](.*))?$/i,
     ],
     icon: <Img src="/images/youtube.png" alt="YouTube" />,
     component: YouTube,
@@ -728,7 +728,7 @@ const embeds: EmbedDescriptor[] = [
     title: "PlantUML",
     keywords: "plant plantuml uml",
     regexMatch: [
-      /(?:https?:\/\/)?(?:www\.)?editor\.plantuml\.com\/uml\/([a-zA-Z0-9_-]+)([&?].*)?$/i,
+      /^(?:https?:\/\/)?(?:www\.)?editor\.plantuml\.com\/uml\/([a-zA-Z0-9_-]+)([&?].*)?$/i,
     ],
     icon: <Img src="/images/plantuml.png" alt="PlantUML" />,
     component: PlantUmlDiagrams,

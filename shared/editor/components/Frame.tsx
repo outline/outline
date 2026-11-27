@@ -30,6 +30,11 @@ type Props = Omit<
   ref?: React.Ref<HTMLIFrameElement>;
 };
 
+// Pages under /embeds/ are served from our origin but run third-party scripts,
+// so they must not get allow-same-origin.
+const sandbox =
+  "allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-downloads allow-storage-access-by-user-activation";
+
 const Frame = ({
   border,
   style = {},
@@ -78,7 +83,11 @@ const Frame = ({
         <Iframe
           ref={ref}
           $showBottomBar={showBottomBar}
-          sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-downloads allow-storage-access-by-user-activation"
+          sandbox={
+            src?.startsWith("/embeds/")
+              ? sandbox
+              : `allow-same-origin ${sandbox}`
+          }
           allow="fullscreen; encrypted-media; picture-in-picture; clipboard-read; clipboard-write"
           style={style}
           frameBorder="0"
