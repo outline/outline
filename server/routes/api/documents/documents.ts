@@ -280,6 +280,7 @@ router.post(
     // pagination. Only meaningful when the filter targets a single collection.
     let documentIds: string[] = [];
     let collection: Collection | null | undefined;
+    let indexTotal: number | undefined;
     const explicitCollectionId =
       filter !== undefined
         ? extractTopLevelEqValue(filter, "collectionId")
@@ -290,8 +291,14 @@ router.post(
         includeDocumentStructure: true,
       });
       authorize(user, "readDocument", collection);
-      documentIds = (collection.documentStructure || [])
-        .slice(offset, offset + limit)
+      const structure = collection.documentStructure || [];
+      indexTotal = structure.length;
+
+      // One extra id lets client requests detect a next page.
+      documentIds = (
+        direction === "DESC" ? [...structure].reverse() : structure
+      )
+        .slice(offset, offset + limit + 1)
         .map((node) => node.id);
       where[Op.and].push({ id: documentIds });
     }
@@ -402,7 +409,7 @@ router.post(
                 Sequelize.literal(
                   `array_position(ARRAY[:documentIds]::uuid[], "document"."id")`
                 ),
-                direction,
+                "ASC",
               ],
             ]
           : undefined
@@ -437,7 +444,8 @@ router.post(
         }),
       // The membership includes are LEFT JOINs that never filter rows, so
       // the total can be counted without them.
-      () =>
+      async () =>
+        indexTotal ??
         (includeDrafts
           ? Document.unscoped()
           : Document.scope("defaultScope")

@@ -395,7 +395,7 @@ const RecentDocuments = observer(
           collectionId: collection.id,
           parentDocumentId: null,
           sort: collection.sort.field,
-          direction: collection.sort.direction,
+          direction: collection.sort.direction.toUpperCase(),
         }}
         showParentDocuments
       />
