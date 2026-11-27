@@ -189,20 +189,6 @@ export const UsersChangeRoleSchema = BaseSchema.extend({
 
 export type UsersChangeRoleReq = z.infer<typeof UsersChangeRoleSchema>;
 
-export const UsersPromoteSchema = BaseSchema.extend({
-  body: BaseIdSchema,
-});
-
-export type UsersPromoteReq = z.infer<typeof UsersPromoteSchema>;
-
-export const UsersDemoteSchema = BaseSchema.extend({
-  body: BaseIdSchema.extend({
-    to: z.enum(UserRole).prefault(UserRole.Member),
-  }),
-});
-
-export type UsersDemoteReq = z.infer<typeof UsersDemoteSchema>;
-
 export const UsersSuspendSchema = BaseSchema.extend({
   body: BaseIdSchema,
 });

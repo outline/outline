@@ -318,54 +318,6 @@ router.post(
 
 // Admin specific
 
-/**
- * Promote a user to an admin.
- *
- * @deprecated Use `users.update_role` instead.
- */
-router.post(
-  "users.promote",
-  auth({ role: UserRole.Admin }),
-  validate(T.UsersPromoteSchema),
-  transaction(),
-  (ctx: Context<T.UsersPromoteReq>) => {
-    const forward = ctx as unknown as Context<T.UsersChangeRoleReq>;
-    forward.input = {
-      ...ctx.input,
-      body: {
-        id: ctx.input.body.id,
-        role: UserRole.Admin,
-      },
-    };
-
-    return updateRole(forward);
-  }
-);
-
-/**
- * Demote a user to another role.
- *
- * @deprecated Use `users.update_role` instead.
- */
-router.post(
-  "users.demote",
-  auth({ role: UserRole.Admin }),
-  validate(T.UsersDemoteSchema),
-  transaction(),
-  (ctx: Context<T.UsersDemoteReq>) => {
-    const forward = ctx as unknown as Context<T.UsersChangeRoleReq>;
-    forward.input = {
-      ...ctx.input,
-      body: {
-        id: ctx.input.body.id,
-        role: ctx.input.body.to,
-      },
-    };
-
-    return updateRole(forward);
-  }
-);
-
 router.post(
   "users.update_role",
   auth({ role: UserRole.Admin }),
