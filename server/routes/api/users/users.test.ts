@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker";
 import { EmailDisplay, Plan, TeamPreference, UserRole } from "@shared/types";
 import ConfirmUpdateEmail from "@server/emails/templates/ConfirmUpdateEmail";
-import { Team, TeamDomain } from "@server/models";
+import { GroupUser, Team, TeamDomain } from "@server/models";
 import {
   buildTeam,
   buildAdmin,
@@ -9,6 +9,8 @@ import {
   buildUser,
   buildInvite,
   buildViewer,
+  buildGroup,
+  buildGroupUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
@@ -925,6 +927,29 @@ describe("#users.invite", () => {
     expect(res.status).toEqual(403);
   });
 
+  it("should not return emails the inviter cannot read", async () => {
+    const team = await buildTeam();
+    team.setPreference(TeamPreference.EmailDisplay, EmailDisplay.None);
+    await team.save();
+
+    const user = await buildUser({ teamId: team.id });
+    const res = await server.post("/api/users.invite", user, {
+      body: {
+        invites: [
+          {
+            email: "test@example.com",
+            name: "Test",
+            role: "member",
+          },
+        ],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.users).toHaveLength(1);
+    expect(body.data.users[0].email).toBeUndefined();
+  });
+
   it("should invite user as an admin", async () => {
     const admin = await buildAdmin();
     const res = await server.post("/api/users.invite", admin, {
@@ -1336,6 +1361,31 @@ describe("#users.update_role", () => {
     expect((await user.reload()).role).toEqual(UserRole.Guest);
   });
 
+  it("should remove group memberships when changing role to guest", async () => {
+    const planSpy = vi
+      .spyOn(Team.prototype, "plan", "get")
+      .mockReturnValue(Plan.Business);
+    onTestFinished(() => planSpy.mockRestore());
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const group = await buildGroup({ teamId: team.id });
+    await buildGroupUser({
+      groupId: group.id,
+      teamId: team.id,
+      userId: user.id,
+    });
+
+    const res = await server.post("/api/users.update_role", admin, {
+      body: {
+        id: user.id,
+        role: UserRole.Guest,
+      },
+    });
+    expect(res.status).toEqual(200);
+    expect(await GroupUser.count({ where: { userId: user.id } })).toEqual(0);
+  });
+
   it("should promote", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
@@ -1407,100 +1457,32 @@ describe("#users.update_role", () => {
     });
     expect(res.status).toEqual(403);
   });
-});
 
-describe("#users.promote", () => {
-  it("should promote a new admin", async () => {
-    const team = await buildTeam();
-    const admin = await buildAdmin({ teamId: team.id });
-    const user = await buildUser({ teamId: team.id });
-
-    const res = await server.post("/api/users.promote", admin, {
-      body: {
-        id: user.id,
-      },
-    });
-    expect(res.status).toEqual(200);
-  });
-
-  it("should require admin", async () => {
-    const user = await buildUser();
-    const res = await server.post("/api/users.promote", user, {
-      body: {
-        id: user.id,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(403);
-    expect(body).toMatchSnapshot();
-  });
-});
-
-describe("#users.demote", () => {
-  it("should demote an admin", async () => {
-    const team = await buildTeam();
-    const admin = await buildAdmin({ teamId: team.id });
-    const user = await buildAdmin({ teamId: team.id });
-
-    const res = await server.post("/api/users.demote", admin, {
-      body: {
-        id: user.id,
-      },
-    });
-    expect(res.status).toEqual(200);
-  });
-
-  it("should demote an admin to viewer", async () => {
-    const team = await buildTeam();
-    const admin = await buildAdmin({ teamId: team.id });
-    const user = await buildAdmin({ teamId: team.id });
-
-    const res = await server.post("/api/users.demote", admin, {
-      body: {
-        id: user.id,
-        to: "viewer",
-      },
-    });
-    expect(res.status).toEqual(200);
-  });
-
-  it("should demote an admin to member", async () => {
-    const team = await buildTeam();
-    const admin = await buildAdmin({ teamId: team.id });
-    const user = await buildAdmin({ teamId: team.id });
-
-    const res = await server.post("/api/users.demote", admin, {
-      body: {
-        id: user.id,
-        to: "member",
-      },
-    });
-    expect(res.status).toEqual(200);
-  });
-
-  it("should not allow demoting self", async () => {
+  it("should not allow changing own role", async () => {
     const admin = await buildAdmin();
     await buildAdmin({ teamId: admin.teamId });
-    const res = await server.post("/api/users.demote", admin, {
+
+    const res = await server.post("/api/users.update_role", admin, {
       body: {
         id: admin.id,
+        role: UserRole.Member,
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body).toMatchSnapshot();
+    expect(body.message).toEqual("You cannot change your own role");
   });
 
   it("should require admin", async () => {
     const user = await buildUser();
-    const res = await server.post("/api/users.promote", user, {
+
+    const res = await server.post("/api/users.update_role", user, {
       body: {
         id: user.id,
+        role: UserRole.Admin,
       },
     });
-    const body = await res.json();
     expect(res.status).toEqual(403);
-    expect(body).toMatchSnapshot();
   });
 });
 

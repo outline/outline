@@ -16,8 +16,6 @@ const props = {
   },
 };
 
-vi.setConfig({ testTimeout: 30000 });
-
 const daysAgo = (n: number) => subDays(new Date(), n);
 const dayStr = (d: Date) => format(d, "yyyy-MM-dd");
 

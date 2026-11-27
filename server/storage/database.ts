@@ -1,6 +1,11 @@
 import cluster from "node:cluster";
 import path from "node:path";
-import { DatabaseError, UniqueConstraintError } from "sequelize";
+import {
+  ConnectionAcquireTimeoutError,
+  ConnectionError,
+  DatabaseError,
+  UniqueConstraintError,
+} from "sequelize";
 import type {
   InferAttributes,
   InferCreationAttributes,
@@ -16,6 +21,7 @@ import env from "@server/env";
 import { ClientClosedRequestError } from "@server/errors";
 import type Model from "@server/models/base/Model";
 import Logger from "../logging/Logger";
+import Metrics from "../logging/Metrics";
 import * as models from "../models";
 import { requestContext } from "./requestContext";
 import { getConnectionName } from "./utils";
@@ -48,6 +54,18 @@ function getDatabaseConfig() {
 
 /** Postgres error codes for `query_canceled` and `lock_not_available`. */
 const QueryCanceledErrorCodes = ["57014", "55P03"];
+
+/** Postgres error code for a write in a read-only transaction. */
+const ReadOnlyErrorCode = "25006";
+
+/**
+ * Postgres error codes for a server that is shutting down or starting, in
+ * addition to the connection exception (`08`) class.
+ */
+const UnavailableErrorCodes = ["57P01", "57P02", "57P03"];
+
+/** Message of the pg driver when the server closes the connection mid-query. */
+const ConnectionTerminatedMessage = "Connection terminated unexpectedly";
 
 /** Headroom between the statement timeout and the HTTP request timeout. */
 const StatementTimeoutMargin = 500;
@@ -101,13 +119,71 @@ const statementTimeout =
  * @returns true if the query was canceled by the database.
  */
 export function isQueryCanceledError(err: unknown): boolean {
-  return (
+  const code = databaseErrorCode(err);
+  return !!code && QueryCanceledErrorCodes.includes(code);
+}
+
+/**
+ * Whether an error was caused by a write while the database is read-only, for
+ * example during maintenance. Reads continue to work in this state.
+ *
+ * @param err the error to inspect.
+ * @returns true if the database rejected a write because it is read-only.
+ */
+export function isDatabaseReadOnlyError(err: unknown): boolean {
+  return databaseErrorCode(err) === ReadOnlyErrorCode;
+}
+
+/**
+ * Whether an error was caused by the database being temporarily unavailable
+ * for reads and writes, for example while it restarts during maintenance.
+ *
+ * @param err the error to inspect.
+ * @returns true if the database could not run the query.
+ */
+export function isDatabaseUnavailableError(err: unknown): boolean {
+  if (err instanceof ConnectionAcquireTimeoutError) {
+    return false;
+  }
+  if (err instanceof ConnectionError) {
+    return true;
+  }
+  if (
     err instanceof DatabaseError &&
-    !!err.parent &&
-    "code" in err.parent &&
-    typeof err.parent.code === "string" &&
-    QueryCanceledErrorCodes.includes(err.parent.code)
+    err.parent?.message === ConnectionTerminatedMessage
+  ) {
+    return true;
+  }
+
+  const code = databaseErrorCode(err);
+  return (
+    !!code && (UnavailableErrorCodes.includes(code) || code.startsWith("08"))
   );
+}
+
+/**
+ * Runs an optional write, such as an activity timestamp, and skips it when the
+ * database is read-only or unavailable so that the operation which triggered it
+ * can continue.
+ *
+ * @param fn the function that performs the write.
+ * @returns a promise that resolves when the write completes or is skipped.
+ * @throws any error that is not caused by the database state.
+ */
+export async function optionalWrite(fn: () => Promise<unknown>): Promise<void> {
+  try {
+    await fn();
+  } catch (err) {
+    if (isDatabaseReadOnlyError(err)) {
+      Metrics.increment("database.read_only", { source: "optional_write" });
+      return;
+    }
+    if (isDatabaseUnavailableError(err)) {
+      Metrics.increment("database.unavailable", { source: "optional_write" });
+      return;
+    }
+    throw err;
+  }
 }
 
 /**
@@ -426,3 +502,19 @@ export const migrations = createMigrationRunner(sequelize, [
   "migrations/*.js",
   { cwd: path.resolve("server") },
 ]);
+
+/**
+ * Reads the SQLSTATE code from the driver error that a DatabaseError wraps.
+ *
+ * @param err the error to inspect.
+ * @returns the SQLSTATE code, or undefined if there is none.
+ */
+function databaseErrorCode(err: unknown): string | undefined {
+  if (!(err instanceof DatabaseError) || !err.parent) {
+    return undefined;
+  }
+  const { parent } = err;
+  return "code" in parent && typeof parent.code === "string"
+    ? parent.code
+    : undefined;
+}

@@ -4,9 +4,9 @@ import fs from "fs-extra";
 import invariant from "invariant";
 import contentDisposition from "content-disposition";
 import Router from "@koa/router";
-import { escapeRegExp, has, remove, uniq } from "es-toolkit/compat";
+import { escapeRegExp, uniq } from "es-toolkit/compat";
 import mime from "mime-types";
-import type { Order, ScopeOptions, WhereOptions } from "sequelize";
+import type { Order, WhereOptions } from "sequelize";
 import type { Filter } from "@shared/helpers/FilterHelper";
 import { Op, Sequelize } from "sequelize";
 import { randomUUID } from "node:crypto";
@@ -81,7 +81,7 @@ import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import TextBundleHelper from "@server/models/helpers/TextBundleHelper";
 import SearchProviderManager from "@server/utils/SearchProviderManager";
 import { TextHelper } from "@server/models/helpers/TextHelper";
-import { authorize, cannot } from "@server/policies";
+import { authorize, can, cannot } from "@server/policies";
 import {
   presentDocument,
   presentDocumentInsight,
@@ -97,10 +97,11 @@ import {
 import DocumentImportTask from "@server/queues/tasks/DocumentImportTask";
 import EmptyTrashTask from "@server/queues/tasks/EmptyTrashTask";
 import FileStorage from "@server/storage/files";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
+import { toHookContext } from "@server/context";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { convertBareUrlsToEmbedMarkdown } from "@server/utils/embeds";
-import { streamZipResponse } from "@server/utils/koa";
+import { getClientAbortSignal, streamZipResponse } from "@server/utils/koa";
 import { QueryHelper } from "@server/storage/QueryHelper";
 import { getTeamFromContext } from "@server/utils/passport";
 import pagination, { paginateQuery } from "../middlewares/pagination";
@@ -172,10 +173,7 @@ async function expandDocumentIdLeaves(
  * @returns an array of OR-able Sequelize conditions.
  */
 async function draftVisibilityClauses(user: User): Promise<WhereOptions[]> {
-  return [
-    { createdById: user.id },
-    { id: await Document.membershipDocumentIds(user.id) },
-  ];
+  return [{ createdById: user.id }, Document.membershipWhere(user.id)];
 }
 
 router.post(
@@ -184,7 +182,7 @@ router.post(
   auth(),
   pagination(),
   validate(T.DocumentsListSchema),
-  async (ctx: APIContext<T.DocumentsListReq>) => {
+  async (ctx: Context<T.DocumentsListReq>) => {
     const {
       sort,
       direction,
@@ -198,11 +196,10 @@ router.post(
     const { offset, limit } = ctx.state.pagination;
 
     // always filter by the current team
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     const where: WhereOptions<Document> & {
       [Op.and]: WhereOptions<Document>[];
     } = {
-      teamId: user.teamId,
       [Op.and]: [
         {
           deletedAt: {
@@ -223,11 +220,8 @@ router.post(
         ? extractTopLevelEqValue(normalizedFilter, "parentDocumentId")
         : undefined);
 
-    // Membership escape: if the caller is filtering by a parent document they
-    // are a direct member of (or have group membership to), bypass the default
-    // collection access check. Mirrors the prior behavior of pushing then
-    // removing the legacy collectionId predicate.
-    let collectionScopeDropped = false;
+    // A member of the parent document may not have access to its collection, so
+    // the legacy collectionId filter is dropped for them.
     if (parentDocumentId) {
       const [groupMembership, membership] = await Promise.all([
         GroupMembership.findOne({
@@ -252,7 +246,6 @@ router.post(
       ]);
 
       if (groupMembership || membership) {
-        collectionScopeDropped = true;
         legacyCollectionId = undefined;
       }
     }
@@ -279,6 +272,7 @@ router.post(
     // pagination. Only meaningful when the filter targets a single collection.
     let documentIds: string[] = [];
     let collection: Collection | null | undefined;
+    let indexTotal: number | undefined;
     const explicitCollectionId =
       filter !== undefined
         ? extractTopLevelEqValue(filter, "collectionId")
@@ -289,8 +283,14 @@ router.post(
         includeDocumentStructure: true,
       });
       authorize(user, "readDocument", collection);
-      documentIds = (collection.documentStructure || [])
-        .slice(offset, offset + limit)
+      const structure = await collection.structureFor(user);
+      indexTotal = structure.length;
+
+      // One extra id lets client requests detect a next page.
+      documentIds = (
+        direction === "DESC" ? [...structure].reverse() : structure
+      )
+        .slice(offset, offset + limit + 1)
         .map((node) => node.id);
       where[Op.and].push({ id: documentIds });
     }
@@ -303,37 +303,14 @@ router.post(
         collections: collection ? [collection] : undefined,
       });
       const mapped = mapFilterFields(filter, { documentId: "id" });
-      where[Op.and].push(buildWhere<Document>(mapped));
+      where[Op.and].push(buildWhere<Document>(mapped, user.teamId));
     }
-
-    if (!backlinkDocumentId && !collectionScopeDropped) {
-      const collectionIds = await user.collectionIds();
-      where[Op.and].push({
-        [Op.or]: [
-          { collectionId: collectionIds },
-          { collectionId: null, createdById: user.id },
-          // Restricted documents the user can access through a direct or group
-          // membership are included regardless of collection access.
-          ...(user.isAdmin
-            ? []
-            : [{ id: { [Op.in]: Document.restrictedDocumentIdsQuery(user) } }]),
-        ],
-      });
-    }
-
-    // Exclude restricted documents the user cannot access
-    where[Op.and].push(Document.restrictionsWhere(user));
 
     if (backlinkDocumentId) {
-      const sourceDocumentIds = await Relationship.findSourceDocumentIdsForUser(
-        backlinkDocumentId,
-        user
-      );
+      const sourceDocumentIds =
+        await Relationship.findSourceDocumentIds(backlinkDocumentId);
 
       where[Op.and].push({ id: sourceDocumentIds });
-
-      // For safety, ensure the collectionId is not set in the query.
-      remove(where[Op.and], (cond) => has(cond, "collectionId"));
     }
 
     // A filter referencing publishedAt can surface drafts (the replacement
@@ -409,7 +386,7 @@ router.post(
                 Sequelize.literal(
                   `array_position(ARRAY[:documentIds]::uuid[], "document"."id")`
                 ),
-                direction,
+                "ASC",
               ],
             ]
           : undefined
@@ -433,7 +410,8 @@ router.post(
     const { results: documents, pagination } = await paginateQuery(
       ctx,
       ({ offset: queryOffset, limit: queryLimit }) =>
-        Document.withMembershipScope(user.id, { includeDrafts }).findAll({
+        Document.findAllWithCtx(ctx, {
+          includeDrafts,
           where,
           order: orderClause as Order,
           offset: sort === "index" ? 0 : queryOffset,
@@ -444,11 +422,12 @@ router.post(
         }),
       // The membership includes are LEFT JOINs that never filter rows, so
       // the total can be counted without them.
-      () =>
-        (includeDrafts
-          ? Document.unscoped()
-          : Document.scope("defaultScope")
-        ).count({ where })
+      async () =>
+        indexTotal ??
+        Document.countWithCtx(ctx, {
+          includeDrafts,
+          where,
+        })
     );
 
     const data = await presentDocuments(ctx, documents);
@@ -467,9 +446,9 @@ router.post(
   auth({ role: UserRole.Member }),
   pagination(),
   validate(T.DocumentsArchivedSchema),
-  async (ctx: APIContext<T.DocumentsArchivedReq>) => {
+  async (ctx: Context<T.DocumentsArchivedReq>) => {
     const { sort, direction, collectionId } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     if (sort === "index") {
       throw ValidationError(
@@ -477,32 +456,21 @@ router.post(
       );
     }
 
-    let where: WhereOptions<Document> = {
-      teamId: user.teamId,
-      archivedAt: {
-        [Op.ne]: null,
-      },
-    };
-
     // if a specific collection is passed then we need to check auth to view it
     if (collectionId) {
-      where = { ...where, collectionId };
       const collection = await Collection.findByPk(collectionId, {
         userId: user.id,
       });
       authorize(user, "readDocument", collection);
-
-      // otherwise, filter by all collections the user has access to
-    } else {
-      const collectionIds = await user.collectionIds();
-      where = {
-        ...where,
-        collectionId: collectionIds,
-      };
     }
 
-    const documents = await Document.withMembershipScope(user.id).findAll({
-      where,
+    const documents = await Document.findAllWithCtx(ctx, {
+      where: {
+        archivedAt: {
+          [Op.ne]: null,
+        },
+        ...(collectionId && { collectionId }),
+      },
       order: [[sort, direction]],
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
@@ -524,42 +492,16 @@ router.post(
   auth({ role: UserRole.Member }),
   pagination(),
   validate(T.DocumentsDeletedSchema),
-  async (ctx: APIContext<T.DocumentsDeletedReq>) => {
+  async (ctx: Context<T.DocumentsDeletedReq>) => {
     const { sort, direction, filters: rawFilters } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const collectionIds = await user.collectionIds({
-      paranoid: false,
-    });
-    const membershipScope: Readonly<ScopeOptions> = {
-      method: ["withMembership", user.id],
-    };
-    const viewScope: Readonly<ScopeOptions> = {
-      method: ["withViews", user.id],
-    };
-
+    const { user } = ctx.auth;
     const where: WhereOptions<Document> & {
       [Op.and]: WhereOptions<Document>[];
     } = {
-      teamId: user.teamId,
       deletedAt: {
         [Op.ne]: null,
       },
       [Op.and]: [
-        {
-          [Op.or]: [
-            {
-              collectionId: {
-                [Op.in]: collectionIds,
-              },
-            },
-            {
-              createdById: user.id,
-              collectionId: {
-                [Op.is]: null,
-              },
-            },
-          ],
-        },
         {
           [Op.or]: [
             { publishedAt: { [Op.ne]: null } },
@@ -572,14 +514,11 @@ router.post(
     const filter = combineFilters(rawFilters);
     if (filter) {
       await authorizeFilterFields(user, filter);
-      where[Op.and].push(buildWhere<Document>(filter));
+      where[Op.and].push(buildWhere<Document>(filter, user.teamId));
     }
 
-    const documents = await Document.scope([
-      membershipScope,
-      viewScope,
-      "withDrafts",
-    ]).findAll({
+    const documents = await Document.findAllWithCtx(ctx, {
+      includeDrafts: true,
       where,
       paranoid: false,
       order: [[sort, direction]],
@@ -602,9 +541,9 @@ router.post(
   auth(),
   pagination(),
   validate(T.DocumentsViewedSchema),
-  async (ctx: APIContext<T.DocumentsViewedReq>) => {
+  async (ctx: Context<T.DocumentsViewedReq>) => {
     const { sort, direction } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     const viewIds = await View.findAccessibleIds(user, {
       sort,
       direction,
@@ -650,9 +589,9 @@ router.post(
   auth(),
   pagination(),
   validate(T.DocumentsDraftsSchema),
-  async (ctx: APIContext<T.DocumentsDraftsReq>) => {
+  async (ctx: Context<T.DocumentsDraftsReq>) => {
     const { collectionId, dateFilter, direction, sort } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     if (collectionId) {
       const collection = await Collection.findByPk(collectionId, {
@@ -661,18 +600,12 @@ router.post(
       authorize(user, "readDocument", collection);
     }
 
-    const collectionIds = collectionId
-      ? [collectionId]
-      : await user.collectionIds();
     const where: WhereOptions = {
-      teamId: user.teamId,
       createdById: user.id,
-      collectionId: {
-        [Op.or]: [{ [Op.in]: collectionIds }, { [Op.is]: null }],
-      },
       publishedAt: {
         [Op.is]: null,
       },
+      ...(collectionId && { collectionId }),
     };
 
     if (dateFilter) {
@@ -683,9 +616,8 @@ router.post(
       delete where.updatedAt;
     }
 
-    const documents = await Document.withMembershipScope(user.id, {
+    const documents = await Document.findAllWithCtx(ctx, {
       includeDrafts: true,
-    }).findAll({
       where,
       order: [[sort, direction]],
       offset: ctx.state.pagination.offset,
@@ -706,9 +638,9 @@ router.post(
   "documents.info",
   auth({ optional: true }),
   validate(T.DocumentsInfoSchema),
-  async (ctx: APIContext<T.DocumentsInfoReq>) => {
+  async (ctx: Context<T.DocumentsInfoReq>) => {
     const { id, shareId } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     const apiVersion = getAPIVersion(ctx);
 
     let document: Document | null;
@@ -789,9 +721,9 @@ router.post(
   "documents.insights",
   auth(),
   validate(T.DocumentsInsightsSchema),
-  async (ctx: APIContext<T.DocumentsInsightsReq>) => {
+  async (ctx: Context<T.DocumentsInsightsReq>) => {
     const { id, startDate, endDate } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const document = await Document.findByPk(id, {
       userId: user.id,
@@ -828,14 +760,15 @@ router.post(
   auth(),
   pagination(),
   validate(T.DocumentsUsersSchema),
-  async (ctx: APIContext<T.DocumentsUsersReq>) => {
+  async (ctx: Context<T.DocumentsUsersReq>) => {
     const { id, userId, query } = ctx.input.body;
-    const actor = ctx.state.auth.user;
+    const actor = ctx.auth.user;
     const document = await Document.findByPk(id, {
       userId: actor.id,
       includeContent: false,
     });
     authorize(actor, "read", document);
+    authorize(actor, "listUsers", actor.team);
 
     let where: WhereOptions<User> = {
       teamId: document.teamId,
@@ -912,9 +845,9 @@ router.post(
   "documents.documents",
   auth(),
   validate(T.DocumentsChildrenSchema),
-  async (ctx: APIContext<T.DocumentsChildrenReq>) => {
+  async (ctx: Context<T.DocumentsChildrenReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     const document = await Document.findByPk(id, {
       userId: user.id,
       includeContent: false,
@@ -928,17 +861,9 @@ router.post(
       const collection = await Collection.findByPk(document.collectionId, {
         includeDocumentStructure: true,
       });
-      documentTree = collection?.getDocumentTree(document.id) ?? undefined;
-
-      // Filter restricted subtrees the user cannot access
-      if (documentTree) {
-        const [filtered] = await Collection.filterRestrictedNodes(
-          [documentTree],
-          user,
-          document.collectionId
-        );
-        documentTree = filtered;
-      }
+      [documentTree] =
+        (await collection?.structureFor(user, { documentId: document.id })) ??
+        [];
     }
 
     ctx.body = {
@@ -952,9 +877,9 @@ router.post(
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
   validate(T.DocumentsExportSchema),
-  async (ctx: APIContext<T.DocumentsExportReq>) => {
+  async (ctx: Context<T.DocumentsExportReq>) => {
     const { id, signedUrls, includeChildDocuments } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     const accept = ctx.request.headers["accept"];
 
     const document = await documentLoader({
@@ -1055,28 +980,44 @@ router.post(
         })
       : [];
 
-    // Read attachments and, when exporting HTML, inline small images that are
-    // referenced a single time as base64 data URIs. Any remaining attachments
-    // are bundled alongside the document in a zip.
-    const externalAttachments: { attachment: Attachment; buffer: Buffer }[] =
-      [];
+    // When exporting HTML, inline small images that are referenced a single
+    // time as base64 data URIs. Only these are read into memory; the other
+    // attachments are streamed into a zip with the document.
+    const signal = getClientAbortSignal(ctx.res);
+    const externalAttachments: Attachment[] = [];
+    let inlinedSize = 0;
     for (const attachment of attachments) {
-      const buffer = await AttachmentHelper.readBuffer(attachment);
+      if (signal.aborted) {
+        return;
+      }
 
-      if (contentType === "text/html") {
+      if (
+        contentType === "text/html" &&
+        HTMLHelper.canInlineImage(
+          content,
+          attachment.redirectUrl,
+          attachment.contentType,
+          // BIGINT columns are returned as strings.
+          Number(attachment.size),
+          inlinedSize
+        )
+      ) {
+        const buffer = await AttachmentHelper.readBuffer(attachment);
         const inlined = HTMLHelper.inlineImage(
           content,
           attachment.redirectUrl,
           attachment.contentType,
-          buffer
+          buffer,
+          inlinedSize
         );
         if (inlined !== null) {
           content = inlined;
+          inlinedSize += buffer.length;
           continue;
         }
       }
 
-      externalAttachments.push({ attachment, buffer });
+      externalAttachments.push(attachment);
     }
 
     if (isTextBundle) {
@@ -1086,15 +1027,18 @@ router.post(
       streamZipResponse(
         ctx,
         `${fileName}.${TextBundleHelper.packExtension}`,
-        (zip) => {
-          for (const { attachment, buffer } of externalAttachments) {
+        (zip, zipSignal) => {
+          for (const attachment of externalAttachments) {
             const reference = TextBundleHelper.assetPath(
               attachment.name,
               usedAssetNames
             );
-            zip.addBuffer(buffer, path.join(root, reference), {
-              mtime: attachment.updatedAt,
-            });
+            AttachmentHelper.addToArchive(
+              zip,
+              attachment,
+              path.join(root, reference),
+              zipSignal
+            );
 
             content = content.replace(
               new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
@@ -1131,13 +1075,13 @@ router.post(
       return;
     }
 
-    streamZipResponse(ctx, `${fileName}.zip`, (zip) => {
-      for (const { attachment, buffer } of externalAttachments) {
+    streamZipResponse(ctx, `${fileName}.zip`, (zip, zipSignal) => {
+      for (const attachment of externalAttachments) {
         const location = path.join(
           "attachments",
           `${attachment.id}.${mime.extension(attachment.contentType)}`
         );
-        zip.addBuffer(buffer, location, { mtime: attachment.updatedAt });
+        AttachmentHelper.addToArchive(zip, attachment, location, zipSignal);
 
         content = content.replace(
           new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
@@ -1158,10 +1102,10 @@ router.post(
   rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsRestoreSchema),
   transaction(),
-  async (ctx: APIContext<T.DocumentsRestoreReq>) => {
+  async (ctx: Context<T.DocumentsRestoreReq>) => {
     const { id, collectionId, revisionId } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
     const document = await Document.findByPk(id, {
       userId: user.id,
       paranoid: false,
@@ -1184,12 +1128,12 @@ router.post(
   pagination(),
   rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsSearchTitlesSchema),
-  async (ctx: APIContext<T.DocumentsSearchTitlesReq>) => {
+  async (ctx: Context<T.DocumentsSearchTitlesReq>) => {
     const { query, sort, direction, filters: rawFilters } = ctx.input.body;
     const { collectionId, userId, documentId, statusFilter, dateFilter } =
       ctx.input.body;
     const { offset, limit } = ctx.state.pagination;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     const filter =
       combineFilters(rawFilters) ??
       legacyParamsToFilter({
@@ -1234,7 +1178,7 @@ router.post(
   pagination(),
   rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsSearchSchema),
-  async (ctx: APIContext<T.DocumentsSearchReq>) => {
+  async (ctx: Context<T.DocumentsSearchReq>) => {
     const {
       query,
       shareId,
@@ -1256,7 +1200,7 @@ router.post(
         dateFilter,
       });
     const { offset, limit } = ctx.state.pagination;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     let teamId;
     let response;
@@ -1377,7 +1321,7 @@ router.post(
             shareId: share?.id,
             // auth.type values are a subset of search sources; unauthenticated share searches default to "app"
             source:
-              (ctx.state.auth.type as unknown as SearchQuerySource) ||
+              (ctx.auth.type as unknown as SearchQuerySource) ||
               SearchQuerySource.App,
             query,
             results: total,
@@ -1400,10 +1344,10 @@ router.post(
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   validate(T.DocumentsTemplatizeSchema),
   transaction(),
-  async (ctx: APIContext<T.DocumentsTemplatizeReq>) => {
+  async (ctx: Context<T.DocumentsTemplatizeReq>) => {
     const { id, collectionId, publish } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const original = await Document.findByPk(id, {
       userId: user.id,
@@ -1412,8 +1356,10 @@ router.post(
 
     authorize(user, "update", original);
 
+    let collection: Collection | null = null;
+
     if (collectionId) {
-      const collection = await Collection.findByPk(collectionId, {
+      collection = await Collection.findByPk(collectionId, {
         userId: user.id,
         transaction,
       });
@@ -1424,7 +1370,7 @@ router.post(
 
     const template = await Template.createWithCtx(ctx, {
       editorVersion: original.editorVersion,
-      collectionId,
+      collectionId: collection?.id,
       teamId: user.teamId,
       publishedAt: publish ? new Date() : null,
       lastModifiedById: user.id,
@@ -1455,8 +1401,8 @@ router.post(
   rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsUpdateSchema),
   transaction(),
-  async (ctx: APIContext<T.DocumentsUpdateReq>) => {
-    const { transaction } = ctx.state;
+  async (ctx: Context<T.DocumentsUpdateReq>) => {
+    const { transaction } = ctx;
     const { id, insightsEnabled, publish, collectionId, isPrivate, ...input } =
       ctx.input.body;
     const updatingDeprecatedReason =
@@ -1466,7 +1412,7 @@ router.post(
       );
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
 
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     let collection: Collection | null | undefined;
 
     let document = await Document.findByPk(id, {
@@ -1534,6 +1480,10 @@ router.post(
       }
     }
 
+    if (input.ownerIds) {
+      authorize(user, "manageOwners", document);
+    }
+
     if (publish) {
       await authorizeDocumentPublish(ctx, document, collectionId);
     }
@@ -1568,11 +1518,11 @@ router.post(
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   validate(T.DocumentsDuplicateSchema),
   transaction(),
-  async (ctx: APIContext<T.DocumentsDuplicateReq>) => {
-    const { transaction } = ctx.state;
+  async (ctx: Context<T.DocumentsDuplicateReq>) => {
+    const { transaction } = ctx;
     const { id, title, publish, recursive, collectionId, parentDocumentId } =
       ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const document = await Document.findByPk(id, {
       userId: user.id,
@@ -1617,7 +1567,7 @@ router.post(
 
       // The copy is created in the destination collection, so create permission
       // is required there rather than on the source.
-      if (collection) {
+      if (collectionId || collection) {
         authorize(user, "createDocument", collection);
       }
     }
@@ -1646,11 +1596,11 @@ router.post(
   rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsMoveSchema),
   transaction(),
-  async (ctx: APIContext<T.DocumentsMoveReq>) => {
-    const { transaction } = ctx.state;
+  async (ctx: Context<T.DocumentsMoveReq>) => {
+    const { transaction } = ctx;
     const { id, parentDocumentId, index } = ctx.input.body;
     let collectionId = ctx.input.body.collectionId;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     const document = await Document.findByPk(id, {
       userId: user.id,
       transaction,
@@ -1702,10 +1652,10 @@ router.post(
   rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsArchiveSchema),
   transaction(),
-  async (ctx: APIContext<T.DocumentsArchiveReq>) => {
+  async (ctx: Context<T.DocumentsArchiveReq>) => {
     const { id, reason } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const document = await Document.findByPk(id, {
       userId: user.id,
@@ -1733,10 +1683,10 @@ router.post(
   rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsDeleteSchema),
   transaction(),
-  async (ctx: APIContext<T.DocumentsDeleteReq>) => {
-    const { transaction } = ctx.state;
+  async (ctx: Context<T.DocumentsDeleteReq>) => {
+    const { transaction } = ctx;
     const { id, permanent, reason } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     if (permanent) {
       const document = await Document.findByPk(id, {
@@ -1782,9 +1732,9 @@ router.post(
   rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsUnpublishSchema),
   transaction(),
-  async (ctx: APIContext<T.DocumentsUnpublishReq>) => {
+  async (ctx: Context<T.DocumentsUnpublishReq>) => {
     const { id, detach } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const document = await Document.findByPk(id, {
       userId: user.id,
@@ -1809,10 +1759,10 @@ router.post(
     optional: true,
   }),
   validate(T.DocumentsImportSchema),
-  async (ctx: APIContext<T.DocumentsImportReq>) => {
+  async (ctx: Context<T.DocumentsImportReq>) => {
     const { collectionId, parentDocumentId, publish, attachmentId } =
       ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     if (!attachmentId && !ctx.input.file) {
       throw ValidationError("one of attachmentId or file is required");
@@ -1830,6 +1780,11 @@ router.post(
     if (attachmentId) {
       const attachment = await Attachment.findByPk(attachmentId);
       authorize(user, "read", attachment);
+
+      // The import task deletes the file, so only accept temporary import uploads.
+      if (!attachment.expiresAt) {
+        throw ValidationError("Attachment is not an import upload");
+      }
 
       key = attachment.key;
       fileName = attachment.name;
@@ -1865,7 +1820,7 @@ router.post(
       collectionId: collection?.id,
       parentDocumentId,
       publish,
-      authType: ctx.state.auth.type,
+      authType: ctx.auth.type,
       ip: ctx.request.ip,
     });
 
@@ -1882,7 +1837,7 @@ router.post(
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   validate(T.DocumentsCreateSchema),
   transaction(),
-  async (ctx: APIContext<T.DocumentsCreateReq>) => {
+  async (ctx: Context<T.DocumentsCreateReq>) => {
     const {
       id,
       title,
@@ -1897,11 +1852,12 @@ router.post(
       preferences,
       templateId,
       createdAt,
+      ownerIds,
     } = ctx.input.body;
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
 
-    const { transaction } = ctx.state;
-    const { user } = ctx.state.auth;
+    const { transaction } = ctx;
+    const { user } = ctx.auth;
 
     const { collection } = await authorizeDocumentCreate(ctx, {
       collectionId,
@@ -1942,6 +1898,7 @@ router.post(
       fullWidth,
       preferences,
       editorVersion,
+      ownerIds,
     });
 
     if (collection) {
@@ -1961,12 +1918,14 @@ router.post(
   validate(T.DocumentsAddUserSchema),
   rateLimiter(RateLimiterStrategy.OneHundredPerHour),
   transaction(),
-  async (ctx: APIContext<T.DocumentsAddUserReq>) => {
-    const { transaction } = ctx.state;
-    const { user: actor } = ctx.state.auth;
-    const { id, userId, permission } = ctx.input.body;
+  async (ctx: Context<T.DocumentsAddUserReq>) => {
+    const { transaction } = ctx;
+    const { user: actor } = ctx.auth;
+    const { id, userId, permission, owner } = ctx.input.body;
 
-    if (userId === actor.id) {
+    // Users can only change their own ownership, not their own access.
+    const isSelf = userId === actor.id;
+    if (isSelf && owner === undefined) {
       throw ValidationError("You cannot invite yourself");
     }
 
@@ -1984,6 +1943,47 @@ router.post(
 
     authorize(actor, "manageUsers", document);
     authorize(actor, "read", user);
+
+    const previousOwnerIds = document.ownerIds ?? [];
+
+    if (isSelf && !owner) {
+      await document.removeOwner(ctx, userId);
+      const selfMembership = await UserMembership.findOne({
+        where: { documentId: document.id, userId },
+        transaction,
+      });
+
+      ctx.body = {
+        data: {
+          users: [presentUser(user)],
+          memberships: selfMembership
+            ? [presentMembership(selfMembership)]
+            : [],
+          documents: [await presentDocument(ctx, document)],
+        },
+      };
+      return;
+    }
+
+    if (owner) {
+      authorize(actor, "manageOwners", document);
+      await document.addOwner(ctx, userId);
+
+      const membership = await UserMembership.findOne({
+        where: { documentId: document.id, userId },
+        transaction,
+        rejectOnEmpty: true,
+      });
+
+      ctx.body = {
+        data: {
+          users: [presentUser(user)],
+          memberships: [presentMembership(membership)],
+          documents: [await presentDocument(ctx, document)],
+        },
+      };
+      return;
+    }
 
     const UserMemberships = await UserMembership.findAll({
       where: {
@@ -2007,7 +2007,7 @@ router.post(
     );
 
     let membership = await UserMembership.findOneForUpdate(
-      { documentId: id, userId },
+      { documentId: document.id, userId },
       { transaction }
     );
 
@@ -2016,25 +2016,35 @@ router.post(
         membership.permission = permission;
         // disconnect from the source if the permission is manually updated
         membership.sourceId = null;
-        await membership.save(ctx.context);
+        await membership.save(toHookContext(ctx));
       }
     } else {
       membership = await UserMembership.create(
         {
-          documentId: id,
+          documentId: document.id,
           userId,
           index,
           permission: permission || user.defaultDocumentPermission,
           createdById: actor.id,
         },
-        ctx.context
+        toHookContext(ctx)
       );
+    }
+
+    // Owners must be able to manage the document, so other access removes the
+    // ownership.
+    if (owner === false || membership.permission !== DocumentPermission.Admin) {
+      await document.removeOwner(ctx, userId);
     }
 
     ctx.body = {
       data: {
         users: [presentUser(user)],
         memberships: [presentMembership(membership)],
+        documents:
+          document.ownerIds !== previousOwnerIds
+            ? [await presentDocument(ctx, document)]
+            : [],
       },
     };
   }
@@ -2046,9 +2056,9 @@ router.post(
   rateLimiter(RateLimiterStrategy.OneHundredPerHour),
   validate(T.DocumentsRemoveUserSchema),
   transaction(),
-  async (ctx: APIContext<T.DocumentsRemoveUserReq>) => {
-    const { transaction } = ctx.state;
-    const { user: actor } = ctx.state.auth;
+  async (ctx: Context<T.DocumentsRemoveUserReq>) => {
+    const { transaction } = ctx;
+    const { user: actor } = ctx.auth;
     const { id, userId } = ctx.input.body;
 
     const [document, user] = await Promise.all([
@@ -2070,7 +2080,7 @@ router.post(
 
     const membership = await UserMembership.findOne({
       where: {
-        documentId: id,
+        documentId: document.id,
         userId,
       },
       transaction,
@@ -2084,7 +2094,8 @@ router.post(
       );
     }
 
-    await membership.destroy(ctx.context);
+    await membership.destroy(toHookContext(ctx));
+    await document.removeOwner(ctx, userId);
 
     ctx.body = {
       success: true,
@@ -2098,10 +2109,10 @@ router.post(
   rateLimiter(RateLimiterStrategy.OneHundredPerHour),
   validate(T.DocumentsAddGroupSchema),
   transaction(),
-  async (ctx: APIContext<T.DocumentsAddGroupsReq>) => {
+  async (ctx: Context<T.DocumentsAddGroupsReq>) => {
     const { id, groupId, permission } = ctx.input.body;
-    const { transaction } = ctx.state;
-    const { user } = ctx.state.auth;
+    const { transaction } = ctx;
+    const { user } = ctx.auth;
 
     const [document, group] = await Promise.all([
       Document.findByPk(id, {
@@ -2118,7 +2129,7 @@ router.post(
     authorize(user, "read", group);
 
     let membership = await GroupMembership.findOneForUpdate(
-      { documentId: id, groupId },
+      { documentId: document.id, groupId },
       { transaction }
     );
 
@@ -2127,17 +2138,17 @@ router.post(
         membership.permission = permission;
         // disconnect from the source if the permission is manually updated
         membership.sourceId = null;
-        await membership.save(ctx.context);
+        await membership.save(toHookContext(ctx));
       }
     } else {
       membership = await GroupMembership.create(
         {
-          documentId: id,
+          documentId: document.id,
           groupId,
           permission: permission ?? DocumentPermission.ReadWrite,
           createdById: user.id,
         },
-        ctx.context
+        toHookContext(ctx)
       );
     }
 
@@ -2155,9 +2166,9 @@ router.post(
   rateLimiter(RateLimiterStrategy.OneHundredPerHour),
   validate(T.DocumentsRemoveGroupSchema),
   transaction(),
-  async (ctx: APIContext<T.DocumentsRemoveGroupReq>) => {
-    const { transaction } = ctx.state;
-    const { user } = ctx.state.auth;
+  async (ctx: Context<T.DocumentsRemoveGroupReq>) => {
+    const { transaction } = ctx;
+    const { user } = ctx.auth;
     const { id, groupId } = ctx.input.body;
 
     const [document, group] = await Promise.all([
@@ -2176,7 +2187,7 @@ router.post(
 
     const membership = await GroupMembership.findOne({
       where: {
-        documentId: id,
+        documentId: document.id,
         groupId,
       },
       transaction,
@@ -2184,7 +2195,13 @@ router.post(
       rejectOnEmpty: true,
     });
 
-    await membership.destroy(ctx.context);
+    if (membership.sourceId) {
+      throw ValidationError(
+        "Cannot remove access that is inherited from a parent document"
+      );
+    }
+
+    await membership.destroy(toHookContext(ctx));
 
     ctx.body = {
       success: true,
@@ -2197,15 +2214,15 @@ router.post(
   auth(),
   pagination(),
   validate(T.DocumentsMembershipsSchema),
-  async (ctx: APIContext<T.DocumentsMembershipsReq>) => {
+  async (ctx: Context<T.DocumentsMembershipsReq>) => {
     const { id, query, permission } = ctx.input.body;
-    const { user: actor } = ctx.state.auth;
+    const { user: actor } = ctx.auth;
 
     const document = await Document.findByPk(id, { userId: actor.id });
     authorize(actor, "update", document);
 
     let where: WhereOptions<UserMembership> = {
-      documentId: id,
+      documentId: document.id,
     };
     let userWhere;
 
@@ -2257,15 +2274,15 @@ router.post(
   auth(),
   pagination(),
   validate(T.DocumentsMembershipsSchema),
-  async (ctx: APIContext<T.DocumentsMembershipsReq>) => {
+  async (ctx: Context<T.DocumentsMembershipsReq>) => {
     const { id, query, permission } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const document = await Document.findByPk(id, { userId: user.id });
     authorize(user, "update", document);
 
     let where: WhereOptions<GroupMembership> = {
-      documentId: id,
+      documentId: document.id,
     };
     let groupWhere;
 
@@ -2320,39 +2337,38 @@ router.post(
   "documents.empty_trash",
   auth({ role: UserRole.Admin }),
   rateLimiter(RateLimiterStrategy.TenPerHour),
-  async (ctx: APIContext) => {
-    const { user } = ctx.state.auth;
+  async (ctx: Context) => {
+    const { user } = ctx.auth;
 
-    const collectionIds = await user.collectionIds({
-      paranoid: false,
-    });
-    const documents = await Document.scope("withDrafts").findAll({
-      attributes: ["id"],
+    const documents = await Document.findAllWithCtx(ctx, {
+      includeDrafts: true,
+      includeViews: false,
+      // The columns that the permanentDelete policy reads.
+      attributes: ["id", "teamId", "collectionId", "deletedAt"],
       where: {
         deletedAt: {
           [Op.ne]: null,
         },
-        [Op.or]: [
+        [Op.and]: [
           {
-            collectionId: {
-              [Op.in]: collectionIds,
-            },
-          },
-          {
-            createdById: user.id,
-            collectionId: {
-              [Op.is]: null,
-            },
+            [Op.or]: [
+              { publishedAt: { [Op.ne]: null } },
+              ...(await draftVisibilityClauses(user)),
+            ],
           },
         ],
       },
       paranoid: false,
     });
 
-    if (documents.length) {
-      await new EmptyTrashTask().schedule({
-        documentIds: documents.map((doc) => doc.id),
-      });
+    // The task deletes without a policy check, and read access alone does not
+    // allow a permanent delete.
+    const documentIds = documents
+      .filter((document) => can(user, "permanentDelete", document))
+      .map((document) => document.id);
+
+    if (documentIds.length) {
+      await new EmptyTrashTask().schedule({ documentIds });
     }
 
     await Event.createFromContext(ctx, {
@@ -2366,7 +2382,7 @@ router.post(
 );
 
 // Remove this helper once apiVersion is removed (#6175)
-function getAPIVersion(ctx: APIContext) {
+function getAPIVersion(ctx: Context) {
   return Number(
     ctx.headers["x-api-version"] ??
       (typeof ctx.input.body === "object" &&

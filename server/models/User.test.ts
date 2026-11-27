@@ -55,6 +55,23 @@ describe("user model", () => {
     });
   });
 
+  describe("findByEmail", () => {
+    it("should match email case-insensitively within the workspace only", async () => {
+      const email = faker.internet.email().toLowerCase();
+      const user = await buildUser({ email: email.toUpperCase() });
+      const otherTeamUser = await buildUser();
+
+      const found = await User.findByEmail(createContext({ user }), email);
+      expect(found?.id).toEqual(user.id);
+
+      const notFound = await User.findByEmail(
+        createContext({ user: otherTeamUser }),
+        email
+      );
+      expect(notFound).toBeNull();
+    });
+  });
+
   describe("create", () => {
     it("should not allow URLs in name", async () => {
       await expect(

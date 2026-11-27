@@ -1,6 +1,7 @@
 import Router from "@koa/router";
 import { Sequelize, Op, Transaction } from "sequelize";
 import pinCreator from "@server/commands/pinCreator";
+import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -12,7 +13,7 @@ import {
   presentDocuments,
   presentPolicies,
 } from "@server/presenters";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
@@ -25,10 +26,10 @@ router.post(
   auth(),
   validate(T.PinsCreateSchema),
   transaction(),
-  async (ctx: APIContext<T.PinsCreateReq>) => {
+  async (ctx: Context<T.PinsCreateReq>) => {
     const { documentId, collectionId, index } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
     const document = await Document.findByPk(documentId, {
       userId: user.id,
       transaction,
@@ -42,6 +43,10 @@ router.post(
       });
       authorize(user, "pin", collection);
       authorize(user, "pin", document);
+
+      if (document.collectionId !== collection.id) {
+        throw ValidationError("Document must belong to the collection");
+      }
     } else {
       authorize(user, "pinToHome", document);
     }
@@ -49,7 +54,7 @@ router.post(
     const pin = await pinCreator({
       ctx,
       user,
-      documentId,
+      documentId: document.id,
       collectionId,
       index,
     });
@@ -65,8 +70,8 @@ router.post(
   "pins.info",
   auth(),
   validate(T.PinsInfoSchema),
-  async (ctx: APIContext<T.PinsInfoReq>) => {
-    const { user } = ctx.state.auth;
+  async (ctx: Context<T.PinsInfoReq>) => {
+    const { user } = ctx.auth;
     const { documentId, collectionId } = ctx.input.body;
 
     const document = await Document.findByPk(documentId, {
@@ -78,7 +83,7 @@ router.post(
     // There can be only one pin with these props.
     const pin = await Pin.findOne({
       where: {
-        documentId,
+        documentId: document.id,
         collectionId: collectionId ?? null,
         createdById: user.id,
         teamId: user.teamId,
@@ -102,9 +107,9 @@ router.post(
   auth(),
   validate(T.PinsListSchema),
   pagination(),
-  async (ctx: APIContext<T.PinsListReq>) => {
+  async (ctx: Context<T.PinsListReq>) => {
     const { collectionId } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     if (collectionId) {
       const collection = await Collection.findByPk(collectionId, {
@@ -113,28 +118,24 @@ router.post(
       authorize(user, "read", collection);
     }
 
-    const [pins, collectionIds] = await Promise.all([
-      Pin.findAll({
-        where: {
-          ...(collectionId
-            ? { collectionId }
-            : { collectionId: { [Op.is]: null } }),
-          teamId: user.teamId,
-        },
-        order: [
-          Sequelize.literal('"pin"."index" collate "C"'),
-          ["updatedAt", "DESC"],
-        ],
-        offset: ctx.state.pagination.offset,
-        limit: ctx.state.pagination.limit,
-      }),
-      user.collectionIds(),
-    ]);
+    const pins = await Pin.findAll({
+      where: {
+        ...(collectionId
+          ? { collectionId }
+          : { collectionId: { [Op.is]: null } }),
+        teamId: user.teamId,
+      },
+      order: [
+        Sequelize.literal('"pin"."index" collate "C"'),
+        ["updatedAt", "DESC"],
+      ],
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+    });
 
-    const documents = await Document.withMembershipScope(user.id).findAll({
+    const documents = await Document.findAllWithCtx(ctx, {
       where: {
         id: pins.map((pin) => pin.documentId),
-        collectionId: collectionIds,
       },
     });
 
@@ -161,10 +162,10 @@ router.post(
   auth(),
   validate(T.PinsUpdateSchema),
   transaction(),
-  async (ctx: APIContext<T.PinsUpdateReq>) => {
+  async (ctx: Context<T.PinsUpdateReq>) => {
     const { id, index } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
     const pin = await Pin.findByPk(id, {
       transaction,
       lock: Transaction.LOCK.UPDATE,
@@ -196,11 +197,11 @@ router.post(
   auth(),
   validate(T.PinsDeleteSchema),
   transaction(),
-  async (ctx: APIContext<T.PinsDeleteReq>) => {
+  async (ctx: Context<T.PinsDeleteReq>) => {
     const { id } = ctx.input.body;
-    const { transaction } = ctx.state;
+    const { transaction } = ctx;
 
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     const pin = await Pin.findByPk(id, {
       transaction,
       lock: Transaction.LOCK.UPDATE,

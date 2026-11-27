@@ -1,14 +1,20 @@
-import { groupBy } from "es-toolkit/compat";
+import { groupBy, sortBy } from "es-toolkit/compat";
 import { observer } from "mobx-react";
-import { BackIcon } from "outline-icons";
+import { BackIcon, PadlockIcon } from "outline-icons";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import styled from "styled-components";
+import { Plan } from "@shared/types";
+import type { PlanFeature } from "@shared/types";
+import { s } from "@shared/styles";
+import { PlanHelper } from "@shared/utils/PlanHelper";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
+import Tooltip from "~/components/Tooltip";
 import useSettingsConfig from "~/hooks/useSettingsConfig";
 import { useLocationSelector } from "~/hooks/useLocationSelector";
+import { usePlanName } from "~/hooks/usePlanName";
 import useStores from "~/hooks/useStores";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { settingsPath } from "~/utils/routeHelpers";
@@ -28,10 +34,14 @@ function SettingsSidebar() {
   const configs = useSettingsConfig();
 
   const groupedConfig = groupBy(
-    configs.filter((item) =>
-      item.group === t("Integrations") && item.pluginId
-        ? integrations.findByService(item.pluginId)
-        : true
+    // Locked upsell items sort to the end of their group.
+    sortBy(
+      configs.filter((item) =>
+        item.group === t("Integrations") && item.pluginId && !item.locked
+          ? integrations.findByService(item.pluginId)
+          : true
+      ),
+      (item) => (item.locked ? 1 : 0)
     ),
     "group"
   );
@@ -65,7 +75,16 @@ function SettingsSidebar() {
                         : undefined
                     }
                     icon={<item.icon />}
-                    label={item.name}
+                    label={
+                      item.locked && item.entitlement ? (
+                        <UpsellLabel
+                          name={item.name}
+                          feature={item.entitlement}
+                        />
+                      ) : (
+                        item.name
+                      )
+                    }
                   />
                 ))}
               </Header>
@@ -83,6 +102,45 @@ function SettingsSidebar() {
     </Sidebar>
   );
 }
+
+interface UpsellLabelProps {
+  /** The name of the settings page. */
+  name: string;
+  /** The plan feature that the page advertises. */
+  feature: PlanFeature;
+}
+
+function UpsellLabel({ name, feature }: UpsellLabelProps) {
+  const { t } = useTranslation();
+  const plan = PlanHelper.getMinimumPlan(feature) ?? Plan.Enterprise;
+  const planName = usePlanName(plan);
+  const description = t("Available on {{ planName }}", { planName });
+
+  return (
+    <UpsellLabelWrapper>
+      {name}
+      <Tooltip content={description}>
+        <Lock role="img" aria-label={description}>
+          <PadlockIcon size={16} />
+        </Lock>
+      </Tooltip>
+    </UpsellLabelWrapper>
+  );
+}
+
+const UpsellLabelWrapper = styled.span`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+`;
+
+const Lock = styled.span`
+  display: flex;
+  flex-shrink: 0;
+  color: ${s("textTertiary")};
+  opacity: 0.5;
+`;
 
 const StyledBackIcon = styled(BackIcon)`
   margin-inline-start: 4px;

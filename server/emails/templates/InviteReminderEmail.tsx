@@ -54,7 +54,7 @@ export default class InviteReminderEmail extends BaseEmail<Props> {
     teamUrl,
   }: Props): string {
     return `
-${this.t("This is just a quick reminder that {{ actorName }} {{ actorEmail }} invited you to join them in the {{ teamName }} team on {{ appName }}, a place for your team to build and share knowledge.", { actorName, actorEmail: actorEmail ? `(${actorEmail})` : "", teamName, appName: env.APP_NAME })}
+${this.t("This is just a quick reminder that {{ actorName }} {{ actorEmail }} invited you to join them in the {{ teamName }} workspace on {{ appName }}, a place for your team to build and share knowledge.", { actorName, actorEmail: actorEmail ? `(${actorEmail})` : "", teamName, appName: env.APP_NAME })}
 ${this.t("We only send a reminder once.")}
 
 ${this.t("If you haven’t signed up yet, you can do so here")}: ${teamUrl}
@@ -76,7 +76,7 @@ ${this.t("If you haven’t signed up yet, you can do so here")}: ${teamUrl}
           </Heading>
           <p>
             {this.t(
-              "This is just a quick reminder that {{ actorName }} {{ actorEmail }} invited you to join them in the {{ teamName }} team on {{ appName }}, a place for your team to build and share knowledge.",
+              "This is just a quick reminder that {{ actorName }} {{ actorEmail }} invited you to join them in the {{ teamName }} workspace on {{ appName }}, a place for your team to build and share knowledge.",
               {
                 actorName,
                 actorEmail: actorEmail ? `(${actorEmail})` : "",

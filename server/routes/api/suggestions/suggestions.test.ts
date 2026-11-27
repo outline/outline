@@ -1,5 +1,6 @@
 import { EmailDisplay, TeamPreference } from "@shared/types";
 import {
+  buildCollection,
   buildGroup,
   buildGroupUser,
   buildGuestUser,
@@ -7,6 +8,7 @@ import {
   buildUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
+import SearchProviderManager from "@server/utils/SearchProviderManager";
 
 const server = getTestServer();
 
@@ -114,6 +116,48 @@ describe("#suggestions.mention", () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.users).toEqual([]);
+  });
+
+  it("should return the other sections when a section is too slow", async () => {
+    const user = await buildUser();
+    const other = await buildUser({ teamId: user.teamId, name: "Elizabeth" });
+    const spy = vi
+      .spyOn(SearchProviderManager.getProvider(), "searchTitlesForUser")
+      .mockReturnValue(new Promise(() => undefined));
+
+    try {
+      const res = await server.post("/api/suggestions.mention", user);
+      const body = await res.json();
+
+      expect(res.status).toEqual(200);
+      expect(body.data.documents).toEqual([]);
+      expect(body.data.users.map((u: { id: string }) => u.id)).toContain(
+        other.id
+      );
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it("should present collections", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+      name: "Elephants",
+    });
+
+    const res = await server.post("/api/suggestions.mention", user, {
+      body: { query: "Elephants" },
+    });
+    const body = await res.json();
+    const [found] = body.data.collections;
+
+    expect(res.status).toEqual(200);
+    expect(found.id).toEqual(collection.id);
+    expect(found.url).toEqual(collection.path);
+    expect(found.content).toBeUndefined();
+    expect(found.data).toBeUndefined();
   });
 
   it("should require authentication", async () => {

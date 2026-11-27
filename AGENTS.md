@@ -112,6 +112,7 @@ This keeps overrides scoped to the affected dependents and avoids forcing unrela
 - Use `observable.map` rather than a set when observers check membership by key. `ObservableSet.has()` tracks the whole set, so any change re-renders every observer.
 - Store lookups called for each row of a list must not scan a computed list such as `orderedData`, as this subscribes the component to every item in the store.
 - A context value provided near the app root must not change on navigation. Expose frequently changing store values as getters read on access, not values read during render.
+- For client model/store fetch deduplication, use `CoalescedFetch` or `KeyedCoalescedFetch` instead of an `isFetching` early return. A forced call during a request must await a follow-up request after it settles, even if it fails; unforced callers must await the in-flight result.
 
 ## Database & ORM
 
@@ -129,6 +130,10 @@ yarn sequelize migration:create --name=add-field-to-table
 - When updating Sequelize array or JSON attributes, replace the value instead of mutating it in place; reload the model in tests to verify persistence rather than trusting its in-memory state.
 - Schedule optional background work that depends on a transaction from `afterCommit`, and use non-fatal scheduling so a queue failure does not fail the committed operation.
 - When changing persisted task input fields, keep readers compatible with queued inputs or migrate them before removing old fields.
+- For row locks used only for non-key updates or soft deletes, use `LOCK.NO_KEY_UPDATE` and set `lock.of` to the target model when includes or scopes add joins. Verify with separate transactions that foreign-key inserts and locks on unrelated joined rows do not block the operation, while competing writers to the target still wait for commit.
+- When serializing migrations, poll `LockHelper.tryAcquire` in short transactions and roll back unsuccessful attempts before waiting. A blocking advisory-lock statement holds a snapshot that can stall `CREATE INDEX CONCURRENTLY` in the lock holder. Verify simultaneous startup checks let concurrent index migrations finish.
+- In import task completion and failure handlers, reload the import under a row lock in the transaction before changing its state. Preserve `Processed` and `Import.terminalStates` outcomes, and never mark a completed task errored. Test cancellation committed while a task runs and late failure callbacks, then reload the import and task to verify their states.
+- When parallelizing requests inside a retryable import task, await all started operations with `Promise.allSettled` before propagating a failure, or cancel and drain them. Test one failed request alongside an unfinished request; the task must not reject while work from that attempt can overlap its retry.
 
 ## API Design
 
@@ -138,6 +143,7 @@ yarn sequelize migration:create --name=add-field-to-table
 - Validate request data using the validation middleware and schemas
 - Use presenters to format API responses.
 - Keep API routes thin, use model methods for business logic, or commands if logic spans multiple models.
+- MCP tools that call commands directly must preserve REST cross-field validation before any mutation. For document edits, reject nonempty `findText` in default or explicit replace mode, require nonempty text for append/prepend, and require nonempty `findText` plus defined text for patch while allowing empty replacement text for deletion. Test invalid combinations leave title, content, and revision unchanged.
 
 ## Authentication & Authorization
 
@@ -148,6 +154,7 @@ yarn sequelize migration:create --name=add-field-to-table
 - Always verify user permissions before data access.
 - When linking accounts by provider email, use exact case-insensitive equality within the workspace.
 - Set account email and passkey management routes to `AuthenticationType.APP`; API-key authentication must not change login credentials or authenticators.
+- For passkey registration and sign-in verification, consume the stored challenge atomically with Redis `GETDEL` before verification; do not read it and delete only after success. Verify that a failed attempt consumes the challenge and concurrent attempts cannot both retrieve it.
 
 ## Real-time Collaboration
 
@@ -158,6 +165,7 @@ yarn sequelize migration:create --name=add-field-to-table
 - Do not persist viewer-specific unfurls in shared document mentions; only store unfurls that map to a stable mention type.
 - When persisting pasted attachment URLs, use `signedUrlToAttachmentUrl` to convert this instance’s signed URLs to stable attachment redirects. Cover HTML, Markdown, and single-URL pastes, including pasting over selected text; document nodes and link marks must not retain expiring local URLs, and external URLs must remain unchanged.
 - Editor plugins that repair the document (assigning missing IDs, fixing invalid structure) must use `RepairPlugin` from `shared/editor/plugins/RepairPlugin.ts`. Other plugins that change the document in `appendTransaction` must only respond to local changes, guard with `isLocalDocChange` from `shared/editor/lib/multiplayer.ts`. Otherwise every connected client writes the change in response to remote edits and is attributed as an editor.
+- When changing block-node Markdown serializers, write a leading blank line separately from the block opener so list indentation and blockquote prefixes apply to the opener. Verify parse/serialize/parse structural equality inside lists and blockquotes, including after empty paragraphs; Markdown patch edits must preserve untouched nested blocks.
 
 ## Documentation
 
@@ -207,6 +215,7 @@ yarn test:shared   # All shared code tests
 - Log errors with appropriate context.
 - Return user-friendly error messages.
 - Never expose sensitive information in errors.
+- For subscription-controlled emails, reload the recipient and check the subscription in the template's `beforeSend`, returning false when unsubscribed or missing. Caller-only checks can miss other senders such as SSO. Test the template's send path directly and assert the mailer is not called for an unsubscribed recipient.
 
 ## Performance
 
@@ -226,4 +235,7 @@ yarn test:shared   # All shared code tests
 - Use rateLimiter middleware for sensitive endpoints.
 - Follow OWASP guidelines.
 - Never store sensitive data in plain text.
+- When changing log sanitization, sanitize error-report extras as a whole object so top-level credential keys are filtered too, matching sensitive names regardless of case, underscores, or hyphens. Sanitize each value's `toJSON` result without calling that result's root `toJSON` again. Test nested credentials and serializers returning themselves or shallow copies for filtering without recursion failures.
 - Use environment variables for secrets.
+- When reading untrusted response bodies or import archives, enforce limits while consuming data rather than truncating after buffering. For ZIP imports, set `ZipHelper` entry-count and aggregate read-byte limits as well as per-entry limits. Verify oversized responses and archives whose individually valid entries exceed the aggregate limit stop reading.
+- For API import attachments, do not treat `isExternalUrl` as proof a URL is downloadable; it also accepts unresolved relative paths. Require an absolute URL with a hostname or supported base64 data before creating an attachment or queuing a download. Test missing archive-relative paths remain unchanged while remote and base64 attachments are queued.

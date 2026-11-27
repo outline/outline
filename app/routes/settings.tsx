@@ -1,5 +1,6 @@
 import { Redirect, Switch } from "react-router-dom";
 import Error404 from "~/scenes/Errors/Error404";
+import { UpsellScene } from "~/scenes/Settings/components/UpsellScene";
 import { createLazyComponent as lazy } from "~/components/LazyLoad";
 import Route from "~/components/ProfiledRoute";
 import useSettingsConfig from "~/hooks/useSettingsConfig";
@@ -18,14 +19,38 @@ function SettingsRoutes() {
 
   return (
     <Switch>
-      {configs.map((config) => (
-        <Route
-          exact
-          key={config.path}
-          path={config.path}
-          component={config.component}
-        />
-      ))}
+      {configs.map((config) => {
+        const feature =
+          config.locked && !config.placeholder ? config.entitlement : undefined;
+
+        // Pages that need an entitlement the team does not have show an upsell.
+        if (feature) {
+          return (
+            <Route
+              exact
+              key={config.path}
+              path={config.path}
+              render={() => (
+                <UpsellScene
+                  title={config.name}
+                  icon={<config.icon />}
+                  description={config.description}
+                  feature={feature}
+                />
+              )}
+            />
+          );
+        }
+
+        return (
+          <Route
+            exact
+            key={config.path}
+            path={config.path}
+            component={config.component}
+          />
+        );
+      })}
       {/* Members was renamed to Users, redirect for backwards compatibility */}
       <Redirect
         exact

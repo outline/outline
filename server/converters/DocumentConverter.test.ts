@@ -182,6 +182,75 @@ John,25`;
           message: "The Word document could not be read",
         });
       });
+
+      it("should convert a Word document", async () => {
+        const result = await DocumentConverter.convert(
+          await fixture("images.docx"),
+          "images.docx",
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        );
+
+        expect(result.text.length).toBeGreaterThan(0);
+      });
+
+      it("should reject a Word document that is too large when uncompressed", async () => {
+        // The main part is found through relationships, so any name is valid.
+        const docx = await buildZip({
+          "word/media/image1.png": "a".repeat(11 * 1024 * 1024),
+        });
+
+        await expect(
+          DocumentConverter.convert(
+            docx,
+            "test.docx",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          )
+        ).rejects.toMatchObject({
+          id: "import_error",
+          message: "The Word document is too large to import when uncompressed",
+        });
+      });
+
+      it("should reject a Word document whose entries share stored data", async () => {
+        // One stored entry, then many directory records that point to it.
+        const data = Buffer.alloc(100_000, "a");
+        const local = Buffer.alloc(30 + 1);
+        local.writeUInt32LE(0x04034b50, 0);
+        local.writeUInt32LE(data.length, 18);
+        local.writeUInt32LE(data.length, 22);
+        local.writeUInt16LE(1, 26);
+        local.write("a", 30);
+
+        const records = Array.from({ length: 200 }, (_, i) => {
+          const name = `word/media/${i}.bin`;
+          const record = Buffer.alloc(46 + name.length);
+          record.writeUInt32LE(0x02014b50, 0);
+          record.writeUInt32LE(data.length, 20);
+          record.writeUInt32LE(data.length, 24);
+          record.writeUInt16LE(name.length, 28);
+          record.write(name, 46);
+          return record;
+        });
+        const directory = Buffer.concat(records);
+
+        const end = Buffer.alloc(22);
+        end.writeUInt32LE(0x06054b50, 0);
+        end.writeUInt16LE(records.length, 8);
+        end.writeUInt16LE(records.length, 10);
+        end.writeUInt32LE(directory.length, 12);
+        end.writeUInt32LE(local.length + data.length, 16);
+
+        await expect(
+          DocumentConverter.convert(
+            Buffer.concat([local, data, directory, end]),
+            "test.docx",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          )
+        ).rejects.toMatchObject({
+          id: "import_error",
+          message: "The Word document is too large to import when uncompressed",
+        });
+      });
     });
 
     describe("html", () => {

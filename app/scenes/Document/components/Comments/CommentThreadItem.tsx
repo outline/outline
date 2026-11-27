@@ -1,5 +1,4 @@
 import { differenceInMilliseconds } from "date-fns";
-import { runInAction } from "mobx";
 import { observer } from "mobx-react";
 import { DoneIcon } from "outline-icons";
 import { darken } from "polished";
@@ -184,8 +183,7 @@ function CommentThreadItem({
 
     try {
       handleSetReadOnly();
-      runInAction(() => (comment.data = data));
-      await comment.save();
+      await comment.save({ data });
     } catch (_err) {
       setEditing();
       toast.error(t("Error updating comment"));

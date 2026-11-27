@@ -13,16 +13,21 @@
     "./.oxlint/mobx.mjs",
     "./.oxlint/bundle.mjs",
     "./.oxlint/sequelize.mjs",
+    "./.oxlint/access.mjs",
     "./.oxlint/vitest.mjs",
     "./.oxlint/editor.mjs",
     "./.oxlint/koa.mjs",
     "./.oxlint/react-router.mjs",
-    "./.oxlint/classes.mjs"
+    "./.oxlint/classes.mjs",
+    "./.oxlint/node.mjs"
   ],
   "plugins": ["eslint", "typescript", "unicorn", "oxc", "vitest"],
   "rules": {
     "mobx/observable-needs-initializer": "error",
     "sequelize/prefer-after-commit-helper": "error",
+    "access/no-direct-collection-ids": "error",
+    "access/no-raw-document-structure": "error",
+    "access/no-unsafe-find": "error",
     "vitest/consistent-test-it": [
       "error",
       { "fn": "it", "withinDescribe": "it" }
@@ -41,6 +46,7 @@
     "koa/no-request-origin": "error",
     "react-router/no-deferred-use-location": "error",
     "classes/no-private-identifier": "error",
+    "node-local/no-url-parse": "error",
     "for-direction": "error",
     "no-async-promise-executor": "error",
     "no-case-declarations": "error",
@@ -142,6 +148,11 @@
                   "addColumnAfter"
                 ],
                 "message": "Use the wrappers from shared/editor/commands/table instead, which respect the target index and place the cursor in the inserted cell."
+              },
+              {
+                "name": "koa",
+                "importNames": ["Context", "DefaultContext"],
+                "message": "Use AppContext or Context from @server/types, which do not allow arbitrary properties."
               }
             ],
             "patterns": [

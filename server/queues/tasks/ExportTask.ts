@@ -1,15 +1,11 @@
-import { Readable } from "node:stream";
 import fs from "fs-extra";
 import { truncate } from "es-toolkit/compat";
 import { Op } from "sequelize";
 import type { WhereOptions } from "sequelize";
-import type { ZipFile } from "yazl";
 import { toError } from "@shared/utils/error";
 import type { NavigationNode } from "@shared/types";
 import { FileOperationState, NotificationEventType } from "@shared/types";
 import { bytesToHumanReadable } from "@shared/utils/files";
-import ExportFailureEmail from "@server/emails/templates/ExportFailureEmail";
-import ExportSuccessEmail from "@server/emails/templates/ExportSuccessEmail";
 import env from "@server/env";
 import { ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -19,7 +15,7 @@ import {
   Document,
   Event,
   FileOperation,
-  Team,
+  Notification,
   User,
 } from "@server/models";
 import fileOperationPresenter from "@server/presenters/fileOperation";
@@ -46,10 +42,9 @@ export default abstract class ExportTask extends BaseTask<Props> {
     const fileOperation = await FileOperation.findByPk(fileOperationId, {
       rejectOnEmpty: true,
     });
-    const [team, user] = await Promise.all([
-      Team.findByPk(fileOperation.teamId, { rejectOnEmpty: true }),
-      User.findByPk(fileOperation.userId, { rejectOnEmpty: true }),
-    ]);
+    const user = await User.findByPk(fileOperation.userId, {
+      rejectOnEmpty: true,
+    });
 
     let filePath: string | undefined;
     let readStream: fs.ReadStream | undefined;
@@ -87,30 +82,13 @@ export default abstract class ExportTask extends BaseTask<Props> {
         url,
       });
 
-      if (user.subscribedToEventType(NotificationEventType.ExportCompleted)) {
-        await new ExportSuccessEmail({
-          to: user.email,
-          language: user.language,
-          userId: user.id,
-          id: fileOperation.id,
-          teamUrl: team.url,
-          teamId: team.id,
-        }).schedule();
-      }
+      await this.createNotification(fileOperation, user);
     } catch (error) {
       await this.updateFileOperation(fileOperation, {
         state: FileOperationState.Error,
         error: toError(error),
       });
-      if (user.subscribedToEventType(NotificationEventType.ExportCompleted)) {
-        await new ExportFailureEmail({
-          to: user.email,
-          language: user.language,
-          userId: user.id,
-          teamUrl: team.url,
-          teamId: team.id,
-        }).schedule();
-      }
+      await this.createNotification(fileOperation, user);
       throw error;
     } finally {
       // Destroy the read stream first to release the file handle before deletion
@@ -141,24 +119,18 @@ export default abstract class ExportTask extends BaseTask<Props> {
         })
       );
 
-      const documentStructure = document.collection?.getDocumentTree(
-        document.id
-      );
+      const [documentStructure] =
+        (await document.collection?.structureFor(user, {
+          documentId: document.id,
+        })) ?? [];
 
-      if (!documentStructure || !document.collectionId) {
+      if (!documentStructure) {
         throw new Error("Document not found in collection tree");
       }
 
-      // Exclude restricted documents the user cannot access from the export
-      const children = await Collection.filterRestrictedNodes(
-        documentStructure.children ?? [],
-        user,
-        document.collectionId
-      );
-
       return this.exportDocument(
         document,
-        children,
+        documentStructure.children ?? [],
         fileOperation.options?.includeAttachments ?? true
       );
     }
@@ -208,33 +180,28 @@ export default abstract class ExportTask extends BaseTask<Props> {
     }
 
     const collections = await sequelizeReadOnly.transaction((transaction) =>
-      Collection.scope("withDocumentStructure").findAll({
+      Collection.unsafeFindAll({
+        scope: "withDocumentStructure",
         where,
         transaction,
       })
     );
 
-    // Exclude restricted documents the user cannot access from the export
-    for (const collection of collections) {
-      collection.documentStructure = await Collection.filterRestrictedNodes(
-        collection.documentStructure ?? [],
-        user,
-        collection.id
-      );
-    }
-
-    return this.exportCollections(collections, fileOperation);
+    return this.exportCollections(collections, fileOperation, user);
   }
 
   /**
    * Transform the data in all of the passed collections into a single Buffer.
    *
    * @param collections The collections to export
+   * @param fileOperation The file operation of the export
+   * @param user The user that requested the export
    * @returns A promise that resolves to a temporary file path
    */
   protected abstract exportCollections(
     collections: Collection[],
-    fileOperation: FileOperation
+    fileOperation: FileOperation,
+    user: User
   ): Promise<string>;
 
   /**
@@ -252,46 +219,33 @@ export default abstract class ExportTask extends BaseTask<Props> {
   ): Promise<string>;
 
   /**
-   * Add an attachment to the archive, streaming its contents from storage as
-   * the archive is written so that the file is never held in memory whole.
+   * Notify the user that requested the export, in the app and by email. A
+   * failure is logged and does not change the result of the export.
    *
-   * A read that fails, or is interrupted part way through, fails the export —
-   * a silently truncated archive is worse than none, as it looks complete.
-   * An attachment that is simply absent from storage is written as an empty
-   * entry, since a row outliving its file must not make export impossible.
-   *
-   * @param zip The archive to add the attachment to
-   * @param attachment The attachment to add
-   * @param pathInZip The path to store the attachment at within the archive
+   * @param fileOperation The FileOperation that finished.
+   * @param user The user that requested the export.
    */
-  protected addAttachmentToArchive(
-    zip: ZipFile,
-    attachment: Attachment,
-    pathInZip: string
-  ) {
-    zip.addReadStreamLazy(
-      pathInZip,
-      { mtime: attachment.updatedAt },
-      (callback) => {
-        attachment.stream.then(
-          (stream) => {
-            if (!stream) {
-              Logger.warn(`Attachment is missing from storage`, {
-                attachmentId: attachment.id,
-                teamId: attachment.teamId,
-              });
-              return callback(null, Readable.from([]));
-            }
+  private async createNotification(fileOperation: FileOperation, user: User) {
+    if (!user.subscribedToEventType(NotificationEventType.ExportCompleted)) {
+      return;
+    }
 
-            // yazl does not watch the streams it is handed, so an interrupted
-            // read would otherwise stall the archive rather than fail it.
-            stream.on("error", (err) => zip.emit("error", toError(err)));
-            return callback(null, stream);
-          },
-          (err) => callback(toError(err), Readable.from([]))
-        );
-      }
-    );
+    try {
+      await Notification.create({
+        event: NotificationEventType.ExportCompleted,
+        userId: user.id,
+        actorId: user.id,
+        teamId: user.teamId,
+        fileOperationId: fileOperation.id,
+        // The source lets the notification be revoked if access is lost.
+        documentId: fileOperation.documentId ?? undefined,
+        collectionId: fileOperation.collectionId ?? undefined,
+      });
+    } catch (error) {
+      Logger.error("Failed to create export notification", toError(error), {
+        fileOperationId: fileOperation.id,
+      });
+    }
   }
 
   /**

@@ -277,8 +277,7 @@ function Details() {
       // Enabling separate editing also applies it to the current user.
       if (checked) {
         try {
-          user.setPreference(UserPreference.SeamlessEdit, false);
-          await user.save();
+          await user.savePreference(UserPreference.SeamlessEdit, false);
         } catch (err) {
           toast.error(errToString(err));
         }

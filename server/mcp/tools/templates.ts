@@ -3,12 +3,12 @@ import type { McpServer } from "@modelcontextprotocol/server";
 import { Op } from "sequelize";
 import type { WhereOptions } from "sequelize";
 import { Collection, Template } from "@server/models";
-import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { authorize } from "@server/policies";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import {
   error,
   success,
+  buildAPIContext,
   getActorFromContext,
   optionalString,
   pathToUrl,
@@ -16,25 +16,18 @@ import {
 } from "../util";
 
 /**
- * Presents a template's metadata and rendered markdown body for a tool
- * response. Including the body lets a caller list templates and create a
- * document from one — verbatim or adapted — without a separate fetch call.
+ * Presents a template's metadata for a tool response.
  *
  * @param template - the template to present.
- * @returns the presented template with its body as markdown.
+ * @returns the presented template metadata.
  */
-export async function presentTemplate(template: Template) {
+export function presentTemplate(template: Template) {
   return {
     id: template.id,
     url: template.path,
     title: template.title,
     collectionId: template.collectionId ?? null,
     updatedAt: template.updatedAt,
-    text: template.content
-      ? await DocumentHelper.toMarkdown(template.content, {
-          includeTitle: false,
-        })
-      : "",
   };
 }
 
@@ -52,7 +45,7 @@ export function templateTools(server: McpServer, scopes: string[]) {
       {
         title: "List templates",
         description:
-          "Lists document templates the user has access to, including workspace-wide templates and templates within accessible collections. Each result includes the template body as markdown. To create a document from a template unchanged, pass its ID as templateId to create_document. To adapt it first, modify the returned text and pass it as the text parameter to create_document — no separate fetch is needed.",
+          'Lists document templates the user has access to, including workspace-wide templates and templates within accessible collections. To create a document from a template unchanged, pass its ID as templateId to create_document. To read or adapt the template body, use fetch with resource "template", then pass the modified text as the text parameter to create_document.',
         annotations: {
           destructiveHint: false,
           idempotentHint: true,
@@ -91,7 +84,6 @@ export function templateTools(server: McpServer, scopes: string[]) {
             const where: WhereOptions<Template> & {
               [Op.and]: WhereOptions<Template>[];
             } = {
-              teamId: user.teamId,
               [Op.and]: [
                 { deletedAt: { [Op.eq]: null } },
                 // drafts are only visible to the user that created them
@@ -108,33 +100,25 @@ export function templateTools(server: McpServer, scopes: string[]) {
               const collection = await Collection.findByPk(collectionId, {
                 userId: user.id,
               });
-              authorize(user, "read", collection);
+              authorize(user, "readDocument", collection);
               where[Op.and].push({ collectionId: collection.id });
-            } else {
-              where[Op.and].push({
-                [Op.or]: [
-                  { collectionId: { [Op.eq]: null } },
-                  { collectionId: await user.collectionIds() },
-                ],
-              });
             }
 
-            const templates = await Template.scope([
-              "defaultScope",
-              { method: ["withMembership", user.id] },
-            ]).findAll({
-              where,
-              order: [["updatedAt", "DESC"]],
-              offset: effectiveOffset,
-              limit: effectiveLimit,
-            });
+            const templates = await Template.findAllWithCtx(
+              buildAPIContext(extra),
+              {
+                where,
+                order: [["updatedAt", "DESC"]],
+                offset: effectiveOffset,
+                limit: effectiveLimit,
+              }
+            );
 
-            const presented = await Promise.all(
-              templates.map(async (template) =>
-                pathToUrl(user.team, await presentTemplate(template))
+            return success(
+              templates.map((template) =>
+                pathToUrl(user.team, presentTemplate(template))
               )
             );
-            return success(presented);
           } catch (message) {
             return error(message);
           }

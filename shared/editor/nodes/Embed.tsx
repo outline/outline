@@ -11,6 +11,8 @@ import { NodeSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import type { Primitive } from "utility-types";
 import { sanitizeUrl } from "../../utils/urls";
+import { contentWidth } from "../lib/contentWidth";
+import { toggleAspectRatioLock } from "../commands/toggleAspectRatioLock";
 import EmbedComponent from "../components/Embed";
 import defaultEmbeds from "../embeds";
 import { getMatchingEmbed, transformListToEmbeds } from "../lib/embeds";
@@ -40,6 +42,11 @@ export default class Embed extends Node {
         },
         height: {
           default: null,
+        },
+        // Unset means the default for the node type, see isAspectRatioLocked.
+        lockAspectRatio: {
+          default: null,
+          validate: "boolean|null",
         },
       },
       parseDOM: [
@@ -120,7 +127,7 @@ export default class Embed extends Node {
       const transaction = tr
         .setNodeMarkup(pos, undefined, {
           ...node.attrs,
-          width,
+          width: this.storedWidth(width),
           height,
         })
         .setMeta("addToHistory", true);
@@ -143,6 +150,32 @@ export default class Embed extends Node {
 
   commands({ type }: { type: NodeType }) {
     return {
+      toggleEmbedAspectRatioLock: (): Command => toggleAspectRatioLock(type),
+      resizeEmbed:
+        ({ width, height }: { width: number; height: number }): Command =>
+        (state, dispatch) => {
+          const { selection } = state;
+          if (
+            !(selection instanceof NodeSelection) ||
+            selection.node.type !== type
+          ) {
+            return false;
+          }
+
+          const transaction = state.tr
+            .setNodeMarkup(selection.from, undefined, {
+              ...selection.node.attrs,
+              width: this.storedWidth(width),
+              height,
+            })
+            .setMeta("addToHistory", true);
+          dispatch?.(
+            transaction.setSelection(
+              NodeSelection.create(transaction.doc, selection.from)
+            )
+          );
+          return true;
+        },
       embed:
         (attrs: Record<string, Primitive>): Command =>
         (state, dispatch) => {
@@ -195,7 +228,8 @@ export default class Embed extends Node {
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     if (!state.inTable) {
-      state.ensureNewLine();
+      // Separate writes, so that a list or quote delimiter also prefixes the opener.
+      state.write("\n");
     }
 
     const href = node.attrs.href.replace(/_/g, "%5F");
@@ -204,7 +238,7 @@ export default class Embed extends Node {
       "[" + state.esc(href, false) + "](" + state.esc(href, false) + ")"
     );
     if (!state.inTable) {
-      state.write("\n\n");
+      state.closeBlock(node);
     }
   }
 
@@ -215,5 +249,16 @@ export default class Embed extends Node {
         href: token.attrGet("href"),
       }),
     };
+  }
+
+  /**
+   * Returns the width to store, where no width or a width at the editor edge
+   * is stored as unset so the embed stays full width.
+   *
+   * @param width - the resized width.
+   * @returns the width to store.
+   */
+  private storedWidth(width: number) {
+    return !width || width >= contentWidth(this.editor.view.dom) ? null : width;
   }
 }

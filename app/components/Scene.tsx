@@ -61,6 +61,8 @@ const Scene: React.FC<Props> = ({
 
 const FillWidth = styled.div`
   width: 100%;
+  container-type: inline-size;
+  --container-width: 100cqi;
 `;
 
 export default Scene;

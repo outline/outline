@@ -15,12 +15,14 @@ import { createAction } from "~/actions";
 import { UserSection } from "~/actions/sections";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useKeyDown from "~/hooks/useKeyDown";
 import usePolicy from "~/hooks/usePolicy";
 import usePrevious from "~/hooks/usePrevious";
 import useShareDataLoader from "~/hooks/useShareDataLoader";
 import useStores from "~/hooks/useStores";
 import type { Permission } from "~/types";
+import { OwnerSelectValue } from "~/types";
 import { documentPath, urlify } from "~/utils/routeHelpers";
 import { Wrapper, presence } from "../components";
 import { CopyLinkButton } from "../components/CopyLinkButton";
@@ -60,13 +62,46 @@ function SharePopover({
     document,
   });
   const loading = externalLoading ?? internalLoading;
+  const user = useCurrentUser();
   const [query, setQuery] = React.useState("");
   const [picker, showPicker, hidePicker] = useBoolean();
   const [invitedInSession, setInvitedInSession] = React.useState<string[]>([]);
   const [pendingIds, setPendingIds] = React.useState<string[]>([]);
-  const [permission, setPermission] = React.useState<DocumentPermission>(
-    DocumentPermission.Read
-  );
+  const [permission, setPermission] = React.useState<
+    DocumentPermission | typeof OwnerSelectValue
+  >(DocumentPermission.Read);
+
+  // Only existing members and admins can be invited as owners, not groups.
+  const isOwnerCandidate = (id: string) => {
+    const pendingUser = users.get(id);
+    return (
+      !!pendingUser &&
+      (pendingUser.isAdmin || pendingUser.isMember) &&
+      !pendingUser.isSuspended
+    );
+  };
+  const canInviteOwners =
+    !!can.manageOwners && pendingIds.every(isOwnerCandidate);
+
+  // Users can add themselves to a document only as an owner, so they cannot
+  // be selected together with anyone that cannot be an owner.
+  const isSelfPending = pendingIds.includes(user.id);
+  const canAddSelf =
+    !!can.manageOwners &&
+    (user.isAdmin || user.isMember) &&
+    !document.ownerIds.includes(user.id) &&
+    (isSelfPending || pendingIds.every(isOwnerCandidate));
+  const invitePermission =
+    isSelfPending && canInviteOwners
+      ? OwnerSelectValue
+      : permission === OwnerSelectValue && !canInviteOwners
+        ? DocumentPermission.Admin
+        : permission;
+  const isOwnerInvite = invitePermission === OwnerSelectValue;
+  const membershipPermission =
+    invitePermission === OwnerSelectValue
+      ? DocumentPermission.Admin
+      : invitePermission;
 
   const prevPendingIds = usePrevious(pendingIds);
 
@@ -156,7 +191,9 @@ function SharePopover({
                   {
                     email: idOrEmail,
                     name: idOrEmail,
-                    role: inviteRole,
+                    role: team.isTeamDomain(idOrEmail)
+                      ? team.defaultUserRole
+                      : inviteRole,
                   },
                 ]);
                 user = response[0];
@@ -169,7 +206,8 @@ function SharePopover({
                 await userMemberships.create({
                   documentId: document.id,
                   userId: user.id,
-                  permission,
+                  permission: membershipPermission,
+                  owner: isOwnerInvite || undefined,
                 });
                 return user;
               }
@@ -178,7 +216,7 @@ function SharePopover({
                 await groupMemberships.create({
                   documentId: document.id,
                   groupId: group.id,
-                  permission,
+                  permission: membershipPermission,
                 });
                 return group;
               }
@@ -247,9 +285,11 @@ function SharePopover({
       hidePicker,
       userMemberships,
       pendingIds,
-      permission,
+      membershipPermission,
+      isOwnerInvite,
       t,
       inviteRole,
+      team,
       users,
     ]
   );
@@ -312,20 +352,32 @@ function SharePopover({
   const permissions = React.useMemo(
     () =>
       [
-        {
-          label: t("View only"),
-          value: DocumentPermission.Read,
-        },
-        {
-          label: t("Can edit"),
-          value: DocumentPermission.ReadWrite,
-        },
-        {
-          label: t("Manage"),
-          value: DocumentPermission.Admin,
-        },
+        ...(isSelfPending
+          ? []
+          : [
+              {
+                label: t("View only"),
+                value: DocumentPermission.Read,
+              },
+              {
+                label: t("Can edit"),
+                value: DocumentPermission.ReadWrite,
+              },
+              {
+                label: t("Manage"),
+                value: DocumentPermission.Admin,
+              },
+            ]),
+        ...(canInviteOwners
+          ? [
+              {
+                label: t("Owner"),
+                value: OwnerSelectValue,
+              },
+            ]
+          : []),
       ] as Permission[],
-    [t]
+    [t, canInviteOwners, isSelfPending]
   );
 
   if (!hasRendered) {
@@ -355,10 +407,12 @@ function SharePopover({
     pendingIds.length ? (
       <PermissionAction
         key="invite"
-        permission={permission}
+        permission={invitePermission}
         permissions={permissions}
         action={inviteAction}
-        onChange={(value: DocumentPermission) => setPermission(value)}
+        onChange={(value: DocumentPermission | typeof OwnerSelectValue) =>
+          setPermission(value)
+        }
       />
     ) : null
   ) : (
@@ -387,6 +441,8 @@ function SharePopover({
         <Suggestions
           ref={suggestionsRef}
           document={document}
+          includeSelf={canAddSelf}
+          ownersOnly={isSelfPending}
           query={query}
           pendingIds={pendingIds}
           addPendingId={handleAddPendingId}

@@ -6,6 +6,7 @@ import {
   buildAdmin,
   buildGroup,
   buildGroupUser,
+  buildGuestUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 import { GroupPermission } from "@shared/types";
@@ -535,6 +536,42 @@ describe("#groups.list", () => {
     expect(body.data.groups.length).toEqual(1);
     expect(body.data.groups[0].id).toEqual(group.id);
   });
+
+  it("should combine userId and provider source filters", async () => {
+    const user = await buildUser();
+    const memberGroup = await buildGroup({ teamId: user.teamId });
+    const otherGroup = await buildGroup({ teamId: user.teamId });
+    await buildGroupUser({
+      groupId: memberGroup.id,
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const authProvider = (await AuthenticationProvider.findOne({
+      where: { teamId: user.teamId },
+    }))!;
+
+    await ExternalGroup.bulkCreate(
+      [memberGroup, otherGroup].map((group) => ({
+        externalId: group.id,
+        name: group.name,
+        groupId: group.id,
+        authenticationProviderId: authProvider.id,
+        teamId: user.teamId,
+      }))
+    );
+
+    const res = await server.post("/api/groups.list", user, {
+      body: {
+        userId: user.id,
+        source: authProvider.name,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.groups.length).toEqual(1);
+    expect(body.data.groups[0].id).toEqual(memberGroup.id);
+  });
 });
 
 describe("#groups.info", () => {
@@ -838,6 +875,24 @@ describe("#groups.memberships", () => {
 });
 
 describe("#groups.add_user", () => {
+  it("should not allow adding a guest to a group", async () => {
+    const admin = await buildAdmin();
+    const guest = await buildGuestUser({ teamId: admin.teamId });
+    const group = await buildGroup({ teamId: admin.teamId });
+
+    const res = await server.post("/api/groups.add_user", admin, {
+      body: {
+        id: group.id,
+        userId: guest.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("Guests cannot be added to groups");
+    const users = await group.$get("users");
+    expect(users.length).toEqual(0);
+  });
+
   it("should add user to group", async () => {
     const user = await buildAdmin();
     const group = await buildGroup({

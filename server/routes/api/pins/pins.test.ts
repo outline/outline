@@ -1,4 +1,5 @@
-import type { Collection, Document, Pin, User } from "@server/models";
+import type { Collection, Document, User } from "@server/models";
+import { Pin } from "@server/models";
 import {
   buildAdmin,
   buildCollection,
@@ -45,6 +46,61 @@ describe("#pins.create", () => {
       },
     });
     expect(res.status).toEqual(403);
+  });
+
+  it("should remove pins when a document is deleted", async () => {
+    const trashed = await buildDocument({
+      teamId: admin.teamId,
+      createdById: admin.id,
+      collectionId: collection.id,
+    });
+    for (let i = 0; i < 8; i++) {
+      await buildPin({
+        teamId: admin.teamId,
+        createdById: admin.id,
+        documentId: i === 0 ? trashed.id : undefined,
+      });
+    }
+    const del = await server.post("/api/documents.delete", admin, {
+      body: { id: trashed.id },
+    });
+    expect(del.status).toEqual(200);
+    expect(await Pin.count({ where: { documentId: trashed.id } })).toEqual(0);
+
+    const res = await server.post("/api/pins.create", admin, {
+      body: {
+        documentId: document.id,
+      },
+    });
+    expect(res.status).toEqual(200);
+  });
+
+  it("should remove pins when a collection is deleted", async () => {
+    await buildCollection({ teamId: admin.teamId, createdById: admin.id });
+    await buildPin({
+      teamId: admin.teamId,
+      createdById: admin.id,
+      documentId: document.id,
+    });
+    const del = await server.post("/api/collections.delete", admin, {
+      body: { id: collection.id },
+    });
+    expect(del.status).toEqual(200);
+    expect(await Pin.count({ where: { documentId: document.id } })).toEqual(0);
+  });
+
+  it("should fail with status 400 when the document is not in the collection", async () => {
+    const otherCollection = await buildCollection({
+      createdById: admin.id,
+      teamId: admin.teamId,
+    });
+    const res = await server.post("/api/pins.create", admin, {
+      body: {
+        documentId: document.id,
+        collectionId: otherCollection.id,
+      },
+    });
+    expect(res.status).toEqual(400);
   });
 
   it("should fail with status 401 unauthorized when user token is missing", async () => {
@@ -165,6 +221,17 @@ describe("#pins.create", () => {
     expect(body.data).toBeTruthy();
     expect(body.data.documentId).toEqual(document.id);
     expect(body.data.collectionId).toEqual(collection.id);
+  });
+
+  it("should succeed with status 200 ok when documentId is a url slug", async () => {
+    const res = await server.post("/api/pins.create", admin, {
+      body: {
+        documentId: `my-doc-${document.urlId}`,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.documentId).toEqual(document.id);
   });
 });
 

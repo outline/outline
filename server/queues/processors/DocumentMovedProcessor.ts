@@ -2,14 +2,22 @@ import { groupBy, keyBy } from "es-toolkit";
 import type { Transaction } from "sequelize";
 import { Document, GroupMembership, UserMembership } from "@server/models";
 import { sequelize } from "@server/storage/database";
-import type { DocumentMovedEvent, Event } from "@server/types";
+import type { DocumentEvent, DocumentMovedEvent, Event } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 import { Op } from "sequelize";
 
+/**
+ * Rebuilds the sourced memberships of a document and its children after the
+ * document changes place, through a move or a restore.
+ */
 export default class DocumentMovedProcessor extends BaseProcessor {
-  static applicableEvents: Event["name"][] = ["documents.move"];
+  static applicableEvents: Event["name"][] = [
+    "documents.move",
+    "documents.restore",
+    "documents.unarchive",
+  ];
 
-  async perform(event: DocumentMovedEvent) {
+  async perform(event: DocumentMovedEvent | DocumentEvent) {
     await sequelize.transaction(async (transaction) => {
       const document = await Document.findByPk(event.documentId, {
         transaction,
@@ -26,7 +34,8 @@ export default class DocumentMovedProcessor extends BaseProcessor {
 
       // Load the subtree once so that the published children of each
       // membership document are found without a query per membership.
-      const documents = await Document.unscoped().findAll({
+      const documents = await Document.unsafeFindAll({
+        scope: null,
         attributes: [
           "id",
           "parentDocumentId",

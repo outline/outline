@@ -17,9 +17,11 @@ import {
   AllowNull,
   IsDate,
   IsIn,
+  Is,
   Unique,
 } from "sequelize-typescript";
 import { randomString } from "@shared/random";
+import { containsUrl } from "@shared/utils/urls";
 import { errToString } from "@shared/utils/error";
 import { OAuthClientValidation } from "@shared/validations";
 import Logger from "@server/logging/Logger";
@@ -52,7 +54,15 @@ class OAuthClient extends ParanoidModel<
 
   public static registrationAccessTokenPrefix = "ol_rat_";
 
-  @NotContainsUrl
+  @Is("notContainsUrl", function (this: OAuthClient, value: string) {
+    // MCP clients often include their endpoint in the name.
+    if (this.isMCPClient) {
+      return;
+    }
+    if (containsUrl(value)) {
+      throw new Error("Must not contain a URL");
+    }
+  })
   @Length({
     max: OAuthClientValidation.maxNameLength,
     msg: `name must be ${OAuthClientValidation.maxNameLength} characters or less`,

@@ -1,7 +1,6 @@
 import crypto from "node:crypto";
 import { addHours, addMinutes, subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
-import type { Context } from "koa";
 import type {
   Transaction,
   SaveOptions,
@@ -9,7 +8,7 @@ import type {
   InferAttributes,
   InferCreationAttributes,
 } from "sequelize";
-import { QueryTypes, Op } from "sequelize";
+import { QueryTypes, Op, Sequelize } from "sequelize";
 import { type InstanceUpdateOptions } from "sequelize";
 import {
   Table,
@@ -52,7 +51,8 @@ import env from "@server/env";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
 import { LockHelper } from "@server/storage/LockHelper";
 import { afterCommit } from "@server/storage/transaction";
-import type { APIContext } from "@server/types";
+import type { Context, AppContext } from "@server/types";
+import { toHookContext } from "@server/context";
 import { VerificationCode } from "@server/utils/VerificationCode";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { CacheHelper } from "@server/utils/CacheHelper";
@@ -481,99 +481,14 @@ class User extends ParanoidModel<
     (await this.groups(options)).map((g) => g.id);
 
   /**
-   * Returns the user's active collection ids. This includes collections the user
-   * has access to through group memberships.
+   * Returns the ids of the collections whose documents the user can read.
    *
-   * @param options Additional options to pass to the find, set `skipCache` to bypass the cached response
-   * @returns An array of collection ids
+   * @param options find options, set `skipCache` to bypass the cache.
+   * @returns a promise that resolves to the collection ids.
    */
-  public collectionIds = async (
+  public collectionIds = (
     options: FindOptions<Collection> & { skipCache?: boolean } = {}
-  ) => {
-    const { skipCache, ...findOptions } = options;
-    const hasOptions =
-      findOptions.transaction ||
-      findOptions.paranoid === false ||
-      findOptions.lock;
-
-    const fetchCollectionIds = async () => {
-      const collectionStubs = await Collection.findAll({
-        attributes: ["id"],
-        where: {
-          teamId: this.teamId,
-          // Only the owner can access a personal collection.
-          ownerId: {
-            [Op.or]: [{ [Op.is]: null }, { [Op.eq]: this.id }],
-          },
-          [Op.or]: [
-            ...(this.isGuest
-              ? []
-              : [
-                  {
-                    permission: {
-                      [Op.in]: Object.values(CollectionPermission),
-                    },
-                  },
-                ]),
-            {
-              "$memberships.id$": { [Op.ne]: null },
-            },
-            {
-              "$groupMemberships.id$": { [Op.ne]: null },
-            },
-          ],
-        },
-        include: [
-          {
-            association: "memberships",
-            attributes: [],
-            required: false,
-            where: {
-              userId: this.id,
-            },
-          },
-          {
-            association: "groupMemberships",
-            attributes: [],
-            required: false,
-            include: [
-              {
-                association: "group",
-                attributes: [],
-                required: true,
-                include: [
-                  {
-                    association: "groupUsers",
-                    attributes: [],
-                    required: true,
-                    where: {
-                      userId: this.id,
-                    },
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-        paranoid: true,
-        ...findOptions,
-      });
-
-      return Array.from(new Set(collectionStubs.map((c) => c.id)));
-    };
-
-    if (hasOptions || skipCache) {
-      return fetchCollectionIds();
-    }
-
-    return (
-      (await CacheHelper.getDataOrSet<string[]>(
-        RedisPrefixHelper.getUserCollectionIdsKey(this.id),
-        fetchCollectionIds,
-        10
-      )) ?? []
-    );
-  };
+  ) => Collection.accessibleIds(this, options);
 
   /**
    * Updates the lastActiveAt timestamp, at most once every five minutes.
@@ -582,7 +497,7 @@ class User extends ParanoidModel<
    * @param force whether to update even if the last update was recent.
    * @returns a promise that resolves with the updated user.
    */
-  updateActiveAt = async (ctx?: Context, force = false) => {
+  updateActiveAt = async (ctx?: AppContext, force = false) => {
     const fiveMinutesAgo = subMinutes(new Date(), 5);
 
     // ensure this is updated only every few minutes otherwise
@@ -609,13 +524,13 @@ class User extends ParanoidModel<
     });
   };
 
-  updateSignedIn = (ctx: Context | APIContext) => {
+  updateSignedIn = (ctx: AppContext | Context) => {
     const now = new Date();
     this.lastActiveAt = now;
     this.lastActiveIp = ctx.request.ip;
     this.lastSignedInAt = now;
     this.lastSignedInIp = ctx.request.ip;
-    return this.save({ hooks: false, transaction: ctx.state.transaction });
+    return this.save({ hooks: false, transaction: ctx.transaction });
   };
 
   /**
@@ -693,7 +608,7 @@ class User extends ParanoidModel<
    * @param ctx The request context, used to get the IP address of the request
    * @returns The email signin token
    */
-  getEmailSigninToken = (ctx: Context) =>
+  getEmailSigninToken = (ctx: AppContext) =>
     JWT.sign(
       {
         id: this.id,
@@ -990,15 +905,20 @@ class User extends ParanoidModel<
 
   static findByEmail = async function (
     this: typeof User,
-    ctx: APIContext,
+    ctx: Context,
     email: string
   ) {
     return this.findOne({
       where: {
-        teamId: ctx.state.auth.user.teamId,
-        email: email.trim().toLowerCase(),
+        teamId: ctx.auth.user.teamId,
+        [Op.and]: [
+          Sequelize.where(
+            Sequelize.fn("lower", Sequelize.col("email")),
+            email.trim().toLowerCase()
+          ),
+        ],
       },
-      ...ctx.context,
+      ...toHookContext(ctx),
     });
   };
 

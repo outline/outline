@@ -40,10 +40,10 @@ describe("list_templates", () => {
 
     const match = data.find(
       (t: { id: string }) => t.id === workspaceTemplate.id
-    ) as { url: string; collectionId: string | null; text: string };
+    ) as { url: string; collectionId: string | null; text?: string };
     expect(match.url).toMatch(/^https?:\/\//);
     expect(match.collectionId).toBeNull();
-    expect(match.text).toContain("Body of the workspace template");
+    expect(match.text).toBeUndefined();
   });
 
   it("filters by collection", async () => {
@@ -105,6 +105,24 @@ describe("list_templates", () => {
     );
     const ids = data.map((t: { id: string }) => t.id);
     expect(ids).toEqual([template.id]);
+  });
+
+  it("fails for an admin who is not a member of a private collection", async () => {
+    const { user, accessToken } = await buildOAuthUser({ role: "admin" });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      permission: null,
+    });
+    await buildTemplate({
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "list_templates", {
+      collectionId: collection.id,
+    });
+
+    expect(res?.result?.isError).toBe(true);
   });
 
   it("does not return templates from collections the user cannot access", async () => {

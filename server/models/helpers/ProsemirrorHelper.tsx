@@ -55,7 +55,7 @@ import { trace } from "@server/logging/tracing";
 import Attachment from "@server/models/Attachment";
 import User from "@server/models/User";
 import FileStorage from "@server/storage/files";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 
 export type HTMLOptions = {
   /** A title, if it should be included */
@@ -1242,13 +1242,13 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
    * images — a PDF bundled alongside a document, for example — do not remain
    * embedded in the document as base64.
    *
-   * @param ctx The API context.
+   * @param ctx The context.
    * @param doc The Prosemirror node to process.
    * @param user The user context.
    * @returns A new Prosemirror node with images and embedded files replaced.
    */
   static async replaceImagesWithAttachments(
-    ctx: APIContext,
+    ctx: Context,
     doc: Node,
     user: User
   ): Promise<Node> {

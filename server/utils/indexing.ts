@@ -15,7 +15,7 @@ export async function collectionIndexing(
   teamId: string,
   { transaction }: FindOptions<Collection>
 ) {
-  const collections = await Collection.findAll({
+  const collections = await Collection.unsafeFindAll({
     where: {
       teamId,
     },
@@ -60,7 +60,7 @@ export async function starIndexing(userId: string) {
     where: { userId },
   });
 
-  const documents = await Document.findAll({
+  const documents = await Document.unsafeFindAll({
     attributes: ["id", "updatedAt"],
     where: {
       id: stars.map((star) => star.documentId).filter(Boolean) as string[],

@@ -1,5 +1,6 @@
 import { subDays } from "date-fns";
 import { errToString } from "@shared/utils/error";
+import { parser } from "@server/editor";
 import { Attachment, Document } from "@server/models";
 import {
   buildAttachment,
@@ -214,5 +215,64 @@ describe("documentPermanentDeleter", () => {
         paranoid: false,
       })
     ).toEqual(1);
+  });
+
+  it("should destroy attachments referenced only by documents in the same batch", async () => {
+    const document1 = await buildDocument({
+      publishedAt: subDays(new Date(), 90),
+      deletedAt: subDays(new Date(), 60),
+    });
+    const document2 = await buildDocument({
+      teamId: document1.teamId,
+      publishedAt: subDays(new Date(), 90),
+      deletedAt: subDays(new Date(), 60),
+    });
+    const attachment = await buildAttachment({
+      teamId: document1.teamId,
+      documentId: document1.id,
+    });
+    document1.text = `![text](${attachment.redirectUrl})`;
+    await document1.save();
+    document2.text = `![text](${attachment.redirectUrl})`;
+    await document2.save();
+
+    const countDeletedDoc = await documentPermanentDeleter([
+      document1,
+      document2,
+    ]);
+    expect(countDeletedDoc).toEqual(2);
+    expect(schedule).toHaveBeenCalledTimes(1);
+    expect(schedule).toHaveBeenCalledWith(
+      expect.objectContaining({ attachmentId: attachment.id })
+    );
+  });
+
+  it("should only schedule deletion of attachments owned by the document's team", async () => {
+    const otherTeamDocument = await buildDocument({
+      publishedAt: subDays(new Date(), 90),
+      deletedAt: subDays(new Date(), 60),
+    });
+    const document = await buildDocument({
+      publishedAt: subDays(new Date(), 90),
+      deletedAt: subDays(new Date(), 60),
+    });
+    const attachment = await buildAttachment({
+      teamId: document.teamId,
+      documentId: document.id,
+    });
+    const content = parser
+      .parse(`![text](${attachment.redirectUrl})`)
+      ?.toJSON();
+    otherTeamDocument.content = content;
+    await otherTeamDocument.save();
+    document.content = content;
+    await document.save();
+
+    await documentPermanentDeleter([otherTeamDocument, document]);
+    expect(schedule).toHaveBeenCalledTimes(1);
+    expect(schedule).toHaveBeenCalledWith({
+      attachmentId: attachment.id,
+      teamId: document.teamId,
+    });
   });
 });

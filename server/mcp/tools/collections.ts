@@ -1,14 +1,19 @@
+import { difference } from "es-toolkit";
 import { z } from "zod";
 import { Sequelize, Op, type WhereOptions } from "sequelize";
 import type { McpServer } from "@modelcontextprotocol/server";
 import { Collection, Team } from "@server/models";
 import { buildWhere } from "@server/models/helpers/Filters";
 import { sequelize } from "@server/storage/database";
-import { authorize } from "@server/policies";
+import { authorize, can } from "@server/policies";
 import { presentCollection as presentCollectionBase } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
-import { DeprecationValidation } from "@shared/validations";
+import {
+  CollectionValidation,
+  DeprecationValidation,
+} from "@shared/validations";
+
 import {
   success,
   error,
@@ -85,12 +90,9 @@ export function collectionTools(server: McpServer, scopes: string[]) {
         async ({ query, offset, limit }, extra) => {
           try {
             const user = getActorFromContext(extra);
-            const collectionIds = await user.collectionIds();
-
             const and: WhereOptions<Collection>[] = [
               { deletedAt: { [Op.eq]: null } },
               { archivedAt: { [Op.eq]: null } },
-              { id: collectionIds },
             ];
 
             if (query) {
@@ -104,14 +106,11 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             }
 
             const where: WhereOptions<Collection> = {
-              teamId: user.teamId,
               [Op.and]: and,
             };
 
             const [collections, exactMatchCandidate] = await Promise.all([
-              Collection.scope({
-                method: ["withMembership", user.id],
-              }).findAll({
+              Collection.findAllWithCtx(buildAPIContext(extra), {
                 where,
                 order: [
                   Sequelize.literal('"collection"."index" collate "C"'),
@@ -129,7 +128,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             ]);
             const exactMatch =
               exactMatchCandidate &&
-              collectionIds.includes(exactMatchCandidate.id)
+              can(user, "readDocument", exactMatchCandidate)
                 ? exactMatchCandidate
                 : null;
 
@@ -195,28 +194,54 @@ export function collectionTools(server: McpServer, scopes: string[]) {
           color: optionalString().describe(
             "The hex color for the collection icon, e.g. #FF0000."
           ),
+          ownerIds: z
+            .array(z.uuid())
+            .max(CollectionValidation.maxOwners)
+            .optional()
+            .describe(
+              "The IDs of users responsible for the collection, they also own every document in it. Owners must be members or admins of the workspace, use list_users to find user IDs."
+            ),
         }),
       },
       withTracing("create_collection", async (input, context) => {
         try {
           const ctx = buildAPIContext(context);
-          const { user } = ctx.state.auth;
+          const { user } = ctx.auth;
           const team = await Team.findByPk(user.teamId, {
             rejectOnEmpty: true,
           });
           authorize(user, "createCollection", team);
 
-          const collection = Collection.build({
-            name: input.name,
-            description: input.description,
-            icon: input.icon,
-            color: input.color,
-            teamId: user.teamId,
-            createdById: user.id,
-            permission: null,
-          });
+          const collection = await sequelize.transaction(
+            async (transaction) => {
+              ctx.transaction = transaction;
 
-          await collection.saveWithCtx(ctx);
+              const created = Collection.build({
+                name: input.name,
+                description: input.description,
+                icon: input.icon,
+                color: input.color,
+                teamId: user.teamId,
+                createdById: user.id,
+                permission: null,
+              });
+              await created.saveWithCtx(ctx);
+
+              if (input.ownerIds?.length) {
+                const reloaded = await Collection.findByPk(created.id, {
+                  userId: user.id,
+                  transaction,
+                  rejectOnEmpty: true,
+                });
+                authorize(user, "manageOwners", reloaded);
+                await reloaded.setOwnerIds(ctx, input.ownerIds);
+                await reloaded.saveWithCtx(ctx);
+                await reloaded.grantOwnerAccess(ctx, reloaded.ownerIds);
+              }
+
+              return created;
+            }
+          );
 
           return success({
             success: true,
@@ -269,51 +294,76 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             .describe(
               "The hex color for the collection icon. Set to null to remove."
             ),
+          ownerIds: z
+            .array(z.uuid())
+            .max(CollectionValidation.maxOwners)
+            .optional()
+            .describe(
+              "The complete list of IDs of users responsible for the collection, replacing any existing owners. Pass an empty array to remove all owners. Owners must be members or admins of the workspace, use list_users to find user IDs."
+            ),
         }),
       },
       withTracing("update_collection", async (input, context) => {
         try {
           const ctx = buildAPIContext(context);
-          const { user } = ctx.state.auth;
+          const { user } = ctx.auth;
 
-          const collection = await Collection.findByPk(input.id, {
-            userId: user.id,
-            rejectOnEmpty: true,
-          });
-          authorize(user, "update", collection);
+          return await sequelize.transaction(async (transaction) => {
+            ctx.transaction = transaction;
 
-          if (input.name !== undefined) {
-            collection.name = input.name.trim();
-          }
-          if (input.description !== undefined) {
-            collection.description = input.description;
-          }
-          if (input.icon !== undefined) {
-            collection.icon = input.icon;
-          }
-          if (input.color !== undefined) {
-            collection.color = input.color;
-          }
+            const collection = await Collection.findByPk(input.id, {
+              userId: user.id,
+              rejectOnEmpty: true,
+              transaction,
+            });
+            authorize(user, "update", collection);
+            if (input.ownerIds) {
+              authorize(user, "manageOwners", collection);
+            }
 
-          // A write that changes nothing must fail loud rather than return a
-          // success the caller would read as a completed write — the request
-          // either carried no recognized fields or values identical to the
-          // current collection.
-          if (!collection.changed()) {
-            return error(
-              "The update resulted in no changes to the collection. Ensure at least one field is provided and differs from the current collection."
+            const previousOwnerIds = collection.ownerIds ?? [];
+            if (input.ownerIds) {
+              await collection.setOwnerIds(ctx, input.ownerIds);
+            }
+
+            if (input.name !== undefined) {
+              collection.name = input.name.trim();
+            }
+            if (input.description !== undefined) {
+              collection.description = input.description;
+            }
+            if (input.icon !== undefined) {
+              collection.icon = input.icon;
+            }
+            if (input.color !== undefined) {
+              collection.color = input.color;
+            }
+
+            // A write that changes nothing must fail loud rather than return a
+            // success the caller would read as a completed write — the request
+            // either carried no recognized fields or values identical to the
+            // current collection.
+            if (!collection.changed()) {
+              return error(
+                "The update resulted in no changes to the collection. Ensure at least one field is provided and differs from the current collection."
+              );
+            }
+
+            await collection.saveWithCtx(ctx);
+
+            await collection.grantOwnerAccess(
+              ctx,
+              difference(collection.ownerIds ?? [], previousOwnerIds)
             );
-          }
 
-          await collection.saveWithCtx(ctx);
-
-          return success({
-            success: true,
-            ...pathToUrl(user.team, {
-              id: collection.id,
-              name: collection.name,
-              url: collection.path,
-            }),
+            return success({
+              success: true,
+              ...pathToUrl(user.team, {
+                id: collection.id,
+                name: collection.name,
+                url: collection.path,
+              }),
+            });
           });
         } catch (message) {
           return error(message);
@@ -360,11 +410,11 @@ export function collectionTools(server: McpServer, scopes: string[]) {
         async ({ id, archive, reason }, context) => {
           try {
             const ctx = buildAPIContext(context);
-            const { user } = ctx.state.auth;
+            const { user } = ctx.auth;
 
             await sequelize.transaction(async (transaction) => {
-              ctx.state.transaction = transaction;
-              ctx.context.transaction = transaction;
+              ctx.transaction = transaction;
+              ctx.transaction = transaction;
 
               const collection = await Collection.findByPk(id, {
                 userId: user.id,

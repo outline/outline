@@ -9,7 +9,7 @@ import {
   buildUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { PasskeyBrand } from "@shared/utils/passkeys";
 import {
   getExpectedOrigin,
@@ -82,13 +82,13 @@ function buildNoneAttestationResponse(challenge: string, rpId: string) {
 }
 
 describe("getExpectedOrigin", () => {
-  // Helper to mock APIContext for testing
+  // Helper to mock Context for testing
   const createMockContext = (options: {
     protocol: string;
     hostname: string;
     host: string;
     forwardedPort?: string;
-  }): APIContext =>
+  }): Context =>
     ({
       protocol: options.protocol,
       request: {
@@ -101,7 +101,7 @@ describe("getExpectedOrigin", () => {
           return undefined;
         },
       } as unknown,
-    }) as unknown as APIContext;
+    }) as unknown as Context;
 
   it("should construct origin with non-standard HTTPS port from X-Forwarded-Port", () => {
     const ctx = createMockContext({
@@ -357,5 +357,30 @@ describe("#passkeys.verifyAuthentication", () => {
     expect(resBody.message).toEqual(
       "No authentication challenge found or challenge expired"
     );
+  });
+
+  it("should accept boolean extension results sent as form strings", async () => {
+    const options = await server.post(
+      "/auth/passkeys.generateAuthenticationOptions",
+      { body: {} }
+    );
+    const { data } = await options.json();
+    const res = await server.post("/auth/passkeys.verifyAuthentication", {
+      body: {
+        challengeId: data.challengeId,
+        id: "unknown",
+        rawId: "unknown",
+        response: {
+          authenticatorData: "",
+          clientDataJSON: "",
+          signature: "",
+        },
+        type: "public-key",
+        clientExtensionResults: { appid: "false", hmacCreateSecret: "true" },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toContain("Passkey not found");
   });
 });

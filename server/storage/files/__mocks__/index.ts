@@ -9,6 +9,8 @@ export default {
 
   getSignedUrl: vi.fn().mockReturnValue("http://s3mock"),
 
+  storeFromUrl: vi.fn().mockResolvedValue(undefined),
+
   getPresignedPost: vi.fn().mockReturnValue({}),
 
   getPresignedPut: vi

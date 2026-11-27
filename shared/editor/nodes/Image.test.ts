@@ -70,3 +70,48 @@ describe("Image node source attribute round-trip", () => {
     expect(imageNode.attrs.title).toBe("Caption source=example");
   });
 });
+
+describe("Image node markdown escaping", () => {
+  it("round-trips an alt with several newlines", () => {
+    const doc = parser.parse("![a](https://x.com/a.png)");
+    const image = doc.firstChild?.firstChild;
+    if (!image) {
+      throw new Error("Expected image node");
+    }
+    const edited = doc.type.create(null, [
+      doc.firstChild.type.create(null, [
+        image.type.create({ ...image.attrs, alt: "a\n\n\nb" }),
+      ]),
+    ]);
+    const imageNode = findImageNode(parser.parse(serializer.serialize(edited)));
+    expect(imageNode.attrs.alt).toBe("ab");
+    expect(imageNode.attrs.src).toBe("https://x.com/a.png");
+  });
+
+  it("round-trips a title that contains quotes and a backslash", () => {
+    const doc = parser.parse('![pic](https://x.com/a.png "placeholder")');
+    const image = doc.firstChild?.firstChild;
+    if (!image) {
+      throw new Error("Expected image node");
+    }
+    const edited = doc.type.create(null, [
+      doc.firstChild.type.create(null, [
+        image.type.create({ ...image.attrs, title: 'say "hi" \\ ok' }),
+      ]),
+    ]);
+    const imageNode = findImageNode(parser.parse(serializer.serialize(edited)));
+    expect(imageNode.attrs.title).toBe('say "hi" \\ ok');
+    expect(imageNode.attrs.alt).toBe("pic");
+  });
+
+  it("round-trips a title with markdown characters inside a table", () => {
+    const doc = parser.parse(
+      '| ![pic](https://x.com/a.png "a\\|b *c* `d`") | x |\n|---|---|\n| 1 | 2 |'
+    );
+    const markdown = serializer.serialize(doc);
+    expect(markdown).toContain('"a\\|b');
+    expect(findImageNode(parser.parse(markdown)).attrs.title).toBe(
+      "a|b *c* `d`"
+    );
+  });
+});

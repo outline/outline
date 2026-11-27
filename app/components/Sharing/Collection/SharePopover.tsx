@@ -21,6 +21,7 @@ import usePrevious from "~/hooks/usePrevious";
 import useShareDataLoader from "~/hooks/useShareDataLoader";
 import useStores from "~/hooks/useStores";
 import type { Permission } from "~/types";
+import { OwnerSelectValue } from "~/types";
 import { collectionPath, urlify } from "~/utils/routeHelpers";
 import { Wrapper, presence } from "../components";
 import { CopyLinkButton } from "../components/CopyLinkButton";
@@ -61,9 +62,30 @@ function SharePopover({
   const [hasRendered, setHasRendered] = React.useState(visible);
   const [pendingIds, setPendingIds] = React.useState<string[]>([]);
   const [invitedInSession, setInvitedInSession] = React.useState<string[]>([]);
-  const [permission, setPermission] = React.useState<CollectionPermission>(
-    collection.permission ?? CollectionPermission.Read
-  );
+  const [permission, setPermission] = React.useState<
+    CollectionPermission | typeof OwnerSelectValue
+  >(collection.permission ?? CollectionPermission.Read);
+
+  // Only existing members and admins can be invited as owners, not groups.
+  const canInviteOwners =
+    !!can.manageOwners &&
+    pendingIds.every((id) => {
+      const pendingUser = users.get(id);
+      return (
+        !!pendingUser &&
+        (pendingUser.isAdmin || pendingUser.isMember) &&
+        !pendingUser.isSuspended
+      );
+    });
+  const invitePermission =
+    permission === OwnerSelectValue && !canInviteOwners
+      ? CollectionPermission.Admin
+      : permission;
+  const isOwnerInvite = invitePermission === OwnerSelectValue;
+  const membershipPermission =
+    invitePermission === OwnerSelectValue
+      ? CollectionPermission.Admin
+      : invitePermission;
 
   const share = shares.getByCollectionId(collection.id);
   const prevPendingIds = usePrevious(pendingIds);
@@ -209,7 +231,9 @@ function SharePopover({
                   {
                     email: idOrEmail,
                     name: idOrEmail,
-                    role: inviteRole,
+                    role: team.isTeamDomain(idOrEmail)
+                      ? team.defaultUserRole
+                      : inviteRole,
                   },
                 ]);
                 user = response[0];
@@ -222,7 +246,8 @@ function SharePopover({
                 await memberships.create({
                   collectionId: collection.id,
                   userId: user.id,
-                  permission,
+                  permission: membershipPermission,
+                  owner: isOwnerInvite || undefined,
                 });
                 return user;
               }
@@ -231,7 +256,7 @@ function SharePopover({
                 await groupMemberships.create({
                   collectionId: collection.id,
                   groupId: group.id,
-                  permission,
+                  permission: membershipPermission,
                 });
                 return group;
               }
@@ -301,9 +326,11 @@ function SharePopover({
       hidePicker,
       memberships,
       pendingIds,
-      permission,
+      membershipPermission,
+      isOwnerInvite,
       t,
       inviteRole,
+      team,
       users,
     ]
   );
@@ -323,8 +350,16 @@ function SharePopover({
           label: t("Manage"),
           value: CollectionPermission.Admin,
         },
+        ...(canInviteOwners
+          ? [
+              {
+                label: t("Owner"),
+                value: OwnerSelectValue,
+              },
+            ]
+          : []),
       ] as Permission[],
-    [t]
+    [t, canInviteOwners]
   );
 
   if (!hasRendered) {
@@ -354,10 +389,12 @@ function SharePopover({
     pendingIds.length ? (
       <PermissionAction
         key="invite"
-        permission={permission}
+        permission={invitePermission}
         permissions={permissions}
         action={inviteAction}
-        onChange={(value: CollectionPermission) => setPermission(value)}
+        onChange={(value: CollectionPermission | typeof OwnerSelectValue) =>
+          setPermission(value)
+        }
       />
     ) : null
   ) : (

@@ -33,7 +33,11 @@ describe("ExportOKFZipTask", () => {
     });
 
     const task = new ExportOKFZipTask();
-    const filePath = await task.exportCollections([collection], fileOperation);
+    const filePath = await task.exportCollections(
+      [collection],
+      fileOperation,
+      user
+    );
 
     try {
       const contents = await readZipContents(filePath);
@@ -91,7 +95,11 @@ describe("ExportOKFZipTask", () => {
     });
 
     const task = new ExportOKFZipTask();
-    const filePath = await task.exportCollections([collection], fileOperation);
+    const filePath = await task.exportCollections(
+      [collection],
+      fileOperation,
+      user
+    );
 
     try {
       const contents = await readZipContents(filePath);
@@ -131,7 +139,11 @@ describe("ExportOKFZipTask", () => {
     });
 
     const task = new ExportOKFZipTask();
-    const filePath = await task.exportCollections([collection], fileOperation);
+    const filePath = await task.exportCollections(
+      [collection],
+      fileOperation,
+      user
+    );
 
     try {
       const contents = await readZipContents(filePath);

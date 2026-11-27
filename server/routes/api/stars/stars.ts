@@ -12,7 +12,7 @@ import {
   presentDocuments,
   presentPolicies,
 } from "@server/presenters";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { starIndexing } from "@server/utils/indexing";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
@@ -26,13 +26,16 @@ router.post(
   auth(),
   validate(T.StarsCreateSchema),
   transaction(),
-  async (ctx: APIContext<T.StarsCreateReq>) => {
-    const { transaction } = ctx.state;
+  async (ctx: Context<T.StarsCreateReq>) => {
+    const { transaction } = ctx;
     const { documentId, collectionId, index } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
+
+    let document: Document | null = null;
+    let collection: Collection | null = null;
 
     if (documentId) {
-      const document = await Document.findByPk(documentId, {
+      document = await Document.findByPk(documentId, {
         userId: user.id,
         transaction,
       });
@@ -40,7 +43,7 @@ router.post(
     }
 
     if (collectionId) {
-      const collection = await Collection.findByPk(collectionId, {
+      collection = await Collection.findByPk(collectionId, {
         userId: user.id,
         transaction,
       });
@@ -50,8 +53,8 @@ router.post(
     const star = await starCreator({
       ctx,
       user,
-      documentId,
-      collectionId,
+      documentId: document?.id,
+      collectionId: collection?.id,
       index,
     });
 
@@ -67,23 +70,20 @@ router.post(
   auth(),
   pagination(),
   validate(T.StarsListSchema),
-  async (ctx: APIContext<T.StarsListReq>) => {
-    const { user } = ctx.state.auth;
+  async (ctx: Context<T.StarsListReq>) => {
+    const { user } = ctx.auth;
 
-    const [stars, collectionIds] = await Promise.all([
-      Star.findAll({
-        where: {
-          userId: user.id,
-        },
-        order: [
-          Sequelize.literal('"star"."index" collate "C"'),
-          ["updatedAt", "DESC"],
-        ],
-        offset: ctx.state.pagination.offset,
-        limit: ctx.state.pagination.limit,
-      }),
-      user.collectionIds(),
-    ]);
+    const stars = await Star.findAll({
+      where: {
+        userId: user.id,
+      },
+      order: [
+        Sequelize.literal('"star"."index" collate "C"'),
+        ["updatedAt", "DESC"],
+      ],
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+    });
 
     const nullIndex = stars.findIndex((star) => star.index === null);
 
@@ -98,10 +98,10 @@ router.post(
       .map((star) => star.documentId)
       .filter(Boolean) as string[];
     const documents = documentIds.length
-      ? await Document.withMembershipScope(user.id).findAll({
+      ? await Document.findAllWithCtx(ctx, {
+          includeDrafts: true,
           where: {
             id: documentIds,
-            collectionId: collectionIds,
           },
         })
       : [];
@@ -124,10 +124,10 @@ router.post(
   auth(),
   validate(T.StarsUpdateSchema),
   transaction(),
-  async (ctx: APIContext<T.StarsUpdateReq>) => {
+  async (ctx: Context<T.StarsUpdateReq>) => {
     const { id, index } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const star = await Star.findByPk(id, {
       transaction,
@@ -149,10 +149,10 @@ router.post(
   auth(),
   validate(T.StarsDeleteSchema),
   transaction(),
-  async (ctx: APIContext<T.StarsDeleteReq>) => {
+  async (ctx: Context<T.StarsDeleteReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const star = await Star.findByPk(id, {
       transaction,

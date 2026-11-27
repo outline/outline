@@ -84,6 +84,8 @@ export const AccessControlList = observer(
       margin: 24,
     });
 
+    // The current user is listed with the members when they have a membership.
+    const isMember = document.members.some((member) => member.id === user.id);
     const isRestrictionInherited = !!document.restrictionSourceId;
     const restrictionSource = document.restrictionSourceId
       ? documents.get(document.restrictionSourceId)
@@ -236,7 +238,7 @@ export const AccessControlList = observer(
             </>
           ) : collection && canCollection.readDocument ? (
             <>
-              {collection.isPersonal && (
+              {collection.isPersonal && !isMember && (
                 <ListItem
                   image={<Avatar model={user} />}
                   title={user.name}

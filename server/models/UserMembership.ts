@@ -29,7 +29,7 @@ import { CollectionPermission } from "@shared/types";
 import { ValidationError } from "@server/errors";
 import { LockHelper } from "@server/storage/LockHelper";
 import { afterCommit } from "@server/storage/transaction";
-import type { APIContext } from "@server/types";
+import type { HookContextFields } from "@server/context";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import Collection from "./Collection";
@@ -259,7 +259,7 @@ class UserMembership extends IdModel<
   @AfterCreate
   static async publishAddUserEventAfterCreate(
     model: UserMembership,
-    context: APIContext["context"]
+    context: HookContextFields
   ) {
     await model.insertEvent(context, "add_user", {
       isNew: true,
@@ -272,13 +272,6 @@ class UserMembership extends IdModel<
     options: CreateOptions<UserMembership>
   ) {
     await this.invalidateCollectionIds(model, options);
-  }
-
-  @AfterCreate
-  static async invalidateDocumentIdsAfterCreate(model: UserMembership) {
-    if (model.documentId) {
-      await Document.invalidateMembershipDocumentIds([model.userId]);
-    }
   }
 
   @AfterUpdate
@@ -311,7 +304,7 @@ class UserMembership extends IdModel<
   @BeforeUpdate
   static async checkLastAdminBeforeUpdate(
     model: UserMembership,
-    ctx: APIContext["context"]
+    ctx: HookContextFields
   ) {
     if (
       model.permission === CollectionPermission.Admin ||
@@ -326,7 +319,7 @@ class UserMembership extends IdModel<
   @BeforeDestroy
   static async checkLastAdminBeforeDestroy(
     model: UserMembership,
-    ctx: APIContext["context"]
+    ctx: HookContextFields
   ) {
     // Only check for last admin permission if this permission is admin
     if (
@@ -341,7 +334,7 @@ class UserMembership extends IdModel<
   @AfterUpdate
   static async publishAddUserEventAfterUpdate(
     model: UserMembership,
-    context: APIContext["context"]
+    context: HookContextFields
   ) {
     await model.insertEvent(context, "add_user", {
       isNew: false,
@@ -351,7 +344,7 @@ class UserMembership extends IdModel<
   @AfterDestroy
   static async publishRemoveUserEvent(
     model: UserMembership,
-    context: APIContext["context"]
+    context: HookContextFields
   ) {
     await model.insertEvent(context, "remove_user");
   }
@@ -362,13 +355,6 @@ class UserMembership extends IdModel<
     options: InstanceDestroyOptions
   ) {
     await this.invalidateCollectionIds(model, options);
-  }
-
-  @AfterDestroy
-  static async invalidateDocumentIdsAfterDestroy(model: UserMembership) {
-    if (model.documentId) {
-      await Document.invalidateMembershipDocumentIds([model.userId]);
-    }
   }
 
   /**
@@ -460,7 +446,7 @@ class UserMembership extends IdModel<
   }
 
   private async insertEvent(
-    ctx: APIContext["context"],
+    ctx: HookContextFields,
     name: string,
     data?: Record<string, unknown>
   ) {
@@ -493,7 +479,7 @@ class UserMembership extends IdModel<
 
   private static async validateLastAdminPermission(
     model: UserMembership,
-    { transaction }: APIContext["context"]
+    { transaction }: HookContextFields
   ) {
     // Both models guard the same invariant, so they share one lock name,
     // otherwise the last user manager and the last group manager can be

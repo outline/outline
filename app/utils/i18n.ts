@@ -42,7 +42,10 @@ export function initI18n(defaultLanguage = "en_US") {
         useSuspense: false,
       },
       lng,
-      fallbackLng: lng,
+
+      // Keys are the English strings, and the server omits entries that match
+      // their key, so a missing entry must show the key.
+      fallbackLng: false,
       supportedLngs: languages.map(unicodeCLDRtoBCP47),
       keySeparator: false,
       returnNull: false,

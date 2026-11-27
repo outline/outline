@@ -5,7 +5,7 @@ import type { Document } from "@server/models";
 import FileOperation from "@server/models/FileOperation";
 import User from "@server/models/User";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import presentUser from "./user";
 
 type Options = {
@@ -27,7 +27,7 @@ type Options = {
 };
 
 async function presentDocument(
-  ctx: APIContext | undefined,
+  ctx: Context | undefined,
   document: Document,
   options: Options | null | undefined = {}
 ) {
@@ -85,6 +85,7 @@ async function presentDocument(
     deletedAt: document.deletedAt,
     deletedBy: undefined,
     collaboratorIds: [],
+    ownerIds: [],
     revision: document.revisionCount,
     fullWidth: document.fullWidth,
     preferences: document.preferences,
@@ -124,6 +125,7 @@ async function presentDocument(
     res.createdBy = presentUser(document.createdBy);
     res.updatedBy = presentUser(document.updatedBy);
     res.collaboratorIds = document.collaboratorIds ?? [];
+    res.ownerIds = document.ownerIds ?? [];
     res.templateId = document.templateId;
     res.insightsEnabled = document.insightsEnabled;
     res.popularityScore = document.popularityScore;
@@ -161,13 +163,13 @@ export default traceFunction({
  * Batch-present multiple documents, fetching all related FileOperation and
  * deleting User records in a single query instead of one per document.
  *
- * @param ctx the API context.
+ * @param ctx the context.
  * @param documents the documents to present.
  * @param options presentation options forwarded to presentDocument.
  * @returns array of presented document objects.
  */
 export async function presentDocuments(
-  ctx: APIContext | undefined,
+  ctx: Context | undefined,
   documents: Document[],
   options?: Options | null
 ) {

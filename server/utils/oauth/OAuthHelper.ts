@@ -1,8 +1,8 @@
-import type { Context } from "koa";
 import isURL from "validator/lib/isURL";
 import type { OAuthClientValidation } from "@shared/validations";
 import { isLoopbackUri, isPrivateUseSchemeUrl } from "@shared/utils/urls";
 import env from "@server/env";
+import type { AppContext } from "@server/types";
 
 type ClientType = (typeof OAuthClientValidation.clientTypes)[number];
 
@@ -140,7 +140,7 @@ export class OAuthHelper {
    * @param ctx - the Koa request context.
    * @returns the origin, e.g. "https://app.getoutline.com".
    */
-  public static getIssuer(ctx: Context): string {
+  public static getIssuer(ctx: AppContext): string {
     return env.isCloudHosted ? ctx.request.URL.origin : new URL(env.URL).origin;
   }
 

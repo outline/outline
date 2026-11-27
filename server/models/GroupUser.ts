@@ -16,7 +16,6 @@ import {
   Scopes,
 } from "sequelize-typescript";
 import { GroupPermission } from "@shared/types";
-import Document from "./Document";
 import Group from "./Group";
 import User from "./User";
 import Model from "./base/Model";
@@ -75,7 +74,7 @@ class GroupUser extends Model<
   // hooks
 
   /**
-   * Updates the group timestamp and invalidates document membership IDs after a user joins.
+   * Updates the group timestamp after a user joins.
    *
    * @param model - the new group membership.
    * @param options - the creation options, including the transaction.
@@ -87,11 +86,10 @@ class GroupUser extends Model<
     options: CreateOptions<GroupUser>
   ) {
     await this.touchGroup(model, options.transaction);
-    await Document.invalidateMembershipDocumentIds([model.userId]);
   }
 
   /**
-   * Updates the group timestamp and invalidates document membership IDs after a user leaves.
+   * Updates the group timestamp after a user leaves.
    *
    * @param model - the removed group membership.
    * @param options - the deletion options, including the transaction.
@@ -103,7 +101,6 @@ class GroupUser extends Model<
     options: DestroyOptions<GroupUser>
   ) {
     await this.touchGroup(model, options.transaction);
-    await Document.invalidateMembershipDocumentIds([model.userId]);
   }
 
   private static async touchGroup(

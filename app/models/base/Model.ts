@@ -1,5 +1,5 @@
 import { isEqual, pick } from "es-toolkit/compat";
-import { action, makeObservable, observable, toJS } from "mobx";
+import { action, makeObservable, observable, runInAction, toJS } from "mobx";
 import type { JSONObject } from "@shared/types";
 import type Store from "~/stores/base/Store";
 import type { PartialExcept } from "~/types";
@@ -46,6 +46,16 @@ function getAnnotatedKeysForModel(target: Model): (string | symbol)[] {
 
   return [];
 }
+
+interface PendingField {
+  /** The last value known to be accepted by the server. */
+  confirmed: unknown;
+  /** The number of requests in flight that wrote to the field. */
+  count: number;
+}
+
+/** Fields on each model that have an optimistic write in flight. */
+const pendingFields = new WeakMap<Model, Map<string, PendingField>>();
 
 export default abstract class Model {
   static modelName: string;
@@ -159,11 +169,15 @@ export default abstract class Model {
   }
 
   /**
-   * Persists the model to the server API
+   * Persists the model to the server API.
+   *
+   * Fields passed as params are applied optimistically, and reverted if the
+   * request fails.
    *
    * @param params Specific fields to save, if not provided the model will be serialized
    * @param options Options to pass to the store
    * @returns A promise that resolves with the updated model
+   * @throws The original error if the request fails.
    */
   save = async (
     params?: Record<string, unknown>,
@@ -171,22 +185,25 @@ export default abstract class Model {
   ): Promise<Model> => {
     const isNew = this.isNew;
     this.isSaving = true;
+    let settle: ((success: boolean) => void) | undefined;
 
     try {
-      // ensure that the id is passed if the document has one
-      if (!params) {
-        params = this.toAPI();
-      }
-
       if (isNew) {
         LifecycleManager.executeHooks(this.constructor, "beforeCreate", this);
       } else {
         LifecycleManager.executeHooks(this.constructor, "beforeUpdate", this);
       }
 
+      if (params) {
+        settle = this.applyOptimistic(params);
+      } else {
+        params = this.toAPI();
+      }
+
       const model = await this.store.save(
         {
           ...params,
+          // ensure that the id is passed if the document has one
           id: this.id,
         },
         {
@@ -197,6 +214,7 @@ export default abstract class Model {
 
       // if saving is successful set the new values on the model itself
       this.updateData(Object.assign({}, params, model));
+      settle?.(true);
 
       if (isNew) {
         LifecycleManager.executeHooks(this.constructor, "afterCreate", this);
@@ -205,17 +223,89 @@ export default abstract class Model {
       }
 
       return model;
+    } catch (err) {
+      settle?.(false);
+      throw err;
     } finally {
       this.isSaving = false;
     }
   };
+
+  /**
+   * Sets declared fields on the model ahead of a request to the server, so
+   * that observers update without waiting for the response.
+   *
+   * @param params the values being saved.
+   * @returns a function to call once when the request settles. On failure each
+   * field still holding its optimistic value is reverted to the last value
+   * confirmed by the server.
+   */
+  protected applyOptimistic(
+    params: Record<string, unknown>
+  ): (success: boolean) => void {
+    const fields = getFieldsForModel(this);
+    const keys = Object.keys(params).filter((key) => fields.includes(key));
+    const pending = pendingFields.get(this) ?? new Map<string, PendingField>();
+    pendingFields.set(this, pending);
+
+    runInAction(() => {
+      for (const key of keys) {
+        const entry = pending.get(key);
+        if (entry) {
+          entry.count++;
+        } else {
+          pending.set(key, { confirmed: Reflect.get(this, key), count: 1 });
+        }
+        Reflect.set(this, key, params[key]);
+      }
+    });
+
+    let settled = false;
+
+    return action((success: boolean) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+
+      for (const key of keys) {
+        const entry = pending.get(key);
+        if (!entry) {
+          continue;
+        }
+
+        // A value changed since the optimistic write is newer, so it is kept.
+        if (!success && isEqual(toJS(Reflect.get(this, key)), params[key])) {
+          Reflect.set(this, key, entry.confirmed);
+
+          if (
+            isEqual(Reflect.get(this.persistedAttributes, key), params[key])
+          ) {
+            Reflect.set(this.persistedAttributes, key, toJS(entry.confirmed));
+          }
+        }
+
+        if (--entry.count === 0) {
+          pending.delete(key);
+        }
+      }
+    });
+  }
 
   updateData = action((data: Record<string, unknown>) => {
     if (this.initialized) {
       LifecycleManager.executeHooks(this.constructor, "beforeChange", this);
     }
 
+    // Change hooks compare incoming fields against confirmed values, not
+    // optimistic ones.
+    const pending = pendingFields.get(this);
     const previousAttributes = this.toAPI();
+    pending?.forEach((entry, key) => {
+      if (key in data) {
+        Reflect.set(previousAttributes, key, entry.confirmed);
+      }
+    });
     let addedKeys = false;
 
     for (const key in data) {
@@ -223,6 +313,10 @@ export default abstract class Model {
         // Some models are serialized with the initialized flag, this should be ignored.
         if (key === "initialized") {
           continue;
+        }
+        const entry = pending?.get(key);
+        if (entry) {
+          entry.confirmed = data[key];
         }
         if (isEqual(toJS(Reflect.get(this, key)), data[key])) {
           continue;

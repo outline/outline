@@ -1,7 +1,7 @@
 import type { Next } from "koa";
 import { CommentingAccess, TeamPreference } from "@shared/types";
 import { ValidationError } from "@server/errors";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 
 /**
  * Middleware to check if a feature is enabled for the team.
@@ -10,8 +10,8 @@ import type { APIContext } from "@server/types";
  * @returns The middleware function
  */
 export function feature(preference: TeamPreference) {
-  return async function featureEnabledMiddleware(ctx: APIContext, next: Next) {
-    if (!ctx.state.auth.user.team.getPreference(preference)) {
+  return async function featureEnabledMiddleware(ctx: Context, next: Next) {
+    if (!ctx.auth.user.team.getPreference(preference)) {
       throw ValidationError(`${preference} is currently disabled`);
     }
     return next();
@@ -24,11 +24,8 @@ export function feature(preference: TeamPreference) {
  * @returns The middleware function
  */
 export function commentingEnabled() {
-  return async function commentingEnabledMiddleware(
-    ctx: APIContext,
-    next: Next
-  ) {
-    const commenting = ctx.state.auth.user.team.getPreference(
+  return async function commentingEnabledMiddleware(ctx: Context, next: Next) {
+    const commenting = ctx.auth.user.team.getPreference(
       TeamPreference.Commenting
     );
     // A legacy boolean `false` (team not yet migrated) means disabled.

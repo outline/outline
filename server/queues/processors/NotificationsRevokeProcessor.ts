@@ -4,11 +4,13 @@ import type {
   CollectionEvent,
   CollectionGroupEvent,
   CollectionUserEvent,
+  DocumentEvent,
   DocumentGroupEvent,
   DocumentMovedEvent,
   DocumentUserEvent,
   Event,
   GroupEvent,
+  UserEvent,
 } from "@server/types";
 import type { RevokeScope } from "../tasks/RevokeUserNotificationsTask";
 import RevokeUserNotificationsTask from "../tasks/RevokeUserNotificationsTask";
@@ -21,7 +23,9 @@ type ReceivedEvent =
   | DocumentUserEvent
   | DocumentGroupEvent
   | DocumentMovedEvent
-  | GroupEvent;
+  | DocumentEvent
+  | GroupEvent
+  | UserEvent;
 
 /**
  * Revokes notifications that reference a document or collection once the recipient loses access to it.
@@ -34,8 +38,11 @@ export default class NotificationsRevokeProcessor extends BaseProcessor {
     "documents.remove_user",
     "documents.remove_group",
     "documents.move",
+    "documents.restore",
+    "documents.unarchive",
     "groups.remove_user",
     "groups.delete",
+    "users.demote",
   ];
 
   async perform(event: ReceivedEvent) {
@@ -64,9 +71,10 @@ export default class NotificationsRevokeProcessor extends BaseProcessor {
           documentId: event.documentId,
         });
 
-      // Access lost through a group cannot be scoped to a single collection or document, so all
-      // of the user's notifications are re-checked.
+      // Access lost through a group or a role change cannot be scoped to a single collection or
+      // document, so all of the user's notifications are re-checked.
       case "groups.remove_user":
+      case "users.demote":
         await new RevokeUserNotificationsTask().schedule({
           userId: event.userId,
         });
@@ -79,16 +87,23 @@ export default class NotificationsRevokeProcessor extends BaseProcessor {
         return this.handlePermissionChanged(event);
 
       case "documents.move":
-        return this.handleDocumentMoved(event);
+        return this.handleDocumentMoved(
+          event.documentId,
+          event.data.documentIds
+        );
+
+      case "documents.restore":
+      case "documents.unarchive":
+        return this.handleDocumentRestored(event.documentId);
     }
   }
 
-  // A move carries the document into a different collection, which the recipient of a notification
-  // about it may not be able to read.
-  private async handleDocumentMoved(event: DocumentMovedEvent) {
+  // A move carries the document into a different collection or parent, which the recipient of a
+  // notification about it may not be able to read.
+  private async handleDocumentMoved(documentId: string, documentIds: string[]) {
     const notifications = await Notification.unscoped().findAll({
       attributes: ["userId"],
-      where: { documentId: event.data.documentIds },
+      where: { documentId: documentIds },
       group: ["notification.userId"],
     });
 
@@ -96,10 +111,24 @@ export default class NotificationsRevokeProcessor extends BaseProcessor {
       notifications.map((notification) =>
         new RevokeUserNotificationsTask().schedule({
           userId: notification.userId,
-          documentId: event.documentId,
+          documentId,
         })
       )
     );
+  }
+
+  // A restore can place the document in a different collection or parent, in the same way as a move.
+  private async handleDocumentRestored(documentId: string) {
+    const document = await Document.findByPk(documentId);
+    if (!document) {
+      return;
+    }
+
+    const childDocumentIds = await document.findAllChildDocumentIds();
+    return this.handleDocumentMoved(document.id, [
+      document.id,
+      ...childDocumentIds,
+    ]);
   }
 
   private async handleRemoveGroup(groupId: string, scope: RevokeScope) {

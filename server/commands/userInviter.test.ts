@@ -1,14 +1,14 @@
 import { faker } from "@faker-js/faker";
-import { UserRole } from "@shared/types";
-import { buildTeam, buildUser } from "@server/test/factories";
+import { Plan, UserRole } from "@shared/types";
+import { buildAdmin, buildTeam, buildUser } from "@server/test/factories";
 import userInviter from "./userInviter";
-import { withAPIContext } from "@server/test/support";
-import { TeamDomain } from "@server/models";
+import { withContext } from "@server/test/support";
+import { Team, TeamDomain } from "@server/models";
 
 describe("userInviter", () => {
   it("should return sent invites", async () => {
     const user = await buildUser();
-    const response = await withAPIContext(user, (ctx) =>
+    const response = await withContext(user, (ctx) =>
       userInviter(ctx, {
         invites: [
           {
@@ -24,7 +24,7 @@ describe("userInviter", () => {
 
   it("should filter empty invites", async () => {
     const user = await buildUser();
-    const response = await withAPIContext(user, (ctx) =>
+    const response = await withContext(user, (ctx) =>
       userInviter(ctx, {
         invites: [
           {
@@ -48,7 +48,7 @@ describe("userInviter", () => {
       createdById: user.id,
     });
 
-    await withAPIContext(user, (ctx) =>
+    await withContext(user, (ctx) =>
       expect(
         userInviter(ctx, {
           invites: [
@@ -74,7 +74,7 @@ describe("userInviter", () => {
       createdById: user.id,
     });
 
-    const response = await withAPIContext(user, (ctx) =>
+    const response = await withContext(user, (ctx) =>
       userInviter(ctx, {
         invites: [
           {
@@ -90,9 +90,97 @@ describe("userInviter", () => {
     expect(response.sent[0].email).toEqual(`test@${allowedDomain}`);
   });
 
+  it("should error on guest invites for workspace domains", async () => {
+    const planSpy = vi
+      .spyOn(Team.prototype, "plan", "get")
+      .mockReturnValue(Plan.Business);
+    onTestFinished(() => planSpy.mockRestore());
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+
+    await TeamDomain.create({
+      teamId: team.id,
+      name: "acme.org",
+      createdById: user.id,
+    });
+
+    await withContext(user, (ctx) =>
+      expect(
+        userInviter(ctx, {
+          invites: [
+            {
+              role: UserRole.Guest,
+              email: "Test@Acme.org",
+              name: "Test",
+            },
+          ],
+        })
+      ).rejects.toThrow(
+        "Users with an email on a workspace domain cannot be added as guests"
+      )
+    );
+  });
+
+  it("should skip guest invites for existing members on workspace domains", async () => {
+    const planSpy = vi
+      .spyOn(Team.prototype, "plan", "get")
+      .mockReturnValue(Plan.Business);
+    onTestFinished(() => planSpy.mockRestore());
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+    await buildUser({ teamId: team.id, email: "member@acme.org" });
+
+    await TeamDomain.create({
+      teamId: team.id,
+      name: "acme.org",
+      createdById: user.id,
+    });
+
+    const response = await withContext(user, (ctx) =>
+      userInviter(ctx, {
+        invites: [
+          {
+            role: UserRole.Guest,
+            email: "member@acme.org",
+            name: "Test",
+          },
+        ],
+      })
+    );
+    expect(response.unsent.length).toEqual(1);
+  });
+
+  it("should allow guest invites for other domains", async () => {
+    const planSpy = vi
+      .spyOn(Team.prototype, "plan", "get")
+      .mockReturnValue(Plan.Business);
+    onTestFinished(() => planSpy.mockRestore());
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+
+    await TeamDomain.create({
+      teamId: team.id,
+      name: "acme.org",
+      createdById: user.id,
+    });
+
+    const response = await withContext(user, (ctx) =>
+      userInviter(ctx, {
+        invites: [
+          {
+            role: UserRole.Guest,
+            email: "test@other.com",
+            name: "Test",
+          },
+        ],
+      })
+    );
+    expect(response.sent.length).toEqual(1);
+  });
+
   it("should filter obviously bunk emails", async () => {
     const user = await buildUser();
-    const response = await withAPIContext(user, (ctx) =>
+    const response = await withContext(user, (ctx) =>
       userInviter(ctx, {
         invites: [
           {
@@ -108,7 +196,7 @@ describe("userInviter", () => {
 
   it("should not send duplicates", async () => {
     const user = await buildUser();
-    const response = await withAPIContext(user, (ctx) =>
+    const response = await withContext(user, (ctx) =>
       userInviter(ctx, {
         invites: [
           {
@@ -130,7 +218,7 @@ describe("userInviter", () => {
   it("should not send invites to existing team members", async () => {
     const email = faker.internet.email().toLowerCase();
     const user = await buildUser({ email });
-    const response = await withAPIContext(user, (ctx) =>
+    const response = await withContext(user, (ctx) =>
       userInviter(ctx, {
         invites: [
           {
@@ -142,5 +230,23 @@ describe("userInviter", () => {
       })
     );
     expect(response.sent.length).toEqual(0);
+  });
+
+  it("should not send invites to existing team members with different email case", async () => {
+    const email = faker.internet.email().toLowerCase();
+    const user = await buildUser({ email: email.toUpperCase() });
+    const response = await withContext(user, (ctx) =>
+      userInviter(ctx, {
+        invites: [
+          {
+            role: UserRole.Member,
+            email,
+            name: user.name,
+          },
+        ],
+      })
+    );
+    expect(response.sent.length).toEqual(0);
+    expect(response.unsent.length).toEqual(1);
   });
 });

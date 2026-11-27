@@ -3,11 +3,12 @@ import { TableMap, type MutableAttrs } from "prosemirror-tables";
 import { Decoration, type EditorView } from "prosemirror-view";
 import { isBrowser } from "../../utils/browser";
 import { isNearWhite, toHexColor, validateColorHex } from "../../utils/color";
-import type { TableLayout, NodeAttrMark } from "../types";
+import type { TableFilter, TableLayout, NodeAttrMark } from "../types";
 import { readableColor } from "polished";
 
 export interface TableAttrs {
   layout: TableLayout | null;
+  filters: TableFilter[] | null;
 }
 
 export interface CellAttrs {
@@ -19,6 +20,12 @@ export interface CellAttrs {
 }
 
 const ALLOWED_ALIGNMENTS = new Set(["left", "center", "right"]);
+
+/** Columns narrower than this, in pixels, clamp their cell content. */
+const narrowColumnWidth = 100;
+
+/** The largest colspan or rowspan of a cell. Larger spans make the table map too big to build. */
+const maxCellSpan = 1000;
 
 /**
  * Validates an alignment attribute value.
@@ -37,10 +44,13 @@ export const isValidCellAlignment = (
  * is left out of the table map and cannot be found by position.
  *
  * @param value the value to validate.
- * @returns true if the value is a positive integer.
+ * @returns true if the value is a positive integer no larger than the maximum span.
  */
 export const isValidCellSpan = (value: unknown): value is number =>
-  typeof value === "number" && Number.isInteger(value) && value >= 1;
+  typeof value === "number" &&
+  Number.isInteger(value) &&
+  value >= 1 &&
+  value <= maxCellSpan;
 
 /**
  * Validates a table cell's `marks` attribute against the given schema. Checks
@@ -166,6 +176,11 @@ export function setCellAttrs(node: Node): Attrs {
     attrs.style = `text-align: ${node.attrs.alignment};`;
   }
   if (node.attrs.colwidth) {
+    const widths: number[] = node.attrs.colwidth.map(Number);
+    const width = widths.reduce((sum, w) => sum + w, 0);
+    if (widths.every((w) => w > 0) && width < narrowColumnWidth) {
+      attrs["data-narrow"] = "true";
+    }
     if (isBrowser) {
       attrs["data-colwidth"] = node.attrs.colwidth.map(Number).join(",");
     } else {

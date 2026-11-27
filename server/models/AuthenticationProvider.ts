@@ -26,7 +26,7 @@ import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
 import Length from "./validators/Length";
 
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import type { DestroyOptions } from "sequelize";
 
 @Scopes(() => ({
@@ -171,14 +171,12 @@ class AuthenticationProvider extends Model<
   /**
    * Disable this authentication provider after ensuring it's allowed.
    *
-   * @param ctx - API context containing the transaction.
+   * @param ctx - context containing the transaction.
    * @returns The updated AuthenticationProvider instance.
    * @throws ValidationError if disabling is not allowed.
    */
-  disable: (ctx: APIContext) => Promise<AuthenticationProvider> = async (
-    ctx
-  ) => {
-    const { transaction } = ctx.state;
+  disable: (ctx: Context) => Promise<AuthenticationProvider> = async (ctx) => {
+    const { transaction } = ctx;
     await this.checkCanBeDisabled(transaction);
 
     return this.updateWithCtx(ctx, {
@@ -189,10 +187,10 @@ class AuthenticationProvider extends Model<
   /**
    * Enable this authentication provider.
    *
-   * @param ctx - API context containing the transaction.
+   * @param ctx - context containing the transaction.
    * @returns The updated AuthenticationProvider instance.
    */
-  enable: (ctx: APIContext) => Promise<AuthenticationProvider> = async (ctx) =>
+  enable: (ctx: Context) => Promise<AuthenticationProvider> = async (ctx) =>
     this.updateWithCtx(ctx, {
       enabled: true,
     });

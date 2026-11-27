@@ -143,7 +143,7 @@ export default class SimpleImage extends Node {
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     state.write(
       " ![" +
-        state.esc((node.attrs.alt || "").replace("\n", "") || "", false) +
+        state.esc((node.attrs.alt || "").replace(/\n/g, "") || "", false) +
         "](" +
         state.esc(node.attrs.src || "", false) +
         ")"

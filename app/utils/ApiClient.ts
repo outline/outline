@@ -527,11 +527,24 @@ class ApiClient {
    * Dispatches the requests collected during a batch, splitting them into
    * serial `/batch` calls that respect the server's per-batch limit, and
    * settles each caller's promise with its corresponding sub-response — shaped
-   * like a standard API envelope so callers need no special handling.
+   * like a standard API envelope so callers need no special handling. A lone
+   * request is sent directly to its own endpoint.
    *
    * @param queue The requests collected during a batch.
    */
   private flushBatch = async (queue: BatchedRequest[]): Promise<void> => {
+    if (queue.length === 1) {
+      const [request] = queue;
+      try {
+        request.resolve(
+          await this.deduplicate(`/${request.method}`, "POST", request.body)
+        );
+      } catch (err) {
+        request.reject(err);
+      }
+      return;
+    }
+
     for (const group of chunk(queue, BatchMaxRequests)) {
       try {
         const res = await this.fetch<{ data: BatchSubResponse[] }>(

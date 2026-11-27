@@ -1,10 +1,10 @@
 import { observer } from "mobx-react";
 import {
   ArrowIcon,
-  CloseIcon,
+  BackIcon,
   DocumentIcon,
   OpenIcon,
-  ReturnIcon,
+  UnlinkIcon,
 } from "outline-icons";
 import type { Mark } from "prosemirror-model";
 import type { EditorView } from "prosemirror-view";
@@ -15,19 +15,25 @@ import styled from "styled-components";
 import Icon from "@shared/components/Icon";
 import { hideScrollbars, s } from "@shared/styles";
 import { isInternalUrl, sanitizeUrl } from "@shared/utils/urls";
+import { Inner } from "~/components/Button";
+import ButtonSmall from "~/components/ButtonSmall";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import Flex from "~/components/Flex";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Scrollable from "~/components/Scrollable";
+import useDebouncedValue from "~/hooks/useDebouncedValue";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
-import { client } from "~/utils/ApiClient";
 import Input from "./Input";
 import SuggestionsMenuItem from "./SuggestionsMenuItem";
 import ToolbarButton from "./ToolbarButton";
+import ToolbarSeparator from "./ToolbarSeparator";
 import Tooltip from "./Tooltip";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 import { useEditor } from "./EditorContext";
+
+/** The time in milliseconds the query must stay the same before it is sent. */
+const RequestDelay = 100;
 
 type Props = {
   mark?: Mark;
@@ -67,18 +73,30 @@ const LinkEditor: React.FC<Props> = ({
     ? documents.findByQuery(trimmedQuery, { maxResults: 25 })
     : [];
 
+  // Results from the store show at once, the server is only asked for more
+  // when the user stops typing.
+  const requestQuery = useDebouncedValue(trimmedQuery, RequestDelay);
+
   const { request } = useRequest(
-    React.useCallback(async () => {
-      const res = await client.post("/suggestions.mention", { query });
-      res.data.documents.map(documents.add);
-    }, [documents, query])
+    React.useCallback(
+      () =>
+        documents.searchTitles({
+          query: requestQuery,
+          limit: 25,
+          filters: [
+            { field: "archivedAt", operator: "isNull" },
+            { field: "publishedAt", operator: "isNotNull" },
+          ],
+        }),
+      [documents, requestQuery]
+    )
   );
 
   useEffect(() => {
-    if (trimmedQuery) {
+    if (requestQuery) {
       void request();
     }
-  }, [trimmedQuery, request]);
+  }, [requestQuery, request]);
 
   // Focus imperatively rather than with the autoFocus attribute, which only
   // applies on mount – the editor can already be open when focus is requested.
@@ -133,6 +151,16 @@ const LinkEditor: React.FC<Props> = ({
     onLinkAdd();
   };
 
+  const applyLink = () => {
+    if (!trimmedQuery) {
+      removeLink();
+    } else if (!mark) {
+      addLink(trimmedQuery);
+    } else {
+      updateLink(trimmedQuery);
+    }
+  };
+
   const handleKeyDown = (event: React.KeyboardEvent) => {
     switch (event.key) {
       case "ArrowDown": {
@@ -157,12 +185,8 @@ const LinkEditor: React.FC<Props> = ({
           } else {
             updateLink(selectedDoc.path);
           }
-        } else if (!trimmedQuery) {
-          removeLink();
-        } else if (!mark) {
-          addLink(trimmedQuery);
         } else {
-          updateLink(trimmedQuery);
+          applyLink();
         }
 
         return;
@@ -194,31 +218,33 @@ const LinkEditor: React.FC<Props> = ({
   const isInternal = isInternalUrl(query);
   const actions = [
     {
+      tooltip: t("Remove link"),
+      icon: <UnlinkIcon />,
+      visible: view.editable,
+      disabled: false,
+      handler: removeLink,
+    },
+    {
       tooltip: isInternal ? t("Go to link") : t("Open link"),
       icon: isInternal ? <ArrowIcon /> : <OpenIcon />,
       visible: true,
       disabled: !query,
       handler: openLink,
     },
-    {
-      tooltip: t("Remove link"),
-      icon: <CloseIcon />,
-      visible: view.editable,
-      disabled: false,
-      handler: removeLink,
-    },
-    {
-      tooltip: t("Formatting controls"),
-      icon: <ReturnIcon />,
-      visible: view.editable,
-      disabled: false,
-      handler: onClickBack,
-    },
   ];
+  const isChanged =
+    view.editable && !!trimmedQuery && trimmedQuery !== initialValue;
 
   return (
     <div ref={wrapperRef}>
       <InputWrapper>
+        {view.editable && (
+          <Tooltip content={t("Formatting controls")}>
+            <ToolbarButton onClick={onClickBack}>
+              <BackIcon />
+            </ToolbarButton>
+          </Tooltip>
+        )}
         <Input
           ref={inputRef}
           value={query}
@@ -244,6 +270,12 @@ const LinkEditor: React.FC<Props> = ({
             </Tooltip>
           );
         })}
+        {isChanged && (
+          <>
+            <ToolbarSeparator />
+            <ApplyButton onClick={applyLink}>{t("Apply")}</ApplyButton>
+          </>
+        )}
       </InputWrapper>
       <SearchResults $hasResults={hasResults}>
         <ResizingHeightContainer>
@@ -285,6 +317,16 @@ const LinkEditor: React.FC<Props> = ({
     </div>
   );
 };
+
+// Match the toolbar button height so the toolbar does not grow.
+const ApplyButton = styled(ButtonSmall)`
+  height: 24px;
+
+  ${Inner} {
+    line-height: 24px;
+    min-height: 24px;
+  }
+`;
 
 const InputWrapper = styled(Flex)`
   pointer-events: all;

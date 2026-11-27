@@ -7,7 +7,7 @@ import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Integration, IntegrationAuthentication } from "@server/models";
 import { authorize } from "@server/policies";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { verifyOAuthStateNonce } from "@server/utils/oauth";
 import { NotionClient } from "../notion";
 import * as T from "./schema";
@@ -32,10 +32,10 @@ router.get(
     getErrorPath: () => NotionUtils.errorUrl("unauthenticated"),
   }),
   transaction(),
-  async (ctx: APIContext<T.NotionCallbackReq>) => {
+  async (ctx: Context<T.NotionCallbackReq>) => {
     const { code, error, state } = ctx.input.query;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     // Check error after any sub-domain redirection. Otherwise, the user will be redirected to the root domain.
     if (error) {

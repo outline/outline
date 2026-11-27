@@ -7,12 +7,19 @@ import { escape, isNil, snakeCase } from "es-toolkit/compat";
 import env from "@server/env";
 import {
   ClientClosedRequestError,
+  DatabaseReadOnlyError,
   InternalError,
   InvalidRequestError,
   RequestTimeoutError,
+  ServiceUnavailableError,
 } from "@server/errors";
+import Metrics from "@server/logging/Metrics";
 import { requestErrorHandler } from "@server/logging/sentry";
-import { isQueryCanceledError } from "@server/storage/database";
+import {
+  isDatabaseReadOnlyError,
+  isDatabaseUnavailableError,
+  isQueryCanceledError,
+} from "@server/storage/database";
 import type { AppContext } from "@server/types";
 
 let errorHtmlCache: Buffer | undefined;
@@ -45,6 +52,12 @@ export default function onerror(app: Koa) {
       err = ClientClosedRequestError();
     } else if (isQueryCanceledError(err)) {
       err = RequestTimeoutError();
+    } else if (isDatabaseReadOnlyError(err)) {
+      Metrics.increment("database.read_only", { source: "http" });
+      err = DatabaseReadOnlyError();
+    } else if (isDatabaseUnavailableError(err)) {
+      Metrics.increment("database.unavailable", { source: "http" });
+      err = ServiceUnavailableError();
     } else if (isDecompressionError(err)) {
       err = InvalidRequestError("Request body could not be decompressed");
     }

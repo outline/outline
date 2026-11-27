@@ -1,6 +1,8 @@
+import { Op } from "sequelize";
 import {
   ApiKey,
   Collection,
+  Document,
   GroupUser,
   OAuthAuthentication,
   Star,
@@ -69,6 +71,43 @@ export default class UserDeletedProcessor extends BaseProcessor {
           where: {
             ownerId: event.userId,
           },
+          transaction,
+        }
+      );
+      await Document.unscoped().update(
+        {
+          ownerIds: sequelize.fn(
+            "array_remove",
+            sequelize.col("ownerIds"),
+            event.userId
+          ),
+        },
+        {
+          where: {
+            teamId: event.teamId,
+            // The non-empty check lets Postgres use the partial owner index.
+            ownerIds: { [Op.contains]: [event.userId], [Op.ne]: [] },
+          },
+          paranoid: false,
+          silent: true,
+          transaction,
+        }
+      );
+      await Collection.unscoped().update(
+        {
+          ownerIds: sequelize.fn(
+            "array_remove",
+            sequelize.col("ownerIds"),
+            event.userId
+          ),
+        },
+        {
+          where: {
+            teamId: event.teamId,
+            ownerIds: { [Op.contains]: [event.userId] },
+          },
+          paranoid: false,
+          silent: true,
           transaction,
         }
       );

@@ -2,7 +2,7 @@ import { Transaction } from "sequelize";
 import type { NavigationNode } from "@shared/types";
 import { traceFunction } from "@server/logging/tracing";
 import { Document, Collection, Pin } from "@server/models";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 
 type Props = {
   /** Document which is being moved */
@@ -22,7 +22,7 @@ type Result = {
 };
 
 async function documentMover(
-  ctx: APIContext,
+  ctx: Context,
   {
     document,
     collectionId,
@@ -31,8 +31,8 @@ async function documentMover(
     index,
   }: Props
 ): Promise<Result> {
-  const { user } = ctx.state.auth;
-  const { transaction } = ctx.state;
+  const { user } = ctx.auth;
+  const { transaction } = ctx;
 
   const collectionChanged = collectionId !== document.collectionId;
   const previousCollectionId = document.collectionId;
@@ -206,7 +206,7 @@ async function documentMover(
     }
 
     // We must reload from the database to get the relationship data
-    const documents = await Document.findAll({
+    const documents = await Document.unsafeFindAll({
       where: {
         id: childDocumentIds,
       },

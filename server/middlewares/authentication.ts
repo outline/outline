@@ -8,6 +8,7 @@ import tracer, {
   getRootSpanFromRequestContext,
 } from "@server/logging/tracer";
 import { User, Team, ApiKey, OAuthAuthentication } from "@server/models";
+import { optionalWrite } from "@server/storage/database";
 import type { AppContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import { getUserForJWT } from "@server/utils/jwt";
@@ -54,7 +55,7 @@ type AuthInput = {
 export default function auth(options: AuthenticationOptions = {}) {
   return async function authMiddleware(ctx: AppContext, next: Next) {
     if (options.skip?.(ctx)) {
-      ctx.state.auth = {};
+      ctx.auth = {};
       return next();
     }
 
@@ -62,12 +63,11 @@ export default function auth(options: AuthenticationOptions = {}) {
       const { type, token, user, service, scope } =
         await validateAuthentication(ctx, options);
 
-      await Promise.all([
-        user.updateActiveAt(ctx),
-        user.team?.updateActiveAt(),
-      ]);
+      await optionalWrite(() =>
+        Promise.all([user.updateActiveAt(ctx), user.team?.updateActiveAt()])
+      );
 
-      ctx.state.auth = {
+      ctx.auth = {
         user,
         token,
         type,
@@ -89,7 +89,7 @@ export default function auth(options: AuthenticationOptions = {}) {
       // Credentials that are valid but insufficient are always surfaced,
       // otherwise the request would be silently downgraded to anonymous.
       if (options.optional && !(err instanceof httpErrors.Forbidden)) {
-        ctx.state.auth = {};
+        ctx.auth = {};
       } else {
         throw err;
       }
@@ -229,7 +229,7 @@ async function validateAuthentication(
     }
 
     scope = authentication.scope;
-    await authentication.updateActiveAt();
+    await optionalWrite(authentication.updateActiveAt);
   } else if (ApiKey.match(token)) {
     if (transport === "cookie") {
       throw AuthenticationError("API key must not be passed in the cookie");
@@ -271,7 +271,7 @@ async function validateAuthentication(
     }
 
     scope = apiKey.scope ?? ["*"];
-    await apiKey.updateActiveAt();
+    await optionalWrite(apiKey.updateActiveAt);
   } else {
     // Session tokens are long-lived, so keep them out of transports that end up
     // in browser history, referrers, and request logs.

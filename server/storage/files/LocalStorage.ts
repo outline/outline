@@ -10,7 +10,7 @@ import JWT from "jsonwebtoken";
 import safeResolvePath from "resolve-path";
 import { toError } from "@shared/utils/error";
 import env from "@server/env";
-import { InternalError, ValidationError } from "@server/errors";
+import { ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { getTokenFromCookie } from "@server/utils/csrf";
 import BaseStorage from "./BaseStorage";
@@ -145,7 +145,8 @@ export default class LocalStorage extends BaseStorage {
     const filePath = this.getFilePath(key);
     const exists = await fs.pathExists(filePath);
     if (!exists) {
-      throw InternalError(`File not found at ${key}`);
+      Logger.info("utils", "File not found in local storage", { key });
+      return null;
     }
 
     if (range) {

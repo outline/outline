@@ -27,8 +27,14 @@ describe("CoalescedFetch", () => {
   it("should run one more request after an in-flight request when forced", async () => {
     const queue = new CoalescedFetch();
     const requests = [deferred(), deferred()];
+    const secondCall = deferred();
     let calls = 0;
-    const fetch = vi.fn(() => requests[calls++].promise);
+    const fetch = vi.fn(() => {
+      if (calls === 1) {
+        secondCall.resolve();
+      }
+      return requests[calls++].promise;
+    });
 
     const first = queue.run(fetch);
     const forced = queue.run(fetch, true);
@@ -37,7 +43,8 @@ describe("CoalescedFetch", () => {
 
     requests[0].resolve();
     await first;
-    await vi.waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
+    await secondCall.promise;
+    expect(fetch).toHaveBeenCalledTimes(2);
 
     let settled = false;
     void forced.then(() => {

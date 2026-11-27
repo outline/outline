@@ -21,7 +21,7 @@ import {
 } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
-import { DeprecationValidation } from "@shared/validations";
+import { DeprecationValidation, DocumentValidation } from "@shared/validations";
 import {
   error,
   success,
@@ -89,6 +89,9 @@ export function documentTools(server: McpServer, scopes: string[]) {
           collectionId: optionalString().describe(
             "A collection ID to filter documents by."
           ),
+          ownerId: optionalString().describe(
+            "A user ID to filter documents by, only documents owned by this user are returned."
+          ),
           includeArchived: z
             .boolean()
             .optional()
@@ -133,9 +136,9 @@ export function documentTools(server: McpServer, scopes: string[]) {
               authorize(user, "readDocument", collection);
               collectionId = collection.id;
 
-              if (collection.documentStructure) {
-                indexMap = buildSiblingIndexMap(collection.documentStructure);
-              }
+              indexMap = buildSiblingIndexMap(
+                await collection.structureFor(user)
+              );
             }
 
             if (query) {
@@ -154,6 +157,13 @@ export function documentTools(server: McpServer, scopes: string[]) {
                   field: "collectionId",
                   operator: "eq",
                   value: collectionId,
+                });
+              }
+              if (input.ownerId) {
+                searchFilters.push({
+                  field: "ownerIds",
+                  operator: "eq",
+                  value: input.ownerId,
                 });
               }
               const [{ results, total }, exactMatchCandidate] =
@@ -177,7 +187,12 @@ export function documentTools(server: McpServer, scopes: string[]) {
                 exactMatchCandidate &&
                 can(user, "read", exactMatchCandidate) &&
                 (!collectionId ||
-                  exactMatchCandidate.collectionId === collectionId)
+                  exactMatchCandidate.collectionId === collectionId) &&
+                (!input.ownerId ||
+                  exactMatchCandidate.ownerIds?.includes(input.ownerId) ||
+                  exactMatchCandidate.collection?.ownerIds?.includes(
+                    input.ownerId
+                  ))
                   ? exactMatchCandidate
                   : null;
 
@@ -189,7 +204,10 @@ export function documentTools(server: McpServer, scopes: string[]) {
                 ...filteredResults.map((r) => r.document),
               ];
               const [breadcrumbs, shareUrls] = await Promise.all([
-                getBreadcrumbsForDocuments(matchedDocuments, user),
+                getBreadcrumbsForDocuments(
+                  buildAPIContext(extra),
+                  matchedDocuments
+                ),
                 getPublicShareUrlsForDocuments(
                   user.team,
                   matchedDocuments.map((doc) => doc.id)
@@ -272,6 +290,13 @@ export function documentTools(server: McpServer, scopes: string[]) {
                 value: collectionId,
               });
             }
+            if (input.ownerId) {
+              filters.push({
+                field: "ownerIds",
+                operator: "eq",
+                value: input.ownerId,
+              });
+            }
             const { results } = await searchProvider.searchForUser(user, {
               filter: { operator: "AND", filters },
               offset: effectiveOffset,
@@ -281,7 +306,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             const documents = results.map((result) => result.document);
 
             const [breadcrumbs, shareUrls] = await Promise.all([
-              getBreadcrumbsForDocuments(documents, user),
+              getBreadcrumbsForDocuments(buildAPIContext(extra), documents),
               getPublicShareUrlsForDocuments(
                 user.team,
                 documents.map((document) => document.id)
@@ -350,10 +375,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             });
             authorize(user, "readDocument", collection);
 
-            const documentStructure =
-              await collection.getCachedDocumentStructure();
-
-            const tree = (documentStructure ?? []).map((node) =>
+            const tree = (await collection.structureFor(user)).map((node) =>
               presentNavigationNode(user.team, node)
             );
             return success(tree);
@@ -425,13 +447,20 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .describe(
               "Whether the document should occupy full width of the screen. Defaults to false. Do not set this to true for HTML input unless the user explicitly asks for a full-width document layout."
             ),
+          ownerIds: z
+            .array(z.uuid())
+            .max(DocumentValidation.maxOwners)
+            .optional()
+            .describe(
+              "The IDs of users responsible for the document. Owners must be members or admins of the workspace, use list_users to find user IDs."
+            ),
         }),
       },
       withTracing("create_document", async (input, context) => {
         try {
           const { collectionId, parentDocumentId, templateId } = input;
           const ctx = buildAPIContext(context);
-          const { user } = ctx.state.auth;
+          const { user } = ctx.auth;
 
           const { collection, parentDocument } = await authorizeDocumentCreate(
             ctx,
@@ -461,17 +490,18 @@ export function documentTools(server: McpServer, scopes: string[]) {
                     icon: input.icon,
                     color: input.color,
                     fullWidth: input.fullWidth,
+                    ownerIds: input.ownerIds,
                   },
                   userId: user.id,
                   publish: input.publish !== false,
                   collectionId: collection?.id,
                   parentDocumentId: parentDocument?.id,
-                  authType: ctx.state.auth.type,
-                  ip: ctx.context.ip,
+                  authType: ctx.auth.type,
+                  ip: ctx.ip,
                 })
               : await sequelize.transaction(async (transaction) => {
-                  ctx.state.transaction = transaction;
-                  ctx.context.transaction = transaction;
+                  ctx.transaction = transaction;
+                  ctx.transaction = transaction;
 
                   return documentCreator(ctx, {
                     title: input.title,
@@ -483,6 +513,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
                     collectionId: collection?.id,
                     template,
                     fullWidth: input.fullWidth,
+                    ownerIds: input.ownerIds,
                     sourceMetadata: input.sourceFileName
                       ? {
                           fileName: input.sourceFileName,
@@ -545,11 +576,11 @@ export function documentTools(server: McpServer, scopes: string[]) {
       withTracing("move_document", async (input, context) => {
         try {
           const ctx = buildAPIContext(context);
-          const { user } = ctx.state.auth;
+          const { user } = ctx.auth;
 
           const document = await sequelize.transaction(async (transaction) => {
-            ctx.state.transaction = transaction;
-            ctx.context.transaction = transaction;
+            ctx.transaction = transaction;
+            ctx.transaction = transaction;
 
             const document = await Document.findByPk(input.id, {
               userId: user.id,
@@ -690,17 +721,58 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .describe(
               "Whether the document should occupy full width of the screen."
             ),
+          ownerIds: z
+            .array(z.uuid())
+            .max(DocumentValidation.maxOwners)
+            .optional()
+            .describe(
+              "The complete list of IDs of users responsible for the document, replacing any existing owners. Pass an empty array to remove all owners. Owners must be members or admins of the workspace, use list_users to find user IDs."
+            ),
         }),
       },
       withTracing("update_document", async (input, context) => {
         try {
+          if (
+            (input.editMode === undefined ||
+              input.editMode === TextEditMode.Replace) &&
+            input.findText
+          ) {
+            throw ValidationError(
+              'findText cannot be used with replace editMode. Use editMode "patch" instead.'
+            );
+          }
+
+          if (
+            (input.editMode === TextEditMode.Append ||
+              input.editMode === TextEditMode.Prepend) &&
+            !input.text
+          ) {
+            throw ValidationError(
+              "text is required when using append, prepend, or editMode"
+            );
+          }
+
+          if (input.editMode === TextEditMode.Patch) {
+            if (input.text === undefined) {
+              throw ValidationError(
+                "text is required when using patch editMode"
+              );
+            }
+
+            if (!input.findText) {
+              throw ValidationError(
+                "findText is required when using patch editMode"
+              );
+            }
+          }
+
           const ctx = buildAPIContext(context);
-          const { user } = ctx.state.auth;
+          const { user } = ctx.auth;
 
           // Returns null when the update persisted nothing.
           const updated = await sequelize.transaction(async (transaction) => {
-            ctx.state.transaction = transaction;
-            ctx.context.transaction = transaction;
+            ctx.transaction = transaction;
+            ctx.transaction = transaction;
 
             const document = await Document.findByPk(input.id, {
               userId: user.id,
@@ -718,6 +790,9 @@ export function documentTools(server: McpServer, scopes: string[]) {
             }
 
             authorize(user, "update", document);
+            if (input.ownerIds) {
+              authorize(user, "manageOwners", document);
+            }
 
             // The collection is only used when publishing a draft that has
             // none, so the personal collection is only created in that case.
@@ -847,11 +922,11 @@ export function documentTools(server: McpServer, scopes: string[]) {
         async ({ id, archive, reason }, context) => {
           try {
             const ctx = buildAPIContext(context);
-            const { user } = ctx.state.auth;
+            const { user } = ctx.auth;
 
             await sequelize.transaction(async (transaction) => {
-              ctx.state.transaction = transaction;
-              ctx.context.transaction = transaction;
+              ctx.transaction = transaction;
+              ctx.transaction = transaction;
 
               const document = await Document.findByPk(id, {
                 userId: user.id,
@@ -906,11 +981,11 @@ export function documentTools(server: McpServer, scopes: string[]) {
       withTracing("restore_document", async ({ id, collectionId }, context) => {
         try {
           const ctx = buildAPIContext(context);
-          const { user } = ctx.state.auth;
+          const { user } = ctx.auth;
 
           const document = await sequelize.transaction(async (transaction) => {
-            ctx.state.transaction = transaction;
-            ctx.context.transaction = transaction;
+            ctx.transaction = transaction;
+            ctx.transaction = transaction;
 
             const document = await Document.findByPk(id, {
               userId: user.id,

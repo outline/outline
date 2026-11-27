@@ -1,7 +1,7 @@
 import type MarkdownIt from "markdown-it";
 import type Token from "markdown-it/lib/token.mjs";
 
-const CHECKBOX_REGEX = /\[(X|\s|_|-)\]\s(.*)?/i;
+const CHECKBOX_REGEX = /^\[(X|\s|_|-)\]\s(.*)?/i;
 
 function matches(token: Token) {
   return token && token.content.match(CHECKBOX_REGEX);
@@ -77,22 +77,6 @@ export default function markdownItCheckbox(md: MarkdownIt): void {
         const value = matchesChecklist[1];
         const checked = value.toLowerCase() === "x";
 
-        // convert the enclosing list tokens, which may not be adjacent when
-        // the checkbox item is preceded by plain items or contains nested lists.
-        const listLevel = tokens[i - 2].level - 1;
-        for (let k = i - 3; k >= 0; k--) {
-          if (tokens[k].level === listLevel && isListOpen(tokens[k])) {
-            tokens[k].type = "checkbox_list_open";
-            break;
-          }
-        }
-        for (let k = i + 1; k < tokens.length; k++) {
-          if (tokens[k].level === listLevel && isListClose(tokens[k])) {
-            tokens[k].type = "checkbox_list_close";
-            break;
-          }
-        }
-
         // remove [ ] [x] from list item label – must use the content from the
         // child for escaped characters to be unescaped correctly.
         const tokenChildren = tokens[i].children;
@@ -107,47 +91,55 @@ export default function markdownItCheckbox(md: MarkdownIt): void {
           }
         }
 
-        // open list item and ensure checked state is transferred
+        // mark the list item, the enclosing list is converted in the next pass.
         tokens[i - 2].type = "checkbox_item_open";
 
         if (checked === true) {
           tokens[i - 2].attrs = [["checked", "true"]];
         }
-
-        // close the list item
-        let j = i;
-        while (
-          tokens[j] &&
-          tokens[j].type !== "list_item_close" &&
-          tokens[j].type !== "checkbox_item_close"
-        ) {
-          j++;
-        }
-        if (tokens[j]) {
-          tokens[j].type = "checkbox_item_close";
-        }
       }
     }
 
-    // Second pass: convert any remaining direct child list_item tokens inside
-    // a checkbox_list to checkbox_item so they aren't silently dropped by the
-    // Prosemirror schema which requires checkbox_item+ children.
-    const checkboxListOpenLevels: number[] = [];
-    for (let i = 0; i < tokens.length; i++) {
-      const token = tokens[i];
-      if (token.type === "checkbox_list_open") {
-        checkboxListOpenLevels.push(token.level);
-      } else if (token.type === "checkbox_list_close") {
-        checkboxListOpenLevels.pop();
-      } else if (checkboxListOpenLevels.length > 0) {
-        const checkboxListOpenLevel =
-          checkboxListOpenLevels[checkboxListOpenLevels.length - 1];
-        const isDirectChild = token.level === checkboxListOpenLevel + 1;
+    // Second pass: convert each list that holds a checkbox item to a
+    // checkbox_list, including its plain direct child items, so they aren't
+    // silently dropped by the Prosemirror schema which requires checkbox_item+
+    // children.
+    const lists: { open: Token; items: Token[]; isChecklist: boolean }[] = [];
+    for (const token of tokens) {
+      if (isListOpen(token)) {
+        lists.push({
+          open: token,
+          items: [],
+          isChecklist: token.type === "checkbox_list_open",
+        });
+        continue;
+      }
 
-        if (isDirectChild && token.type === "list_item_open") {
-          token.type = "checkbox_item_open";
-        } else if (isDirectChild && token.type === "list_item_close") {
-          token.type = "checkbox_item_close";
+      const list = lists[lists.length - 1];
+      if (!list) {
+        continue;
+      }
+
+      if (isListClose(token)) {
+        lists.pop();
+        if (list.isChecklist) {
+          list.open.type = "checkbox_list_open";
+          token.type = "checkbox_list_close";
+          for (const item of list.items) {
+            item.type =
+              item.type === "list_item_open"
+                ? "checkbox_item_open"
+                : "checkbox_item_close";
+          }
+        }
+      } else if (token.level === list.open.level + 1) {
+        if (token.type === "checkbox_item_open") {
+          list.isChecklist = true;
+        } else if (
+          token.type === "list_item_open" ||
+          token.type === "list_item_close"
+        ) {
+          list.items.push(token);
         }
       }
     }

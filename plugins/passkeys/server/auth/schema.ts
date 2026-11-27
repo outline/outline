@@ -2,6 +2,12 @@ import { z } from "zod";
 import { Client } from "@shared/types";
 import { BaseSchema } from "@server/routes/api/schema";
 
+// Form posts send booleans as "true" or "false".
+const formBoolean = z.union([
+  z.boolean(),
+  z.stringbool({ truthy: ["true"], falsy: ["false"], case: "sensitive" }),
+]);
+
 export const PasskeysGenerateAuthenticationOptionsSchema = BaseSchema.extend({
   body: z.object({}),
   query: z.object({
@@ -29,8 +35,8 @@ export const PasskeysVerifyAuthenticationSchema = BaseSchema.extend({
     authenticatorAttachment: z.enum(["cross-platform", "platform"]).optional(),
     clientExtensionResults: z
       .object({
-        appid: z.boolean().optional(),
-        hmacCreateSecret: z.boolean().optional(),
+        appid: formBoolean.optional(),
+        hmacCreateSecret: formBoolean.optional(),
       })
       .prefault({}),
   }),

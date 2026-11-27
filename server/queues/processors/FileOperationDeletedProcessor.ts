@@ -48,7 +48,7 @@ export default class FileOperationDeletedProcessor extends BaseProcessor {
         transaction,
       });
 
-      const collections = await Collection.findAll({
+      const collections = await Collection.unsafeFindAll({
         transaction,
         lock: transaction.LOCK.NO_KEY_UPDATE,
         where: {

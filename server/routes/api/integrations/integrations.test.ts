@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import type { IntegrationSettings } from "@shared/types";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import type { User } from "@server/models";
@@ -63,6 +64,16 @@ describe("#integrations.update", () => {
       },
     });
     expect(res.status).toEqual(403);
+  });
+
+  it("should return 404 for an unknown id", async () => {
+    const admin = await buildAdmin();
+    const res = await server.post("/api/integrations.update", admin, {
+      body: {
+        id: randomUUID(),
+      },
+    });
+    expect(res.status).toEqual(404);
   });
 
   it("should succeed with status 200 ok when diagram integration settings are updated", async () => {

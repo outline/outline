@@ -1,3 +1,4 @@
+import { createContext } from "@server/context";
 import { createHash } from "node:crypto";
 import { EmptyResultError, Op, QueryTypes } from "sequelize";
 import { CollectionPermission, DocumentPermission } from "@shared/types";
@@ -15,10 +16,11 @@ import {
   buildUser,
   buildGuestUser,
 } from "@server/test/factories";
-import { withAPIContext } from "@server/test/support";
+import { withContext } from "@server/test/support";
 import { sequelize } from "@server/storage/database";
 import GroupMembership from "./GroupMembership";
 import GroupUser from "./GroupUser";
+import Event from "./Event";
 import UserMembership from "./UserMembership";
 
 beforeEach(() => {
@@ -47,7 +49,7 @@ describe("#restoreTo", () => {
         { deprecatedReason: "Outdated" },
         { where: { id: document.id }, paranoid: false }
       );
-      await withAPIContext(user, (ctx) =>
+      await withContext(user, (ctx) =>
         document.restoreTo(ctx, { collectionId: collection.id })
       );
       await document.reload();
@@ -55,6 +57,66 @@ describe("#restoreTo", () => {
       expect(document.deprecatedReason).toBeNull();
     }
   );
+
+  it.each(["archived", "deleted"])(
+    "should move an %s document to the root when restored into another collection",
+    async (status) => {
+      const user = await buildUser();
+      const [source, destination] = await Promise.all([
+        buildCollection({ userId: user.id, teamId: user.teamId }),
+        buildCollection({ userId: user.id, teamId: user.teamId }),
+      ]);
+      const parent = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: source.id,
+      });
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: source.id,
+        parentDocumentId: parent.id,
+        archivedAt: status === "archived" ? new Date() : null,
+        deletedAt: status === "deleted" ? new Date() : null,
+      });
+
+      await withContext(user, (ctx) =>
+        document.restoreTo(ctx, { collectionId: destination.id })
+      );
+      await Promise.all([document.reload(), destination.reload()]);
+      expect(document.collectionId).toBe(destination.id);
+      expect(document.parentDocumentId).toBeNull();
+      expect(destination.documentStructure?.map((node) => node.id)).toContain(
+        document.id
+      );
+    }
+  );
+
+  it("should keep the parent when restored into the same collection", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const parent = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      parentDocumentId: parent.id,
+      archivedAt: new Date(),
+    });
+
+    await withContext(user, (ctx) =>
+      document.restoreTo(ctx, { collectionId: collection.id })
+    );
+    await document.reload();
+    expect(document.parentDocumentId).toBe(parent.id);
+  });
 });
 
 describe("#getSummary", () => {
@@ -83,7 +145,7 @@ describe("#destroyWithCtx", () => {
   it("should soft delete and set last modified", async () => {
     const document = await buildDocument();
     const user = await buildUser();
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
 
     const newDocument = await Document.findByPk(document.id, {
       paranoid: false,
@@ -97,7 +159,7 @@ describe("#destroyWithCtx", () => {
       archivedAt: new Date(),
     });
     const user = await buildUser();
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     const newDocument = await Document.findByPk(document.id, {
       paranoid: false,
     });
@@ -120,7 +182,7 @@ describe("#destroyWithCtx", () => {
     });
     await collection.addDocumentToStructure(document, 0);
 
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     const [newDocument, newCollection] = await Promise.all([
       document.reload({ paranoid: false }),
       collection.reload(),
@@ -134,7 +196,7 @@ describe("#destroyWithCtx", () => {
   it("should delete draft without collection", async () => {
     const user = await buildUser();
     const document = await buildDraftDocument();
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     const deletedDocument = await Document.findByPk(document.id, {
       paranoid: false,
     });
@@ -184,6 +246,28 @@ describe("#save", () => {
     expect(rows.searchVector).toContain("'uniqu':1A");
     expect(rows.searchVector).toMatch(/'origin':\d+C/);
     expect(rows.searchVector).toContain(tokens[0]);
+  });
+
+  it("should index text whose shorter prefix still exceeds the tsvector limit", async () => {
+    const document = await buildDocument({ title: "Original" });
+    const tokens: string[] = [];
+    for (let i = 0; i < 120_000; i++) {
+      tokens.push(
+        String.fromCharCode(19_968 + (i % 20_000)) +
+          String.fromCharCode(19_968 + Math.floor(i / 20_000))
+      );
+    }
+    document.title = "Unique tokens";
+    document.text = tokens.join(" ");
+    await document.save();
+
+    const [rows] = await sequelize.query<{ searchVector: string }>(
+      `SELECT "searchVector" FROM documents WHERE id = :id`,
+      { replacements: { id: document.id }, type: QueryTypes.SELECT }
+    );
+    expect(rows.searchVector).toContain("'uniqu':1A");
+    expect(rows.searchVector).toMatch(/'origin':\d+C/);
+    expect(rows.searchVector).toContain(`'${tokens[0]}'`);
   });
 });
 
@@ -486,10 +570,19 @@ describe("#membershipUserIds", () => {
   });
 });
 
-describe("#membershipDocumentIds", () => {
+describe("#membershipWhere", () => {
+  const membershipIds = async (userId: string) =>
+    (
+      await Document.unsafeFindAll({
+        scope: null,
+        attributes: ["id"],
+        where: Document.membershipWhere(userId),
+      })
+    ).map((document) => document.id);
+
   it("should return empty array when the user has no document memberships", async () => {
     const user = await buildUser();
-    const ids = await Document.membershipDocumentIds(user.id);
+    const ids = await membershipIds(user.id);
     expect(ids).toEqual([]);
   });
 
@@ -508,7 +601,7 @@ describe("#membershipDocumentIds", () => {
       permission: DocumentPermission.Read,
     });
 
-    const ids = await Document.membershipDocumentIds(user.id);
+    const ids = await membershipIds(user.id);
     expect(ids).toEqual([document.id]);
   });
 
@@ -529,7 +622,7 @@ describe("#membershipDocumentIds", () => {
       permission: DocumentPermission.Read,
     });
 
-    const ids = await Document.membershipDocumentIds(user.id);
+    const ids = await membershipIds(user.id);
     expect(ids).toEqual([document.id]);
   });
 
@@ -556,7 +649,7 @@ describe("#membershipDocumentIds", () => {
       permission: DocumentPermission.Read,
     });
 
-    const ids = await Document.membershipDocumentIds(user.id);
+    const ids = await membershipIds(user.id);
     expect(ids).toEqual([document.id]);
   });
 
@@ -588,7 +681,7 @@ describe("#membershipDocumentIds", () => {
       permission: CollectionPermission.Read,
     });
 
-    const ids = await Document.membershipDocumentIds(user.id);
+    const ids = await membershipIds(user.id);
     expect(ids).toEqual([]);
   });
 
@@ -610,11 +703,11 @@ describe("#membershipDocumentIds", () => {
     });
     await membership.destroy();
 
-    const ids = await Document.membershipDocumentIds(user.id);
+    const ids = await membershipIds(user.id);
     expect(ids).toEqual([]);
   });
 
-  it("should invalidate the cache when a direct membership is added or removed", async () => {
+  it("should update when a direct membership is added or removed", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const otherUser = await buildUser({ teamId: team.id });
@@ -623,7 +716,7 @@ describe("#membershipDocumentIds", () => {
       userId: otherUser.id,
     });
 
-    expect(await Document.membershipDocumentIds(user.id)).toEqual([]);
+    expect(await membershipIds(user.id)).toEqual([]);
 
     const membership = await UserMembership.create({
       createdById: otherUser.id,
@@ -631,15 +724,13 @@ describe("#membershipDocumentIds", () => {
       userId: user.id,
       permission: DocumentPermission.Read,
     });
-    expect(await Document.membershipDocumentIds(user.id)).toEqual([
-      document.id,
-    ]);
+    expect(await membershipIds(user.id)).toEqual([document.id]);
 
     await membership.destroy();
-    expect(await Document.membershipDocumentIds(user.id)).toEqual([]);
+    expect(await membershipIds(user.id)).toEqual([]);
   });
 
-  it("should invalidate the cache when a group membership is added or removed", async () => {
+  it("should update when a group membership is added or removed", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const otherUser = await buildUser({ teamId: team.id });
@@ -650,7 +741,7 @@ describe("#membershipDocumentIds", () => {
     const group = await buildGroup({ teamId: team.id });
     await group.$add("user", user, { through: { createdById: otherUser.id } });
 
-    expect(await Document.membershipDocumentIds(user.id)).toEqual([]);
+    expect(await membershipIds(user.id)).toEqual([]);
 
     const membership = await GroupMembership.create({
       createdById: otherUser.id,
@@ -658,15 +749,13 @@ describe("#membershipDocumentIds", () => {
       documentId: document.id,
       permission: DocumentPermission.Read,
     });
-    expect(await Document.membershipDocumentIds(user.id)).toEqual([
-      document.id,
-    ]);
+    expect(await membershipIds(user.id)).toEqual([document.id]);
 
     await membership.destroy();
-    expect(await Document.membershipDocumentIds(user.id)).toEqual([]);
+    expect(await membershipIds(user.id)).toEqual([]);
   });
 
-  it("should invalidate the cache when the user joins or leaves a group", async () => {
+  it("should update when the user joins or leaves a group", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const otherUser = await buildUser({ teamId: team.id });
@@ -682,42 +771,17 @@ describe("#membershipDocumentIds", () => {
       permission: DocumentPermission.Read,
     });
 
-    expect(await Document.membershipDocumentIds(user.id)).toEqual([]);
+    expect(await membershipIds(user.id)).toEqual([]);
 
     const groupUser = await GroupUser.create({
       groupId: group.id,
       userId: user.id,
       createdById: otherUser.id,
     });
-    expect(await Document.membershipDocumentIds(user.id)).toEqual([
-      document.id,
-    ]);
+    expect(await membershipIds(user.id)).toEqual([document.id]);
 
     await groupUser.destroy();
-    expect(await Document.membershipDocumentIds(user.id)).toEqual([]);
-  });
-
-  it("should read through to the database when skipCache is set", async () => {
-    const team = await buildTeam();
-    const user = await buildUser({ teamId: team.id });
-    const otherUser = await buildUser({ teamId: team.id });
-    const document = await buildDocument({
-      teamId: team.id,
-      userId: otherUser.id,
-    });
-
-    expect(await Document.membershipDocumentIds(user.id)).toEqual([]);
-
-    await UserMembership.create({
-      createdById: otherUser.id,
-      documentId: document.id,
-      userId: user.id,
-      permission: DocumentPermission.Read,
-    });
-
-    expect(
-      await Document.membershipDocumentIds(user.id, { skipCache: true })
-    ).toEqual([document.id]);
+    expect(await membershipIds(user.id)).toEqual([]);
   });
 });
 
@@ -839,7 +903,7 @@ describe("#findByPk", () => {
   });
 });
 
-describe("#withMembershipScope", () => {
+describe("#findAllWithCtx", () => {
   it("should not load text for documents with content", async () => {
     const user = await buildUser();
     const document = await buildDocument({
@@ -848,7 +912,7 @@ describe("#withMembershipScope", () => {
       text: "Hello world",
     });
 
-    const [loaded] = await Document.withMembershipScope(user.id).findAll({
+    const [loaded] = await Document.findAllWithCtx(createContext({ user }), {
       where: { id: document.id },
     });
 
@@ -868,7 +932,7 @@ describe("#withMembershipScope", () => {
       { replacements: { id: document.id } }
     );
 
-    const [loaded] = await Document.withMembershipScope(user.id).findAll({
+    const [loaded] = await Document.findAllWithCtx(createContext({ user }), {
       where: { id: document.id },
     });
 
@@ -876,26 +940,17 @@ describe("#withMembershipScope", () => {
   });
 });
 
-describe("findByIds", () => {
-  it("should return documents by ids", async () => {
-    const document1 = await buildDocument();
-    const document2 = await buildDocument();
-    const documents = await Document.findByIds([document1.id, document2.id]);
-    expect(documents.length).toBe(2);
-  });
-
+describe("#findAllWithCtx access", () => {
   it("should return documents filtered to user access", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const document1 = await buildDocument({ teamId: team.id });
     const document2 = await buildDocument({ teamId: team.id });
     const document3 = await buildDocument();
-    const documents = await Document.findByIds(
-      [document1.id, document2.id, document3.id],
-      {
-        userId: user.id,
-      }
-    );
+    const documents = await Document.findAllWithCtx(createContext({ user }), {
+      includeDrafts: true,
+      where: { id: [document1.id, document2.id, document3.id] },
+    });
     expect(documents.length).toBe(2);
   });
 
@@ -912,12 +967,10 @@ describe("findByIds", () => {
     });
     const document2 = await buildDocument({ teamId: team.id });
     const document3 = await buildDocument();
-    const documents = await Document.findByIds(
-      [document1.id, document2.id, document3.id],
-      {
-        userId: user.id,
-      }
-    );
+    const documents = await Document.findAllWithCtx(createContext({ user }), {
+      includeDrafts: true,
+      where: { id: [document1.id, document2.id, document3.id] },
+    });
     expect(documents.length).toBe(1);
   });
 
@@ -937,12 +990,10 @@ describe("findByIds", () => {
       collectionId: collection.id,
     });
     const document3 = await buildDocument();
-    const documents = await Document.findByIds(
-      [document1.id, document2.id, document3.id],
-      {
-        userId: user.id,
-      }
-    );
+    const documents = await Document.findAllWithCtx(createContext({ user }), {
+      includeDrafts: true,
+      where: { id: [document1.id, document2.id, document3.id] },
+    });
     expect(documents.length).toBe(1);
   });
 
@@ -955,8 +1006,9 @@ describe("findByIds", () => {
       userId: author.id,
       collectionId: null,
     });
-    const documents = await Document.findByIds([draft.id], {
-      userId: user.id,
+    const documents = await Document.findAllWithCtx(createContext({ user }), {
+      includeDrafts: true,
+      where: { id: [draft.id] },
     });
     expect(documents.length).toBe(0);
   });
@@ -969,8 +1021,9 @@ describe("findByIds", () => {
       userId: user.id,
       collectionId: null,
     });
-    const documents = await Document.findByIds([draft.id], {
-      userId: user.id,
+    const documents = await Document.findAllWithCtx(createContext({ user }), {
+      includeDrafts: true,
+      where: { id: [draft.id] },
     });
     expect(documents.length).toBe(1);
   });
@@ -990,8 +1043,9 @@ describe("findByIds", () => {
       userId: user.id,
       permission: DocumentPermission.Read,
     });
-    const documents = await Document.findByIds([draft.id], {
-      userId: user.id,
+    const documents = await Document.findAllWithCtx(createContext({ user }), {
+      includeDrafts: true,
+      where: { id: [draft.id] },
     });
     expect(documents.length).toBe(1);
   });
@@ -1885,7 +1939,7 @@ describe("isPrivate", () => {
         collectionId: collection.id,
         parentDocumentId: docB.id,
       });
-      await withAPIContext(user, (ctx) =>
+      await withContext(user, (ctx) =>
         draft.publish(ctx, { collectionId: collection.id })
       );
 
@@ -1989,5 +2043,76 @@ describe("commentCount", () => {
     await thread.save();
 
     expect(await document.commentCount).toEqual(1);
+  });
+});
+
+describe("#owners", () => {
+  const ownerEvents = (documentId: string) =>
+    Event.findAll({
+      where: {
+        documentId,
+        name: ["documents.add_owner", "documents.remove_owner"],
+      },
+      order: [["createdAt", "ASC"]],
+    }).then((events) => events.map((event) => [event.name, event.userId]));
+
+  it("should add an owner with the manage permission", async () => {
+    const user = await buildUser();
+    const owner = await buildUser({ teamId: user.teamId });
+    const document = await buildDocument({ teamId: user.teamId });
+
+    await withContext(user, (ctx) => document.addOwner(ctx, owner.id));
+
+    await document.reload();
+    expect(document.ownerIds).toEqual([owner.id]);
+    const membership = await UserMembership.findOne({
+      where: { documentId: document.id, userId: owner.id },
+      rejectOnEmpty: true,
+    });
+    expect(membership.permission).toEqual(DocumentPermission.Admin);
+    expect(await ownerEvents(document.id)).toEqual([
+      ["documents.add_owner", owner.id],
+    ]);
+  });
+
+  it("should remove an owner and keep their access", async () => {
+    const user = await buildUser();
+    const owner = await buildUser({ teamId: user.teamId });
+    const document = await buildDocument({ teamId: user.teamId });
+    await withContext(user, (ctx) => document.addOwner(ctx, owner.id));
+
+    await withContext(user, (ctx) => document.removeOwner(ctx, owner.id));
+
+    await document.reload();
+    expect(document.ownerIds).toEqual([]);
+    expect(
+      await UserMembership.count({
+        where: { documentId: document.id, userId: owner.id },
+      })
+    ).toEqual(1);
+    expect(await ownerEvents(document.id)).toEqual([
+      ["documents.add_owner", owner.id],
+      ["documents.remove_owner", owner.id],
+    ]);
+  });
+
+  it("should keep owners added by another instance of the document", async () => {
+    const user = await buildUser();
+    const first = await buildUser({ teamId: user.teamId });
+    const second = await buildUser({ teamId: user.teamId });
+    const document = await buildDocument({ teamId: user.teamId });
+    const stale = await Document.findByPk(document.id, {
+      rejectOnEmpty: true,
+    });
+
+    await withContext(user, (ctx) => document.addOwner(ctx, first.id));
+    await withContext(user, (ctx) => stale.addOwner(ctx, second.id));
+
+    await document.reload();
+    expect(document.ownerIds).toEqual([first.id, second.id]);
+    expect(await ownerEvents(document.id)).toEqual([
+      ["documents.add_owner", first.id],
+      ["documents.add_owner", second.id],
+    ]);
   });
 });

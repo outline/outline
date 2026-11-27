@@ -24,7 +24,8 @@ type Props = {
  * they are published and organizes them into appropriate sections.
  *
  * Collection-specific templates are displayed first, followed by workspace templates
- * with a separator in between (if both types exist).
+ * in a group with a separator in between. Workspace templates are not grouped
+ * when there are no collection-specific templates.
  *
  * @returns An array of Action objects representing templates that can be applied
  * to the current document. Returns an empty array if no callback is provided.
@@ -88,6 +89,10 @@ export function useTemplateMenuActions({
       !workspaceTemplatesActions.length
     ) {
       return [];
+    }
+
+    if (!collectionTemplatesActions.length) {
+      return workspaceTemplatesActions;
     }
 
     return [

@@ -237,7 +237,7 @@ export default class WebsocketsProcessor {
       }
 
       case "documents.move": {
-        const documents = await Document.findAll({
+        const documents = await Document.unsafeFindAll({
           where: {
             id: event.data.documentIds,
           },
@@ -266,7 +266,7 @@ export default class WebsocketsProcessor {
             ],
           });
         });
-        const moveCollections = await Collection.findAll({
+        const moveCollections = await Collection.unsafeFindAll({
           where: { id: event.data.collectionIds },
           attributes: ["id", "updatedAt"],
         });
@@ -1003,12 +1003,13 @@ export default class WebsocketsProcessor {
 
         const membersRoom = `team-${user.teamId}.members`;
         const guestsRoom = `team-${user.teamId}.guests`;
+        // oxlint-disable-next-line access/no-direct-collection-ids -- Room joins check collection access, not document access.
         const accessibleCollectionIds = await user.collectionIds({
           skipCache: true,
         });
 
         if (user.isGuest) {
-          const teamCollections = await Collection.findAll({
+          const teamCollections = await Collection.unsafeFindAll({
             attributes: ["id"],
             where: { teamId: user.teamId },
           });

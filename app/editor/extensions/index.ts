@@ -14,6 +14,7 @@ import PasteHandler from "~/editor/extensions/PasteHandler";
 import PreventTab from "~/editor/extensions/PreventTab";
 import SelectionToolbarExtension from "~/editor/extensions/SelectionToolbar";
 import SmartText from "~/editor/extensions/SmartText";
+import TableFilterExtension from "~/editor/extensions/TableFilter";
 
 type Nodes = AnyExtensionClass[];
 
@@ -29,6 +30,7 @@ export const withUIExtensions = (nodes: Nodes) => [
   FindAndReplaceExtension,
   HoverPreviewsExtension,
   SelectionToolbarExtension,
+  TableFilterExtension,
   CommentGutterExtension,
   DiagramsExtension,
   DragHandle,

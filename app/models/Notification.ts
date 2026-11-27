@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
 import { action, computed, observable } from "mobx";
 import type { NotificationData } from "@shared/types";
-import { NotificationEventType } from "@shared/types";
+import { FileOperationState, NotificationEventType } from "@shared/types";
 import {
   collectionPath,
   commentPath,
@@ -11,6 +11,7 @@ import {
 import Collection from "./Collection";
 import Comment from "./Comment";
 import Document from "./Document";
+import FileOperation from "./FileOperation";
 import Group from "./Group";
 import User from "./User";
 import Model from "./base/Model";
@@ -54,11 +55,13 @@ class Notification extends Model {
         NotificationEventType.UpdateDocument,
         NotificationEventType.CreateRevision,
         NotificationEventType.AddUserToDocument,
+        NotificationEventType.AddOwnerToDocument,
         NotificationEventType.RequestDocumentAccess,
       ],
       collections: [
         NotificationEventType.CreateCollection,
         NotificationEventType.AddUserToCollection,
+        NotificationEventType.AddOwnerToCollection,
       ],
       system: [
         NotificationEventType.InviteAccepted,
@@ -135,6 +138,17 @@ class Notification extends Model {
   @Relation(() => Group, { onDelete: "cascade" })
   group?: Group;
 
+  /**
+   * The file operation ID that the notification is associated with.
+   */
+  fileOperationId?: string;
+
+  /**
+   * The file operation that the notification is associated with.
+   */
+  @Relation(() => FileOperation, { onDelete: "ignore" })
+  fileOperation?: FileOperation;
+
   commentId?: string;
 
   /**
@@ -160,8 +174,7 @@ class Notification extends Model {
    */
   @action
   toggleRead() {
-    this.viewedAt = this.viewedAt ? null : new Date();
-    return this.save();
+    return this.save({ viewedAt: this.viewedAt ? null : new Date() });
   }
 
   /**
@@ -175,8 +188,7 @@ class Notification extends Model {
       return;
     }
 
-    this.viewedAt = new Date();
-    return this.save();
+    return this.save({ viewedAt: new Date() });
   }
 
   /**
@@ -190,8 +202,7 @@ class Notification extends Model {
       return;
     }
 
-    this.archivedAt = new Date();
-    return this.save();
+    return this.save({ archivedAt: new Date() });
   }
 
   /**
@@ -225,12 +236,25 @@ class Notification extends Model {
         });
       case NotificationEventType.AddUserToDocument:
         return t("shared");
+      case NotificationEventType.AddOwnerToDocument:
+        return t("made you an owner of");
       case NotificationEventType.AddUserToCollection:
         return t("invited you to");
+      case NotificationEventType.AddOwnerToCollection:
+        return t("made you an owner of");
       case NotificationEventType.AddUserToGroup:
         return t("added you to the group");
       case NotificationEventType.RemoveUserFromGroup:
         return t("removed you from the group");
+      case NotificationEventType.ExportCompleted:
+        switch (this.fileOperation?.state) {
+          case FileOperationState.Complete:
+            return t("export completed");
+          case FileOperationState.Error:
+            return t("export failed");
+          default:
+            return t("export is no longer available");
+        }
       case NotificationEventType.RequestDocumentAccess:
         if (this.accessRequestStatus === "approved") {
           return t("was granted access to");
@@ -246,12 +270,15 @@ class Notification extends Model {
 
   /**
    * Returns translated text for the subject of the notification. This is the
-   * name of the associated document, collection, or group.
+   * name of the associated document, collection, group, or export.
    *
    * @param t - The translation function.
    * @returns The subject.
    */
   subject(t: TFunction): string {
+    if (this.fileOperationId) {
+      return this.fileOperation?.displayName ?? t("Your");
+    }
     if (this.documentId) {
       return this.document?.title ?? t("a document");
     }
@@ -262,6 +289,18 @@ class Notification extends Model {
       return this.group?.name ?? t("a group");
     }
     return t("Unknown");
+  }
+
+  /**
+   * Returns the URL to download the file of the notification, if available.
+   *
+   * @returns The download URL.
+   */
+  @computed
+  get downloadUrl(): string | undefined {
+    return this.fileOperation?.state === FileOperationState.Complete
+      ? this.fileOperation.downloadUrl
+      : undefined;
   }
 
   /**
@@ -279,6 +318,7 @@ class Notification extends Model {
         return this.document ? documentPath(this.document) : "";
       }
       case NotificationEventType.AddUserToCollection:
+      case NotificationEventType.AddOwnerToCollection:
       case NotificationEventType.CreateCollection: {
         const collection = this.collectionId
           ? this.store.rootStore.collections.get(this.collectionId)
@@ -287,6 +327,7 @@ class Notification extends Model {
       }
       case NotificationEventType.RequestDocumentAccess:
       case NotificationEventType.AddUserToDocument:
+      case NotificationEventType.AddOwnerToDocument:
       case NotificationEventType.GroupMentionedInDocument:
       case NotificationEventType.MentionedInDocument: {
         return this.document?.path;

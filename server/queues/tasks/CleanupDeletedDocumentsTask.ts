@@ -16,7 +16,8 @@ export default class CleanupDeletedDocumentsTask extends CronTask {
       `Permanently destroying upto ${limit} documents older than 30 days…`
     );
     const documents = await sequelizeReadOnly.transaction((transaction) =>
-      Document.unscoped().findAll({
+      Document.unsafeFindAll({
+        scope: null,
         attributes: ["id", "teamId", "deletedAt", "content", "state", "text"],
         where: {
           deletedAt: {

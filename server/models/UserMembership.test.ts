@@ -7,7 +7,7 @@ import {
   buildUser,
 } from "@server/test/factories";
 import { sequelize } from "@server/storage/database";
-import { withAPIContext } from "@server/test/support";
+import { withContext } from "@server/test/support";
 import Event from "./Event";
 import GroupMembership from "./GroupMembership";
 import UserMembership from "./UserMembership";
@@ -87,14 +87,14 @@ describe("UserMembership", () => {
       });
 
       // The user membership goes first, leaving the group as the only manager.
-      const one = withAPIContext(user, async (ctx) => {
+      const one = withContext(user, async (ctx) => {
         await userMembership.destroyWithCtx(ctx);
         removed();
         await held;
       });
       await first;
 
-      const two = withAPIContext(user, (ctx) =>
+      const two = withContext(user, (ctx) =>
         groupMembership.destroyWithCtx(ctx)
       );
       await sleep(250);

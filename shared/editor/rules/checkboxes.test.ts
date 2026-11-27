@@ -136,3 +136,35 @@ it("leaves neighbouring lists untouched when a checklist has multiple items", ()
   expect(output).toContain("A1 b");
   expect(output).not.toContain("[ ] B2 a");
 });
+
+it("keeps text before brackets in a bullet item through a round-trip", () => {
+  const markdown = `- Status: [x] done`;
+
+  const ast = parser.parse(markdown);
+  const output = serializer.serialize(ast);
+  const json = parser.parse(output)?.toJSON();
+
+  expect(findNodes(json, "checkbox_list")).toHaveLength(0);
+  const [bulletList] = findNodes(json, "bullet_list");
+  expect(bulletList?.content).toHaveLength(1);
+  expect(bulletList?.content?.[0].type).toBe("list_item");
+  expect(serializer.serialize(parser.parse(output))).toContain(
+    "Status: [x] done"
+  );
+});
+
+it("parses a checkbox list with checked and unchecked items", () => {
+  const markdown = `- [x] First
+- [ ] Second`;
+
+  const ast = parser.parse(markdown);
+  const [checkboxList] = findNodes(ast?.toJSON(), "checkbox_list");
+
+  expect(checkboxList?.content).toHaveLength(2);
+  expect(checkboxList?.content?.[0].type).toBe("checkbox_item");
+  expect(checkboxList?.content?.[0].attrs?.checked).toBe(true);
+  expect(checkboxList?.content?.[1].type).toBe("checkbox_item");
+  expect(checkboxList?.content?.[1].attrs?.checked).toBe(false);
+  expect(serializer.serialize(ast)).toBe(`- [x] First
+- [ ] Second`);
+});

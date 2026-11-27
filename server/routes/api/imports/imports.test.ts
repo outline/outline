@@ -2,6 +2,7 @@ import {
   CollectionPermission,
   ImportState,
   IntegrationService,
+  IntegrationType,
 } from "@shared/types";
 import type { Import } from "@server/models";
 import {
@@ -11,6 +12,7 @@ import {
   buildDocument,
   buildDraftDocument,
   buildImport,
+  buildIntegration,
   buildUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
@@ -49,6 +51,25 @@ describe("#imports.create", () => {
       body: {
         attachmentId: attachment.id,
         service: "unknown",
+      },
+    });
+
+    expect(res.status).toEqual(400);
+  });
+
+  it("should reject an integration that is not an import integration", async () => {
+    const admin = await buildAdmin();
+    const integration = await buildIntegration({
+      teamId: admin.teamId,
+      service: IntegrationService.Slack,
+      type: IntegrationType.Post,
+    });
+
+    const res = await server.post("/api/imports.create", admin, {
+      body: {
+        integrationId: integration.id,
+        service: IntegrationService.Notion,
+        input: [{ externalId: "abc", permission: CollectionPermission.Read }],
       },
     });
 

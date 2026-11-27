@@ -4,7 +4,7 @@ import { Collection, Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import type { DocumentReference } from "@server/models/helpers/ProsemirrorHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { generateUrlId } from "@server/utils/url";
 import documentCreator from "./documentCreator";
 
@@ -62,12 +62,12 @@ type DuplicateItem = {
  * Duplicates a document, optionally including its child documents. Links
  * between the duplicated documents are remapped to point at the copies.
  *
- * @param ctx the API context containing the acting user and transaction.
+ * @param ctx the context containing the acting user and transaction.
  * @param props the document to duplicate and optional overrides.
  * @returns the duplicated documents.
  */
 export default async function documentDuplicator(
-  ctx: APIContext,
+  ctx: Context,
   { document, collection, parentDocumentId, title, publish, recursive }: Props
 ): Promise<Document[]> {
   return duplicateRoots(ctx, {
@@ -82,12 +82,12 @@ export default async function documentDuplicator(
  * Duplicates several documents as one unit, so that links between them are
  * remapped to the copies no matter which of the documents they cross between.
  *
- * @param ctx the API context containing the acting user and transaction.
+ * @param ctx the context containing the acting user and transaction.
  * @param props the documents to duplicate and optional overrides.
  * @returns the duplicated documents.
  */
 export async function documentsDuplicator(
-  ctx: APIContext,
+  ctx: Context,
   { documents, collection, publish, recursive }: ManyProps
 ): Promise<Document[]> {
   return duplicateRoots(ctx, {
@@ -99,7 +99,7 @@ export async function documentsDuplicator(
 }
 
 async function duplicateRoots(
-  ctx: APIContext,
+  ctx: Context,
   {
     roots,
     collection,
@@ -168,6 +168,7 @@ async function duplicateRoots(
     // Structural fields only – content is re-fetched per document in
     // `duplicateItem`, so a large tree isn't held in memory at once.
     const childDocuments = await original.findChildDocuments(
+      ctx,
       {
         archivedAt: original.archivedAt
           ? {
@@ -176,16 +177,26 @@ async function duplicateRoots(
           : {
               [Op.eq]: null,
             },
+
+        // Drafts are private to their author, so only the actor's own are copied.
+        [Op.or]: [
+          { publishedAt: { [Op.ne]: null } },
+          { createdById: ctx.auth.user.id },
+        ],
       },
       {
-        ...ctx,
         attributes: { exclude: ["state", "content", "text"] },
       }
     );
 
+    const [tree] =
+      (await originalCollection?.structureFor(ctx.auth.user, {
+        documentId: original.id,
+        transaction: ctx.transaction,
+      })) ?? [];
     const sorted = DocumentHelper.sortDocumentsByStructure(
       childDocuments,
-      originalCollection?.getDocumentTree(original.id)?.children ?? []
+      tree?.children ?? []
     ).reverse(); // we have to reverse since the child documents will be added in reverse order
 
     const items: DuplicateItem[] = [];
@@ -203,7 +214,7 @@ async function duplicateRoots(
       item.original.dataValues.content !== undefined
         ? item.original
         : await Document.findByPk(item.original.id, {
-            transaction: ctx.state.transaction,
+            transaction: ctx.transaction,
             rejectOnEmpty: true,
           });
 

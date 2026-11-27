@@ -2,9 +2,9 @@ import { computed, observable } from "mobx";
 import { t } from "i18next";
 import { toast } from "sonner";
 import {
+  FileOperationFormat,
   FileOperationState,
   FileOperationType,
-  type FileOperationFormat,
 } from "@shared/types";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import type FileOperationsStore from "~/stores/FileOperationsStore";
@@ -15,6 +15,17 @@ import Relation from "./decorators/Relation";
 
 class FileOperation extends Model {
   static modelName = "FileOperation";
+
+  /** Readable labels for each file operation format. */
+  static formatLabels: Record<FileOperationFormat, string> = {
+    [FileOperationFormat.JSON]: "JSON",
+    [FileOperationFormat.Notion]: "Notion",
+    [FileOperationFormat.MarkdownZip]: "Markdown",
+    [FileOperationFormat.OKFZip]: "OKF",
+    [FileOperationFormat.HTMLZip]: "HTML",
+    [FileOperationFormat.TextBundleZip]: "TextBundle",
+    [FileOperationFormat.PDF]: "PDF",
+  };
 
   constructor(fields: Record<string, unknown>, store: FileOperationsStore) {
     super(fields, store);
@@ -49,6 +60,29 @@ class FileOperation extends Model {
     return bytesToHumanReadable(this.size);
   }
 
+  /**
+   * The name to show for the file operation. Exports without a collection or
+   * document cover all collections.
+   */
+  get displayName(): string {
+    if (
+      this.type === FileOperationType.Export &&
+      !this.collectionId &&
+      !this.documentId
+    ) {
+      return t("All collections");
+    }
+    return this.name;
+  }
+
+  /**
+   * A readable label for the format of the file operation.
+   */
+  @computed
+  get formatLabel(): string {
+    return FileOperation.formatLabels[this.format];
+  }
+
   @computed
   get downloadUrl(): string {
     return `/api/fileOperations.redirect?id=${this.id}`;
@@ -65,7 +99,7 @@ class FileOperation extends Model {
       return;
     }
 
-    const { ui, auth } = model.store.rootStore;
+    const { ui, auth, notifications } = model.store.rootStore;
     if (model.user?.id !== auth.user?.id) {
       return;
     }
@@ -85,7 +119,12 @@ class FileOperation extends Model {
         duration: Infinity,
         action: {
           label: t("Download"),
-          onClick: () => window.open(model.downloadUrl, "_blank"),
+          onClick: () => {
+            window.open(model.downloadUrl, "_blank");
+            void notifications
+              .find({ fileOperationId: model.id })
+              ?.markAsRead();
+          },
         },
       });
       ui.removeExportToast(model.id);

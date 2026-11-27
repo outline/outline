@@ -17,7 +17,7 @@ import {
   buildTeam,
 } from "@server/test/factories";
 
-import { getTestServer, withAPIContext } from "@server/test/support";
+import { getTestServer, withContext } from "@server/test/support";
 
 const server = getTestServer();
 
@@ -174,7 +174,7 @@ describe("#shares.list", () => {
       teamId: user.teamId,
       userId: user.id,
     });
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     const res = await server.post("/api/shares.list", user);
     const body = await res.json();
     expect(res.status).toEqual(200);
@@ -244,6 +244,57 @@ describe("#shares.list", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
+  });
+
+  it("should return shares of draft documents the user can see", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const other = await buildUser({ teamId: team.id });
+    const filedDraft = await buildDraftDocument({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const unfiledDraft = await buildDraftDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: null,
+    });
+    const otherDraft = await buildDraftDocument({
+      userId: other.id,
+      teamId: team.id,
+      collectionId: null,
+    });
+    const filedShare = await buildShare({
+      documentId: filedDraft.id,
+      teamId: team.id,
+      userId: user.id,
+    });
+    const unfiledShare = await buildShare({
+      documentId: unfiledDraft.id,
+      teamId: team.id,
+      userId: user.id,
+    });
+    const otherShare = await buildShare({
+      documentId: otherDraft.id,
+      teamId: team.id,
+      userId: user.id,
+    });
+
+    const res = await server.post("/api/shares.list", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.map((s: { id: string }) => s.id).sort()).toEqual(
+      [filedShare.id, unfiledShare.id].sort()
+    );
+
+    const adminRes = await server.post("/api/shares.list", admin);
+    const adminBody = await adminRes.json();
+    expect(adminRes.status).toEqual(200);
+    expect(adminBody.pagination.total).toEqual(3);
+    expect(adminBody.data.map((s: { id: string }) => s.id).sort()).toEqual(
+      [filedShare.id, unfiledShare.id, otherShare.id].sort()
+    );
   });
 
   it("should require authentication", async () => {
@@ -588,6 +639,37 @@ describe("#shares.create", () => {
     expect(body.data.id).toBe(share.id);
   });
 
+  it("should publish an existing unpublished share and keep its creator", async () => {
+    const owner = await buildUser();
+    const user = await buildUser({ teamId: owner.teamId });
+    const document = await buildDocument({
+      userId: owner.id,
+      teamId: owner.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: owner.teamId,
+      userId: owner.id,
+      published: false,
+    });
+    const expiresAt = addDays(new Date(), 7);
+    const res = await server.post("/api/shares.create", user, {
+      body: {
+        documentId: document.id,
+        published: true,
+        expiresAt: expiresAt.toISOString(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toBe(share.id);
+    expect(body.data.published).toBe(true);
+    expect(body.data.createdBy.id).toBe(owner.id);
+    await share.reload();
+    expect(share.published).toBe(true);
+    expect(share.expiresAt?.toISOString()).toBe(expiresAt.toISOString());
+  });
+
   it("should not disclose an existing published share to a user without share permission", async () => {
     const admin = await buildAdmin();
     const viewer = await buildViewer({ teamId: admin.teamId });
@@ -850,6 +932,36 @@ describe("#shares.info", () => {
     expect(body.data.shares).toBeTruthy();
     expect(body.data.shares).toHaveLength(1);
     expect(body.data.shares[0].id).toEqual(share.id);
+  });
+
+  it("should only return lastAccessedAt to admins of the owning team", async () => {
+    const admin = await buildAdmin();
+    const otherAdmin = await buildAdmin();
+    const document = await buildDocument({
+      createdById: admin.id,
+      teamId: admin.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: admin.teamId,
+      userId: admin.id,
+      published: true,
+      lastAccessedAt: new Date(),
+    });
+
+    const res = await server.post("/api/shares.info", admin, {
+      body: { id: share.id },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.shares[0].lastAccessedAt).toBeTruthy();
+
+    const otherRes = await server.post("/api/shares.info", otherAdmin, {
+      body: { id: share.id },
+    });
+    const otherBody = await otherRes.json();
+    expect(otherRes.status).toEqual(200);
+    expect(otherBody.data.shares[0].lastAccessedAt).toBeUndefined();
   });
 
   it("should not return the sharer for an unauthenticated viewer", async () => {
@@ -1546,7 +1658,7 @@ describe("#shares.revoke", () => {
       teamId: user.teamId,
       userId: user.id,
     });
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     const res = await server.post("/api/shares.revoke", user, {
       body: {
         id: share.id,

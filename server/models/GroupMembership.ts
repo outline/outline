@@ -26,11 +26,10 @@ import type { DocumentPermission } from "@shared/types";
 import { CollectionPermission } from "@shared/types";
 import { ValidationError } from "@server/errors";
 import { LockHelper } from "@server/storage/LockHelper";
-import type { APIContext } from "@server/types";
+import type { HookContextFields } from "@server/context";
 import Collection from "./Collection";
 import Document from "./Document";
 import Group from "./Group";
-import GroupUser from "./GroupUser";
 import User from "./User";
 import UserMembership from "./UserMembership";
 import { type HookContext } from "./base/Model";
@@ -252,17 +251,12 @@ class GroupMembership extends ParanoidModel<
   @AfterCreate
   static async publishAddGroupEventAfterCreate(
     model: GroupMembership,
-    context: APIContext["context"]
+    context: HookContextFields
   ) {
     await model.insertEvent(context, "add_group", {
       membershipId: model.id,
       isNew: true,
     });
-  }
-
-  @AfterCreate
-  static async invalidateDocumentIdsAfterCreate(model: GroupMembership) {
-    await model.invalidateMembershipDocumentIds();
   }
 
   @AfterUpdate
@@ -295,7 +289,7 @@ class GroupMembership extends ParanoidModel<
   @BeforeUpdate
   static async checkLastAdminBeforeUpdate(
     model: GroupMembership,
-    ctx: APIContext["context"]
+    ctx: HookContextFields
   ) {
     if (
       model.permission === CollectionPermission.Admin ||
@@ -310,7 +304,7 @@ class GroupMembership extends ParanoidModel<
   @BeforeDestroy
   static async checkLastAdminBeforeDestroy(
     model: GroupMembership,
-    ctx: APIContext["context"]
+    ctx: HookContextFields
   ) {
     // Only check for last admin permission if this permission is admin
     if (
@@ -325,7 +319,7 @@ class GroupMembership extends ParanoidModel<
   @AfterUpdate
   static async publishAddGroupEventAfterUpdate(
     model: GroupMembership,
-    context: APIContext["context"]
+    context: HookContextFields
   ) {
     await model.insertEvent(context, "add_group", {
       membershipId: model.id,
@@ -355,16 +349,11 @@ class GroupMembership extends ParanoidModel<
   @AfterDestroy
   static async publishRemoveGroupEvent(
     model: GroupMembership,
-    context: APIContext["context"]
+    context: HookContextFields
   ) {
     await model.insertEvent(context, "remove_group", {
       membershipId: model.id,
     });
-  }
-
-  @AfterDestroy
-  static async invalidateDocumentIdsAfterDestroy(model: GroupMembership) {
-    await model.invalidateMembershipDocumentIds();
   }
 
   /**
@@ -455,27 +444,8 @@ class GroupMembership extends ParanoidModel<
     );
   }
 
-  /**
-   * Invalidates the cached document membership IDs of every user in the group,
-   * as a document granted to a group is reachable by all of its members.
-   */
-  private async invalidateMembershipDocumentIds() {
-    if (!this.documentId) {
-      return;
-    }
-
-    const groupUsers = await GroupUser.findAll({
-      attributes: ["userId"],
-      where: { groupId: this.groupId },
-    });
-
-    await Document.invalidateMembershipDocumentIds(
-      groupUsers.map((groupUser) => groupUser.userId)
-    );
-  }
-
   private async insertEvent(
-    ctx: APIContext["context"],
+    ctx: HookContextFields,
     name: string,
     data: Record<string, unknown>
   ) {
@@ -493,7 +463,7 @@ class GroupMembership extends ParanoidModel<
 
   private static async validateLastAdminPermission(
     model: GroupMembership,
-    { transaction }: APIContext["context"]
+    { transaction }: HookContextFields
   ) {
     // Both models guard the same invariant, so they share one lock name,
     // otherwise the last user manager and the last group manager can be

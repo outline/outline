@@ -77,6 +77,15 @@ export class DragTarget {
     const paddingRight = parseFloat(style.paddingRight) || 0;
     const contentLeft = rect.left + paddingLeft + CONTENT_INSET;
     const contentRight = rect.right - paddingRight - CONTENT_INSET;
+
+    // Skip the hit test when the cursor is in neither side zone. The block
+    // direction is not known yet, so both sides are possible here.
+    const zoneWidth = (contentRight - contentLeft) * HOVER_ZONE_RATIO;
+    const inLeftZone = event.clientX <= contentLeft + zoneWidth;
+    const inRightZone = event.clientX >= contentRight - zoneWidth;
+    if (!inLeftZone && !inRightZone) {
+      return null;
+    }
     const projectedX = Math.max(
       contentLeft,
       Math.min(contentRight, event.clientX)
@@ -93,12 +102,8 @@ export class DragTarget {
     }
 
     // Only show the handle when the cursor is on the side it renders on.
-    const zoneWidth = (contentRight - contentLeft) * HOVER_ZONE_RATIO;
     const isRTL = window.getComputedStyle(target.element).direction === "rtl";
-    const inZone = isRTL
-      ? event.clientX >= contentRight - zoneWidth
-      : event.clientX <= contentLeft + zoneWidth;
-    return inZone ? target : null;
+    return (isRTL ? inRightZone : inLeftZone) ? target : null;
   }
 
   /**

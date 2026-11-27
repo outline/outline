@@ -1,5 +1,6 @@
 import { addDays, differenceInDays, differenceInSeconds } from "date-fns";
 import i18n, { t } from "i18next";
+import { uniq } from "es-toolkit";
 import { capitalize, floor } from "es-toolkit/compat";
 import {
   action,
@@ -226,6 +227,12 @@ export default class Document extends ArchivableModel implements Searchable {
   @observable
   collaboratorIds: string[] | undefined = undefined;
 
+  /**
+   * The ids of users that are responsible for this document.
+   */
+  @observable
+  ownerIds: string[] = [];
+
   @Relation(() => User)
   createdBy: User | undefined;
 
@@ -345,6 +352,15 @@ export default class Document extends ArchivableModel implements Searchable {
     return (this.collaboratorIds ?? [])
       .map((id) => this.store.rootStore.users.get(id))
       .filter(Boolean) as User[];
+  }
+
+  /**
+   * The ids of users that are responsible for this document, the owners of its
+   * collection first and then its own owners.
+   */
+  @computed
+  get allOwnerIds(): string[] {
+    return uniq([...(this.collection?.ownerIds ?? []), ...this.ownerIds]);
   }
 
   /**
@@ -522,20 +538,20 @@ export default class Document extends ArchivableModel implements Searchable {
   }
 
   /**
-   * Set the value for a specific display preference key.
+   * Set the value for a specific display preference key and save it to the
+   * server. The value is applied at once and reverted if the request fails.
    *
-   * @param key The DocumentPreference key to set
-   * @param value The value to set
+   * @param key The DocumentPreference key to set.
+   * @param value The value to set.
+   * @returns a promise that resolves when the preference is saved.
    */
-  @action
-  setPreference<K extends DocumentPreference>(
+  savePreference<K extends DocumentPreference>(
     key: K,
     value: NonNullable<DocumentPreferences[K]>
   ) {
-    this.preferences = {
-      ...this.preferences,
-      [key]: value,
-    };
+    return this.save({
+      preferences: { ...this.preferences, [key]: value },
+    });
   }
 
   /**
@@ -622,6 +638,7 @@ export default class Document extends ArchivableModel implements Searchable {
           notification.documentId === this.id &&
           [
             NotificationEventType.AddUserToDocument,
+            NotificationEventType.AddOwnerToDocument,
             NotificationEventType.UpdateDocument,
             NotificationEventType.PublishDocument,
           ].includes(notification.event)
@@ -642,11 +659,13 @@ export default class Document extends ArchivableModel implements Searchable {
 
   @action
   save = async (
-    fields?: Properties<typeof this>,
+    fields?: Properties<Document>,
     options?: SaveOptions
   ): Promise<Document> => {
     const params = fields ?? this.toAPI();
     this.isSaving = true;
+
+    const settle = this.applyOptimistic(fields ?? {});
 
     try {
       const model = await this.store.save(
@@ -658,8 +677,12 @@ export default class Document extends ArchivableModel implements Searchable {
       set(this, Object.assign({}, params, model));
 
       this.persistedAttributes = this.toAPI();
+      settle(true);
 
       return model;
+    } catch (err) {
+      settle(false);
+      throw err;
     } finally {
       this.isSaving = false;
     }

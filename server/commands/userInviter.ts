@@ -1,12 +1,13 @@
 import { partition, uniqBy } from "es-toolkit/compat";
+import { Op, Sequelize } from "sequelize";
 import { UserRole } from "@shared/types";
 import InviteEmail from "@server/emails/templates/InviteEmail";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { User, Team } from "@server/models";
 import { UserFlag } from "@server/models/User";
-import type { APIContext } from "@server/types";
-import { DomainNotAllowedError } from "@server/errors";
+import type { Context } from "@server/types";
+import { DomainNotAllowedError, ValidationError } from "@server/errors";
 import { authorize, can } from "@server/policies";
 
 export type Invite = {
@@ -21,14 +22,14 @@ type Props = {
 };
 
 export default async function userInviter(
-  ctx: APIContext,
+  ctx: Context,
   { invites, suppressEmail }: Props
 ): Promise<{
   sent: Invite[];
   unsent: Invite[];
   users: User[];
 }> {
-  const { user } = ctx.state.auth;
+  const { user } = ctx.auth;
   const team = await Team.findByPk(user.teamId, { rejectOnEmpty: true });
 
   if (invites.some((invite) => invite.role === UserRole.Guest)) {
@@ -61,16 +62,32 @@ export default async function userInviter(
   const existingUsers = await User.findAll({
     where: {
       teamId: user.teamId,
-      email: emails,
+      [Op.and]: [
+        Sequelize.where(Sequelize.fn("lower", Sequelize.col("email")), {
+          [Op.in]: emails,
+        }),
+      ],
     },
   });
-  const existingEmails = existingUsers.map(
-    (existingUser) => existingUser.email
+  const existingEmails = existingUsers.map((existingUser) =>
+    existingUser.email?.toLowerCase()
   );
   const [existingInvites, filteredInvites] = partition(
     normalizedInvites,
     (invite) => existingEmails.includes(invite.email)
   );
+
+  for (const invite of filteredInvites) {
+    if (
+      invite.role === UserRole.Guest &&
+      (await team.isTeamDomain(invite.email))
+    ) {
+      throw ValidationError(
+        "Users with an email on a workspace domain cannot be added as guests"
+      );
+    }
+  }
+
   const users = [];
 
   // send and record remaining invites

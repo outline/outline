@@ -1,11 +1,12 @@
 import { randomUUID } from "node:crypto";
 import { TeamValidation } from "@shared/validations";
-import { Team } from "@server/models";
+import { Team, TeamDomain } from "@server/models";
 import {
   buildTeam,
   buildCollection,
   buildAttachment,
   buildSubdomain,
+  buildUser,
 } from "@server/test/factories";
 
 describe("Team", () => {
@@ -100,6 +101,28 @@ describe("Team", () => {
       expect(await Team.findAvailableSubdomain(slug)).toEqual(
         `${slug.slice(0, max - 1)}1`
       );
+    });
+  });
+
+  describe("isTeamDomain", () => {
+    it("should return false when the team has no domains", async () => {
+      const team = await buildTeam();
+      expect(await team.isTeamDomain("test@acme.org")).toEqual(false);
+    });
+
+    it("should match emails and domains regardless of case", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      await TeamDomain.create({
+        teamId: team.id,
+        name: "Acme.org",
+        createdById: user.id,
+      });
+
+      expect(await team.isTeamDomain("test@acme.org")).toEqual(true);
+      expect(await team.isTeamDomain("Test@ACME.org")).toEqual(true);
+      expect(await team.isTeamDomain("ACME.ORG")).toEqual(true);
+      expect(await team.isTeamDomain("test@other.org")).toEqual(false);
     });
   });
 

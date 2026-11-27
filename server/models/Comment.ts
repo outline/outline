@@ -29,6 +29,7 @@ import { afterCommit } from "@server/storage/transaction";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import Document from "./Document";
+import type { Context } from "@server/types";
 import User from "./User";
 import { type HookContext } from "./base/Model";
 import ParanoidModel from "./base/ParanoidModel";
@@ -105,15 +106,16 @@ class Comment extends ParanoidModel<
   // static methods
 
   /**
-   * Finds the comments a user can access, restricted to a single document or
-   * collection when one is given, along with the total for pagination.
+   * Finds the comments that the user in the context can access, restricted to
+   * a single document or collection when one is given, along with the total
+   * for pagination.
    *
-   * @param user The user listing comments, whose collection access is applied.
+   * @param ctx The context with the user and the transaction.
    * @param options Filters, ordering, and pagination for the query.
    * @returns The matching comments and the total number that match.
    */
-  static async findAllForUser(
-    user: User,
+  static async findAllWithCtx(
+    ctx: Context,
     options: {
       /** Only comments on this document, which the caller has authorized. */
       document?: Document | null;
@@ -131,6 +133,7 @@ class Comment extends ParanoidModel<
       limit?: number;
     }
   ): Promise<{ comments: Comment[]; total: number }> {
+    const { user } = ctx.auth;
     const {
       document,
       collectionId,
@@ -172,13 +175,18 @@ class Comment extends ParanoidModel<
             required: true,
             attributes: [],
             where: {
-              teamId: user.teamId,
-              collectionId: collectionId ?? (await user.collectionIds()),
+              [Op.and]: [
+                await Document.accessibleWhere(user, {
+                  transaction: ctx.transaction,
+                }),
+                ...(collectionId ? [{ collectionId }] : []),
+              ],
             },
           },
         ];
 
     const { rows: comments, count: total } = await this.findAndCountAll({
+      transaction: ctx.transaction,
       where: { [Op.and]: and },
       include,
       order: [[sort, direction]],
@@ -191,7 +199,9 @@ class Comment extends ParanoidModel<
     } else if (includeDocuments) {
       // Each document is loaded once so comments on the same document share
       // an instance, and with it the memoized comment marks.
-      const documents = await Document.scope("withoutState").findAll({
+      const documents = await Document.unsafeFindAll({
+        scope: "withoutState",
+        transaction: ctx.transaction,
         where: {
           id: [...new Set(comments.map((comment) => comment.documentId))],
         },

@@ -1,12 +1,14 @@
 import isUUID from "validator/lib/isUUID";
 import type {
+  CountOptions,
   Identifier,
   InferAttributes,
   InferCreationAttributes,
   NonNullFindOptions,
   FindOptions,
+  WhereOptions,
 } from "sequelize";
-import { EmptyResultError } from "sequelize";
+import { EmptyResultError, Op } from "sequelize";
 import {
   Column,
   DataType,
@@ -27,7 +29,9 @@ import type { ProsemirrorData } from "@shared/types";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { DocumentValidation } from "@shared/validations";
 import { generateUrlId } from "@server/utils/url";
+import type { Context } from "@server/types";
 import Collection from "./Collection";
+import Document from "./Document";
 import Revision from "./Revision";
 import Team from "./Team";
 import User from "./User";
@@ -222,6 +226,52 @@ class Template extends ParanoidModel<
   }
 
   /**
+   * Finds the templates that match the options and that the user in the
+   * context can read. The memberships of the user are loaded, so that
+   * policies can be presented for the templates.
+   *
+   * @param ctx the context with the user and the transaction.
+   * @param options the find options.
+   * @returns a promise that resolves to the templates.
+   */
+  static async findAllWithCtx(
+    ctx: Context,
+    options: FindOptions<Template> = {}
+  ): Promise<Template[]> {
+    return this.scope([
+      "defaultScope",
+      { method: ["withMembership", ctx.auth.user.id, options.paranoid] },
+    ]).findAll({
+      transaction: ctx.transaction,
+      ...options,
+      where: {
+        [Op.and]: [options.where ?? {}, await this.accessibleWhere(ctx)],
+      },
+    });
+  }
+
+  /**
+   * Counts the templates that match the options and that the user in the
+   * context can read.
+   *
+   * @param ctx the context with the user and the transaction.
+   * @param options the count options.
+   * @returns a promise that resolves to the number of templates.
+   */
+  static async countWithCtx(
+    ctx: Context,
+    options: Omit<CountOptions<Template>, "group"> = {}
+  ): Promise<number> {
+    return this.count({
+      transaction: ctx.transaction,
+      ...options,
+      where: {
+        [Op.and]: [options.where ?? {}, await this.accessibleWhere(ctx)],
+      },
+    });
+  }
+
+  /**
    * Overrides the standard findByPk behavior to allow also querying by urlId
    *
    * @param id uuid or urlId
@@ -293,6 +343,28 @@ class Template extends ParanoidModel<
     }
 
     return template;
+  }
+
+  /**
+   * Returns the condition that limits a template query to the templates that
+   * the user in the context can read.
+   *
+   * @param ctx the context with the user and the transaction.
+   * @returns a promise that resolves to the where condition.
+   */
+  private static async accessibleWhere(
+    ctx: Context
+  ): Promise<WhereOptions<Template>> {
+    return {
+      teamId: ctx.auth.user.teamId,
+      [Op.or]: [
+        // Workspace templates have no collection and every user can read them.
+        { collectionId: { [Op.is]: null } },
+        await Document.accessibleWhere(ctx.auth.user, {
+          transaction: ctx.transaction,
+        }),
+      ],
+    };
   }
 }
 

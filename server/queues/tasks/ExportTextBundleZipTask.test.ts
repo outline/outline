@@ -56,7 +56,11 @@ describe("ExportTextBundleZipTask", () => {
     });
 
     const task = new ExportTextBundleZipTask();
-    const filePath = await task.exportCollections([collection], fileOperation);
+    const filePath = await task.exportCollections(
+      [collection],
+      fileOperation,
+      user
+    );
 
     try {
       const contents = await readZipContents(filePath);
@@ -75,7 +79,7 @@ describe("ExportTextBundleZipTask", () => {
   });
 
   it("should declare the bundle as markdown in info.json", async () => {
-    const { collection, document, fileOperation } =
+    const { collection, document, fileOperation, user } =
       await buildDocumentWithAttachment();
 
     vi.spyOn(FileStorage, "getFileStream").mockResolvedValue(
@@ -83,7 +87,11 @@ describe("ExportTextBundleZipTask", () => {
     );
 
     const task = new ExportTextBundleZipTask();
-    const filePath = await task.exportCollections([collection], fileOperation);
+    const filePath = await task.exportCollections(
+      [collection],
+      fileOperation,
+      user
+    );
 
     try {
       const contents = await readZipContents(filePath);
@@ -100,7 +108,7 @@ describe("ExportTextBundleZipTask", () => {
   });
 
   it("should write attachments into the bundle's assets folder", async () => {
-    const { collection, document, attachment, fileOperation } =
+    const { collection, document, attachment, fileOperation, user } =
       await buildDocumentWithAttachment();
 
     const getFileStream = vi
@@ -108,7 +116,11 @@ describe("ExportTextBundleZipTask", () => {
       .mockResolvedValue(Readable.from(["image-", "bytes"]));
 
     const task = new ExportTextBundleZipTask();
-    const filePath = await task.exportCollections([collection], fileOperation);
+    const filePath = await task.exportCollections(
+      [collection],
+      fileOperation,
+      user
+    );
 
     try {
       const contents = await readZipContents(filePath);
@@ -159,7 +171,11 @@ describe("ExportTextBundleZipTask", () => {
     });
 
     const task = new ExportTextBundleZipTask();
-    const filePath = await task.exportCollections([collection], fileOperation);
+    const filePath = await task.exportCollections(
+      [collection],
+      fileOperation,
+      user
+    );
 
     try {
       const contents = await readZipContents(filePath);
@@ -204,7 +220,11 @@ describe("ExportTextBundleZipTask", () => {
     );
 
     const task = new ExportTextBundleZipTask();
-    const filePath = await task.exportCollections([collection], fileOperation);
+    const filePath = await task.exportCollections(
+      [collection],
+      fileOperation,
+      user
+    );
 
     try {
       // Repackage the exported bundle on its own, which is what a TextPack is.

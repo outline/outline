@@ -45,7 +45,7 @@ export class RedisPrefixHelper {
    * @returns the cache key string.
    */
   public static getShareContentKey(id: string, updatedAt: Date) {
-    return `share:html:${id}:${updatedAt.getTime()}`;
+    return `share:html:v2:${id}:${updatedAt.getTime()}`;
   }
 
   /**
@@ -70,16 +70,6 @@ export class RedisPrefixHelper {
   }
 
   /**
-   * Gets key for caching the document IDs a user is a member of.
-   *
-   * @param userId The user ID to generate a key for.
-   * @returns the cache key string.
-   */
-  public static getUserMembershipDocumentIdsKey(userId: string) {
-    return `ud:${userId}`;
-  }
-
-  /**
    * Gets key for caching a team's enabled webhook subscriptions.
    *
    * @param teamId The team ID to generate a key for.
@@ -87,6 +77,17 @@ export class RedisPrefixHelper {
    */
   public static getWebhookSubscriptionsKey(teamId: string) {
     return `whs:${teamId}`;
+  }
+
+  /**
+   * Gets key for caching a team's integrations for a service.
+   *
+   * @param teamId The team ID to generate a key for.
+   * @param service The integration service to generate a key for.
+   * @returns the cache key string.
+   */
+  public static getIntegrationsKey(teamId: string, service: string) {
+    return `integrations:${teamId}:${service}`;
   }
 
   /**
@@ -126,5 +127,15 @@ export class RedisPrefixHelper {
    */
   public static getEmailSigninTokenKey(tokenHash: string) {
     return `auth:email-signin:${tokenHash}`;
+  }
+
+  /**
+   * Gets key for marking a transfer token as used.
+   *
+   * @param tokenHash The SHA-256 hash of the transfer token.
+   * @returns the cache key string.
+   */
+  public static getTransferTokenKey(tokenHash: string) {
+    return `auth:transfer:${tokenHash}`;
   }
 }

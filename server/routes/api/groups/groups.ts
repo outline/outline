@@ -22,7 +22,7 @@ import {
   presentPolicies,
   presentUser,
 } from "@server/presenters";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { QueryHelper } from "@server/storage/QueryHelper";
 import pagination from "../middlewares/pagination";
@@ -49,10 +49,10 @@ router.post(
   auth(),
   pagination(),
   validate(T.GroupsListSchema),
-  async (ctx: APIContext<T.GroupsListReq>) => {
+  async (ctx: Context<T.GroupsListReq>) => {
     const { sort, direction, query, userId, externalId, name, source } =
       ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     authorize(user, "listGroups", user.team);
 
     let where: WhereOptions<Group> = {
@@ -120,10 +120,9 @@ router.post(
 
       where = {
         ...where,
-        id: {
-          ...(where.id as object),
-          [source === "manual" ? Op.notIn : Op.in]: sourceGroupIds,
-        },
+        [Op.and]: [
+          { id: { [source === "manual" ? Op.notIn : Op.in]: sourceGroupIds } },
+        ],
       };
     }
 
@@ -195,9 +194,9 @@ router.post(
   "groups.info",
   auth(),
   validate(T.GroupsInfoSchema),
-  async (ctx: APIContext<T.GroupsInfoReq>) => {
+  async (ctx: Context<T.GroupsInfoReq>) => {
     const { id, externalId } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const include = [
       {
@@ -235,10 +234,10 @@ router.post(
   auth(),
   validate(T.GroupsCreateSchema),
   transaction(),
-  async (ctx: APIContext<T.GroupsCreateReq>) => {
+  async (ctx: Context<T.GroupsCreateReq>) => {
     const { name, description, icon, color, externalId, disableMentions } =
       ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     authorize(user, "createGroup", user.team);
 
     const group = await Group.createWithCtx(ctx, {
@@ -267,10 +266,10 @@ router.post(
   auth(),
   validate(T.GroupsUpdateSchema),
   transaction(),
-  async (ctx: APIContext<T.GroupsUpdateReq>) => {
+  async (ctx: Context<T.GroupsUpdateReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const group = await Group.findByPk(id, {
       transaction,
@@ -325,10 +324,10 @@ router.post(
   auth(),
   validate(T.GroupsDeleteSchema),
   transaction(),
-  async (ctx: APIContext<T.GroupsDeleteReq>) => {
+  async (ctx: Context<T.GroupsDeleteReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const group = await Group.findByPk(id, {
       transaction,
@@ -353,10 +352,10 @@ router.post(
   auth({ role: UserRole.Admin }),
   validate(T.GroupsDeleteAllSchema),
   transaction(),
-  async (ctx: APIContext<T.GroupsDeleteAllReq>) => {
+  async (ctx: Context<T.GroupsDeleteAllReq>) => {
     const { authenticationProviderId } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const authenticationProvider = await AuthenticationProvider.findByPk(
       authenticationProviderId,
@@ -401,9 +400,9 @@ router.post(
   auth(),
   pagination(),
   validate(T.GroupsMembershipsSchema),
-  async (ctx: APIContext<T.GroupsMembershipsReq>) => {
+  async (ctx: Context<T.GroupsMembershipsReq>) => {
     const { id, query, permission } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const group = await Group.findByPk(id);
     authorize(user, "read", group);
@@ -470,13 +469,20 @@ router.post(
   auth(),
   validate(T.GroupsAddUserSchema),
   transaction(),
-  async (ctx: APIContext<T.GroupsAddUserReq>) => {
+  async (ctx: Context<T.GroupsAddUserReq>) => {
     const { id, userId, permission } = ctx.input.body;
-    const actor = ctx.state.auth.user;
-    const { transaction } = ctx.state;
+    const actor = ctx.auth.user;
+    const { transaction } = ctx;
 
-    const user = await User.findByPk(userId, { transaction });
+    const user = await User.findByPk(userId, {
+      transaction,
+      lock: transaction.LOCK.NO_KEY_UPDATE,
+    });
     authorize(actor, "read", user);
+
+    if (user.isGuest) {
+      throw ValidationError("Guests cannot be added to groups");
+    }
 
     // Load group with group users for authorization
     const group = await Group.findByPk(id, {
@@ -542,10 +548,10 @@ router.post(
   auth(),
   validate(T.GroupsRemoveUserSchema),
   transaction(),
-  async (ctx: APIContext<T.GroupsRemoveUserReq>) => {
+  async (ctx: Context<T.GroupsRemoveUserReq>) => {
     const { id, userId } = ctx.input.body;
-    const actor = ctx.state.auth.user;
-    const { transaction } = ctx.state;
+    const actor = ctx.auth.user;
+    const { transaction } = ctx;
 
     const group = await Group.findByPk(id, {
       transaction,
@@ -599,10 +605,10 @@ router.post(
   auth(),
   validate(T.GroupsUpdateUserSchema),
   transaction(),
-  async (ctx: APIContext<T.GroupsUpdateUserReq>) => {
+  async (ctx: Context<T.GroupsUpdateUserReq>) => {
     const { id, userId, permission } = ctx.input.body;
-    const actor = ctx.state.auth.user;
-    const { transaction } = ctx.state;
+    const actor = ctx.auth.user;
+    const { transaction } = ctx;
 
     // Load group with group users for authorization
     const group = await Group.findByPk(id, {

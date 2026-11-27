@@ -296,6 +296,29 @@ describe("#comments.list", () => {
     expect(body.pagination.total).toEqual(1);
   });
 
+  it("should not return comments in a private collection for an admin who is not a member", async () => {
+    const admin = await buildAdmin();
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+      permission: null,
+    });
+    const document = await buildDocument({
+      teamId: admin.teamId,
+      collectionId: collection.id,
+    });
+    await buildComment({
+      userId: document.createdById,
+      documentId: document.id,
+    });
+    const res = await server.post("/api/comments.list", admin, {
+      body: {
+        collectionId: collection.id,
+      },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
   it("should return unresolved comments for a parentCommentId", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });

@@ -5,10 +5,11 @@ import { errToString } from "@shared/utils/error";
 import type { NavigationNode } from "@shared/types";
 import { FileOperationFormat } from "@shared/types";
 import Logger from "@server/logging/Logger";
-import type { Collection } from "@server/models";
+import type { Collection, User } from "@server/models";
 import Attachment from "@server/models/Attachment";
 import Document from "@server/models/Document";
 import Team from "@server/models/Team";
+import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import OKFHelper from "@server/models/helpers/OKFHelper";
@@ -108,6 +109,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
       ? path.join(pathInZip, TextBundleHelper.textFileName)
       : pathInZip;
     const usedAssetNames = new Set<string>();
+    let inlinedSize = 0;
 
     // Add any referenced attachments to the zip file and replace the
     // reference in the document with the path to the attachment in the zip
@@ -140,7 +142,9 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
           text,
           attachment.redirectUrl,
           attachment.contentType,
-          attachment.size
+          // BIGINT columns are returned as strings.
+          Number(attachment.size),
+          inlinedSize
         )
       ) {
         let buffer: Buffer | undefined;
@@ -159,11 +163,13 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
               text,
               attachment.redirectUrl,
               attachment.contentType,
-              buffer
+              buffer,
+              inlinedSize
             )
           : null;
-        if (inlined !== null) {
+        if (buffer && inlined !== null) {
           text = inlined;
+          inlinedSize += buffer.length;
           continue;
         }
       }
@@ -174,7 +180,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
         ? TextBundleHelper.assetPath(attachment.name, usedAssetNames)
         : attachment.key;
 
-      this.addAttachmentToArchive(
+      AttachmentHelper.addToArchive(
         zip,
         attachment,
         isTextBundle
@@ -237,6 +243,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
    *
    * @param zip The yazl ZipFile to add files to
    * @param collections The collections to export
+   * @param user The user that requested the export
    * @param format The format to export in
    * @param includeAttachments Whether to include attachments in the export
    *
@@ -244,10 +251,15 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
    */
   protected async addCollectionsToArchive(
     collections: Collection[],
+    user: User,
     format: FileOperationFormat,
     includeAttachments = true
   ) {
-    const { pathMap, roots } = this.createPathMap(collections, format);
+    const { pathMap, roots } = await this.createPathMap(
+      collections,
+      user,
+      format
+    );
     const origin = await this.originForFormat(format, collections[0]?.teamId);
     return await ZipHelper.toTmpFile(async (zip) => {
       await this.addDocumentsToArchive({
@@ -401,18 +413,21 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
    * Generates a map of document urls to their path in the zip file.
    *
    * @param collections The collections to generate the path map for.
+   * @param user The user that requested the export.
    * @param format The format of the exported documents.
    * @returns The path map and the root directory chosen for each collection.
    */
-  private createPathMap(
+  private async createPathMap(
     collections: Collection[],
+    user: User,
     format: FileOperationFormat
   ) {
     const pathMap = new Map<string, string>();
     const roots: { root: string; collection: Collection }[] = [];
 
     for (const collection of collections) {
-      if (collection.documentStructure) {
+      const structure = await collection.structureFor(user);
+      if (structure.length) {
         let root = serializeFilename(collection.name);
         let i = 0;
         while (roots.some((entry) => entry.root === root)) {
@@ -420,12 +435,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
         }
         roots.push({ root, collection });
 
-        this.addDocumentTreeToPathMap(
-          pathMap,
-          collection.documentStructure,
-          root,
-          format
-        );
+        this.addDocumentTreeToPathMap(pathMap, structure, root, format);
       }
     }
 

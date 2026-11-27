@@ -10,7 +10,7 @@ import validate from "@server/middlewares/validate";
 import { Collection, Template } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentPolicies, presentTemplate } from "@server/presenters";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { QueryHelper } from "@server/storage/QueryHelper";
 import pagination from "../middlewares/pagination";
@@ -24,13 +24,13 @@ router.post(
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   validate(T.TemplatesCreateSchema),
   transaction(),
-  async (ctx: APIContext<T.TemplatesCreateReq>) => {
+  async (ctx: Context<T.TemplatesCreateReq>) => {
     const { id, title, data, icon, color, collectionId, publish } =
       ctx.input.body;
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
 
-    const { transaction } = ctx.state;
-    const { user } = ctx.state.auth;
+    const { transaction } = ctx;
+    const { user } = ctx.auth;
 
     if (publish && (!data || ProsemirrorDataHelper.isEmpty(data))) {
       throw ValidationError("A published template must have content");
@@ -79,13 +79,12 @@ router.post(
   auth(),
   pagination(),
   validate(T.TemplatesListSchema),
-  async (ctx: APIContext<T.TemplatesListReq>) => {
+  async (ctx: Context<T.TemplatesListReq>) => {
     const { sort, direction, collectionId, query } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
     const where: WhereOptions<Template> & {
       [Op.and]: WhereOptions<Template>[];
     } = {
-      teamId: user.teamId,
       [Op.and]: [
         {
           deletedAt: {
@@ -114,20 +113,7 @@ router.post(
       const collection = await Collection.findByPk(collectionId, {
         userId: user.id,
       });
-      authorize(user, "read", collection);
-    } else {
-      where[Op.and].push({
-        [Op.or]: [
-          {
-            collectionId: {
-              [Op.eq]: null,
-            },
-          },
-          {
-            collectionId: await user.collectionIds(),
-          },
-        ],
-      });
+      authorize(user, "readDocument", collection);
     }
 
     if (query) {
@@ -141,19 +127,14 @@ router.post(
     const replacements = { query: QueryHelper.likeContains(query ?? "") };
 
     const [templates, total] = await Promise.all([
-      Template.scope([
-        "defaultScope",
-        {
-          method: ["withMembership", user.id],
-        },
-      ]).findAll({
+      Template.findAllWithCtx(ctx, {
         where,
         replacements,
         order: [[sort, direction]],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
       }),
-      Template.count({
+      Template.countWithCtx(ctx, {
         where,
         replacements,
       }),
@@ -174,9 +155,9 @@ router.post(
   "templates.info",
   auth(),
   validate(T.TemplatesInfoSchema),
-  async (ctx: APIContext<T.TemplatesInfoReq>) => {
+  async (ctx: Context<T.TemplatesInfoReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const template = await Template.findByPk(id, {
       userId: user.id,
@@ -196,10 +177,10 @@ router.post(
   auth(),
   validate(T.TemplatesDeleteSchema),
   transaction(),
-  async (ctx: APIContext<T.TemplatesDeleteReq>) => {
+  async (ctx: Context<T.TemplatesDeleteReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const template = await Template.findByPk(id, {
       userId: user.id,
@@ -221,10 +202,10 @@ router.post(
   auth(),
   validate(T.TemplatesInfoSchema),
   transaction(),
-  async (ctx: APIContext<T.TemplatesInfoReq>) => {
+  async (ctx: Context<T.TemplatesInfoReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const template = await Template.findByPk(id, {
       userId: user.id,
@@ -248,10 +229,10 @@ router.post(
   auth(),
   validate(T.TemplatesDuplicateSchema),
   transaction(),
-  async (ctx: APIContext<T.TemplatesDuplicateReq>) => {
-    const { transaction } = ctx.state;
+  async (ctx: Context<T.TemplatesDuplicateReq>) => {
+    const { transaction } = ctx;
     const { id, title, collectionId } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const original = await Template.findByPk(id, {
       userId: user.id,
@@ -304,10 +285,10 @@ router.post(
   auth(),
   validate(T.TemplatesUpdateSchema),
   transaction(),
-  async (ctx: APIContext<T.TemplatesUpdateReq>) => {
-    const { transaction } = ctx.state;
+  async (ctx: Context<T.TemplatesUpdateReq>) => {
+    const { transaction } = ctx;
     const { id, data, publish, ...updatedFields } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user } = ctx.auth;
 
     const template = await Template.findByPk(id, {
       userId: user.id,

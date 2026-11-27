@@ -478,13 +478,20 @@ export class DocumentHelper {
 
   /**
    * Returns the document or collection as static HTML with its title. The
-   * output is rendered from the schema without node components or styles.
+   * output is rendered from the schema without node components or styles, and
+   * comment marks are removed because it is shown on public shares.
    *
    * @param model The document or collection to convert.
    * @returns The title and content as a HTML string.
    */
   static async toStaticHTML(model: Document | Collection) {
-    return ProsemirrorHelper.toStaticHTML(DocumentHelper.toProsemirror(model), {
+    const node = Node.fromJSON(
+      schema,
+      ProsemirrorHelper.removeMarks(DocumentHelper.toProsemirror(model), [
+        "comment",
+      ])
+    );
+    return ProsemirrorHelper.toStaticHTML(node, {
       title: model instanceof Collection ? model.name : model.title,
       headingPrefix:
         model instanceof Document
@@ -737,29 +744,42 @@ export class DocumentHelper {
     // own repairs back in response to this change.
     doc = withTrailingNode(doc);
     document.content = doc.toJSON();
-
-    if (document.state) {
-      const ydoc = new Y.Doc();
-      Y.applyUpdate(ydoc, document.state);
-      const type = ydoc.get("default", Y.XmlFragment) as Y.XmlFragment;
-
-      if (!type.doc) {
-        throw new Error("type.doc not found");
-      }
-
-      // apply new document to existing ydoc
-      updateYFragment(type.doc, type, doc, {
-        mapping: new Map(),
-        isOMark: new Map(),
-      });
-
-      const state = Y.encodeStateAsUpdate(ydoc);
-
-      document.state = Buffer.from(state);
-      document.changed("state", true);
-    }
+    DocumentHelper.applyToState(document, doc);
 
     return document;
+  }
+
+  /**
+   * Updates the collaborative state of a document to match the given content.
+   * Documents without state are not changed, as state is derived from content
+   * when they are first opened.
+   *
+   * @param document The document to update.
+   * @param doc The new content of the document.
+   */
+  static applyToState(document: Document, doc: Node) {
+    if (!document.state) {
+      return;
+    }
+
+    const ydoc = new Y.Doc();
+    Y.applyUpdate(ydoc, document.state);
+    const type = ydoc.get("default", Y.XmlFragment) as Y.XmlFragment;
+
+    if (!type.doc) {
+      throw new Error("type.doc not found");
+    }
+
+    // apply new document to existing ydoc
+    updateYFragment(type.doc, type, doc, {
+      mapping: new Map(),
+      isOMark: new Map(),
+    });
+
+    const state = Y.encodeStateAsUpdate(ydoc);
+
+    document.state = Buffer.from(state);
+    document.changed("state", true);
   }
 
   /**

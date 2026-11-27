@@ -1,7 +1,7 @@
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import { UserPasskey } from "@server/models";
-import type { APIContext } from "@server/types";
+import type { Context } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import Router from "@koa/router";
 import * as T from "./schema";
@@ -17,8 +17,8 @@ router.post(
   auth({ type: AuthenticationType.APP }),
   pagination(),
   validate(T.PasskeysListSchema),
-  async (ctx: APIContext<T.PasskeysListReq>) => {
-    const { user } = ctx.state.auth;
+  async (ctx: Context<T.PasskeysListReq>) => {
+    const { user } = ctx.auth;
     const { pagination } = ctx.state;
 
     const passkeys = await UserPasskey.findAll({
@@ -40,10 +40,10 @@ router.post(
   auth({ type: AuthenticationType.APP }),
   validate(T.PasskeysUpdateSchema),
   transaction(),
-  async (ctx: APIContext<T.PasskeysUpdateReq>) => {
+  async (ctx: Context<T.PasskeysUpdateReq>) => {
     const { id, name } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const passkey = await UserPasskey.findByPk(id, {
       rejectOnEmpty: true,
@@ -64,10 +64,10 @@ router.post(
   auth({ type: AuthenticationType.APP }),
   validate(T.PasskeysDeleteSchema),
   transaction(),
-  async (ctx: APIContext<T.PasskeysDeleteReq>) => {
+  async (ctx: Context<T.PasskeysDeleteReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
+    const { user } = ctx.auth;
+    const { transaction } = ctx;
 
     const passkey = await UserPasskey.findByPk(id, {
       rejectOnEmpty: true,

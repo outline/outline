@@ -1,6 +1,5 @@
 import querystring from "node:querystring";
 import { addMonths } from "date-fns";
-import type { Context } from "koa";
 import { pick } from "es-toolkit/compat";
 import { toError } from "@shared/utils/error";
 import { Client } from "@shared/types";
@@ -10,7 +9,7 @@ import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { Event, Collection, View } from "@server/models";
 import type { Team } from "@server/models";
-import type { APIContext, AuthenticationResult } from "@server/types";
+import type { Context, AuthenticationResult, AppContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import { SessionsCookieHelper } from "./SessionsCookieHelper";
 import { clearCSRFCookie } from "./csrf";
@@ -26,7 +25,7 @@ import { clearCSRFCookie } from "./csrf";
  * @returns the workspace url for the requested path, if there is one.
  */
 export function getSessionRedirectUrl(
-  ctx: Context,
+  ctx: AppContext,
   teams: Team[]
 ): string | undefined {
   const activeSessions = getActiveSessions(SessionsCookieHelper.read(ctx));
@@ -54,11 +53,11 @@ export function getSessionRedirectUrl(
  * @param result the authentication result containing user and team details.
  */
 export async function signIn(
-  ctx: Context | APIContext,
+  ctx: AppContext | Context,
   service: string,
   { user, team, client, isNewTeam }: AuthenticationResult
 ) {
-  const { transaction } = ctx.state;
+  const { transaction } = ctx;
 
   if (team.isSuspended) {
     return ctx.redirect("/?notice=team-suspended");

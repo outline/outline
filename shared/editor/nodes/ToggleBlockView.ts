@@ -3,6 +3,7 @@ import type { EditorView, NodeView, DecorationSource } from "prosemirror-view";
 import type { Decoration } from "prosemirror-view";
 import { isModKey } from "../../utils/keyboard";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
+import { getEventTargetElement } from "../lib/eventTarget";
 import {
   Action,
   toggleEventPluginKey,
@@ -74,11 +75,11 @@ export class ToggleBlockView implements NodeView {
       return;
     }
 
-    const target = event.target as HTMLElement;
+    const target = getEventTargetElement(event);
     const head = this.contentDOM.querySelector(
       `.${EditorStyleHelper.toggleBlockHead}`
     );
-    if (!head || !head.contains(target)) {
+    if (!target || !head || !head.contains(target)) {
       return;
     }
 

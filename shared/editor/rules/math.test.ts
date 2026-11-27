@@ -1,5 +1,5 @@
 import type { JSONNode } from "../../test/editor";
-import { findNodes, parser } from "../../test/editor";
+import { findNodes, parser, serializer } from "../../test/editor";
 
 const parseToJSON = (markdown: string): JSONNode | undefined =>
   parser.parse(markdown)?.toJSON();
@@ -41,5 +41,31 @@ describe("math markdown rules", () => {
 
     expect(findNodes(doc, "math_inline")).toHaveLength(0);
     expect(findNodes(doc, "math_block")).toHaveLength(0);
+  });
+
+  it("does not open block math when text follows the opening delimiter", () => {
+    const doc = parseToJSON("$$ signs mean money\n\n## Next\n\nmore");
+
+    expect(findNodes(doc, "math_block")).toHaveLength(0);
+    expect(findNodes(doc, "heading")).toHaveLength(1);
+    expect(findNodes(doc, "paragraph")).toHaveLength(2);
+  });
+
+  it("does not open block math for inline math at the start of a line", () => {
+    const doc = parseToJSON("$$a+b$$ is the formula\n\n## Next\n\nmore");
+
+    expect(findNodes(doc, "math_block")).toHaveLength(0);
+    expect(findNodes(doc, "heading")).toHaveLength(1);
+    expect(findNodes(doc, "paragraph")).toHaveLength(2);
+  });
+
+  it("round-trips serialized block math", () => {
+    const markdown = "$$\na = b\nc = d\n$$\n\n## Next\n\nmore";
+    const parsed = parser.parse(markdown);
+    const blocks = findNodes(parsed?.toJSON(), "math_block");
+
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].content?.[0].text).toBe("a = b\nc = d");
+    expect(serializer.serialize(parsed)).toBe(markdown);
   });
 });

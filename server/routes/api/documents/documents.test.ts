@@ -1,8 +1,11 @@
+import { Readable } from "node:stream";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { faker } from "@faker-js/faker";
 import { addMinutes, subDays } from "date-fns";
 import FormData from "form-data";
+import { yDocToProsemirrorJSON } from "y-prosemirror";
+import * as Y from "yjs";
 import {
   CollectionPermission,
   DocumentPermission,
@@ -15,6 +18,7 @@ import {
 } from "@shared/types";
 import { TextHelper } from "@shared/utils/TextHelper";
 import { DeprecationValidation, DocumentValidation } from "@shared/validations";
+import { APIUpdateExtension } from "@server/collaboration/APIUpdateExtension";
 import { createContext } from "@server/context";
 import { parser } from "@server/editor";
 import type { Group, User } from "@server/models";
@@ -33,7 +37,11 @@ import {
 } from "@server/models";
 import { RelationshipType } from "@server/models/Relationship";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import HTMLHelper from "@server/models/helpers/HTMLHelper";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import DocumentImportTask from "@server/queues/tasks/DocumentImportTask";
+import EmptyTrashTask from "@server/queues/tasks/EmptyTrashTask";
+import { sequelize } from "@server/storage/database";
 import FileStorage from "@server/storage/files";
 import {
   buildShare,
@@ -45,6 +53,7 @@ import {
   buildTeam,
   buildGroup,
   buildAdmin,
+  buildPersonalCollection,
   buildTemplate,
   buildAttachment,
   buildSubdomain,
@@ -53,7 +62,7 @@ import {
 import {
   getTestServer,
   readZipResponse,
-  withAPIContext,
+  withContext,
 } from "@server/test/support";
 
 const server = getTestServer();
@@ -210,7 +219,7 @@ describe("#documents.info", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => document.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.info", user, {
       body: {
         id: document.id,
@@ -491,7 +500,7 @@ describe("#documents.info", () => {
       teamId: document.teamId,
       userId: user.id,
     });
-    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => document.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.info", {
       body: {
         shareId: share.id,
@@ -690,7 +699,7 @@ describe("#documents.export", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => document.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.export", user, {
       body: {
         id: document.id,
@@ -746,8 +755,8 @@ describe("#documents.export", () => {
       teamId: user.teamId,
       text: `![image](${attachment.redirectUrl})`,
     });
-    vi.spyOn(FileStorage, "getFileBuffer").mockResolvedValue(
-      Buffer.from("image-data")
+    vi.spyOn(FileStorage, "getFileStream").mockImplementation(async () =>
+      Readable.from([Buffer.from("image-data")])
     );
 
     const res = await server.post("/api/documents.export", user, {
@@ -773,6 +782,111 @@ describe("#documents.export", () => {
     expect(entries["export-test.md"]).not.toContain(attachment.redirectUrl);
   });
 
+  it("should inline small images and stream other attachments for HTML", async () => {
+    const user = await buildUser();
+    const small = await buildAttachment({
+      teamId: user.teamId,
+      userId: user.id,
+      contentType: "image/png",
+      size: 10,
+    });
+    const large = await buildAttachment({
+      teamId: user.teamId,
+      userId: user.id,
+      contentType: "image/png",
+      size: HTMLHelper.maxInlineImageSize + 1,
+    });
+    const document = await buildDocument({
+      title: "Export Test",
+      userId: user.id,
+      teamId: user.teamId,
+      text: `![small](${small.redirectUrl})\n\n![large](${large.redirectUrl})`,
+    });
+    const getFileBuffer = vi
+      .spyOn(FileStorage, "getFileBuffer")
+      .mockResolvedValue(Buffer.from("small-data"));
+    vi.spyOn(FileStorage, "getFileStream").mockImplementation(async () =>
+      Readable.from([Buffer.from("large-data")])
+    );
+
+    const res = await server.post("/api/documents.export", user, {
+      body: {
+        id: document.id,
+      },
+      headers: {
+        accept: "text/html",
+      },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("content-type")).toEqual("application/zip");
+
+    const location = `attachments/${large.id}.png`;
+    const entries = await readZipResponse(res);
+    expect(Object.keys(entries).sort()).toEqual([location, "export-test.html"]);
+    expect(entries[location]).toEqual("large-data");
+    expect(entries["export-test.html"]).toContain(
+      Buffer.from("small-data").toString("base64")
+    );
+    expect(entries["export-test.html"]).not.toContain(small.redirectUrl);
+
+    // Only the image that is inlined is read into memory.
+    expect(getFileBuffer).toHaveBeenCalledTimes(1);
+    expect(getFileBuffer).toHaveBeenCalledWith(small.key);
+  });
+
+  it("should stop inlining images at the total size limit for HTML", async () => {
+    const user = await buildUser();
+    const count =
+      Math.floor(
+        HTMLHelper.maxTotalInlineImageSize / HTMLHelper.maxInlineImageSize
+      ) + 1;
+    const images = [];
+    for (let i = 0; i < count; i++) {
+      images.push(
+        await buildAttachment({
+          teamId: user.teamId,
+          userId: user.id,
+          contentType: "image/png",
+          size: HTMLHelper.maxInlineImageSize,
+        })
+      );
+    }
+    const document = await buildDocument({
+      title: "Export Test",
+      userId: user.id,
+      teamId: user.teamId,
+      text: images
+        .map((image) => `![image](${image.redirectUrl})`)
+        .join("\n\n"),
+    });
+    const getFileBuffer = vi
+      .spyOn(FileStorage, "getFileBuffer")
+      .mockResolvedValue(Buffer.alloc(HTMLHelper.maxInlineImageSize));
+    vi.spyOn(FileStorage, "getFileStream").mockImplementation(async () =>
+      Readable.from([Buffer.from("image-data")])
+    );
+
+    const res = await server.post("/api/documents.export", user, {
+      body: {
+        id: document.id,
+      },
+      headers: {
+        accept: "text/html",
+      },
+    });
+
+    expect(res.status).toEqual(200);
+
+    // The last image does not fit in the limit, so it is streamed into the zip.
+    const entries = await readZipResponse(res);
+    const external = Object.keys(entries).filter((name) =>
+      name.startsWith("attachments/")
+    );
+    expect(external).toHaveLength(1);
+    expect(getFileBuffer).toHaveBeenCalledTimes(count - 1);
+  });
+
   it("should stream a textpack when TextBundle is requested", async () => {
     const user = await buildUser();
     const attachment = await buildAttachment(
@@ -785,8 +899,8 @@ describe("#documents.export", () => {
       teamId: user.teamId,
       text: `![image](${attachment.redirectUrl})`,
     });
-    vi.spyOn(FileStorage, "getFileBuffer").mockResolvedValue(
-      Buffer.from("image-data")
+    vi.spyOn(FileStorage, "getFileStream").mockImplementation(async () =>
+      Readable.from([Buffer.from("image-data")])
     );
 
     const res = await server.post("/api/documents.export", user, {
@@ -1044,7 +1158,7 @@ describe("#documents.list", () => {
         collectionId: collection.id,
       }),
     ]);
-    await withAPIContext(user, (ctx) => docs[0].archiveWithCtx(ctx));
+    await withContext(user, (ctx) => docs[0].archiveWithCtx(ctx));
     const res = await server.post("/api/documents.list", user, {
       body: {
         statusFilter: [StatusFilter.Archived],
@@ -1085,8 +1199,8 @@ describe("#documents.list", () => {
       }),
     ]);
     await Promise.all([
-      withAPIContext(user, (ctx) => docs[0].archiveWithCtx(ctx)),
-      withAPIContext(user, (ctx) => docs[1].archiveWithCtx(ctx)),
+      withContext(user, (ctx) => docs[0].archiveWithCtx(ctx)),
+      withContext(user, (ctx) => docs[1].archiveWithCtx(ctx)),
     ]);
     const res = await server.post("/api/documents.list", user, {
       body: {
@@ -1247,6 +1361,49 @@ describe("#documents.list", () => {
     expect(body3.data).toHaveLength(5);
     expect(body3.data[0].id).toEqual(expectedOrder[20].id);
     expect(body3.data[4].id).toEqual(expectedOrder[24].id);
+  });
+
+  it("should return total and page from the end with collection index sort", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    for (let i = 0; i < 25; i++) {
+      await buildDocument({
+        userId: user.id,
+        collectionId: collection.id,
+        teamId: user.teamId,
+      });
+    }
+    await collection.reload();
+    const structureIds = (collection.documentStructure ?? []).map(
+      (node) => node.id
+    );
+    const body = { collectionId: collection.id, sort: "index", limit: 10 };
+
+    const res = await server.post("/api/documents.list", user, {
+      body: { ...body, direction: "ASC" },
+    });
+    const json = await res.json();
+    expect(res.status).toEqual(200);
+    expect(json.pagination.total).toEqual(25);
+
+    const clientRes = await server.post("/api/documents.list", user, {
+      body: { ...body, direction: "ASC" },
+      headers: { "x-client-version": "1" },
+    });
+    const clientJson = await clientRes.json();
+    expect(clientJson.data).toHaveLength(10);
+    expect(clientJson.pagination.total).toEqual(11);
+
+    const descRes = await server.post("/api/documents.list", user, {
+      body: { ...body, direction: "DESC" },
+    });
+    const descJson = await descRes.json();
+    expect(descJson.data.map((doc: { id: string }) => doc.id)).toEqual(
+      structureIds.slice(15).reverse()
+    );
   });
 
   it("should allow filtering by collection", async () => {
@@ -1479,6 +1636,51 @@ describe("#documents.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(child.id);
+  });
+
+  it("should filter backlinks by collectionId", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const otherCollection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const inCollection = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const inOtherCollection = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: otherCollection.id,
+    });
+    await Relationship.bulkCreate(
+      [inCollection, inOtherCollection].map((source) => ({
+        reverseDocumentId: source.id,
+        type: RelationshipType.Backlink,
+        documentId: document.id,
+        userId: user.id,
+      }))
+    );
+    const res = await server.post("/api/documents.list", user, {
+      body: {
+        backlinkDocumentId: document.id,
+        collectionId: collection.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.map((doc: { id: string }) => doc.id)).toEqual([
+      inCollection.id,
+    ]);
   });
 
   describe("filter DSL", () => {
@@ -2329,17 +2531,18 @@ describe("#documents.list", () => {
         userId: otherUser.id,
         collectionId: privateCollection.id,
       });
-      const child = await buildDocument({
-        teamId: viewer.teamId,
-        userId: otherUser.id,
-        collectionId: privateCollection.id,
-        parentDocumentId: parent.id,
-      });
       await UserMembership.create({
         createdById: otherUser.id,
         documentId: parent.id,
         userId: viewer.id,
         permission: DocumentPermission.Read,
+      });
+      // Made after the membership, so the viewer has no membership on it.
+      const child = await buildDocument({
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        collectionId: privateCollection.id,
+        parentDocumentId: parent.id,
       });
       const ownCollection = await buildCollection({
         teamId: viewer.teamId,
@@ -2938,6 +3141,32 @@ describe("#documents.drafts", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(drafts.length);
+  });
+
+  it("should only return drafts in the given collection", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDraftDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+    });
+    await buildDraftDocument({
+      userId: user.id,
+      collectionId: null,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/documents.drafts", user, {
+      body: { collectionId: collection.id },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
   });
 
   it("should not return drafts in private collections not a member of", async () => {
@@ -3724,7 +3953,7 @@ describe("#documents.search", () => {
       text: "search term",
       teamId: user.teamId,
     });
-    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => document.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.search", user, {
       body: {
         query: "search term",
@@ -3743,7 +3972,7 @@ describe("#documents.search", () => {
       text: "search term",
       teamId: user.teamId,
     });
-    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => document.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.search", user, {
       body: {
         query: "search term",
@@ -4857,10 +5086,8 @@ describe("#documents.archived", () => {
       ]);
 
     await Promise.all([
-      withAPIContext(user, (ctx) =>
-        documentInFirstCollection.archiveWithCtx(ctx)
-      ),
-      withAPIContext(user, (ctx) =>
+      withContext(user, (ctx) => documentInFirstCollection.archiveWithCtx(ctx)),
+      withContext(user, (ctx) =>
         documentInSecondCollection.archiveWithCtx(ctx)
       ),
     ]);
@@ -4899,10 +5126,8 @@ describe("#documents.archived", () => {
       ]);
 
     await Promise.all([
-      withAPIContext(user, (ctx) =>
-        documentInFirstCollection.archiveWithCtx(ctx)
-      ),
-      withAPIContext(user, (ctx) =>
+      withContext(user, (ctx) => documentInFirstCollection.archiveWithCtx(ctx)),
+      withContext(user, (ctx) =>
         documentInSecondCollection.archiveWithCtx(ctx)
       ),
     ]);
@@ -4919,7 +5144,7 @@ describe("#documents.archived", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => document.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.archived", user);
     const body = await res.json();
     expect(res.status).toEqual(200);
@@ -4932,7 +5157,7 @@ describe("#documents.archived", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     const res = await server.post("/api/documents.archived", user);
     const body = await res.json();
     expect(res.status).toEqual(200);
@@ -4948,7 +5173,7 @@ describe("#documents.archived", () => {
       teamId: user.teamId,
       collectionId: collection.id,
     });
-    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => document.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.archived", user);
     const body = await res.json();
     expect(res.status).toEqual(200);
@@ -4974,7 +5199,7 @@ describe("#documents.deleted", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     const res = await server.post("/api/documents.deleted", user);
     const body = await res.json();
     expect(res.status).toEqual(200);
@@ -5002,9 +5227,9 @@ describe("#documents.deleted", () => {
       collectionId: null,
     });
     await Promise.all([
-      withAPIContext(user, (ctx) => document.destroyWithCtx(ctx)),
-      withAPIContext(user, (ctx) => draftDocument.destroyWithCtx(ctx)),
-      withAPIContext(user2, (ctx) => otherUserDraft.destroyWithCtx(ctx)),
+      withContext(user, (ctx) => document.destroyWithCtx(ctx)),
+      withContext(user, (ctx) => draftDocument.destroyWithCtx(ctx)),
+      withContext(user2, (ctx) => otherUserDraft.destroyWithCtx(ctx)),
     ]);
     const res = await server.post("/api/documents.deleted", user);
     const body = await res.json();
@@ -5021,7 +5246,7 @@ describe("#documents.deleted", () => {
       userId: admin.id,
       teamId: admin.teamId,
     });
-    await withAPIContext(admin, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(admin, (ctx) => document.destroyWithCtx(ctx));
     const res = await server.post("/api/documents.deleted", admin);
     const body = await res.json();
     expect(res.status).toEqual(200);
@@ -5040,7 +5265,7 @@ describe("#documents.deleted", () => {
       teamId: user.teamId,
       collectionId: collection.id,
     });
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     const res = await server.post("/api/documents.deleted", user);
     const body = await res.json();
     expect(res.status).toEqual(200);
@@ -5061,8 +5286,8 @@ describe("#documents.deleted", () => {
       teamId: user.teamId,
       collectionId: collection.id,
     });
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
-    await withAPIContext(other, (ctx) => otherDocument.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(other, (ctx) => otherDocument.destroyWithCtx(ctx));
 
     const res = await server.post("/api/documents.deleted", user, {
       body: {
@@ -5101,7 +5326,7 @@ describe("#documents.deleted", () => {
       collectionId: collection.id,
       parentDocumentId: document.id,
     });
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
 
     await childDocument.reload({ paranoid: false });
     expect(childDocument.deletedById).toEqual(user.id);
@@ -5126,7 +5351,7 @@ describe("#documents.deleted", () => {
       teamId: user.teamId,
       collectionId: collection.id,
     });
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
 
     const res = await server.post("/api/documents.info", user, {
       body: { id: document.id },
@@ -5170,7 +5395,7 @@ describe("#documents.deleted", () => {
       teamId: user.teamId,
       collectionId: collection.id,
     });
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     await Document.update(
       { deletedAt: subDays(new Date(), 10) },
       {
@@ -5219,9 +5444,9 @@ describe("#documents.deleted", () => {
       teamId: user.teamId,
       collectionId: collection.id,
     });
-    await withAPIContext(user, (ctx) => ownDraft.destroyWithCtx(ctx));
-    await withAPIContext(other, (ctx) => otherDraft.destroyWithCtx(ctx));
-    await withAPIContext(other, (ctx) => otherDocument.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => ownDraft.destroyWithCtx(ctx));
+    await withContext(other, (ctx) => otherDraft.destroyWithCtx(ctx));
+    await withContext(other, (ctx) => otherDocument.destroyWithCtx(ctx));
 
     const res = await server.post("/api/documents.deleted", user);
     const body = await res.json();
@@ -5248,7 +5473,7 @@ describe("#documents.deleted", () => {
       userId: user.id,
       permission: DocumentPermission.ReadWrite,
     });
-    await withAPIContext(other, (ctx) => sharedDraft.destroyWithCtx(ctx));
+    await withContext(other, (ctx) => sharedDraft.destroyWithCtx(ctx));
 
     const res = await server.post("/api/documents.deleted", user);
     const body = await res.json();
@@ -5276,7 +5501,7 @@ describe("#documents.deleted", () => {
       permission: DocumentPermission.ReadWrite,
       createdById: other.id,
     });
-    await withAPIContext(other, (ctx) => sharedDraft.destroyWithCtx(ctx));
+    await withContext(other, (ctx) => sharedDraft.destroyWithCtx(ctx));
 
     const res = await server.post("/api/documents.deleted", user);
     const body = await res.json();
@@ -6102,7 +6327,7 @@ describe("#documents.restore", () => {
       collectionId: collection.id,
       teamId: team.id,
     });
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     await collection.destroy({ hooks: false });
 
     const res = await server.post("/api/documents.restore", user, {
@@ -6131,7 +6356,7 @@ describe("#documents.restore", () => {
       collectionId: collection.id,
       teamId: team.id,
     });
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     await collection.destroy({ hooks: false });
 
     const res = await server.post("/api/documents.restore", user, {
@@ -6201,7 +6426,7 @@ describe("#documents.restore", () => {
       teamId: user.teamId,
       deprecatedReason: "Outdated",
     });
-    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => document.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.restore", user, {
       body: {
         id: document.id,
@@ -6235,7 +6460,7 @@ describe("#documents.restore", () => {
       parentDocumentId: child.id,
       deprecatedReason: "Grandchild is outdated",
     });
-    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => document.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.restore", user, {
       body: { id: document.id },
     });
@@ -6259,8 +6484,8 @@ describe("#documents.restore", () => {
       collectionId: document.collectionId,
       parentDocumentId: document.id,
     });
-    await withAPIContext(user, (ctx) => childDocument.archiveWithCtx(ctx));
-    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => childDocument.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => document.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.restore", user, {
       body: {
         id: childDocument.id,
@@ -6301,6 +6526,171 @@ describe("#documents.restore", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.data).toEqual(previous);
+  });
+
+  it("should restore the collaborative state to a previous version", async () => {
+    const notifyUpdateSpy = vi
+      .spyOn(APIUpdateExtension, "notifyUpdate")
+      .mockResolvedValue(undefined);
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      text: "original",
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user }),
+      document
+    );
+
+    // simulate an edit made in the collaborative editor
+    const updated = parser.parse("updated")?.toJSON();
+    document.content = updated;
+    document.state = Buffer.from(
+      Y.encodeStateAsUpdate(ProsemirrorHelper.toYDoc(updated))
+    );
+    await document.save();
+
+    const res = await server.post("/api/documents.restore", user, {
+      body: {
+        id: document.id,
+        revisionId: revision.id,
+      },
+    });
+    expect(res.status).toEqual(200);
+    expect(notifyUpdateSpy).toHaveBeenCalledWith(document.id, user.id);
+    notifyUpdateSpy.mockRestore();
+
+    const reloaded = await Document.findByPk(document.id, {
+      includeState: true,
+      rejectOnEmpty: true,
+    });
+    const ydoc = new Y.Doc();
+    Y.applyUpdate(ydoc, DocumentHelper.toState(reloaded));
+    expect(yDocToProsemirrorJSON(ydoc, "default")).toEqual(revision.content);
+  });
+
+  it("should wait for the collaboration server to create the initial state", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      text: "original",
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user }),
+      document
+    );
+    document.content = parser.parse("updated")?.toJSON();
+    await document.save();
+    expect(document.state).toBeFalsy();
+
+    // hold the row lock that the collaboration server takes on first load
+    let restored = false;
+    let request: ReturnType<typeof server.post> | undefined;
+    await sequelize.transaction(async (transaction) => {
+      await Document.unscoped().findOne({
+        where: { id: document.id },
+        attributes: ["id"],
+        transaction,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
+      });
+      request = server.post("/api/documents.restore", user, {
+        body: {
+          id: document.id,
+          revisionId: revision.id,
+        },
+      });
+      void request.then(() => {
+        restored = true;
+      });
+      await new Promise((resolve) => setTimeout(resolve, 250));
+      expect(restored).toEqual(false);
+
+      await Document.unscoped().update(
+        {
+          state: Buffer.from(
+            Y.encodeStateAsUpdate(ProsemirrorHelper.toYDoc("updated"))
+          ),
+        },
+        { where: { id: document.id }, transaction }
+      );
+    });
+
+    const res = await request;
+    expect(res?.status).toEqual(200);
+
+    const reloaded = await Document.findByPk(document.id, {
+      includeState: true,
+      rejectOnEmpty: true,
+    });
+    const ydoc = new Y.Doc();
+    Y.applyUpdate(ydoc, DocumentHelper.toState(reloaded));
+    expect(yDocToProsemirrorJSON(ydoc, "default")).toEqual(revision.content);
+  });
+
+  it("should add the trailing paragraph when restoring a revision", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      content: parser.parse("- item")?.toJSON(),
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user }),
+      document
+    );
+    document.state = Buffer.from(
+      Y.encodeStateAsUpdate(ProsemirrorHelper.toYDoc("updated"))
+    );
+    await document.save();
+
+    const res = await server.post("/api/documents.restore", user, {
+      body: {
+        id: document.id,
+        revisionId: revision.id,
+      },
+    });
+    expect(res.status).toEqual(200);
+
+    const reloaded = await Document.findByPk(document.id, {
+      includeState: true,
+      rejectOnEmpty: true,
+    });
+    const ydoc = new Y.Doc();
+    Y.applyUpdate(ydoc, DocumentHelper.toState(reloaded));
+    const state = yDocToProsemirrorJSON(ydoc, "default");
+    expect(state.content?.at(-1)?.type).toEqual("paragraph");
+    expect(reloaded.content?.content?.at(-1)?.type).toEqual("paragraph");
+  });
+
+  it("should restore a revision when the collaboration server cannot be notified", async () => {
+    const notifyUpdateSpy = vi
+      .spyOn(APIUpdateExtension, "notifyUpdate")
+      .mockRejectedValue(new Error("Redis unavailable"));
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user }),
+      document
+    );
+    document.state = Buffer.from(
+      Y.encodeStateAsUpdate(ProsemirrorHelper.toYDoc("updated"))
+    );
+    await document.save();
+
+    const res = await server.post("/api/documents.restore", user, {
+      body: {
+        id: document.id,
+        revisionId: revision.id,
+      },
+    });
+    expect(res.status).toEqual(200);
+    expect(notifyUpdateSpy).toHaveBeenCalled();
+    notifyUpdateSpy.mockRestore();
   });
 
   it("should not allow restoring a revision in another document", async () => {
@@ -6465,6 +6855,32 @@ describe("#documents.import", () => {
     );
   });
 
+  it("should reject an attachment that is not an import upload", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const attachment = await buildAttachment({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const deleteFile = vi.spyOn(FileStorage, "deleteFile");
+
+    const res = await server.post("/api/documents.import", user, {
+      body: {
+        collectionId: collection.id,
+        attachmentId: attachment.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("Attachment is not an import upload");
+    expect(deleteFile).not.toHaveBeenCalled();
+
+    vi.restoreAllMocks();
+  });
+
   it("should error if no file or attachmentId is passed", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
@@ -6552,6 +6968,12 @@ describe("#documents.import", () => {
       collectionId: collection.id,
       parentDocumentId: parentDocument.id,
     });
+    // Publishing copies the parent memberships, the factory does not.
+    await UserMembership.copy(
+      { documentId: parentDocument.id },
+      childDocument,
+      {}
+    );
 
     vi.spyOn(FileStorage, "store").mockResolvedValue(
       undefined as unknown as string
@@ -7767,7 +8189,7 @@ describe("#documents.update", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => document.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.update", user, {
       body: {
         id: document.id,
@@ -8453,7 +8875,7 @@ describe("#documents.unpublish", () => {
       teamId: user.teamId,
       parentDocumentId: document.id,
     });
-    await withAPIContext(user, (ctx) => child.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => child.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.unpublish", user, {
       body: {
         id: document.id,
@@ -8512,7 +8934,7 @@ describe("#documents.unpublish", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withContext(user, (ctx) => document.destroyWithCtx(ctx));
     const res = await server.post("/api/documents.unpublish", user, {
       body: {
         id: document.id,
@@ -8527,7 +8949,7 @@ describe("#documents.unpublish", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    await withContext(user, (ctx) => document.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.unpublish", user, {
       body: {
         id: document.id,
@@ -8933,6 +9355,34 @@ describe("#documents.users", () => {
     expect(memberIds).not.toContain(alan.id);
     expect(memberIds).toContain(bret.id);
     expect(memberIds).toContain(ken.id);
+  });
+
+  it("should not allow guests to list users", async () => {
+    const owner = await buildUser();
+    const guest = await buildGuestUser({ teamId: owner.teamId });
+    const collection = await buildCollection({
+      teamId: owner.teamId,
+      userId: owner.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const document = await buildDocument({
+      collectionId: collection.id,
+      userId: owner.id,
+      teamId: owner.teamId,
+    });
+    await UserMembership.create({
+      userId: guest.id,
+      documentId: document.id,
+      permission: DocumentPermission.Read,
+      createdById: owner.id,
+    });
+
+    const res = await server.post("/api/documents.users", guest, {
+      body: {
+        id: document.id,
+      },
+    });
+    expect(res.status).toBe(403);
   });
 });
 
@@ -9606,6 +10056,55 @@ describe("#documents.remove_group", () => {
 
     expect(res.status).toEqual(404);
   });
+
+  it("should not remove group with access inherited from a parent", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      createdById: user.id,
+      permission: null,
+    });
+    const parentDocument = await buildDocument({
+      collectionId: collection.id,
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      collectionId: collection.id,
+      parentDocumentId: parentDocument.id,
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const group = await buildGroup({
+      teamId: user.teamId,
+    });
+    const sourceMembership = await GroupMembership.create({
+      createdById: user.id,
+      documentId: parentDocument.id,
+      groupId: group.id,
+      permission: DocumentPermission.ReadWrite,
+    });
+    await GroupMembership.create({
+      createdById: user.id,
+      documentId: document.id,
+      groupId: group.id,
+      permission: DocumentPermission.ReadWrite,
+      sourceId: sourceMembership.id,
+    });
+
+    const res = await server.post("/api/documents.remove_group", user, {
+      body: {
+        id: document.id,
+        groupId: group.id,
+      },
+    });
+    expect(res.status).toEqual(400);
+    expect(
+      await GroupMembership.count({
+        where: { documentId: document.id, groupId: group.id },
+      })
+    ).not.toEqual(0);
+  });
 });
 
 describe("#documents.memberships", () => {
@@ -9699,6 +10198,24 @@ describe("#documents.duplicate", () => {
     expect(res.status).toEqual(401);
   });
 
+  it("should fail with status 403 for an unknown collectionId", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/documents.duplicate", user, {
+      body: {
+        id: document.id,
+        collectionId: faker.string.uuid(),
+        publish: true,
+      },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
   it("should duplicate a document with fullWidth property", async () => {
     const user = await buildUser();
     const document = await buildDocument({
@@ -9751,6 +10268,86 @@ describe("#documents.duplicate", () => {
     expect(body.data.documents).toHaveLength(2);
     expect(body.data.documents[0].fullWidth).toBe(true);
     expect(body.data.documents[1].fullWidth).toBe(true);
+  });
+
+  it("should not duplicate other users' drafts below a shared document", async () => {
+    const author = await buildUser();
+    const invitee = await buildUser({ teamId: author.teamId });
+    const source = await buildCollection({
+      teamId: author.teamId,
+      userId: author.id,
+      permission: null,
+    });
+    const destination = await buildCollection({
+      teamId: author.teamId,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const parent = await buildDocument({
+      teamId: author.teamId,
+      userId: author.id,
+      collectionId: source.id,
+    });
+    const publishedChild = await buildDocument({
+      teamId: author.teamId,
+      userId: author.id,
+      collectionId: source.id,
+      parentDocumentId: parent.id,
+    });
+    const draftBefore = await buildDraftDocument({
+      teamId: author.teamId,
+      userId: author.id,
+      collectionId: source.id,
+      parentDocumentId: parent.id,
+    });
+
+    const addUser = await server.post("/api/documents.add_user", author, {
+      body: {
+        id: parent.id,
+        userId: invitee.id,
+        permission: DocumentPermission.Read,
+      },
+    });
+    expect(addUser.status).toEqual(200);
+
+    const draftAfter = await buildDraftDocument({
+      teamId: author.teamId,
+      userId: author.id,
+      collectionId: source.id,
+      parentDocumentId: parent.id,
+    });
+    const nestedDraft = await buildDraftDocument({
+      teamId: author.teamId,
+      userId: author.id,
+      collectionId: source.id,
+      parentDocumentId: publishedChild.id,
+    });
+
+    const res = await server.post("/api/documents.duplicate", invitee, {
+      body: {
+        id: parent.id,
+        recursive: true,
+        collectionId: destination.id,
+        publish: false,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    const copyIds = body.data.documents.map((doc: { id: string }) => doc.id);
+    expect(copyIds).toHaveLength(2);
+
+    const copies = await Document.unscoped().findAll({
+      where: { id: copyIds },
+    });
+    const sourceIds = copies.map(
+      (copy) => copy.sourceMetadata?.originalDocumentId
+    );
+    expect(sourceIds).toEqual(
+      expect.arrayContaining([parent.id, publishedChild.id])
+    );
+    expect(sourceIds).not.toContain(draftBefore.id);
+    expect(sourceIds).not.toContain(draftAfter.id);
+    expect(sourceIds).not.toContain(nestedDraft.id);
   });
 
   it("should allow duplicating from a read-only collection into a writable one", async () => {
@@ -9976,6 +10573,54 @@ describe("#documents.empty_trash", () => {
     expect(res.status).toEqual(403);
     expect(body).toMatchSnapshot();
   });
+  it("should not delete trashed drafts of other collection members", async () => {
+    const admin = await buildAdmin();
+    const other = await buildUser({ teamId: admin.teamId });
+    const collection = await buildCollection({ teamId: admin.teamId });
+    const otherDraft = await buildDraftDocument({
+      userId: other.id,
+      teamId: admin.teamId,
+      collectionId: collection.id,
+    });
+    const otherDocument = await buildDocument({
+      userId: other.id,
+      teamId: admin.teamId,
+      collectionId: collection.id,
+    });
+    await withContext(other, (ctx) => otherDraft.destroyWithCtx(ctx));
+    await withContext(other, (ctx) => otherDocument.destroyWithCtx(ctx));
+    const schedule = vi.spyOn(EmptyTrashTask.prototype, "schedule");
+
+    const res = await server.post("/api/documents.empty_trash", admin);
+    expect(res.status).toEqual(200);
+    expect(schedule).toHaveBeenCalledWith({
+      documentIds: [otherDocument.id],
+    });
+  });
+  it("should not delete trashed documents in another user's personal collection", async () => {
+    const admin = await buildAdmin();
+    const owner = await buildUser({ teamId: admin.teamId });
+    const personal = await buildPersonalCollection(owner);
+    const document = await buildDocument({
+      userId: owner.id,
+      teamId: admin.teamId,
+      collectionId: personal.id,
+    });
+    await UserMembership.create({
+      createdById: owner.id,
+      documentId: document.id,
+      userId: admin.id,
+      permission: DocumentPermission.Read,
+    });
+    await withContext(owner, (ctx) => document.destroyWithCtx(ctx));
+    const schedule = vi.spyOn(EmptyTrashTask.prototype, "schedule");
+
+    const res = await server.post("/api/documents.empty_trash", admin);
+    expect(res.status).toEqual(200);
+    expect(schedule.mock.calls.flat()).not.toContainEqual({
+      documentIds: expect.arrayContaining([document.id]),
+    });
+  });
 });
 
 describe("#documents.documents", () => {
@@ -10163,5 +10808,446 @@ describe("#documents.documents", () => {
 
     expect(res.status).toBe(403);
     expect(body).toMatchSnapshot();
+  });
+});
+
+describe("document owners", () => {
+  it("should set owners when creating a document", async () => {
+    const user = await buildUser();
+    const owner = await buildUser({ teamId: user.teamId });
+    const res = await server.post("/api/documents.create", user, {
+      body: { title: "Owned", ownerIds: [owner.id, owner.id] },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.ownerIds).toEqual([owner.id]);
+
+    const events = await Event.findAll({
+      where: { name: "documents.add_owner", documentId: body.data.id },
+    });
+    expect(events.map((event) => event.userId)).toEqual([owner.id]);
+  });
+
+  it("should not allow an editor to create a document they own", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Owned",
+        collectionId: collection.id,
+        publish: true,
+        ownerIds: [user.id],
+      },
+    });
+    expect(res.status).toEqual(403);
+    expect(
+      await Document.count({ where: { collectionId: collection.id } })
+    ).toEqual(0);
+  });
+
+  it("should allow a user that can manage the document to change owners", async () => {
+    const admin = await buildAdmin();
+    const owner = await buildUser({ teamId: admin.teamId });
+    const other = await buildAdmin({ teamId: admin.teamId });
+    const document = await buildDocument({
+      userId: admin.id,
+      teamId: admin.teamId,
+      ownerIds: [owner.id],
+    });
+
+    const res = await server.post("/api/documents.update", admin, {
+      body: { id: document.id, ownerIds: [other.id] },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.ownerIds).toEqual([other.id]);
+    expect(body.policies[0].abilities.manageOwners).toBe(true);
+
+    await document.reload();
+    expect(document.ownerIds).toEqual([other.id]);
+
+    const events = await Event.findAll({
+      where: {
+        documentId: document.id,
+        name: ["documents.add_owner", "documents.remove_owner"],
+      },
+    });
+    expect(events.map((event) => [event.name, event.userId])).toEqual(
+      expect.arrayContaining([
+        ["documents.add_owner", other.id],
+        ["documents.remove_owner", owner.id],
+      ])
+    );
+    expect(events).toHaveLength(2);
+  });
+
+  it("should not allow an editor to send owners, even when unchanged", async () => {
+    const user = await buildUser();
+    const owner = await buildUser({ teamId: user.teamId });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      collectionId: collection.id,
+      ownerIds: [owner.id],
+    });
+
+    const res = await server.post("/api/documents.update", user, {
+      body: { id: document.id, title: "Renamed", ownerIds: [owner.id] },
+    });
+    expect(res.status).toEqual(403);
+    await document.reload();
+    expect(document.title).not.toEqual("Renamed");
+  });
+
+  it.each([
+    ["a viewer", (teamId: string) => buildViewer({ teamId })],
+    ["a guest", (teamId: string) => buildGuestUser({ teamId })],
+    [
+      "a suspended user",
+      (teamId: string) => buildUser({ teamId, suspendedAt: new Date() }),
+    ],
+    ["a user in another team", () => buildUser()],
+  ])("should not allow %s to be an owner", async (_, build) => {
+    const admin = await buildAdmin();
+    const candidate = await build(admin.teamId);
+    const document = await buildDocument({
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
+
+    const res = await server.post("/api/documents.update", admin, {
+      body: { id: document.id, ownerIds: [candidate.id] },
+    });
+    expect(res.status).toEqual(400);
+    await document.reload();
+    expect(document.ownerIds).toEqual([]);
+  });
+
+  it("should allow owners to be changed when an existing owner is suspended", async () => {
+    const admin = await buildAdmin();
+    const suspended = await buildUser({ teamId: admin.teamId });
+    const other = await buildUser({ teamId: admin.teamId });
+    const document = await buildDocument({
+      userId: admin.id,
+      teamId: admin.teamId,
+      ownerIds: [suspended.id],
+    });
+    await suspended.update({ suspendedAt: new Date() });
+
+    const added = await server.post("/api/documents.update", admin, {
+      body: { id: document.id, ownerIds: [suspended.id, other.id] },
+    });
+    expect(added.status).toEqual(200);
+    await document.reload();
+    expect(document.ownerIds).toEqual([suspended.id, other.id]);
+
+    const removed = await server.post("/api/documents.update", admin, {
+      body: { id: document.id, ownerIds: [other.id] },
+    });
+    expect(removed.status).toEqual(200);
+    await document.reload();
+    expect(document.ownerIds).toEqual([other.id]);
+  });
+
+  it("should give added owners the manage permission", async () => {
+    const admin = await buildAdmin();
+    const owner = await buildUser({ teamId: admin.teamId });
+    const document = await buildDocument({
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
+
+    const res = await server.post("/api/documents.update", admin, {
+      body: { id: document.id, ownerIds: [owner.id, admin.id] },
+    });
+    expect(res.status).toEqual(200);
+
+    const memberships = await UserMembership.findAll({
+      where: { documentId: document.id },
+    });
+    expect(
+      memberships.map((membership) => [
+        membership.userId,
+        membership.permission,
+      ])
+    ).toEqual(
+      expect.arrayContaining([
+        [owner.id, DocumentPermission.Admin],
+        [admin.id, DocumentPermission.Admin],
+      ])
+    );
+    expect(memberships).toHaveLength(2);
+  });
+
+  it("should add an owner with documents.add_user", async () => {
+    const admin = await buildAdmin();
+    const owner = await buildUser({ teamId: admin.teamId });
+    const document = await buildDocument({
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
+    await UserMembership.create({
+      documentId: document.id,
+      userId: owner.id,
+      createdById: admin.id,
+      permission: DocumentPermission.Read,
+    });
+
+    const res = await server.post("/api/documents.add_user", admin, {
+      body: { id: document.id, userId: owner.id, owner: true },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.memberships[0].permission).toEqual(
+      DocumentPermission.Admin
+    );
+    expect(body.data.documents[0].ownerIds).toEqual([owner.id]);
+
+    await document.reload();
+    expect(document.ownerIds).toEqual([owner.id]);
+  });
+
+  it("should allow a user to make themselves an owner", async () => {
+    const admin = await buildAdmin();
+    const document = await buildDocument({ teamId: admin.teamId });
+
+    const res = await server.post("/api/documents.add_user", admin, {
+      body: { id: document.id, userId: admin.id, owner: true },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.memberships[0].permission).toEqual(
+      DocumentPermission.Admin
+    );
+    expect(body.data.documents[0].ownerIds).toEqual([admin.id]);
+  });
+
+  it("should allow an owner to stop being an owner and keep their access", async () => {
+    const admin = await buildAdmin();
+    const document = await buildDocument({
+      teamId: admin.teamId,
+      ownerIds: [admin.id],
+    });
+    await UserMembership.create({
+      documentId: document.id,
+      userId: admin.id,
+      createdById: admin.id,
+      permission: DocumentPermission.Admin,
+    });
+
+    const res = await server.post("/api/documents.add_user", admin, {
+      body: {
+        id: document.id,
+        userId: admin.id,
+        permission: DocumentPermission.Admin,
+        owner: false,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.documents[0].ownerIds).toEqual([]);
+    expect(body.data.memberships[0].permission).toEqual(
+      DocumentPermission.Admin
+    );
+  });
+
+  it("should not allow a user to change their own access", async () => {
+    const user = await buildAdmin();
+    const document = await buildDocument({ teamId: user.teamId });
+    await UserMembership.create({
+      documentId: document.id,
+      userId: user.id,
+      createdById: user.id,
+      permission: DocumentPermission.ReadWrite,
+    });
+
+    const res = await server.post("/api/documents.add_user", user, {
+      body: {
+        id: document.id,
+        userId: user.id,
+        permission: DocumentPermission.Admin,
+        owner: false,
+      },
+    });
+    expect(res.status).toEqual(200);
+    const membership = await UserMembership.findOne({
+      where: { documentId: document.id, userId: user.id },
+      rejectOnEmpty: true,
+    });
+    expect(membership.permission).toEqual(DocumentPermission.ReadWrite);
+  });
+
+  it("should not add more than the maximum owners", async () => {
+    const admin = await buildAdmin();
+    const owner = await buildUser({ teamId: admin.teamId });
+    const owners = await Promise.all(
+      Array.from({ length: DocumentValidation.maxOwners }, () =>
+        buildUser({ teamId: admin.teamId })
+      )
+    );
+    const document = await buildDocument({
+      userId: admin.id,
+      teamId: admin.teamId,
+      ownerIds: owners.map((user) => user.id),
+    });
+
+    const res = await server.post("/api/documents.add_user", admin, {
+      body: { id: document.id, userId: owner.id, owner: true },
+    });
+    expect(res.status).toEqual(400);
+    await document.reload();
+    expect(document.ownerIds).toHaveLength(DocumentValidation.maxOwners);
+  });
+
+  it("should require the manage permission for owners", async () => {
+    const admin = await buildAdmin();
+    const owner = await buildUser({ teamId: admin.teamId });
+    const document = await buildDocument({
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
+
+    const res = await server.post("/api/documents.add_user", admin, {
+      body: {
+        id: document.id,
+        userId: owner.id,
+        owner: true,
+        permission: DocumentPermission.Read,
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should not add a guest as an owner with documents.add_user", async () => {
+    const admin = await buildAdmin();
+    const guest = await buildGuestUser({ teamId: admin.teamId });
+    const document = await buildDocument({
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
+
+    const res = await server.post("/api/documents.add_user", admin, {
+      body: { id: document.id, userId: guest.id, owner: true },
+    });
+    expect(res.status).toEqual(400);
+    expect(
+      await UserMembership.count({ where: { documentId: document.id } })
+    ).toEqual(0);
+  });
+
+  it.each([
+    ["a lower permission", { permission: DocumentPermission.ReadWrite }],
+    [
+      "owner set to false",
+      { permission: DocumentPermission.Admin, owner: false },
+    ],
+  ])(
+    "should remove an owner when documents.add_user is called with %s",
+    async (_, params) => {
+      const admin = await buildAdmin();
+      const owner = await buildUser({ teamId: admin.teamId });
+      const document = await buildDocument({
+        userId: admin.id,
+        teamId: admin.teamId,
+        ownerIds: [owner.id],
+      });
+      await UserMembership.create({
+        documentId: document.id,
+        userId: owner.id,
+        createdById: admin.id,
+        permission: DocumentPermission.Admin,
+      });
+
+      const res = await server.post("/api/documents.add_user", admin, {
+        body: { id: document.id, userId: owner.id, ...params },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.memberships[0].permission).toEqual(params.permission);
+      expect(body.data.documents[0].ownerIds).toEqual([]);
+
+      await document.reload();
+      expect(document.ownerIds).toEqual([]);
+
+      const events = await Event.findAll({
+        where: { documentId: document.id, name: "documents.remove_owner" },
+      });
+      expect(events.map((event) => event.userId)).toEqual([owner.id]);
+    }
+  );
+
+  it("should remove an owner when their access is removed", async () => {
+    const admin = await buildAdmin();
+    const owner = await buildUser({ teamId: admin.teamId });
+    const other = await buildUser({ teamId: admin.teamId });
+    const document = await buildDocument({
+      userId: admin.id,
+      teamId: admin.teamId,
+      ownerIds: [owner.id, other.id],
+    });
+    await UserMembership.create({
+      documentId: document.id,
+      userId: owner.id,
+      createdById: admin.id,
+      permission: DocumentPermission.Admin,
+    });
+
+    const res = await server.post("/api/documents.remove_user", admin, {
+      body: { id: document.id, userId: owner.id },
+    });
+    expect(res.status).toEqual(200);
+
+    await document.reload();
+    expect(document.ownerIds).toEqual([other.id]);
+  });
+
+  it("should filter documents by owner", async () => {
+    const user = await buildUser();
+    const owner = await buildUser({ teamId: user.teamId });
+    const owned = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "Ownership handbook",
+      ownerIds: [owner.id],
+    });
+    await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "Ownership notes",
+    });
+
+    const filters = [{ field: "ownerIds", operator: "eq", value: owner.id }];
+
+    const list = await server.post("/api/documents.list", user, {
+      body: { filters },
+    });
+    const listBody = await list.json();
+    expect(list.status).toEqual(200);
+    expect(listBody.data.map((d: { id: string }) => d.id)).toEqual([owned.id]);
+
+    const search = await server.post("/api/documents.search", user, {
+      body: { query: "ownership", filters },
+    });
+    const searchBody = await search.json();
+    expect(search.status).toEqual(200);
+    expect(
+      searchBody.data.map((r: { document: { id: string } }) => r.document.id)
+    ).toEqual([owned.id]);
+  });
+
+  it("should reject unsupported operators for the owner filter", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.list", user, {
+      body: {
+        filters: [{ field: "ownerIds", operator: "neq", value: user.id }],
+      },
+    });
+    expect(res.status).toEqual(400);
   });
 });

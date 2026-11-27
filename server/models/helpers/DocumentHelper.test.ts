@@ -177,6 +177,39 @@ describe("DocumentHelper", () => {
     });
   });
 
+  describe("toStaticHTML", () => {
+    it("should remove comment marks", async () => {
+      const document = await buildDocument({
+        text: "hello",
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [
+                {
+                  type: "text",
+                  text: "hello",
+                  marks: [
+                    {
+                      type: "comment",
+                      attrs: { id: "comment-123", userId: "user-123" },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      });
+
+      const html = await DocumentHelper.toStaticHTML(document);
+      expect(html).toContain("hello");
+      expect(html).not.toContain("comment-123");
+      expect(html).not.toContain("user-123");
+    });
+  });
+
   describe("toHTML", () => {
     it("should return html", async () => {
       const document = await buildDocument({
