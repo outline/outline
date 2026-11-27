@@ -536,6 +536,42 @@ describe("#groups.list", () => {
     expect(body.data.groups.length).toEqual(1);
     expect(body.data.groups[0].id).toEqual(group.id);
   });
+
+  it("should combine userId and provider source filters", async () => {
+    const user = await buildUser();
+    const memberGroup = await buildGroup({ teamId: user.teamId });
+    const otherGroup = await buildGroup({ teamId: user.teamId });
+    await buildGroupUser({
+      groupId: memberGroup.id,
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const authProvider = (await AuthenticationProvider.findOne({
+      where: { teamId: user.teamId },
+    }))!;
+
+    await ExternalGroup.bulkCreate(
+      [memberGroup, otherGroup].map((group) => ({
+        externalId: group.id,
+        name: group.name,
+        groupId: group.id,
+        authenticationProviderId: authProvider.id,
+        teamId: user.teamId,
+      }))
+    );
+
+    const res = await server.post("/api/groups.list", user, {
+      body: {
+        userId: user.id,
+        source: authProvider.name,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.groups.length).toEqual(1);
+    expect(body.data.groups[0].id).toEqual(memberGroup.id);
+  });
 });
 
 describe("#groups.info", () => {
