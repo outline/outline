@@ -3,7 +3,12 @@ import { TeamPreference } from "@shared/types";
 import env from "@server/env";
 import { ValidationError } from "@server/errors";
 import type { User } from "@server/models";
-import { Collection, Team, TeamDomain } from "@server/models";
+import {
+  AuthenticationProvider,
+  Collection,
+  Team,
+  TeamDomain,
+} from "@server/models";
 import { authorize } from "@server/policies";
 import type { Context } from "@server/types";
 
@@ -16,6 +21,19 @@ type Props = {
 const teamUpdater = async (ctx: Context, { params, user, team }: Props) => {
   const { allowedDomains, preferences, subdomain, ...attributes } = params;
   team.fill(attributes);
+
+  // The caller's lock on the team row serializes this with provider disabling.
+  if (team.changed("guestSignin") && !team.guestSignin) {
+    const enabledProvider = await AuthenticationProvider.findOne({
+      attributes: ["id"],
+      where: { teamId: team.id, enabled: true },
+      transaction: ctx.transaction,
+    });
+
+    if (!enabledProvider) {
+      throw ValidationError("At least one authentication provider is required");
+    }
+  }
 
   if (attributes.defaultCollectionId) {
     const collection = await Collection.findOne({

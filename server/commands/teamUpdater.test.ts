@@ -242,4 +242,37 @@ describe("teamUpdater", () => {
       ).rejects.toThrow("Subdomain is already in use");
     });
   });
+
+  describe("guest sign-in", () => {
+    it("should not disable email sign-in when all providers are disabled", async () => {
+      const team = await buildTeam({
+        guestSignin: true,
+        authenticationProviders: [
+          { name: "slack", providerId: randomString(32), enabled: false },
+        ],
+      });
+      const user = await buildAdmin({ teamId: team.id });
+
+      await expect(
+        withContext(user, (ctx) =>
+          teamUpdater(ctx, { params: { guestSignin: false }, user, team })
+        )
+      ).rejects.toThrow("At least one authentication provider is required");
+
+      await team.reload();
+      expect(team.guestSignin).toEqual(true);
+    });
+
+    it("should disable email sign-in with an enabled provider", async () => {
+      const team = await buildTeam({ guestSignin: true });
+      const user = await buildAdmin({ teamId: team.id });
+
+      await withContext(user, (ctx) =>
+        teamUpdater(ctx, { params: { guestSignin: false }, user, team })
+      );
+
+      await team.reload();
+      expect(team.guestSignin).toEqual(false);
+    });
+  });
 });
