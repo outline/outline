@@ -309,6 +309,30 @@ function findBestOverlapDecoration(
   );
 }
 
+/**
+ * Returns whether Kroki-based Mermaid rendering is enabled via the editor's
+ * embed configuration. When true, the Mermaid plugin yields decoration
+ * responsibility to the DiagramService plugin.
+ *
+ * @param editor the editor instance to inspect.
+ * @returns true if Kroki mermaid integration is active.
+ */
+function isKrokiMermaidEnabled(editor: Editor): boolean {
+  const embed = editor.props.embeds?.find((e) => e.name === "kroki");
+  const settings = embed?.settings?.kroki;
+  if (!settings?.url) {
+    return false;
+  }
+  if (settings.enabledFormats) {
+    return settings.enabledFormats.includes("mermaid");
+  }
+  // Legacy shape migration
+  if ("mermaid" in settings) {
+    return settings.mermaid === true;
+  }
+  return false;
+}
+
 function getNewState({
   doc,
   editor,
@@ -320,6 +344,13 @@ function getNewState({
   pluginState: MermaidState;
   autoEditEmpty?: boolean;
 }): MermaidState {
+  if (isKrokiMermaidEnabled(editor)) {
+    return {
+      ...pluginState,
+      decorationSet: DecorationSet.create(doc, []),
+    };
+  }
+
   const decorations: Decoration[] = [];
   const usedRenderers = new Set<MermaidRenderer>();
   let newEditingId: string | undefined;
@@ -512,6 +543,10 @@ export default function Mermaid({ editor }: { editor: Editor }) {
       },
     },
     appendTransaction(_transactions, _oldState, newState) {
+      if (isKrokiMermaidEnabled(editor)) {
+        return null;
+      }
+
       const { selection } = newState;
       if (selection instanceof NodeSelection) {
         return null;
@@ -547,6 +582,10 @@ export default function Mermaid({ editor }: { editor: Editor }) {
         return this.getState(state)?.decorationSet;
       },
       handleKeyDown(view, event) {
+        if (isKrokiMermaidEnabled(editor)) {
+          return false;
+        }
+
         if (
           event.key === "Enter" &&
           isModKey(event) &&
