@@ -1,7 +1,7 @@
+import type { ChatAccountSettings } from "@shared/types";
+
 declare module "@shared/types" {
   interface LinkedAccountIntegrationSettings {
-    slack?: { serviceTeamId: string; serviceUserId: string };
+    slack?: ChatAccountSettings;
   }
 }
-
-export {};

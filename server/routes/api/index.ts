@@ -1,6 +1,8 @@
 import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "@koa/router";
+import { ChatRouter } from "@server/chat/ChatRouter";
+import { ChatService } from "@server/chat/ChatService";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import cleanupMultipartFiles from "@server/middlewares/cleanupMultipartFiles";
@@ -82,6 +84,9 @@ api.use(verifyCSRFToken());
 // Register plugin API routes before others to allow for overrides
 PluginManager.getHooks(Hook.API).forEach((hook) =>
   router.use("/", hook.value.routes())
+);
+ChatService.getProviders().forEach((provider) =>
+  router.use("/", ChatRouter.createWebhookRouter(provider).routes())
 );
 
 // routes

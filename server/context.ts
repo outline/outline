@@ -1,5 +1,5 @@
 import type { Transaction } from "sequelize";
-import type { User } from "@server/models";
+import type { Integration, User } from "@server/models";
 import type { AppContext, Authentication, Context } from "@server/types";
 import { AuthenticationType } from "@server/types";
 
@@ -20,6 +20,7 @@ export interface HookContextFields {
  * @param options.authType the type of authentication used by the actor.
  * @param options.ip the IP address of the actor, defaults to the last active IP.
  * @param options.transaction the transaction for database mutations.
+ * @param options.integration the integration that the request came through.
  * @returns the context.
  */
 export function createContext({
@@ -27,16 +28,19 @@ export function createContext({
   authType = AuthenticationType.APP,
   ip,
   transaction,
+  integration,
 }: {
   user?: User;
   authType?: AuthenticationType | null;
   ip?: string | null;
   transaction?: Transaction;
+  integration?: Integration;
 }) {
   return {
     auth: { user, type: authType },
     ip: ip ?? user?.lastActiveIp,
     transaction,
+    state: { integration },
   } as Context;
 }
 

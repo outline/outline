@@ -1,49 +1,14 @@
 import env from "@shared/env";
-import type { IntegrationType } from "@shared/types";
-import { integrationSettingsPath } from "@shared/utils/routeHelpers";
-
-export const SlackOAuthNonceCookie = "slackOAuthNonce";
-
-export type OAuthState = {
-  teamId: string;
-  type: IntegrationType;
-  nonce: string;
-  collectionId?: string;
-};
 
 export class SlackUtils {
   private static authBaseUrl = "https://slack.com/oauth/authorize";
 
   /**
-   * Create a state string for use in OAuth flows
+   * Returns the callback URL for Slack sign in.
    *
-   * @param teamId The team ID
-   * @param type The integration type
-   * @param data Additional data to include in the state
-   * @returns A state string
+   * @param options the base URL and optional query string.
+   * @returns the callback URL.
    */
-  static createState(
-    teamId: string,
-    type: IntegrationType,
-    data?: Record<string, unknown>
-  ) {
-    return JSON.stringify({ type, teamId, ...data });
-  }
-
-  /**
-   * Parse a state string from an OAuth flow
-   *
-   * @param state The state string
-   * @returns The parsed state
-   */
-  static parseState(state: string): OAuthState | undefined {
-    try {
-      return JSON.parse(state);
-    } catch {
-      return undefined;
-    }
-  }
-
   static callbackUrl(
     { baseUrl, params }: { baseUrl: string; params?: string } = {
       baseUrl: env.URL,
@@ -55,25 +20,14 @@ export class SlackUtils {
       : `${baseUrl}/auth/slack.callback`;
   }
 
-  static connectUrl(
-    { baseUrl, params }: { baseUrl: string; params?: string } = {
-      baseUrl: env.URL,
-      params: undefined,
-    }
-  ) {
-    return params
-      ? `${baseUrl}/auth/slack.post?${params}`
-      : `${baseUrl}/auth/slack.post`;
-  }
-
-  static errorUrl(err: string) {
-    return integrationSettingsPath(`slack?error=${err}`);
-  }
-
-  static get url() {
-    return integrationSettingsPath("slack");
-  }
-
+  /**
+   * Returns the Slack OAuth authorization URL.
+   *
+   * @param state the OAuth state.
+   * @param scopes the scopes to request.
+   * @param redirectUri the URL that Slack redirects to.
+   * @returns the authorization URL.
+   */
   static authUrl(
     state: string,
     scopes: string[] = [

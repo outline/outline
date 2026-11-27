@@ -2,7 +2,7 @@ import { isEmpty } from "es-toolkit/compat";
 import { z } from "zod";
 import { BaseSchema } from "@server/routes/api/schema";
 
-export const SlackPostSchema = BaseSchema.extend({
+export const ChatInstallSchema = BaseSchema.extend({
   query: z
     .object({
       code: z.string().nullish(),
@@ -17,4 +17,4 @@ export const SlackPostSchema = BaseSchema.extend({
     }),
 });
 
-export type SlackPostReq = z.infer<typeof SlackPostSchema>;
+export type ChatInstallReq = z.infer<typeof ChatInstallSchema>;
