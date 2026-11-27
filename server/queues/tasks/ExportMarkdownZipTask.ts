@@ -1,16 +1,18 @@
 import type { NavigationNode } from "@shared/types";
 import { FileOperationFormat } from "@shared/types";
-import type { Collection, FileOperation } from "@server/models";
+import type { Collection, FileOperation, User } from "@server/models";
 import type { Document } from "@server/models";
 import ExportDocumentTreeTask from "./ExportDocumentTreeTask";
 
 export default class ExportMarkdownZipTask extends ExportDocumentTreeTask {
   public async exportCollections(
     collections: Collection[],
-    fileOperation: FileOperation
+    fileOperation: FileOperation,
+    user: User
   ) {
     return await this.addCollectionsToArchive(
       collections,
+      user,
       FileOperationFormat.MarkdownZip,
       fileOperation.options?.includeAttachments
     );

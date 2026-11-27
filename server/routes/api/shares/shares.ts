@@ -164,25 +164,25 @@ router.post(
     const { sort, direction, query } = ctx.input.body;
     const { user } = ctx.auth;
     authorize(user, "listShares", user.team);
-    const collectionIds = await user.collectionIds();
+    const [collectionIds, accessibleWhere] = await Promise.all([
+      // oxlint-disable-next-line access/no-direct-collection-ids -- Collection shares check collection access, not document access.
+      user.collectionIds(),
+      Document.accessibleWhere(user, { includeMemberships: false }),
+    ]);
 
     const collectionWhere: WhereAttributeHash<Share> = {
       "$collection.id$": collectionIds,
       "$collection.teamId$": user.teamId,
     };
 
-    const documentWhere: WhereAttributeHash<Share> & {
-      [Op.or]?: WhereOptions<Share>[];
-    } = {
+    // The document include only joins documents that pass this condition.
+    const documentIncludeWhere: WhereOptions<Document> = user.isAdmin
+      ? // Admins also see the shares of other users' drafts without a collection.
+        { [Op.or]: [accessibleWhere, { collectionId: { [Op.is]: null } }] }
+      : accessibleWhere;
+
+    const documentWhere: WhereAttributeHash<Share> = {
       "$document.teamId$": user.teamId,
-      [Op.or]: [
-        { "$document.collectionId$": collectionIds },
-        // Drafts without a collection can be shared publicly too.
-        {
-          "$document.collectionId$": null,
-          ...(user.isAdmin ? {} : { "$document.createdById$": user.id }),
-        },
-      ],
     };
 
     if (query) {
@@ -227,6 +227,7 @@ router.post(
             "withoutContent",
             { method: ["withMembership", user.id] },
           ]),
+          where: documentIncludeWhere,
           required: false,
           paranoid: true,
           as: "document",

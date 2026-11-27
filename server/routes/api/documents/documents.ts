@@ -291,7 +291,7 @@ router.post(
         includeDocumentStructure: true,
       });
       authorize(user, "readDocument", collection);
-      const structure = collection.documentStructure || [];
+      const structure = await collection.structureFor(user);
       indexTotal = structure.length;
 
       // One extra id lets client requests detect a next page.
@@ -315,13 +315,9 @@ router.post(
     }
 
     if (!backlinkDocumentId && !collectionScopeDropped) {
-      const collectionIds = await user.collectionIds();
-      where[Op.and].push({
-        [Op.or]: [
-          { collectionId: collectionIds },
-          { collectionId: null, createdById: user.id },
-        ],
-      });
+      where[Op.and].push(
+        await Document.accessibleWhere(user, { includeMemberships: false })
+      );
     }
 
     if (backlinkDocumentId) {
@@ -475,28 +471,25 @@ router.post(
       );
     }
 
-    let where: WhereOptions<Document> = {
+    const where: WhereOptions<Document> & {
+      [Op.and]: WhereOptions<Document>[];
+    } = {
       teamId: user.teamId,
       archivedAt: {
         [Op.ne]: null,
       },
+      [Op.and]: [
+        await Document.accessibleWhere(user, { includeMemberships: false }),
+      ],
     };
 
     // if a specific collection is passed then we need to check auth to view it
     if (collectionId) {
-      where = { ...where, collectionId };
+      where[Op.and].push({ collectionId });
       const collection = await Collection.findByPk(collectionId, {
         userId: user.id,
       });
       authorize(user, "readDocument", collection);
-
-      // otherwise, filter by all collections the user has access to
-    } else {
-      const collectionIds = await user.collectionIds();
-      where = {
-        ...where,
-        collectionId: collectionIds,
-      };
     }
 
     const documents = await Document.withMembershipScope(user.id).findAll({
@@ -525,9 +518,6 @@ router.post(
   async (ctx: Context<T.DocumentsDeletedReq>) => {
     const { sort, direction, filters: rawFilters } = ctx.input.body;
     const { user } = ctx.auth;
-    const collectionIds = await user.collectionIds({
-      paranoid: false,
-    });
     const membershipScope: Readonly<ScopeOptions> = {
       method: ["withMembership", user.id],
     };
@@ -543,21 +533,10 @@ router.post(
         [Op.ne]: null,
       },
       [Op.and]: [
-        {
-          [Op.or]: [
-            {
-              collectionId: {
-                [Op.in]: collectionIds,
-              },
-            },
-            {
-              createdById: user.id,
-              collectionId: {
-                [Op.is]: null,
-              },
-            },
-          ],
-        },
+        await Document.accessibleWhere(user, {
+          paranoid: false,
+          includeMemberships: false,
+        }),
         {
           [Op.or]: [
             { publishedAt: { [Op.ne]: null } },
@@ -662,17 +641,13 @@ router.post(
     const where: WhereOptions = {
       teamId: user.teamId,
       createdById: user.id,
-      collectionId: collectionId
-        ? collectionId
-        : {
-            [Op.or]: [
-              { [Op.in]: await user.collectionIds() },
-              { [Op.is]: null },
-            ],
-          },
       publishedAt: {
         [Op.is]: null,
       },
+      [Op.and]: [
+        await Document.accessibleWhere(user, { includeMemberships: false }),
+        ...(collectionId ? [{ collectionId }] : []),
+      ],
     };
 
     if (dateFilter) {
@@ -929,7 +904,9 @@ router.post(
       const collection = await Collection.findByPk(document.collectionId, {
         includeDocumentStructure: true,
       });
-      documentTree = collection?.getDocumentTree(document.id) ?? undefined;
+      [documentTree] =
+        (await collection?.structureFor(user, { documentId: document.id })) ??
+        [];
     }
 
     ctx.body = {
@@ -2362,9 +2339,6 @@ router.post(
   async (ctx: Context) => {
     const { user } = ctx.auth;
 
-    const collectionIds = await user.collectionIds({
-      paranoid: false,
-    });
     const documents = await Document.scope("withDrafts").findAll({
       attributes: ["id"],
       where: {
@@ -2372,21 +2346,10 @@ router.post(
           [Op.ne]: null,
         },
         [Op.and]: [
-          {
-            [Op.or]: [
-              {
-                collectionId: {
-                  [Op.in]: collectionIds,
-                },
-              },
-              {
-                createdById: user.id,
-                collectionId: {
-                  [Op.is]: null,
-                },
-              },
-            ],
-          },
+          await Document.accessibleWhere(user, {
+            paranoid: false,
+            includeMemberships: false,
+          }),
           {
             [Op.or]: [
               { publishedAt: { [Op.ne]: null } },

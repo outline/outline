@@ -1,5 +1,5 @@
 import Router from "@koa/router";
-import { Sequelize } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 import starCreator from "@server/commands/starCreator";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -73,7 +73,7 @@ router.post(
   async (ctx: Context<T.StarsListReq>) => {
     const { user } = ctx.auth;
 
-    const [stars, collectionIds] = await Promise.all([
+    const [stars, accessibleWhere] = await Promise.all([
       Star.findAll({
         where: {
           userId: user.id,
@@ -85,7 +85,7 @@ router.post(
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
       }),
-      user.collectionIds(),
+      Document.accessibleWhere(user, { includeMemberships: false }),
     ]);
 
     const nullIndex = stars.findIndex((star) => star.index === null);
@@ -104,17 +104,24 @@ router.post(
       ? await Document.withMembershipScope(user.id).findAll({
           where: {
             id: documentIds,
-            collectionId: collectionIds,
+            [Op.and]: [accessibleWhere],
           },
         })
       : [];
 
-    const policies = presentPolicies(user, [...documents, ...stars]);
+    // Stars are not removed with access, so only return those for documents
+    // the user can read.
+    const documentIdSet = new Set(documents.map((document) => document.id));
+    const visibleStars = stars.filter(
+      (star) => !star.documentId || documentIdSet.has(star.documentId)
+    );
+
+    const policies = presentPolicies(user, [...documents, ...visibleStars]);
 
     ctx.body = {
       pagination: ctx.state.pagination,
       data: {
-        stars: stars.map(presentStar),
+        stars: visibleStars.map(presentStar),
         documents: await presentDocuments(ctx, documents),
       },
       policies,

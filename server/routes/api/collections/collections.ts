@@ -189,10 +189,8 @@ router.post(
 
     authorize(user, "readDocument", collection);
 
-    const documentStructure = await collection.getCachedDocumentStructure();
-
     ctx.body = {
-      data: documentStructure || [],
+      data: await collection.structureFor(user),
     };
   }
 );
@@ -793,6 +791,7 @@ router.post(
     } = ctx.input.body;
     const { user } = ctx.auth;
     const { transaction } = ctx;
+    // oxlint-disable-next-line access/no-direct-collection-ids -- Lists collections, not documents.
     const collectionIds = await user.collectionIds({ transaction });
 
     const where: WhereOptions<Collection> & {

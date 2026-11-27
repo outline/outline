@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/server";
 import { Op } from "sequelize";
 import type { WhereOptions } from "sequelize";
-import { Collection, Template } from "@server/models";
+import { Collection, Document, Template } from "@server/models";
 import { authorize } from "@server/policies";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import {
@@ -103,10 +103,13 @@ export function templateTools(server: McpServer, scopes: string[]) {
               authorize(user, "readDocument", collection);
               where[Op.and].push({ collectionId: collection.id });
             } else {
+              // Workspace templates have no collection and every user can read them.
               where[Op.and].push({
                 [Op.or]: [
                   { collectionId: { [Op.eq]: null } },
-                  { collectionId: await user.collectionIds() },
+                  await Document.accessibleWhere(user, {
+                    includeMemberships: false,
+                  }),
                 ],
               });
             }

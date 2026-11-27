@@ -7,7 +7,7 @@ import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Collection, Template } from "@server/models";
+import { Collection, Document, Template } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentPolicies, presentTemplate } from "@server/presenters";
 import type { Context } from "@server/types";
@@ -116,6 +116,7 @@ router.post(
       });
       authorize(user, "readDocument", collection);
     } else {
+      // Workspace templates have no collection and every user can read them.
       where[Op.and].push({
         [Op.or]: [
           {
@@ -123,9 +124,7 @@ router.post(
               [Op.eq]: null,
             },
           },
-          {
-            collectionId: await user.collectionIds(),
-          },
+          await Document.accessibleWhere(user, { includeMemberships: false }),
         ],
       });
     }

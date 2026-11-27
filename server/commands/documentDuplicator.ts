@@ -182,6 +182,11 @@ async function duplicateRoots(
           { publishedAt: { [Op.ne]: null } },
           { createdById: ctx.auth.user.id },
         ],
+        [Op.and]: [
+          await Document.accessibleWhere(ctx.auth.user, {
+            transaction: ctx.transaction,
+          }),
+        ],
       },
       {
         ...ctx,
@@ -189,9 +194,14 @@ async function duplicateRoots(
       }
     );
 
+    const [tree] =
+      (await originalCollection?.structureFor(ctx.auth.user, {
+        documentId: original.id,
+        transaction: ctx.transaction,
+      })) ?? [];
     const sorted = DocumentHelper.sortDocumentsByStructure(
       childDocuments,
-      originalCollection?.getDocumentTree(original.id)?.children ?? []
+      tree?.children ?? []
     ).reverse(); // we have to reverse since the child documents will be added in reverse order
 
     const items: DuplicateItem[] = [];

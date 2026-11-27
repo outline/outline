@@ -6761,6 +6761,12 @@ describe("#documents.import", () => {
       collectionId: collection.id,
       parentDocumentId: parentDocument.id,
     });
+    // Publishing copies the parent memberships, the factory does not.
+    await UserMembership.copy(
+      { documentId: parentDocument.id },
+      childDocument,
+      {}
+    );
 
     vi.spyOn(FileStorage, "store").mockResolvedValue(
       undefined as unknown as string

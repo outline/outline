@@ -118,7 +118,7 @@ router.post(
       authorize(user, "read", collection);
     }
 
-    const [pins, collectionIds] = await Promise.all([
+    const [pins, accessibleWhere] = await Promise.all([
       Pin.findAll({
         where: {
           ...(collectionId
@@ -133,13 +133,13 @@ router.post(
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
       }),
-      user.collectionIds(),
+      Document.accessibleWhere(user, { includeMemberships: false }),
     ]);
 
     const documents = await Document.withMembershipScope(user.id).findAll({
       where: {
         id: pins.map((pin) => pin.documentId),
-        collectionId: collectionIds,
+        [Op.and]: [accessibleWhere],
       },
     });
 

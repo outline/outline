@@ -150,8 +150,8 @@ class View extends IdModel<
       limit: number;
     }
   ): Promise<string[]> {
-    const [collectionIds, documentIds] = await Promise.all([
-      user.collectionIds(),
+    const [accessible, documentIds] = await Promise.all([
+      Document.accessibleSql(user, "documents"),
       Document.membershipDocumentIds(user.id),
     ]);
     const column = sort === "createdAt" ? "createdAt" : "updatedAt";
@@ -169,11 +169,7 @@ class View extends IdModel<
         WHERE documents.id = views."documentId"
           AND documents."teamId" = :teamId
           AND documents."deletedAt" IS NULL
-          AND (
-            documents."collectionId" = ANY(ARRAY[:collectionIds]::uuid[])
-            OR documents.id = ANY(ARRAY[:documentIds]::uuid[])
-            OR (documents."createdById" = :userId AND documents."collectionId" IS NULL)
-          )
+          AND ${accessible.sql}
           AND (
             documents."publishedAt" IS NOT NULL
             OR documents."createdById" = :userId
@@ -187,9 +183,9 @@ class View extends IdModel<
       `,
       {
         replacements: {
+          ...accessible.replacements,
           userId: user.id,
           teamId: user.teamId,
-          collectionIds,
           documentIds,
           limit,
           offset,

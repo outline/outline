@@ -562,6 +562,7 @@ class Document extends ArchivableModel<
 
     // Keep a loaded collection so that its membership data stays available.
     if (model.collection?.id === collection.id) {
+      // oxlint-disable-next-line access/no-raw-document-structure -- Copies the structure onto the loaded collection after a write.
       model.collection.documentStructure = collection.documentStructure;
     } else {
       model.collection = collection;
@@ -955,6 +956,78 @@ class Document extends ArchivableModel<
         )
       )
     );
+  }
+
+  /**
+   * Returns the condition that limits a document query to the documents the
+   * user can read. This is the list form of the document `read` policy, and
+   * every query that returns or copies documents for a user must use it.
+   * Combine the result with other conditions using `Op.and`, do not spread it.
+   *
+   * @param user the user that reads the documents.
+   * @param options.transaction the transaction to load collection access in.
+   * @param options.paranoid set to false to include deleted collections.
+   * @param options.includeMemberships set to false to exclude documents that
+   * the user can read only through a document membership.
+   * @returns a promise that resolves to the where condition.
+   */
+  static async accessibleWhere(
+    user: User,
+    options: AccessibleOptions = {}
+  ): Promise<WhereOptions<AccessibleAttributes>> {
+    const { includeMemberships = true, transaction, paranoid } = options;
+    const collectionIds = await user.collectionIds({ transaction, paranoid });
+
+    return {
+      [Op.or]: [
+        { collectionId: collectionIds },
+        ...(includeMemberships
+          ? [
+              {
+                id: {
+                  [Op.in]: Sequelize.literal(
+                    `(${membershipSubquery(user.id)})`
+                  ),
+                },
+              },
+            ]
+          : []),
+        { collectionId: { [Op.is]: null }, createdById: user.id },
+      ],
+    };
+  }
+
+  /**
+   * Returns the same condition as `accessibleWhere` as a raw SQL fragment,
+   * for queries that cannot be written with Sequelize.
+   *
+   * @param user the user that reads the documents.
+   * @param table the quoted name or alias of the documents table in the query.
+   * @param options the same options as `accessibleWhere`.
+   * @returns a promise that resolves to the SQL fragment and the replacements
+   * that the query must include.
+   */
+  static async accessibleSql(
+    user: User,
+    table: string,
+    options: AccessibleOptions = {}
+  ): Promise<{
+    sql: string;
+    replacements: { accessibleCollectionIds: string[] };
+  }> {
+    const { includeMemberships = true, transaction, paranoid } = options;
+    const collectionIds = await user.collectionIds({ transaction, paranoid });
+    const memberships = membershipSubquery(user.id);
+    const clauses = [
+      `${table}."collectionId" = ANY(ARRAY[:accessibleCollectionIds]::uuid[])`,
+      ...(includeMemberships ? [`${table}.id IN (${memberships})`] : []),
+      `(${table}."collectionId" IS NULL AND ${table}."createdById" = '${user.id}')`,
+    ];
+
+    return {
+      sql: `(${clauses.join(" OR ")})`,
+      replacements: { accessibleCollectionIds: collectionIds },
+    };
   }
 
   static withMembershipScope(
@@ -1502,6 +1575,7 @@ class Document extends ArchivableModel<
       if (collection) {
         await collection.addDocumentToStructure(this, index, { transaction });
         if (this.collection) {
+          // oxlint-disable-next-line access/no-raw-document-structure -- Copies the structure onto the loaded collection after a write.
           this.collection.documentStructure = collection.documentStructure;
         }
       }
@@ -1588,6 +1662,7 @@ class Document extends ArchivableModel<
     if (collection) {
       await collection.removeDocumentInStructure(this, { transaction });
       if (this.collection) {
+        // oxlint-disable-next-line access/no-raw-document-structure -- Copies the structure onto the loaded collection after a write.
         this.collection.documentStructure = collection.documentStructure;
       }
     }
@@ -1641,6 +1716,7 @@ class Document extends ArchivableModel<
     if (collection) {
       await collection.removeDocumentInStructure(this, { transaction });
       if (this.collection) {
+        // oxlint-disable-next-line access/no-raw-document-structure -- Copies the structure onto the loaded collection after a write.
         this.collection.documentStructure = collection.documentStructure;
       }
     }
@@ -1702,6 +1778,7 @@ class Document extends ArchivableModel<
 
     if (this.collection && collection) {
       // updating the document structure in memory just in case it's later accessed somewhere
+      // oxlint-disable-next-line access/no-raw-document-structure -- Copies the structure onto the loaded collection after a write.
       this.collection.documentStructure = collection.documentStructure;
     }
     return this;
@@ -1942,6 +2019,43 @@ class Document extends ArchivableModel<
     this.set("ownerIds", ownerIds, { raw: true });
     return ownerIds;
   }
+}
+
+/** The columns that the access condition uses, shared by documents and templates. */
+type AccessibleAttributes = Pick<
+  Document,
+  "id" | "collectionId" | "createdById"
+>;
+
+interface AccessibleOptions {
+  /** The transaction to load collection access in. */
+  transaction?: Transaction;
+  /** Set to false to include deleted collections. */
+  paranoid?: boolean;
+  /** Set to false to exclude documents readable only through a membership. */
+  includeMemberships?: boolean;
+}
+
+/**
+ * Returns SQL that selects the ids of the documents that the user has a direct
+ * or group membership on.
+ *
+ * @param userId the id of the user.
+ * @returns the SQL subquery, without parentheses.
+ * @throws ValidationError if the id is not a UUID.
+ */
+function membershipSubquery(userId: string): string {
+  // The id is put in the SQL because a literal cannot use query replacements.
+  if (!isUUID(userId)) {
+    throw ValidationError("Invalid user id");
+  }
+
+  return `SELECT up."documentId" FROM user_permissions up WHERE up."userId" = '${userId}' AND up."documentId" IS NOT NULL
+    UNION ALL
+    SELECT gp."documentId" FROM group_permissions gp
+    INNER JOIN groups g ON g.id = gp."groupId" AND g."deletedAt" IS NULL
+    INNER JOIN group_users gu ON gu."groupId" = gp."groupId" AND gu."userId" = '${userId}'
+    WHERE gp."documentId" IS NOT NULL AND gp."deletedAt" IS NULL`;
 }
 
 export default Document;

@@ -41,7 +41,8 @@ describe("ExportJSONTask", () => {
 
     const filePath = await new ExportJSONTask().exportCollections(
       [collection],
-      fileOperation
+      fileOperation,
+      user
     );
 
     try {

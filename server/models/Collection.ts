@@ -814,6 +814,7 @@ class Collection extends ParanoidModel<
     user: User,
     options: FindOptions = {}
   ) {
+    // oxlint-disable-next-line access/no-direct-collection-ids -- Finds a collection, not documents.
     const id = await user.collectionIds({ transaction: options.transaction });
     return this.findOne({
       where: {
@@ -984,6 +985,34 @@ class Collection extends ParanoidModel<
       ...result,
       children: sortNavigationNodes(result.children, this.sort),
     };
+  };
+
+  /**
+   * Returns the navigation tree of the collection that a viewer gets. Each
+   * tree that is sent in a response or copied for a user must come from this
+   * method. It uses the loaded structure when present, otherwise the cache.
+   *
+   * @param viewer the user that gets the tree, or null for an anonymous
+   * viewer of a public share.
+   * @param options.documentId return only the subtree of this document.
+   * @param options.transaction the transaction to read in.
+   * @returns a promise that resolves to the tree, or an empty array.
+   */
+  structureFor = async (
+    viewer: User | null,
+    options: { documentId?: string; transaction?: Transaction } = {}
+  ): Promise<NavigationNode[]> => {
+    if (options.documentId) {
+      const node = this.getDocumentTree(options.documentId);
+      return node ? [node] : [];
+    }
+
+    // The attribute guard throws on access when the column was not loaded.
+    if ("documentStructure" in this.dataValues) {
+      return this.documentStructure ?? [];
+    }
+
+    return (await this.getCachedDocumentStructure()) ?? [];
   };
 
   /**
@@ -1420,16 +1449,19 @@ class Collection extends ParanoidModel<
   /**
    * Returns a JSON representation of this collection suitable for use in the frontend navigation.
    *
+   * @param children the document tree to include, from `structureFor`.
    * @returns NavigationNode
    */
-  toNavigationNode = (): NavigationNode => ({
+  toNavigationNode = (
+    children: NavigationNode[] = this.documentStructure ?? []
+  ): NavigationNode => ({
     id: this.id,
     title: this.name,
     url: this.path,
     type: NavigationNodeType.Collection,
     icon: isNil(this.icon) ? undefined : this.icon,
     color: isNil(this.color) ? undefined : this.color,
-    children: sortNavigationNodes(this.documentStructure ?? [], this.sort),
+    children: sortNavigationNodes(children, this.sort),
   });
 
   /**

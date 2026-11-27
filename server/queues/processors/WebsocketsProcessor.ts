@@ -1003,6 +1003,7 @@ export default class WebsocketsProcessor {
 
         const membersRoom = `team-${user.teamId}.members`;
         const guestsRoom = `team-${user.teamId}.guests`;
+        // oxlint-disable-next-line access/no-direct-collection-ids -- Room joins check collection access, not document access.
         const accessibleCollectionIds = await user.collectionIds({
           skipCache: true,
         });

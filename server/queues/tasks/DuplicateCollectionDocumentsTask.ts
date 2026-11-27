@@ -43,6 +43,7 @@ export default class DuplicateCollectionDocumentsTask extends BaseTask<Props> {
         archivedAt: {
           [Op.is]: null,
         },
+        [Op.and]: [await Document.accessibleWhere(actor)],
       },
     });
 
@@ -50,10 +51,10 @@ export default class DuplicateCollectionDocumentsTask extends BaseTask<Props> {
       return;
     }
 
-    const structure = await original.getCachedDocumentStructure();
+    const structure = await original.structureFor(actor);
     const sorted = DocumentHelper.sortDocumentsByStructure(
       rootDocuments,
-      structure ?? []
+      structure
     ).reverse(); // we have to reverse since the root documents will be added in reverse order
 
     return sequelize.transaction(async (transaction) => {

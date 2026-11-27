@@ -281,7 +281,7 @@ export async function getDocumentBreadcrumb(
     return undefined;
   }
 
-  const structure = await collection.getCachedDocumentStructure();
+  const structure = await collection.structureFor(user);
   return buildBreadcrumb(document.id, structure, collection.name);
 }
 
@@ -333,7 +333,7 @@ export async function getBreadcrumbsForDocuments(
             {
               name: collection.name,
               breadcrumbs: buildBreadcrumbMap(
-                await collection.getCachedDocumentStructure(),
+                await collection.structureFor(user),
                 collection.name
               ),
             },

@@ -380,9 +380,12 @@ export const renderShare = async (ctx: AppRouterContext, next: Next) => {
 
     // Append child documents list if the share includes them
     if (share?.includeChildDocuments && sharedTree) {
-      const node = document
-        ? (collection?.getDocumentTree(document.id) ?? sharedTree)
-        : sharedTree;
+      const [documentNode] = document
+        ? ((await collection?.structureFor(null, {
+            documentId: document.id,
+          })) ?? [])
+        : [];
+      const node = documentNode ?? sharedTree;
 
       if (node?.children?.length) {
         markdown += formatChildDocumentsAsMarkdown(

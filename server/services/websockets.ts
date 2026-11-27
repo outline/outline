@@ -204,6 +204,7 @@ async function authenticated(
   // the rooms associated with collections and groups this user
   // has access to on connection.
   const [collectionIds, groupIds] = await Promise.all([
+    // oxlint-disable-next-line access/no-direct-collection-ids -- Room joins check collection access, not document access.
     user.collectionIds(),
     user.groupIds(),
   ]);

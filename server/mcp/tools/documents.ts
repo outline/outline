@@ -136,9 +136,9 @@ export function documentTools(server: McpServer, scopes: string[]) {
               authorize(user, "readDocument", collection);
               collectionId = collection.id;
 
-              if (collection.documentStructure) {
-                indexMap = buildSiblingIndexMap(collection.documentStructure);
-              }
+              indexMap = buildSiblingIndexMap(
+                await collection.structureFor(user)
+              );
             }
 
             if (query) {
@@ -372,10 +372,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             });
             authorize(user, "readDocument", collection);
 
-            const documentStructure =
-              await collection.getCachedDocumentStructure();
-
-            const tree = (documentStructure ?? []).map((node) =>
+            const tree = (await collection.structureFor(user)).map((node) =>
               presentNavigationNode(user.team, node)
             );
             return success(tree);

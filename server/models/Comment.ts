@@ -173,7 +173,12 @@ class Comment extends ParanoidModel<
             attributes: [],
             where: {
               teamId: user.teamId,
-              collectionId: collectionId ?? (await user.collectionIds()),
+              [Op.and]: [
+                await Document.accessibleWhere(user, {
+                  includeMemberships: false,
+                }),
+                ...(collectionId ? [{ collectionId }] : []),
+              ],
             },
           },
         ];

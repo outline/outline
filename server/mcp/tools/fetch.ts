@@ -242,7 +242,7 @@ export function fetchTool(server: McpServer, scopes: string[]) {
 
             return success([
               metadata,
-              (collection.documentStructure ?? []).map((node) =>
+              (await collection.structureFor(actor)).map((node) =>
                 presentNavigationNode(actor.team, node)
               ),
             ]);

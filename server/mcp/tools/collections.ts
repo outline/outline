@@ -90,6 +90,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
         async ({ query, offset, limit }, extra) => {
           try {
             const user = getActorFromContext(extra);
+            // oxlint-disable-next-line access/no-direct-collection-ids -- Lists collections, not documents.
             const collectionIds = await user.collectionIds();
 
             const and: WhereOptions<Collection>[] = [

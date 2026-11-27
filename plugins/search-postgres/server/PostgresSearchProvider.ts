@@ -342,6 +342,7 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
   ): Promise<Collection[]> {
     const { limit = 15, offset = 0, query } = options;
 
+    // oxlint-disable-next-line access/no-direct-collection-ids -- Collection search checks collection access, not document access.
     const collectionIds = await user.collectionIds();
 
     return Collection.findAll({
@@ -784,44 +785,36 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
     //     access (covers own drafts in shared collections — collection access
     //     alone does not grant visibility into other users' drafts)
     //
-    // Membership and collection access are resolved to id lists upfront so the
-    // search query needs no membership joins. Status/date narrowing is applied
-    // separately via `filter`.
+    // Access is applied with `Document.accessibleWhere`, and the draft rule is
+    // added on top. Status/date narrowing is applied separately via `filter`.
     //
     // For Team contexts (share-based search), the caller is privileged and has
     // done its own authorization — narrow to the filter's collectionId if
     // specified, otherwise to the team's publicly-permissioned set.
     if (model instanceof User) {
-      const [membershipDocumentIds, collectionIds] = await Promise.all([
+      const [membershipDocumentIds, accessibleWhere] = await Promise.all([
         Document.membershipDocumentIds(model.id),
-        model.collectionIds(),
+        Document.accessibleWhere(model),
       ]);
+      where[Op.and].push(accessibleWhere);
+
+      // Collection access alone does not grant visibility into other users' drafts.
+      where[Op.or].push(
+        { publishedAt: { [Op.ne]: null } },
+        { createdById: model.id }
+      );
       if (membershipDocumentIds.length) {
         where[Op.or].push({ id: membershipDocumentIds });
-      }
-      where[Op.or].push({
-        createdById: model.id,
-        collectionId: { [Op.is]: null },
-      });
-      if (collectionIds.length) {
-        where[Op.or].push(
-          {
-            collectionId: collectionIds,
-            publishedAt: { [Op.ne]: null },
-          },
-          {
-            createdById: model.id,
-            collectionId: collectionIds,
-          }
-        );
       }
     } else {
       const explicitCollectionIds = filter
         ? collectEqValues(filter, "collectionId")
         : [];
-      const collectionIds = explicitCollectionIds.length
-        ? explicitCollectionIds
-        : await model.collectionIds();
+      let collectionIds = explicitCollectionIds;
+      if (!collectionIds.length) {
+        // oxlint-disable-next-line access/no-direct-collection-ids -- A team has no user to gate on, and share search authorizes before this.
+        collectionIds = await model.collectionIds();
+      }
       if (collectionIds.length) {
         where[Op.or].push({ collectionId: collectionIds });
       }
