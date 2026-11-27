@@ -246,6 +246,57 @@ describe("#shares.list", () => {
     expect(body.data.length).toEqual(0);
   });
 
+  it("should return shares of draft documents the user can see", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const other = await buildUser({ teamId: team.id });
+    const filedDraft = await buildDraftDocument({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const unfiledDraft = await buildDraftDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: null,
+    });
+    const otherDraft = await buildDraftDocument({
+      userId: other.id,
+      teamId: team.id,
+      collectionId: null,
+    });
+    const filedShare = await buildShare({
+      documentId: filedDraft.id,
+      teamId: team.id,
+      userId: user.id,
+    });
+    const unfiledShare = await buildShare({
+      documentId: unfiledDraft.id,
+      teamId: team.id,
+      userId: user.id,
+    });
+    const otherShare = await buildShare({
+      documentId: otherDraft.id,
+      teamId: team.id,
+      userId: user.id,
+    });
+
+    const res = await server.post("/api/shares.list", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.map((s: { id: string }) => s.id).sort()).toEqual(
+      [filedShare.id, unfiledShare.id].sort()
+    );
+
+    const adminRes = await server.post("/api/shares.list", admin);
+    const adminBody = await adminRes.json();
+    expect(adminRes.status).toEqual(200);
+    expect(adminBody.pagination.total).toEqual(3);
+    expect(adminBody.data.map((s: { id: string }) => s.id).sort()).toEqual(
+      [filedShare.id, unfiledShare.id, otherShare.id].sort()
+    );
+  });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/shares.list");
     const body = await res.json();
