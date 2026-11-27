@@ -145,9 +145,13 @@ async function expandDocumentIdLeaves(
     ]).findAll({ where: { id: documentIds, template: false } });
     const documentsById = new Map(documents.map((doc) => [doc.id, doc]));
     for (const documentId of documentIds) {
-      authorize(context.user, "read", documentsById.get(documentId));
+      authorize(
+        context.user,
+        "read",
+        documentsById.get(documentId.toLowerCase())
+      );
     }
-    foundIds = documentIds;
+    foundIds = documents.map((doc) => doc.id);
   } else {
     const documents = await Document.unscoped().findAll({
       attributes: ["id"],
@@ -160,7 +164,7 @@ async function expandDocumentIdLeaves(
   const expandedIds = new Map(
     documentIds.map((documentId) => [
       documentId,
-      [documentId, ...(childIds.get(documentId) ?? [])],
+      [documentId, ...(childIds.get(documentId.toLowerCase()) ?? [])],
     ])
   );
 

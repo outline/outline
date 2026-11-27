@@ -4177,7 +4177,8 @@ describe("#documents.search", () => {
               {
                 field: "documentId",
                 operator: "in",
-                value: parents.map((doc) => doc.id),
+                // Uppercase UUIDs are valid input and must still match.
+                value: parents.map((doc) => doc.id.toUpperCase()),
               },
             ],
           },
