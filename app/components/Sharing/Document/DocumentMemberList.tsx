@@ -133,6 +133,12 @@ function DocumentMemberList({ document, invitedInSession }: Props) {
     [t]
   );
 
+  // Access inherited from a parent document cannot be removed here.
+  const inheritedPermissions = React.useMemo(
+    () => permissions.filter((p) => p.value !== EmptySelectValue),
+    [permissions]
+  );
+
   return (
     <>
       {Array.from(
@@ -183,7 +189,9 @@ function DocumentMemberList({ document, invitedInSession }: Props) {
               actions={
                 <div style={{ marginRight: -8 }}>
                   <InputMemberPermissionSelect
-                    permissions={permissions}
+                    permissions={
+                      membership.sourceId ? inheritedPermissions : permissions
+                    }
                     onChange={async (
                       permission: DocumentPermission | typeof EmptySelectValue
                     ) => {

@@ -9675,6 +9675,55 @@ describe("#documents.remove_group", () => {
 
     expect(res.status).toEqual(404);
   });
+
+  it("should not remove group with access inherited from a parent", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      createdById: user.id,
+      permission: null,
+    });
+    const parentDocument = await buildDocument({
+      collectionId: collection.id,
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      collectionId: collection.id,
+      parentDocumentId: parentDocument.id,
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const group = await buildGroup({
+      teamId: user.teamId,
+    });
+    const sourceMembership = await GroupMembership.create({
+      createdById: user.id,
+      documentId: parentDocument.id,
+      groupId: group.id,
+      permission: DocumentPermission.ReadWrite,
+    });
+    await GroupMembership.create({
+      createdById: user.id,
+      documentId: document.id,
+      groupId: group.id,
+      permission: DocumentPermission.ReadWrite,
+      sourceId: sourceMembership.id,
+    });
+
+    const res = await server.post("/api/documents.remove_group", user, {
+      body: {
+        id: document.id,
+        groupId: group.id,
+      },
+    });
+    expect(res.status).toEqual(400);
+    expect(
+      await GroupMembership.count({
+        where: { documentId: document.id, groupId: group.id },
+      })
+    ).not.toEqual(0);
+  });
 });
 
 describe("#documents.memberships", () => {
