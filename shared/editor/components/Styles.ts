@@ -37,6 +37,9 @@ const stickyTableHeader = keyframes`
   to { transform: translateY(var(--sticky-header-travel)); }
 `;
 
+/** The space above a table for its column controls, it overlaps the block above. */
+const TABLE_CONTROLS_HEIGHT = 36;
+
 /** The frame of a file in the editor, which holds the progress bar of an upload. */
 const uploadFrame = `.${EditorStyleHelper.imageWrapper}, .${EditorStyleHelper.videoWrapper}, .widget, .${EditorStyleHelper.pdfWrapper}`;
 
@@ -1599,7 +1602,7 @@ ${
   ${noticeColors(props.theme, props.theme.noticeInfoBackground, props.theme.noticeInfoText)}
   border-radius: ${EditorStyleHelper.blockRadius};
   padding: 8px 10px 8px 8px;
-  margin: 8px 0;
+  margin: .5em 0;
 
   a {
     text-decoration: underline;
@@ -2312,7 +2315,6 @@ table {
   width: 100%;
   border-collapse: separate;
   border-radius: ${EditorStyleHelper.blockRadius};
-  margin-top: 1em;
   box-sizing: border-box;
   border: 1px solid ${props.theme.divider};
   border-left: 0;
@@ -2381,6 +2383,12 @@ table {
     }
   }
 
+  /* keeps the insert button above the grips of neighboring cells */
+  td:has(.${EditorStyleHelper.tableAddRow}:hover, .${EditorStyleHelper.tableAddColumn}:hover),
+  th:has(.${EditorStyleHelper.tableAddRow}:hover, .${EditorStyleHelper.tableAddColumn}:hover) {
+    z-index: 11;
+  }
+
   td .component-embed {
     padding: 4px 0;
   }
@@ -2436,7 +2444,7 @@ table {
 
     /* above the grips while the insert line is shown */
     &:hover {
-      z-index: 3;
+      z-index: 11;
     }
 
     &:hover::after {
@@ -2464,7 +2472,7 @@ table {
 
   .${EditorStyleHelper.tableAddRow} {
     bottom: calc(var(--span-end, 0%) - 1px);
-    left: -16px;
+    left: -10px;
     width: 0;
     height: 2px;
     z-index: 1;
@@ -2482,7 +2490,7 @@ table {
     }
 
     &:hover {
-      width: calc(var(--table-width) - ${EditorStyleHelper.padding * 1.5}px);
+      width: calc(var(--table-width) - ${EditorStyleHelper.padding * 1.5}px - 6px);
     }
 
     &:hover::after {
@@ -2508,11 +2516,12 @@ table {
   }
 
   .${EditorStyleHelper.tableAddColumn} {
-    top: -16px;
+    top: -10px;
     right: calc(var(--span-end, 0%) - 1px);
     width: 2px;
     height: 0;
-    z-index: 1;
+    /* above the column grips, the clickable area is only the gap above them */
+    z-index: 3;
 
     &::after {
       content: "";
@@ -2527,7 +2536,7 @@ table {
     }
 
     &:hover {
-      height: calc(var(--table-height) - ${EditorStyleHelper.padding}px + 6px);
+      height: calc(var(--table-height) - ${EditorStyleHelper.padding}px);
     }
 
     &:hover::after {
@@ -2537,8 +2546,10 @@ table {
 
     // extra clickable area
     &::before {
-      top: -16px;
-      right: -12px;
+      top: -12px;
+      right: -7px;
+      width: 16px;
+      height: 8px;
     }
 
     &.first {
@@ -2547,7 +2558,7 @@ table {
 
       &::before {
         right: auto;
-        left: -12px;
+        left: -7px;
       }
     }
   }
@@ -2561,33 +2572,37 @@ table {
       content: "";
       cursor: grab;
       position: absolute;
-      top: -16px;
+      top: -14px;
       left: var(--span-start, 0);
       width: var(--span-size, 100%);
-      height: 12px;
-      background: var(--table-grip, ${props.theme.divider});
+      height: 6px;
+      /* transparent border increases the clickable area */
+      border: solid transparent;
+      border-width: 4px 0;
+      background-clip: padding-box;
+      background-color: var(--table-grip, ${props.theme.divider});
       display: ${props.readOnly ? "none" : "block"};
       /* above the add column controls so narrow columns stay draggable */
       z-index: 2;
     }
 
     &:hover::after {
-      background: ${props.theme.text};
+      background-color: ${props.theme.text};
     }
 
     body.${EditorStyleHelper.tableDragging} &:hover::after {
-      background: var(--table-grip, ${props.theme.divider});
+      background-color: var(--table-grip, ${props.theme.divider});
     }
     &.first::after {
-      border-top-left-radius: 3px;
-      border-bottom-left-radius: 3px;
+      border-top-left-radius: 3px 7px;
+      border-bottom-left-radius: 3px 7px;
     }
     &.last::after {
-      border-top-right-radius: 3px;
-      border-bottom-right-radius: 3px;
+      border-top-right-radius: 3px 7px;
+      border-bottom-right-radius: 3px 7px;
     }
     &.selected::after {
-      background: ${props.theme.tableSelected};
+      background-color: ${props.theme.tableSelected};
     }
   }
 
@@ -2596,34 +2611,37 @@ table {
       content: "";
       cursor: grab;
       position: absolute;
-      left: -16px;
+      left: -14px;
       top: var(--span-start, 0);
       height: var(--span-size, 100%);
-      width: 12px;
-      background: var(--table-grip, ${props.theme.divider});
-      border-color: var(--table-grip-border, ${props.theme.background});
+      width: 6px;
+      /* transparent border increases the clickable area */
+      border: solid transparent;
+      border-width: 0 4px;
+      background-clip: padding-box;
+      background-color: var(--table-grip, ${props.theme.divider});
       display: ${props.readOnly ? "none" : "block"};
       /* above the add row controls so short rows stay draggable */
       z-index: 2;
     }
 
     &:hover::after {
-      background: ${props.theme.text};
+      background-color: ${props.theme.text};
     }
 
     body.${EditorStyleHelper.tableDragging} &:hover::after {
-      background: var(--table-grip, ${props.theme.divider});
+      background-color: var(--table-grip, ${props.theme.divider});
     }
     &.first::after {
-      border-top-left-radius: 3px;
-      border-top-right-radius: 3px;
+      border-top-left-radius: 7px 3px;
+      border-top-right-radius: 7px 3px;
     }
     &.last::after {
-      border-bottom-left-radius: 3px;
-      border-bottom-right-radius: 3px;
+      border-bottom-left-radius: 7px 3px;
+      border-bottom-right-radius: 7px 3px;
     }
     &.selected::after {
-      background: ${props.theme.tableSelected};
+      background-color: ${props.theme.tableSelected};
     }
   }
 
@@ -2631,26 +2649,29 @@ table {
     &::after {
       content: "";
       cursor: var(--pointer);
-      background: var(--table-grip, ${props.theme.divider});
-      width: 13px;
-      height: 13px;
-      border-radius: 13px;
-      border: 2px solid var(--table-grip-border, ${props.theme.background});
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      /* transparent border increases the clickable area */
+      border: 4px solid transparent;
+      background-clip: padding-box;
+      background-color: var(--table-grip, ${props.theme.divider});
+      box-shadow: inset 0 0 0 2px var(--table-grip-border, ${props.theme.background});
       position: absolute;
-      top: -18px;
-      left: -18px;
+      top: -17px;
+      left: -17px;
       display: ${props.readOnly ? "none" : "block"};
       z-index: 10;
     }
 
     &:hover::after {
-      background: ${props.theme.text};
+      background-color: ${props.theme.text};
     }
     &.selected::after {
-      background: ${props.theme.tableSelected};
+      background-color: ${props.theme.tableSelected};
     }
     &.dragging::after {
-      background: ${props.theme.accent};
+      background-color: ${props.theme.accent};
       opacity: 0.5;
     }
   }
@@ -2693,7 +2714,7 @@ table {
 .${EditorStyleHelper.tableGripColumn} {
   &.dragging::after {
     cursor: grabbing;
-    background: ${props.theme.accent};
+    background-color: ${props.theme.accent};
     opacity: 0.5;
   }
 }
@@ -2738,6 +2759,8 @@ table {
 
 .${EditorStyleHelper.table} {
   position: relative;
+  /* stops the negative margin of the scroll area from moving the wrapper over the block above */
+  display: flow-root;
 
   // The browser moves the header row in the same frame as the scroll, a scroll
   // listener is always one frame behind.
@@ -2947,17 +2970,35 @@ th:has(> .${EditorStyleHelper.tableFilterButton}.active) {
 
 .${EditorStyleHelper.tableScrollable} {
   position: relative;
-  margin: -1em ${-EditorStyleHelper.padding}px -0.5em;
+  margin: ${props.readOnly ? "-.5em" : `-${TABLE_CONTROLS_HEIGHT}px`} ${-EditorStyleHelper.padding}px -0.5em;
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
   overflow-y: hidden;
   overflow-x: auto;
   overflow-anchor: none;
-  padding-top: 1em;
+  padding-top: ${props.readOnly ? ".5em" : `${TABLE_CONTROLS_HEIGHT}px`};
   padding-bottom: .5em;
   padding-left: ${EditorStyleHelper.padding}px;
   padding-right: ${EditorStyleHelper.padding}px;
   transition: border 250ms ease-in-out 0s;
+
+  ${
+    props.readOnly
+      ? ""
+      : `
+  /* the padding overlaps the block above, which must stay clickable */
+  pointer-events: none;
+
+  /* fades the block above behind the controls, it does not scroll with the table */
+  &:has(.${EditorStyleHelper.tableGripColumn}) {
+    background: linear-gradient(${transparentize(1, props.theme.background)}, ${transparentize(0.15, props.theme.background)} 50%) 0 0 / 100% ${TABLE_CONTROLS_HEIGHT}px no-repeat;
+  }
+
+  > table {
+    pointer-events: auto;
+  }
+  `
+  }
 
   &:hover {
     scrollbar-color: ${props.theme.scrollbarThumb} ${
