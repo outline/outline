@@ -2356,17 +2356,27 @@ router.post(
         deletedAt: {
           [Op.ne]: null,
         },
-        [Op.or]: [
+        [Op.and]: [
           {
-            collectionId: {
-              [Op.in]: collectionIds,
-            },
+            [Op.or]: [
+              {
+                collectionId: {
+                  [Op.in]: collectionIds,
+                },
+              },
+              {
+                createdById: user.id,
+                collectionId: {
+                  [Op.is]: null,
+                },
+              },
+            ],
           },
           {
-            createdById: user.id,
-            collectionId: {
-              [Op.is]: null,
-            },
+            [Op.or]: [
+              { publishedAt: { [Op.ne]: null } },
+              ...(await draftVisibilityClauses(user)),
+            ],
           },
         ],
       },
