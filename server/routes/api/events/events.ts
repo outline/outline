@@ -81,12 +81,29 @@ router.post(
     }
 
     const loadedEvents = await Event.findAll({
-      where,
+      where: {
+        [Op.and]: [
+          where,
+          // Exclude events in the personal collections of other users.
+          {
+            [Op.or]: [
+              { "$collection.ownerId$": null },
+              { "$collection.ownerId$": user.id },
+            ],
+          },
+        ],
+      },
       order: [[sort, direction]],
       include: [
         {
           model: User,
           as: "actor",
+          paranoid: false,
+        },
+        {
+          model: Collection.unscoped(),
+          as: "collection",
+          attributes: [],
           paranoid: false,
         },
       ],
