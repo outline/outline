@@ -45,7 +45,7 @@ export class RedisPrefixHelper {
    * @returns the cache key string.
    */
   public static getShareContentKey(id: string, updatedAt: Date) {
-    return `share:html:${id}:${updatedAt.getTime()}`;
+    return `share:html:v2:${id}:${updatedAt.getTime()}`;
   }
 
   /**

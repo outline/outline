@@ -478,13 +478,20 @@ export class DocumentHelper {
 
   /**
    * Returns the document or collection as static HTML with its title. The
-   * output is rendered from the schema without node components or styles.
+   * output is rendered from the schema without node components or styles, and
+   * comment marks are removed because it is shown on public shares.
    *
    * @param model The document or collection to convert.
    * @returns The title and content as a HTML string.
    */
   static async toStaticHTML(model: Document | Collection) {
-    return ProsemirrorHelper.toStaticHTML(DocumentHelper.toProsemirror(model), {
+    const node = Node.fromJSON(
+      schema,
+      ProsemirrorHelper.removeMarks(DocumentHelper.toProsemirror(model), [
+        "comment",
+      ])
+    );
+    return ProsemirrorHelper.toStaticHTML(node, {
       title: model instanceof Collection ? model.name : model.title,
       headingPrefix:
         model instanceof Document
