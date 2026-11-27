@@ -105,7 +105,7 @@ router.post(
         data: {
           shares: [
             presentShare(share, {
-              isAdmin: user?.isAdmin ?? false,
+              isAdmin: !!user?.isAdmin && user.teamId === share.teamId,
               isPublic: cannot(user, "read", share),
             }),
           ],

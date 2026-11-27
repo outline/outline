@@ -852,6 +852,36 @@ describe("#shares.info", () => {
     expect(body.data.shares[0].id).toEqual(share.id);
   });
 
+  it("should only return lastAccessedAt to admins of the owning team", async () => {
+    const admin = await buildAdmin();
+    const otherAdmin = await buildAdmin();
+    const document = await buildDocument({
+      createdById: admin.id,
+      teamId: admin.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: admin.teamId,
+      userId: admin.id,
+      published: true,
+      lastAccessedAt: new Date(),
+    });
+
+    const res = await server.post("/api/shares.info", admin, {
+      body: { id: share.id },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.shares[0].lastAccessedAt).toBeTruthy();
+
+    const otherRes = await server.post("/api/shares.info", otherAdmin, {
+      body: { id: share.id },
+    });
+    const otherBody = await otherRes.json();
+    expect(otherRes.status).toEqual(200);
+    expect(otherBody.data.shares[0].lastAccessedAt).toBeUndefined();
+  });
+
   it("should not return the sharer for an unauthenticated viewer", async () => {
     const user = await buildUser();
     const document = await buildDocument({
