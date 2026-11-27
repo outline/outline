@@ -601,10 +601,12 @@ describe("#shares.create", () => {
       userId: owner.id,
       published: false,
     });
+    const expiresAt = addDays(new Date(), 7);
     const res = await server.post("/api/shares.create", user, {
       body: {
         documentId: document.id,
         published: true,
+        expiresAt: expiresAt.toISOString(),
       },
     });
     const body = await res.json();
@@ -614,6 +616,7 @@ describe("#shares.create", () => {
     expect(body.data.createdBy.id).toBe(owner.id);
     await share.reload();
     expect(share.published).toBe(true);
+    expect(share.expiresAt?.toISOString()).toBe(expiresAt.toISOString());
   });
 
   it("should not disclose an existing published share to a user without share permission", async () => {

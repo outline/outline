@@ -333,6 +333,9 @@ router.post(
       authorize(user, "update", share);
       share.published = true;
       share.includeChildDocuments = true;
+      if (expiresAt !== undefined) {
+        share.expiresAt = expiresAt;
+      }
       await share.saveWithCtx(ctx);
     }
 
