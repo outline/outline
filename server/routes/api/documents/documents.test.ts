@@ -40,6 +40,7 @@ import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import DocumentImportTask from "@server/queues/tasks/DocumentImportTask";
+import EmptyTrashTask from "@server/queues/tasks/EmptyTrashTask";
 import { sequelize } from "@server/storage/database";
 import FileStorage from "@server/storage/files";
 import {
@@ -10124,6 +10125,30 @@ describe("#documents.empty_trash", () => {
     const body = await res.json();
     expect(res.status).toEqual(403);
     expect(body).toMatchSnapshot();
+  });
+  it("should not delete trashed drafts of other collection members", async () => {
+    const admin = await buildAdmin();
+    const other = await buildUser({ teamId: admin.teamId });
+    const collection = await buildCollection({ teamId: admin.teamId });
+    const otherDraft = await buildDraftDocument({
+      userId: other.id,
+      teamId: admin.teamId,
+      collectionId: collection.id,
+    });
+    const otherDocument = await buildDocument({
+      userId: other.id,
+      teamId: admin.teamId,
+      collectionId: collection.id,
+    });
+    await withContext(other, (ctx) => otherDraft.destroyWithCtx(ctx));
+    await withContext(other, (ctx) => otherDocument.destroyWithCtx(ctx));
+    const schedule = vi.spyOn(EmptyTrashTask.prototype, "schedule");
+
+    const res = await server.post("/api/documents.empty_trash", admin);
+    expect(res.status).toEqual(200);
+    expect(schedule).toHaveBeenCalledWith({
+      documentIds: [otherDocument.id],
+    });
   });
 });
 
