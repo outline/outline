@@ -2218,6 +2218,12 @@ router.post(
       rejectOnEmpty: true,
     });
 
+    if (membership.sourceId) {
+      throw ValidationError(
+        "Cannot remove access that is inherited from a parent document"
+      );
+    }
+
     await membership.destroy(toHookContext(ctx));
 
     ctx.body = {
