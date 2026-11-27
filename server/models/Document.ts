@@ -39,6 +39,7 @@ import {
   BelongsToMany,
   Unique,
   AfterUpdate,
+  BeforeDestroy,
   IsFloat,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
@@ -71,6 +72,7 @@ import Group from "./Group";
 import GroupMembership from "./GroupMembership";
 import GroupUser from "./GroupUser";
 import Import from "./Import";
+import Pin from "./Pin";
 import Relationship from "./Relationship";
 import Revision from "./Revision";
 import Share from "./Share";
@@ -711,6 +713,17 @@ class Document extends ArchivableModel<
 
       void afterCommit(ctx.transaction, notify);
     }
+  }
+
+  @BeforeDestroy
+  static async deletePins(model: Document, ctx: HookContextFields) {
+    const options = {
+      ...ctx,
+      where: { documentId: model.id },
+      individualHooks: true,
+      event: { publish: true },
+    };
+    await Pin.destroy(options);
   }
 
   // associations
