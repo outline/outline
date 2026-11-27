@@ -103,4 +103,15 @@ describe("Image node markdown escaping", () => {
     expect(imageNode.attrs.title).toBe('say "hi" \\ ok');
     expect(imageNode.attrs.alt).toBe("pic");
   });
+
+  it("round-trips a title with markdown characters inside a table", () => {
+    const doc = parser.parse(
+      '| ![pic](https://x.com/a.png "a\\|b *c* `d`") | x |\n|---|---|\n| 1 | 2 |'
+    );
+    const markdown = serializer.serialize(doc);
+    expect(markdown).toContain('"a\\|b');
+    expect(findImageNode(parser.parse(markdown)).attrs.title).toBe(
+      "a|b *c* `d`"
+    );
+  });
 });

@@ -578,7 +578,10 @@ export default class Image extends SimpleImage {
     }
 
     if (titleParts.length > 0 || size) {
-      const title = state.esc(titleParts.join(" "), false).replace(/"/g, '\\"');
+      let title = titleParts.join(" ").replace(/["\\]/g, "\\$&");
+      if (state.inTable) {
+        title = title.replace(/\|/g, "\\|");
+      }
       markdown += ' "' + title + size + '"';
     }
     markdown += ")";
