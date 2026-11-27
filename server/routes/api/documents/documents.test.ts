@@ -58,6 +58,7 @@ import {
   buildAttachment,
   buildSubdomain,
   buildGuestUser,
+  buildRestrictedDocument,
 } from "@server/test/factories";
 import {
   getTestServer,
@@ -70,6 +71,21 @@ const server = getTestServer();
 beforeEach(async () => {
   await buildDocument();
 });
+
+/**
+ * Posts to a list endpoint and returns the ids in the response.
+ *
+ * @param path the name of the endpoint.
+ * @param user the user that makes the request.
+ * @param body the request body.
+ * @returns the ids of the returned items.
+ */
+async function listIds(path: string, user: User, body?: object) {
+  const res = await server.post(`/api/${path}`, user, { body });
+  expect(res.status).toEqual(200);
+  const json = await res.json();
+  return json.data.map((item: { id: string }) => item.id);
+}
 
 type PermissionManagementSubject = {
   actor: User;
@@ -5064,6 +5080,19 @@ describe("#documents.templatize", () => {
 });
 
 describe("#documents.archived", () => {
+  it("should only return a restricted document to its members", async () => {
+    const owner = await buildUser();
+    const { document, member } = await buildRestrictedDocument({
+      userId: owner.id,
+      teamId: owner.teamId,
+    });
+    const user = await buildUser({ teamId: owner.teamId });
+    await withContext(owner, (ctx) => document.archiveWithCtx(ctx));
+
+    expect(await listIds("documents.archived", user)).toEqual([]);
+    expect(await listIds("documents.archived", member)).toEqual([document.id]);
+  });
+
   it("should return archived documents in a given collection", async () => {
     const user = await buildUser();
     const [firstCollection, secondCollection] = await Promise.all([
@@ -5193,6 +5222,19 @@ describe("#documents.archived", () => {
 });
 
 describe("#documents.deleted", () => {
+  it("should only return a restricted document to its members", async () => {
+    const owner = await buildUser();
+    const { document, member } = await buildRestrictedDocument({
+      userId: owner.id,
+      teamId: owner.teamId,
+    });
+    const user = await buildUser({ teamId: owner.teamId });
+    await withContext(owner, (ctx) => document.destroyWithCtx(ctx));
+
+    expect(await listIds("documents.deleted", user)).toEqual([]);
+    expect(await listIds("documents.deleted", member)).toEqual([document.id]);
+  });
+
   it("should return deleted documents", async () => {
     const user = await buildUser();
     const document = await buildDocument({
@@ -5523,6 +5565,20 @@ describe("#documents.deleted", () => {
 });
 
 describe("#documents.viewed", () => {
+  it("should only return a restricted document to its members", async () => {
+    const { document, member } = await buildRestrictedDocument();
+    const user = await buildUser({ teamId: document.teamId });
+    for (const viewer of [user, member]) {
+      await View.incrementOrCreate(createContext({ user: viewer }), {
+        documentId: document.id,
+        userId: viewer.id,
+      });
+    }
+
+    expect(await listIds("documents.viewed", user)).toEqual([]);
+    expect(await listIds("documents.viewed", member)).toEqual([document.id]);
+  });
+
   it("should reject sorting by a document column", async () => {
     const user = await buildUser();
     const res = await server.post("/api/documents.viewed", user, {
@@ -10193,6 +10249,33 @@ describe("#documents.memberships", () => {
 });
 
 describe("#documents.duplicate", () => {
+  it("should not copy a restricted child that the user cannot read", async () => {
+    const owner = await buildUser();
+    const user = await buildUser({ teamId: owner.teamId });
+    const parent = await buildDocument({
+      userId: owner.id,
+      teamId: owner.teamId,
+    });
+    const { member } = await buildRestrictedDocument({
+      userId: owner.id,
+      teamId: owner.teamId,
+      collectionId: parent.collectionId,
+      parentDocumentId: parent.id,
+    });
+
+    for (const [actor, count] of [
+      [user, 1],
+      [member, 2],
+    ] satisfies [User, number][]) {
+      const res = await server.post("/api/documents.duplicate", actor, {
+        body: { id: parent.id, recursive: true },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.documents).toHaveLength(count);
+    }
+  });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/documents.duplicate");
     expect(res.status).toEqual(401);

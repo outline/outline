@@ -932,7 +932,7 @@ class Document extends ArchivableModel<
   static async accessibleWhere(
     user: User,
     options: AccessibleOptions = {}
-  ): Promise<WhereOptions<AccessibleAttributes>> {
+  ): Promise<WhereOptions<Document>> {
     const { transaction, paranoid } = options;
     const collectionIds = await Collection.accessibleIds(user, {
       transaction,
@@ -942,7 +942,10 @@ class Document extends ArchivableModel<
     return {
       teamId: user.teamId,
       [Op.or]: [
-        { collectionId: collectionIds },
+        // Collection access does not cover restricted documents, except for admins.
+        user.isAdmin
+          ? { collectionId: collectionIds }
+          : { collectionId: collectionIds, isPrivate: false },
         Document.membershipWhere(user.id),
         { collectionId: { [Op.is]: null }, createdById: user.id },
       ],
@@ -1104,58 +1107,6 @@ class Document extends ArchivableModel<
     }
 
     return document;
-  }
-
-  /**
-   * Returns a SQL subquery selecting the IDs of restricted documents that the
-   * given user can access through a direct or group membership. Use with
-   * `Op.in` so the IDs are resolved inside the database rather than
-   * materialized into a potentially large list.
-   *
-   * @param user The user to check memberships for.
-   * @returns A literal subquery for use in a where clause.
-   */
-  static restrictedDocumentIdsQuery(user: User) {
-    const userId = this.sequelize!.escape(user.id);
-    return Sequelize.literal(`(
-      SELECT user_permissions."documentId"
-      FROM user_permissions
-      JOIN documents ON documents.id = user_permissions."documentId"
-      WHERE user_permissions."userId" = ${userId}
-        AND documents."isPrivate" = true
-      UNION
-      SELECT group_permissions."documentId"
-      FROM group_permissions
-      JOIN documents ON documents.id = group_permissions."documentId"
-      JOIN groups ON groups.id = group_permissions."groupId"
-        AND groups."deletedAt" IS NULL
-      JOIN group_users ON group_users."groupId" = group_permissions."groupId"
-        AND group_users."userId" = ${userId}
-      WHERE group_permissions."deletedAt" IS NULL
-        AND documents."isPrivate" = true
-    )`);
-  }
-
-  /**
-   * Returns a where clause fragment that excludes restricted documents the
-   * given user cannot access. Compose into any document query with AND to
-   * enforce restricted document access. Admins can access all restricted
-   * documents, in which case an empty clause is returned.
-   *
-   * @param user The user requesting documents.
-   * @returns A where clause fragment.
-   */
-  static restrictionsWhere(user: User): WhereOptions<Document> {
-    if (user.isAdmin) {
-      return {};
-    }
-
-    return {
-      [Op.or]: [
-        { isPrivate: false },
-        { id: { [Op.in]: this.restrictedDocumentIdsQuery(user) } },
-      ],
-    };
   }
 
   // instance methods
@@ -2245,7 +2196,7 @@ class Document extends ArchivableModel<
   }
 }
 
-/** The columns that the access condition uses, shared by documents and templates. */
+/** The columns that the membership condition uses, shared by documents and templates. */
 type AccessibleAttributes = Pick<
   Document,
   "id" | "teamId" | "collectionId" | "createdById"

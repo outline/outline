@@ -5,6 +5,7 @@ import { UserMembership } from "@server/models";
 import {
   buildCollection,
   buildDocument,
+  buildRestrictedDocument,
   buildShare,
   buildTeam,
   buildUser,
@@ -13,6 +14,22 @@ import { loadPublicShare, loadShareWithParent } from "./shareLoader";
 
 describe("shareLoader", () => {
   describe("collection share", () => {
+    it("should not list restricted documents", async () => {
+      const user = await buildUser();
+      const { document } = await buildRestrictedDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const share = await buildShare({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: document.collectionId,
+      });
+
+      const result = await loadPublicShare({ id: share.id });
+      expect(result.sharedTree?.children).toEqual([]);
+    });
+
     it("should return share with tree and collection when requested with id", async () => {
       const user = await buildUser();
       const collection = await buildCollection({
@@ -129,6 +146,33 @@ describe("shareLoader", () => {
   });
 
   describe("document share", () => {
+    it("should not list or serve a restricted child", async () => {
+      const user = await buildUser();
+      const parent = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const { document: child } = await buildRestrictedDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: parent.collectionId,
+        parentDocumentId: parent.id,
+      });
+      const share = await buildShare({
+        includeChildDocuments: true,
+        userId: user.id,
+        teamId: user.teamId,
+        documentId: parent.id,
+      });
+
+      const result = await loadPublicShare({ id: share.id });
+      expect(result.sharedTree?.id).toEqual(parent.id);
+      expect(result.sharedTree?.children).toEqual([]);
+      await expect(
+        loadPublicShare({ id: share.id, documentId: child.id })
+      ).rejects.toThrow();
+    });
+
     it("should return share with tree and document when requested with id", async () => {
       const user = await buildUser();
       const collection = await buildCollection({

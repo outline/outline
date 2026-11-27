@@ -7,6 +7,7 @@ import {
   buildDraftDocument,
   buildPersonalCollection,
   buildPin,
+  buildRestrictedDocument,
   buildUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
@@ -309,6 +310,26 @@ describe("#pins.info", () => {
 });
 
 describe("#pins.list", () => {
+  it("should only return a restricted document to its members", async () => {
+    const { document, member } = await buildRestrictedDocument();
+    const user = await buildUser({ teamId: document.teamId });
+    const pin = await buildPin({
+      createdById: document.createdById,
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+
+    for (const [actor, ids] of [
+      [user, []],
+      [member, [pin.id]],
+    ] satisfies [User, string[]][]) {
+      const res = await server.post("/api/pins.list", actor);
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.pins.map((p: { id: string }) => p.id)).toEqual(ids);
+    }
+  });
+
   let user: User;
   let pins: Pin[];
   let docs: Document[];

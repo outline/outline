@@ -1,10 +1,12 @@
 import { randomUUID } from "node:crypto";
 import { EmptyResultError } from "sequelize";
 import { randomString } from "@shared/random";
-import { CollectionPermission } from "@shared/types";
+import type { NavigationNode } from "@shared/types";
+import { CollectionPermission, DocumentPermission } from "@shared/types";
 import slugify from "@server/utils/slugify";
 import { createContext } from "@server/context";
 import {
+  buildAdmin,
   buildUser,
   buildGroup,
   buildCollection,
@@ -140,6 +142,93 @@ describe("getDocumentTree", () => {
     expect(collection.getDocumentTree(document.id)).toEqual(
       await document.toNavigationNode()
     );
+  });
+});
+
+describe("#structureFor", () => {
+  const nodeIds = (nodes: NavigationNode[]): string[] =>
+    nodes.flatMap((node) => [node.id, ...nodeIds(node.children)]);
+
+  async function setup() {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const { id: collectionId } = await buildCollection({
+      userId: owner.id,
+      teamId: team.id,
+    });
+    const props = { userId: owner.id, teamId: team.id, collectionId };
+    const parent = await buildDocument(props);
+    const restricted = await buildDocument({
+      ...props,
+      parentDocumentId: parent.id,
+      isPrivate: true,
+    });
+    const grandchild = await buildDocument({
+      ...props,
+      parentDocumentId: restricted.id,
+    });
+    const collection = await Collection.findByPk(collectionId, {
+      includeDocumentStructure: true,
+      rejectOnEmpty: true,
+    });
+    return { team, owner, collection, parent, restricted, grandchild };
+  }
+
+  it("should remove restricted subtrees for a non-member", async () => {
+    const { team, collection, parent, restricted, grandchild } = await setup();
+    const user = await buildUser({ teamId: team.id });
+
+    const ids = nodeIds(await collection.structureFor(user));
+    expect(ids).toEqual([parent.id]);
+    expect(ids).not.toContain(restricted.id);
+    expect(ids).not.toContain(grandchild.id);
+  });
+
+  it("should remove restricted subtrees for an anonymous viewer", async () => {
+    const { collection, parent } = await setup();
+
+    expect(nodeIds(await collection.structureFor(null))).toEqual([parent.id]);
+  });
+
+  it("should include restricted documents for a member", async () => {
+    const { team, owner, collection, restricted } = await setup();
+    const user = await buildUser({ teamId: team.id });
+    await UserMembership.create({
+      userId: user.id,
+      documentId: restricted.id,
+      permission: DocumentPermission.Read,
+      createdById: owner.id,
+    });
+
+    expect(nodeIds(await collection.structureFor(user))).toContain(
+      restricted.id
+    );
+  });
+
+  it("should include restricted documents for an admin", async () => {
+    const { team, collection, restricted } = await setup();
+    const admin = await buildAdmin({ teamId: team.id });
+
+    expect(nodeIds(await collection.structureFor(admin))).toContain(
+      restricted.id
+    );
+  });
+
+  it("should filter the subtree of a document from the cache", async () => {
+    const { team, collection, parent, restricted } = await setup();
+    const user = await buildUser({ teamId: team.id });
+    const unloaded = await Collection.findByPk(collection.id, {
+      rejectOnEmpty: true,
+    });
+
+    const [node] = await unloaded.structureFor(user, {
+      documentId: parent.id,
+    });
+    expect(node.id).toEqual(parent.id);
+    expect(node.children).toEqual([]);
+    expect(
+      await unloaded.structureFor(user, { documentId: restricted.id })
+    ).toEqual([]);
   });
 });
 

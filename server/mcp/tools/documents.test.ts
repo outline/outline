@@ -466,6 +466,43 @@ describe("list_documents", () => {
   });
 });
 
+describe("list_collection_documents", () => {
+  it("only returns a restricted document to its members", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const member = await buildOAuthUser({ teamId: user.teamId });
+    const owner = await buildUser({ teamId: user.teamId });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: owner.id,
+      isPrivate: true,
+    });
+    await UserMembership.create({
+      documentId: document.id,
+      userId: member.user.id,
+      permission: DocumentPermission.Read,
+      createdById: document.createdById,
+    });
+
+    for (const [token, visible] of [
+      [accessToken, false],
+      [member.accessToken, true],
+    ] satisfies [string, boolean][]) {
+      const res = await callMcpTool(
+        server,
+        token,
+        "list_collection_documents",
+        {
+          collectionId: document.collectionId,
+        }
+      );
+      expect(res?.result?.isError).toBeFalsy();
+      expect(JSON.stringify(res?.result?.content).includes(document.id)).toBe(
+        visible
+      );
+    }
+  });
+});
+
 describe("create_document", () => {
   it("attributes Markdown mentions to the authenticated user", async () => {
     const { user, accessToken } = await buildOAuthUser();

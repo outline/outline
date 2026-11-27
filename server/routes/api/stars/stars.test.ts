@@ -1,6 +1,7 @@
 import {
   buildDocument,
   buildDraftDocument,
+  buildRestrictedDocument,
   buildStar,
   buildUser,
 } from "@server/test/factories";
@@ -46,6 +47,22 @@ describe("#stars.create", () => {
 });
 
 describe("#stars.list", () => {
+  it("should only return a restricted document to its members", async () => {
+    const { document, member } = await buildRestrictedDocument();
+    const user = await buildUser({ teamId: document.teamId });
+
+    for (const [actor, ids] of [
+      [user, []],
+      [member, [document.id]],
+    ] satisfies [typeof user, string[]][]) {
+      await buildStar({ userId: actor.id, documentId: document.id });
+      const res = await server.post("/api/stars.list", actor);
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.documents.map((d: { id: string }) => d.id)).toEqual(ids);
+    }
+  });
+
   it("should list users stars", async () => {
     const user = await buildUser();
 

@@ -355,14 +355,19 @@ class Template extends ParanoidModel<
   private static async accessibleWhere(
     ctx: Context
   ): Promise<WhereOptions<Template>> {
+    const { user } = ctx.auth;
+    // oxlint-disable-next-line access/no-direct-collection-ids -- Templates have no restricted state, so the document gate does not apply.
+    const collectionIds = await Collection.accessibleIds(user, {
+      transaction: ctx.transaction,
+    });
+
     return {
-      teamId: ctx.auth.user.teamId,
+      teamId: user.teamId,
       [Op.or]: [
         // Workspace templates have no collection and every user can read them.
         { collectionId: { [Op.is]: null } },
-        await Document.accessibleWhere(ctx.auth.user, {
-          transaction: ctx.transaction,
-        }),
+        { collectionId: collectionIds },
+        Document.membershipWhere(user.id),
       ],
     };
   }

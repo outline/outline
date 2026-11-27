@@ -9,6 +9,7 @@ import { Hour } from "@shared/utils/time";
 import type { ProsemirrorData, ReactionSummary } from "@shared/types";
 import {
   CollectionPermission,
+  DocumentPermission,
   FileOperationState,
   FileOperationType,
   ImportState,
@@ -51,6 +52,7 @@ import {
   OAuthAuthentication,
   Relationship,
   Template,
+  UserMembership,
 } from "@server/models";
 import { RelationshipType } from "@server/models/Relationship";
 import { SearchQuerySource } from "@server/models/SearchQuery";
@@ -458,6 +460,34 @@ export async function buildDocument(
   }
 
   return document;
+}
+
+/**
+ * Builds a restricted document in a new collection that every team member can
+ * read, and a member that has a direct membership on the document.
+ *
+ * @param overrides the document attributes to override.
+ * @returns the document and the member.
+ */
+export async function buildRestrictedDocument(
+  overrides: Partial<Document> & { userId?: string } = {}
+) {
+  const teamId = overrides.teamId ?? (await buildTeam()).id;
+  const userId = overrides.userId ?? (await buildUser({ teamId })).id;
+  const document = await buildDocument({
+    ...overrides,
+    teamId,
+    userId,
+    isPrivate: true,
+  });
+  const member = await buildUser({ teamId });
+  await UserMembership.create({
+    documentId: document.id,
+    userId: member.id,
+    permission: DocumentPermission.Read,
+    createdById: document.createdById,
+  });
+  return { document, member };
 }
 
 export async function buildTemplate(

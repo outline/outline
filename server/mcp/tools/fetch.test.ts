@@ -1,3 +1,5 @@
+import { DocumentPermission } from "@shared/types";
+import { UserMembership } from "@server/models";
 import {
   buildCollection,
   buildComment,
@@ -13,6 +15,37 @@ import { buildOAuthUser, callMcpTool } from "@server/test/McpHelper";
 const server = getTestServer();
 
 describe("fetch", () => {
+  it("only returns a restricted document in a collection tree to its members", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const member = await buildOAuthUser({ teamId: user.teamId });
+    const owner = await buildUser({ teamId: user.teamId });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: owner.id,
+      isPrivate: true,
+    });
+    await UserMembership.create({
+      documentId: document.id,
+      userId: member.user.id,
+      permission: DocumentPermission.Read,
+      createdById: document.createdById,
+    });
+
+    for (const [token, visible] of [
+      [accessToken, false],
+      [member.accessToken, true],
+    ] satisfies [string, boolean][]) {
+      const res = await callMcpTool(server, token, "fetch", {
+        resource: "collection",
+        id: document.collectionId,
+      });
+      expect(res?.result?.isError).toBeFalsy();
+      expect(JSON.stringify(res?.result?.content).includes(document.id)).toBe(
+        visible
+      );
+    }
+  });
+
   it("returns collection details", async () => {
     const { user, accessToken } = await buildOAuthUser();
     const collection = await buildCollection({

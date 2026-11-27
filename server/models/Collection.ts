@@ -1129,32 +1129,8 @@ class Collection extends ParanoidModel<
       return null;
     }
 
-    let result!: NavigationNode | undefined;
-
-    const loopChildren = (documents: NavigationNode[]) => {
-      if (result) {
-        return;
-      }
-
-      documents.forEach((document) => {
-        if (result) {
-          return;
-        }
-
-        if (document.id === documentId) {
-          result = document;
-        } else {
-          loopChildren(document.children);
-        }
-      });
-    };
-
-    // Technically, sorting the children is presenter-layer work...
-    // but the only place it's used passes straight into an API response
-    // so the extra indirection is not worthwhile
-    loopChildren(this.documentStructure);
-
-    // if the document is a draft loopChildren will not find it in the structure
+    // A draft is not in the structure, so it is not found.
+    const result = findNode(this.documentStructure, documentId);
     if (!result) {
       return null;
     }
@@ -1180,17 +1156,29 @@ class Collection extends ParanoidModel<
     viewer: User | null,
     options: { documentId?: string; transaction?: Transaction } = {}
   ): Promise<NavigationNode[]> => {
-    if (options.documentId) {
-      const node = this.getDocumentTree(options.documentId);
-      return node ? [node] : [];
-    }
-
     // The attribute guard throws on access when the column was not loaded.
-    if ("documentStructure" in this.dataValues) {
-      return this.documentStructure ?? [];
+    const structure =
+      ("documentStructure" in this.dataValues
+        ? this.documentStructure
+        : await this.getCachedDocumentStructure()) ?? [];
+
+    let nodes = structure;
+    if (options.documentId) {
+      const node = findNode(structure, options.documentId);
+      nodes = node
+        ? [{ ...node, children: sortNavigationNodes(node.children, this.sort) }]
+        : [];
     }
 
-    return (await this.getCachedDocumentStructure()) ?? [];
+    if (!nodes.length || viewer?.isAdmin) {
+      return nodes;
+    }
+
+    const hiddenIds = await this.findHiddenDocumentIds(
+      viewer,
+      options.transaction
+    );
+    return hiddenIds.size ? removeNodes(nodes, hiddenIds) : nodes;
   };
 
   /**
@@ -1643,60 +1631,28 @@ class Collection extends ParanoidModel<
   });
 
   /**
-   * Filter restricted (private) documents from a navigation tree for a given
-   * user. Prunes entire subtrees rooted at restricted documents the user
-   * cannot access. Restriction state is read from the database rather than
-   * the cached tree so stale structure data cannot expose documents. Admins
-   * can access all restricted documents, so the tree is returned unfiltered.
+   * Finds the restricted documents in the collection that the viewer cannot
+   * read. The restricted state is read from the documents, not the cached tree.
    *
-   * @param nodes - the navigation tree to filter.
-   * @param user - the user requesting the tree.
-   * @param collectionId - the collection the nodes belong to.
-   * @returns filtered navigation tree.
+   * @param viewer the user, or null for an anonymous viewer of a public share.
+   * @param transaction the transaction to read in.
+   * @returns a promise that resolves to the ids of the documents.
    */
-  static async filterRestrictedNodes(
-    nodes: NavigationNode[],
-    user: User,
-    collectionId: string
-  ): Promise<NavigationNode[]> {
-    if (user.isAdmin) {
-      return nodes;
-    }
-
-    // A single query resolves membership access inside the database and
-    // returns only the IDs that must be pruned from the tree.
-    const inaccessibleIds = new Set(
-      (
-        await Document.unscoped().findAll({
-          attributes: ["id"],
-          where: {
-            collectionId,
-            isPrivate: true,
-            id: { [Op.notIn]: Document.restrictedDocumentIdsQuery(user) },
-          },
-        })
-      ).map((document) => document.id)
-    );
-
-    if (inaccessibleIds.size === 0) {
-      return nodes;
-    }
-
-    const filterNodes = (items: NavigationNode[]): NavigationNode[] => {
-      const result: NavigationNode[] = [];
-      for (const node of items) {
-        if (inaccessibleIds.has(node.id)) {
-          continue;
-        }
-        result.push({
-          ...node,
-          children: filterNodes(node.children),
-        });
-      }
-      return result;
-    };
-
-    return filterNodes(nodes);
+  private async findHiddenDocumentIds(
+    viewer: User | null,
+    transaction?: Transaction
+  ): Promise<Set<string>> {
+    const documents = await Document.unsafeFindAll({
+      scope: null,
+      attributes: ["id"],
+      where: {
+        collectionId: this.id,
+        isPrivate: true,
+        ...(viewer && { [Op.not]: Document.membershipWhere(viewer.id) }),
+      },
+      transaction,
+    });
+    return new Set(documents.map((document) => document.id));
   }
 
   /**
@@ -1722,6 +1678,42 @@ class Collection extends ParanoidModel<
     this.set("ownerIds", ownerIds, { raw: true });
     return ownerIds;
   }
+}
+
+/**
+ * Finds a node in a navigation tree.
+ *
+ * @param nodes the tree to search.
+ * @param id the id of the node.
+ * @returns the node, or undefined when it is not in the tree.
+ */
+function findNode(
+  nodes: NavigationNode[],
+  id: string
+): NavigationNode | undefined {
+  for (const node of nodes) {
+    const found = node.id === id ? node : findNode(node.children, id);
+    if (found) {
+      return found;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Removes nodes, with their subtrees, from a navigation tree.
+ *
+ * @param nodes the tree to filter.
+ * @param ids the ids of the nodes to remove.
+ * @returns the filtered tree.
+ */
+function removeNodes(
+  nodes: NavigationNode[],
+  ids: Set<string>
+): NavigationNode[] {
+  return nodes
+    .filter((node) => !ids.has(node.id))
+    .map((node) => ({ ...node, children: removeNodes(node.children, ids) }));
 }
 
 export default Collection;

@@ -6,6 +6,7 @@ import slugify from "@server/utils/slugify";
 import { parser } from "@server/editor";
 import Document from "@server/models/Document";
 import {
+  buildAdmin,
   buildDocument,
   buildDraftDocument,
   buildCollection,
@@ -1048,6 +1049,70 @@ describe("#findAllWithCtx access", () => {
       where: { id: [draft.id] },
     });
     expect(documents.length).toBe(1);
+  });
+
+  describe("restricted documents", () => {
+    async function setup() {
+      const team = await buildTeam();
+      const owner = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        userId: owner.id,
+        teamId: team.id,
+      });
+      const document = await buildDocument({
+        userId: owner.id,
+        teamId: team.id,
+        collectionId: collection.id,
+        isPrivate: true,
+      });
+      return { team, owner, document };
+    }
+
+    it("should not return a restricted document to a collection user", async () => {
+      const { team, document } = await setup();
+      const user = await buildUser({ teamId: team.id });
+      const ctx = createContext({ user });
+
+      expect(
+        await Document.findAllWithCtx(ctx, { where: { id: document.id } })
+      ).toHaveLength(0);
+      expect(
+        await Document.countWithCtx(ctx, { where: { id: document.id } })
+      ).toBe(0);
+    });
+
+    it("should return a restricted document to a group member", async () => {
+      const { team, owner, document } = await setup();
+      const user = await buildUser({ teamId: team.id });
+      const group = await buildGroup({ teamId: team.id });
+      await GroupUser.create({
+        groupId: group.id,
+        userId: user.id,
+        createdById: owner.id,
+      });
+      await GroupMembership.create({
+        groupId: group.id,
+        documentId: document.id,
+        permission: DocumentPermission.Read,
+        createdById: owner.id,
+      });
+
+      const documents = await Document.findAllWithCtx(createContext({ user }), {
+        where: { id: document.id },
+      });
+      expect(documents.map((doc) => doc.id)).toEqual([document.id]);
+    });
+
+    it("should return a restricted document to an admin", async () => {
+      const { team, document } = await setup();
+      const admin = await buildAdmin({ teamId: team.id });
+
+      const documents = await Document.findAllWithCtx(
+        createContext({ user: admin }),
+        { where: { id: document.id } }
+      );
+      expect(documents.map((doc) => doc.id)).toEqual([document.id]);
+    });
   });
 });
 

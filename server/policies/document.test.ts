@@ -885,6 +885,39 @@ describe("restricted document", () => {
     expect(abilities.read).toBeTruthy();
   });
 
+  it("should not allow an admin to read documents in a private collection they are not a member of", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: null,
+    });
+    const [open, restricted] = await Promise.all([
+      buildDocument({ teamId: team.id, collectionId: collection.id }),
+      buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+        isPrivate: true,
+      }),
+    ]);
+    for (const doc of [open, restricted]) {
+      const document = await Document.findByPk(doc.id, { userId: admin.id });
+      expect(serialize(admin, document).read).toEqual(false);
+    }
+  });
+
+  it("should not allow an admin to read another user's unfiled draft", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const author = await buildUser({ teamId: team.id });
+    const document = await buildDraftDocument({
+      teamId: team.id,
+      userId: author.id,
+      collectionId: null,
+    });
+    expect(serialize(admin, document).read).toEqual(false);
+  });
+
   it("should allow manageUsers permission for document admin members", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });

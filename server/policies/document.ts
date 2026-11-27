@@ -39,9 +39,13 @@ allow(User, "read", Document, (actor, document) =>
         DocumentPermission.Admin,
       ]),
       and(!!document?.isDraft, actor.id === document?.createdById),
-      and(!document?.collection?.isPersonal, isTeamAdmin(actor, document)),
       and(
-        !document?.isPrivate,
+        !!document?.isPrivate,
+        isTeamAdmin(actor, document),
+        can(actor, "readDocument", document?.collection)
+      ),
+      and(
+        document?.isPrivate === false,
         can(actor, "readDocument", document?.collection)
       )
     )
@@ -110,7 +114,7 @@ allow(User, "update", Document, (actor, document) =>
       ]),
       and(!!document?.isDraft && actor.id === document?.createdById),
       and(
-        !document?.isPrivate,
+        document?.isPrivate === false,
         can(actor, "updateDocument", document?.collection)
       )
     )
@@ -132,7 +136,10 @@ allow(User, "manageUsers", Document, (actor, document) =>
     or(
       includesMembership(document, [DocumentPermission.Admin]),
       and(!document?.collection?.isPersonal, isTeamAdmin(actor, document)),
-      and(!document?.isPrivate, can(actor, "update", document?.collection)),
+      and(
+        document?.isPrivate === false,
+        can(actor, "update", document?.collection)
+      ),
       !!document?.isDraft && actor.id === document?.createdById,
       and(isDocumentOwner(actor, document), can(actor, "update", document))
     )
@@ -174,7 +181,7 @@ allow(User, "move", Document, (actor, document) =>
           DocumentPermission.Admin,
         ]),
         and(
-          !document?.isPrivate,
+          document?.isPrivate === false,
           can(actor, "updateDocument", document?.collection)
         ),
         and(!!document?.isDraft && actor.id === document?.createdById),
@@ -240,7 +247,7 @@ allow(User, "restore", Document, (actor, document) =>
         DocumentPermission.Admin,
       ]),
       and(
-        !document?.isPrivate,
+        document?.isPrivate === false,
         can(actor, "updateDocument", document?.collection)
       ),
       and(!!document?.isDraft && actor.id === document?.createdById)
@@ -276,7 +283,7 @@ allow(User, "archive", Document, (actor, document) =>
             can(actor, "read", document)
           ),
           and(
-            !document?.isPrivate,
+            document?.isPrivate === false,
             can(actor, "updateDocument", document?.collection)
           ),
           isDocumentOwner(actor, document)
@@ -301,7 +308,7 @@ allow(User, "unarchive", Document, (actor, document) =>
         DocumentPermission.Admin,
       ]),
       and(
-        !document?.isPrivate,
+        document?.isPrivate === false,
         can(actor, "updateDocument", document?.collection)
       ),
       and(!!document?.isDraft && actor.id === document?.createdById)
@@ -340,7 +347,7 @@ allow(User, "unpublish", Document, (user, document) =>
       ]),
       and(isTeamAdmin(user, document), can(user, "read", document)),
       and(
-        !document?.isPrivate,
+        document?.isPrivate === false,
         can(user, "updateDocument", document?.collection)
       )
     )
