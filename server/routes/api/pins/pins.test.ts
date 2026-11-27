@@ -75,6 +75,20 @@ describe("#pins.create", () => {
     expect(res.status).toEqual(200);
   });
 
+  it("should remove pins when a collection is deleted", async () => {
+    await buildCollection({ teamId: admin.teamId, createdById: admin.id });
+    await buildPin({
+      teamId: admin.teamId,
+      createdById: admin.id,
+      documentId: document.id,
+    });
+    const del = await server.post("/api/collections.delete", admin, {
+      body: { id: collection.id },
+    });
+    expect(del.status).toEqual(200);
+    expect(await Pin.count({ where: { documentId: document.id } })).toEqual(0);
+  });
+
   it("should fail with status 400 when the document is not in the collection", async () => {
     const otherCollection = await buildCollection({
       createdById: admin.id,

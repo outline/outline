@@ -76,6 +76,7 @@ import Group from "./Group";
 import GroupMembership from "./GroupMembership";
 import GroupUser from "./GroupUser";
 import Import from "./Import";
+import Pin from "./Pin";
 import Team from "./Team";
 import User from "./User";
 import UserMembership from "./UserMembership";
@@ -436,6 +437,28 @@ class Collection extends ParanoidModel<
 
   @BeforeDestroy
   static async deleteDocuments(model: Collection, ctx: HookContextFields) {
+    const where = {
+      teamId: model.teamId,
+      collectionId: model.id,
+      archivedAt: {
+        [Op.is]: null,
+      },
+    };
+
+    // The bulk update below skips the Document destroy hook, so pins are removed here.
+    const documents = await Document.scope("published").findAll({
+      attributes: ["id"],
+      where,
+      transaction: ctx.transaction,
+    });
+    const pinOptions = {
+      ...ctx,
+      where: { documentId: documents.map((document) => document.id) },
+      individualHooks: true,
+      event: { publish: true },
+    };
+    await Pin.destroy(pinOptions);
+
     // A bulk update rather than a destroy per document, so `deletedById` is
     // written here instead of by the hook on ParanoidModel.
     await Document.update(
@@ -446,13 +469,7 @@ class Collection extends ParanoidModel<
       },
       {
         transaction: ctx.transaction,
-        where: {
-          teamId: model.teamId,
-          collectionId: model.id,
-          archivedAt: {
-            [Op.is]: null,
-          },
-        },
+        where,
       }
     );
   }
