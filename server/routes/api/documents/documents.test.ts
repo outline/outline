@@ -1441,6 +1441,51 @@ describe("#documents.list", () => {
     expect(body.data[0].id).toEqual(anotherDoc.id);
   });
 
+  it("should filter backlinks by collectionId", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const otherCollection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const inCollection = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const inOtherCollection = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: otherCollection.id,
+    });
+    await Relationship.bulkCreate(
+      [inCollection, inOtherCollection].map((source) => ({
+        reverseDocumentId: source.id,
+        type: RelationshipType.Backlink,
+        documentId: document.id,
+        userId: user.id,
+      }))
+    );
+    const res = await server.post("/api/documents.list", user, {
+      body: {
+        backlinkDocumentId: document.id,
+        collectionId: collection.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.map((doc: { id: string }) => doc.id)).toEqual([
+      inCollection.id,
+    ]);
+  });
+
   describe("filter DSL", () => {
     it("should match a simple contains leaf case-insensitively", async () => {
       const user = await buildUser();
