@@ -54,7 +54,7 @@ router.post(
     const pin = await pinCreator({
       ctx,
       user,
-      documentId,
+      documentId: document.id,
       collectionId,
       index,
     });
@@ -83,7 +83,7 @@ router.post(
     // There can be only one pin with these props.
     const pin = await Pin.findOne({
       where: {
-        documentId,
+        documentId: document.id,
         collectionId: collectionId ?? null,
         createdById: user.id,
         teamId: user.teamId,

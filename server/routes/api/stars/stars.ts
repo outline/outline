@@ -31,8 +31,11 @@ router.post(
     const { documentId, collectionId, index } = ctx.input.body;
     const { user } = ctx.auth;
 
+    let document: Document | null = null;
+    let collection: Collection | null = null;
+
     if (documentId) {
-      const document = await Document.findByPk(documentId, {
+      document = await Document.findByPk(documentId, {
         userId: user.id,
         transaction,
       });
@@ -40,7 +43,7 @@ router.post(
     }
 
     if (collectionId) {
-      const collection = await Collection.findByPk(collectionId, {
+      collection = await Collection.findByPk(collectionId, {
         userId: user.id,
         transaction,
       });
@@ -50,8 +53,8 @@ router.post(
     const star = await starCreator({
       ctx,
       user,
-      documentId,
-      collectionId,
+      documentId: document?.id,
+      collectionId: collection?.id,
       index,
     });
 

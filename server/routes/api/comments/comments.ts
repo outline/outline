@@ -180,6 +180,7 @@ router.post(
     authorize(user, "listComments", user.team);
 
     let document: Document | null = null;
+    let collection: Collection | null = null;
     if (documentId) {
       document = await Document.findByPk(documentId, {
         userId: user.id,
@@ -188,7 +189,7 @@ router.post(
       });
       authorize(user, "read", document);
     } else if (collectionId) {
-      const collection = await Collection.findByPk(collectionId, {
+      collection = await Collection.findByPk(collectionId, {
         userId: user.id,
       });
       authorize(user, "readDocument", collection);
@@ -196,7 +197,7 @@ router.post(
 
     const { comments, total } = await Comment.findAllForUser(user, {
       document,
-      collectionId,
+      collectionId: collection?.id,
       parentCommentId,
       statusFilter,
       includeDocuments: includeAnchorText,

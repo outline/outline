@@ -1415,8 +1415,10 @@ router.post(
 
     authorize(user, "update", original);
 
+    let collection: Collection | null = null;
+
     if (collectionId) {
-      const collection = await Collection.findByPk(collectionId, {
+      collection = await Collection.findByPk(collectionId, {
         userId: user.id,
         transaction,
       });
@@ -1427,7 +1429,7 @@ router.post(
 
     const template = await Template.createWithCtx(ctx, {
       editorVersion: original.editorVersion,
-      collectionId,
+      collectionId: collection?.id,
       teamId: user.teamId,
       publishedAt: publish ? new Date() : null,
       lastModifiedById: user.id,
@@ -1962,7 +1964,7 @@ router.post(
     if (isSelf && !owner) {
       await document.removeOwner(ctx, userId);
       const selfMembership = await UserMembership.findOne({
-        where: { documentId: id, userId },
+        where: { documentId: document.id, userId },
         transaction,
       });
 
@@ -1983,7 +1985,7 @@ router.post(
       await document.addOwner(ctx, userId);
 
       const membership = await UserMembership.findOne({
-        where: { documentId: id, userId },
+        where: { documentId: document.id, userId },
         transaction,
         rejectOnEmpty: true,
       });
@@ -2020,7 +2022,7 @@ router.post(
     );
 
     let membership = await UserMembership.findOneForUpdate(
-      { documentId: id, userId },
+      { documentId: document.id, userId },
       { transaction }
     );
 
@@ -2034,7 +2036,7 @@ router.post(
     } else {
       membership = await UserMembership.create(
         {
-          documentId: id,
+          documentId: document.id,
           userId,
           index,
           permission: permission || user.defaultDocumentPermission,
@@ -2093,7 +2095,7 @@ router.post(
 
     const membership = await UserMembership.findOne({
       where: {
-        documentId: id,
+        documentId: document.id,
         userId,
       },
       transaction,
@@ -2142,7 +2144,7 @@ router.post(
     authorize(user, "read", group);
 
     let membership = await GroupMembership.findOneForUpdate(
-      { documentId: id, groupId },
+      { documentId: document.id, groupId },
       { transaction }
     );
 
@@ -2156,7 +2158,7 @@ router.post(
     } else {
       membership = await GroupMembership.create(
         {
-          documentId: id,
+          documentId: document.id,
           groupId,
           permission: permission ?? DocumentPermission.ReadWrite,
           createdById: user.id,
@@ -2200,7 +2202,7 @@ router.post(
 
     const membership = await GroupMembership.findOne({
       where: {
-        documentId: id,
+        documentId: document.id,
         groupId,
       },
       transaction,
@@ -2229,7 +2231,7 @@ router.post(
     authorize(actor, "update", document);
 
     let where: WhereOptions<UserMembership> = {
-      documentId: id,
+      documentId: document.id,
     };
     let userWhere;
 
@@ -2289,7 +2291,7 @@ router.post(
     authorize(user, "update", document);
 
     let where: WhereOptions<GroupMembership> = {
-      documentId: id,
+      documentId: document.id,
     };
     let groupWhere;
 

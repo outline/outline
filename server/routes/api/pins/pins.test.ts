@@ -180,6 +180,17 @@ describe("#pins.create", () => {
     expect(body.data.documentId).toEqual(document.id);
     expect(body.data.collectionId).toEqual(collection.id);
   });
+
+  it("should succeed with status 200 ok when documentId is a url slug", async () => {
+    const res = await server.post("/api/pins.create", admin, {
+      body: {
+        documentId: `my-doc-${document.urlId}`,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.documentId).toEqual(document.id);
+  });
 });
 
 describe("#pins.info", () => {
