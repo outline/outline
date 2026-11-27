@@ -11,18 +11,18 @@ export default function isMarkdown(text: string): boolean {
 
   // latex-ish, the delimiters must hug their content and the closing one must
   // not be followed by a digit so that currency amounts are not counted.
-  const latex = text.match(/\$[^\s](?:.*?[^\s])?\$(?!\d)/g);
+  const latex = text.match(/\$[^\s$](?:[^$\n]*[^\s$])?\$(?!\d)/g);
   if (latex && latex.length > 0) {
     signals += latex.length;
   }
 
-  // link-ish
-  const links = text.match(/\[[^]+\]\(https?:\/\/\S+\)/gm);
+  // link-ish, text and destination stop at the next bracket so matching stays linear.
+  const links = text.match(/\[[^[\]\n]+\]\(https?:\/\/[^\s)[]+\)/g);
   if (links) {
     signals += links.length * 2;
   }
 
-  const relativeLinks = text.match(/\[[^]+\]\(\/\S+\)/gm);
+  const relativeLinks = text.match(/\[[^[\]\n]+\]\(\/[^\s)[]+\)/g);
   if (relativeLinks) {
     signals += relativeLinks.length * 2;
   }
