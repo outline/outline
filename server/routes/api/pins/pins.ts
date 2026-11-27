@@ -1,6 +1,7 @@
 import Router from "@koa/router";
 import { Sequelize, Op, Transaction } from "sequelize";
 import pinCreator from "@server/commands/pinCreator";
+import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -42,6 +43,10 @@ router.post(
       });
       authorize(user, "pin", collection);
       authorize(user, "pin", document);
+
+      if (document.collectionId !== collection.id) {
+        throw ValidationError("Document must belong to the collection");
+      }
     } else {
       authorize(user, "pinToHome", document);
     }
