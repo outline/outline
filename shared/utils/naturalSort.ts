@@ -1,13 +1,19 @@
 import emojiRegex from "emoji-regex";
 import { deburr } from "es-toolkit/compat";
-import naturalSort from "natural-sort";
 
 type NaturalSortOptions = {
   caseSensitive?: boolean;
   direction?: "asc" | "desc";
 };
 
-const sorter = naturalSort();
+const collator = new Intl.Collator(undefined, {
+  numeric: true,
+  sensitivity: "base",
+});
+const caseSensitiveCollator = new Intl.Collator(undefined, {
+  numeric: true,
+  sensitivity: "case",
+});
 const regex = emojiRegex();
 
 const stripEmojis = (value: string) => value.replace(regex, "");
@@ -33,17 +39,22 @@ function naturalSortBy<T extends object>(
   if (!items) {
     return [];
   }
-  const sort = sortOptions
-    ? naturalSort({
-        caseSensitive: sortOptions.caseSensitive,
-        direction: sortOptions.direction === "desc" ? "desc" : undefined,
-      })
-    : sorter;
+  const compare = sortOptions?.caseSensitive
+    ? caseSensitiveCollator.compare
+    : collator.compare;
+  const multiplier = sortOptions?.direction === "desc" ? -1 : 1;
 
   // Sort a copy, `items` may be an observable array which cannot be sorted in place.
-  return items
-    .slice()
-    .sort((a: T, b: T) => sort(getSortByField(a, key), getSortByField(b, key)));
+  return items.slice().sort((a: T, b: T) => {
+    const x = getSortByField(a, key);
+    const y = getSortByField(b, key);
+
+    // Empty values sort last.
+    if (!x || !y) {
+      return (Number(!x) - Number(!y)) * multiplier;
+    }
+    return compare(x, y) * multiplier;
+  });
 }
 
 export default naturalSortBy;

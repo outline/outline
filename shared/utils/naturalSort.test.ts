@@ -73,9 +73,6 @@ describe("#naturalSort", () => {
       })
     ).toEqual([
       {
-        name: "joan",
-      },
-      {
         name: "Pedro",
       },
       {
@@ -83,6 +80,9 @@ describe("#naturalSort", () => {
       },
       {
         name: "Joan",
+      },
+      {
+        name: "joan",
       },
     ]);
   });
@@ -135,5 +135,25 @@ describe("#naturalSort", () => {
         title: "🐻 Document 3",
       },
     ]);
+  });
+});
+
+describe("#naturalSort performance", () => {
+  it("should quickly sort long titles that contain years", () => {
+    const items = Array.from({ length: 400 }, (_, i) => ({
+      title: `Engineering planning notes and retrospective ${2000 + (i % 25)} part ${i}`,
+    }));
+
+    const start = performance.now();
+    const sorted = naturalSort(items, "title");
+    const duration = performance.now() - start;
+
+    expect(sorted[0].title).toEqual(
+      "Engineering planning notes and retrospective 2000 part 0"
+    );
+    expect(sorted[1].title).toEqual(
+      "Engineering planning notes and retrospective 2000 part 25"
+    );
+    expect(duration).toBeLessThan(500);
   });
 });
