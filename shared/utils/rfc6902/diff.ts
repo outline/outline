@@ -179,6 +179,9 @@ function isArrayRemove(
   return array_operation.op === "remove";
 }
 
+/** Maximum number of memo cells diffArrays may allocate. */
+const MAX_ARRAY_DIFF_CELLS = 1_000_000;
+
 interface DynamicAlternative {
   /** Previous i coordinate (-1 means no previous) */
   prevI: number;
@@ -235,6 +238,7 @@ function buildOperations(
  * resulting in an array of 'remove' operations.
  *
  * @returns a list of add/remove/replace operations.
+ * @throws if the changed ranges are too large to diff in bounded memory.
  */
 export function diffArrays<T>(
   input: T[],
@@ -274,6 +278,13 @@ export function diffArrays<T>(
   // Calculate the size of the subproblem
   const subInput = input_end - start;
   const subOutput = output_end - start;
+
+  // The memo below holds one object per cell, so cap it to bound memory.
+  if ((subInput + 1) * (subOutput + 1) > MAX_ARRAY_DIFF_CELLS) {
+    throw new Error(
+      `Array diff exceeds max complexity: ${subInput} x ${subOutput} changed items`
+    );
+  }
 
   // oxlint-disable-next-line unicorn/no-new-array
   const memo: Array<Array<DynamicAlternative>> = new Array(subInput + 1);

@@ -305,6 +305,14 @@ describe("ChangesetHelper.getChangeset", () => {
       expect(ChangesetHelper.getChangeset(after, before)).toBeNull();
     });
 
+    it("returns null when every paragraph of a large document changes", () => {
+      const many = Array.from({ length: 3000 }, (_, i) => `line ${i}`);
+      const before = paras(...many);
+      const after = paras(...many.map((text) => `${text} rewritten`));
+
+      expect(ChangesetHelper.getChangeset(after, before)).toBeNull();
+    });
+
     it("still computes a changeset for a small change to a large document", () => {
       const before = paras(...texts);
       const after = paras(...texts.slice(0, -1), "a different final paragraph");
