@@ -173,6 +173,33 @@ describe("shareLoader", () => {
       ).rejects.toThrow();
     });
 
+    it("should list and serve the restricted subtree that the creator can read", async () => {
+      const { document: root, member } = await buildRestrictedDocument();
+      const child = await buildDocument({
+        userId: root.createdById,
+        teamId: root.teamId,
+        collectionId: root.collectionId,
+        parentDocumentId: root.id,
+      });
+      const share = await buildShare({
+        includeChildDocuments: true,
+        userId: member.id,
+        teamId: root.teamId,
+        documentId: root.id,
+      });
+
+      const result = await loadPublicShare({ id: share.id });
+      expect(result.sharedTree?.id).toEqual(root.id);
+      expect(result.sharedTree?.children.map((node) => node.id)).toEqual([
+        child.id,
+      ]);
+      const childResult = await loadPublicShare({
+        id: share.id,
+        documentId: child.id,
+      });
+      expect(childResult.document?.id).toEqual(child.id);
+    });
+
     it("should return share with tree and document when requested with id", async () => {
       const user = await buildUser();
       const collection = await buildCollection({
