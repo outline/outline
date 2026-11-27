@@ -179,6 +179,29 @@ describe("#emojis.update", () => {
     expect(await Attachment.findByPk(emoji.attachmentId)).not.toBeNull();
   });
 
+  it("should not allow using another emoji's attachment", async () => {
+    const user = await buildUser();
+    const emoji = await buildEmoji({
+      teamId: user.teamId,
+      createdById: user.id,
+    });
+    const other = await buildEmoji({
+      teamId: user.teamId,
+      createdById: user.id,
+    });
+
+    const res = await server.post("/api/emojis.update", user, {
+      body: {
+        id: emoji.id,
+        attachmentId: other.attachmentId,
+      },
+    });
+
+    expect(res.status).toEqual(400);
+    expect(await Emoji.findByPk(other.id)).not.toBeNull();
+    expect(await Attachment.findByPk(emoji.attachmentId)).not.toBeNull();
+  });
+
   it("should return 404 for non-existent attachment", async () => {
     const user = await buildUser();
     const emoji = await buildEmoji({
@@ -258,5 +281,23 @@ describe("#emojis.create", () => {
 
     expect(res.status).toEqual(400);
     expect(await Emoji.count({ where: { teamId: user.teamId } })).toEqual(0);
+  });
+});
+
+describe("#emojis.delete", () => {
+  it("should delete the emoji and its attachment", async () => {
+    const user = await buildUser();
+    const emoji = await buildEmoji({
+      teamId: user.teamId,
+      createdById: user.id,
+    });
+
+    const res = await server.post("/api/emojis.delete", user, {
+      body: { id: emoji.id },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(await Emoji.findByPk(emoji.id)).toBeNull();
+    expect(await Attachment.findByPk(emoji.attachmentId)).toBeNull();
   });
 });
