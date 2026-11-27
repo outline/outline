@@ -81,7 +81,7 @@ import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import TextBundleHelper from "@server/models/helpers/TextBundleHelper";
 import SearchProviderManager from "@server/utils/SearchProviderManager";
 import { TextHelper } from "@server/models/helpers/TextHelper";
-import { authorize, cannot } from "@server/policies";
+import { authorize, can, cannot } from "@server/policies";
 import {
   presentDocument,
   presentDocumentInsight,
@@ -2299,7 +2299,8 @@ router.post(
     const documents = await Document.findAllWithCtx(ctx, {
       includeDrafts: true,
       includeViews: false,
-      attributes: ["id"],
+      // The columns that the permanentDelete policy reads.
+      attributes: ["id", "teamId", "collectionId", "deletedAt"],
       where: {
         deletedAt: {
           [Op.ne]: null,
@@ -2316,10 +2317,14 @@ router.post(
       paranoid: false,
     });
 
-    if (documents.length) {
-      await new EmptyTrashTask().schedule({
-        documentIds: documents.map((doc) => doc.id),
-      });
+    // The task deletes without a policy check, and read access alone does not
+    // allow a permanent delete.
+    const documentIds = documents
+      .filter((document) => can(user, "permanentDelete", document))
+      .map((document) => document.id);
+
+    if (documentIds.length) {
+      await new EmptyTrashTask().schedule({ documentIds });
     }
 
     await Event.createFromContext(ctx, {

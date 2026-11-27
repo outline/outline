@@ -53,6 +53,7 @@ import {
   buildTeam,
   buildGroup,
   buildAdmin,
+  buildPersonalCollection,
   buildTemplate,
   buildAttachment,
   buildSubdomain,
@@ -10336,6 +10337,30 @@ describe("#documents.empty_trash", () => {
     expect(res.status).toEqual(200);
     expect(schedule).toHaveBeenCalledWith({
       documentIds: [otherDocument.id],
+    });
+  });
+  it("should not delete trashed documents in another user's personal collection", async () => {
+    const admin = await buildAdmin();
+    const owner = await buildUser({ teamId: admin.teamId });
+    const personal = await buildPersonalCollection(owner);
+    const document = await buildDocument({
+      userId: owner.id,
+      teamId: admin.teamId,
+      collectionId: personal.id,
+    });
+    await UserMembership.create({
+      createdById: owner.id,
+      documentId: document.id,
+      userId: admin.id,
+      permission: DocumentPermission.Read,
+    });
+    await withContext(owner, (ctx) => document.destroyWithCtx(ctx));
+    const schedule = vi.spyOn(EmptyTrashTask.prototype, "schedule");
+
+    const res = await server.post("/api/documents.empty_trash", admin);
+    expect(res.status).toEqual(200);
+    expect(schedule.mock.calls.flat()).not.toContainEqual({
+      documentIds: expect.arrayContaining([document.id]),
     });
   });
 });
