@@ -75,6 +75,20 @@ describe("#pins.create", () => {
     expect(res.status).toEqual(200);
   });
 
+  it("should fail with status 400 when the document is not in the collection", async () => {
+    const otherCollection = await buildCollection({
+      createdById: admin.id,
+      teamId: admin.teamId,
+    });
+    const res = await server.post("/api/pins.create", admin, {
+      body: {
+        documentId: document.id,
+        collectionId: otherCollection.id,
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
   it("should fail with status 401 unauthorized when user token is missing", async () => {
     const res = await server.post("/api/pins.create", {
       body: {

@@ -29,16 +29,18 @@ export default class UploadAttachmentFromUrlTask extends BaseTask<Props> {
         attachment.acl
       );
 
-      if (res?.url) {
-        await sequelize.transaction(async (transaction) => {
-          const ctx = createContext({ user: attachment.user, transaction });
-          await attachment.updateWithCtx(ctx, {
-            url: res.url,
-            size: res.contentLength,
-            contentType: res.contentType,
-          });
-        });
+      if (!res?.url) {
+        return { error: "Failed to upload file from URL" };
       }
+
+      await sequelize.transaction(async (transaction) => {
+        const ctx = createContext({ user: attachment.user, transaction });
+        await attachment.updateWithCtx(ctx, {
+          url: res.url,
+          size: res.contentLength,
+          contentType: res.contentType,
+        });
+      });
     } catch (err) {
       return { error: errToString(err) };
     }

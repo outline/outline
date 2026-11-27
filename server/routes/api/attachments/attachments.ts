@@ -272,6 +272,9 @@ router.post(
 
     const response = await job.finished();
     if ("error" in response) {
+      await sequelize.transaction(async (transaction) =>
+        attachment.destroyWithCtx(withTransaction(ctx, transaction))
+      );
       throw InvalidRequestError(response.error);
     }
 
