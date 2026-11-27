@@ -171,9 +171,18 @@ router.post(
       "$collection.teamId$": user.teamId,
     };
 
-    const documentWhere: WhereAttributeHash<Share> = {
+    const documentWhere: WhereAttributeHash<Share> & {
+      [Op.or]?: WhereOptions<Share>[];
+    } = {
       "$document.teamId$": user.teamId,
-      "$document.collectionId$": collectionIds,
+      [Op.or]: [
+        { "$document.collectionId$": collectionIds },
+        // Drafts without a collection can be shared publicly too.
+        {
+          "$document.collectionId$": null,
+          ...(user.isAdmin ? {} : { "$document.createdById$": user.id }),
+        },
+      ],
     };
 
     if (query) {
@@ -214,7 +223,7 @@ router.post(
         {
           // Memberships are needed to compute the share policies.
           model: Document.scope([
-            "defaultScope",
+            "withDrafts",
             { method: ["withMembership", user.id] },
           ]),
           required: false,
