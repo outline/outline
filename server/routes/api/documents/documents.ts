@@ -662,15 +662,17 @@ router.post(
       authorize(user, "readDocument", collection);
     }
 
-    const collectionIds = collectionId
-      ? [collectionId]
-      : await user.collectionIds();
     const where: WhereOptions = {
       teamId: user.teamId,
       createdById: user.id,
-      collectionId: {
-        [Op.or]: [{ [Op.in]: collectionIds }, { [Op.is]: null }],
-      },
+      collectionId: collectionId
+        ? collectionId
+        : {
+            [Op.or]: [
+              { [Op.in]: await user.collectionIds() },
+              { [Op.is]: null },
+            ],
+          },
       publishedAt: {
         [Op.is]: null,
       },

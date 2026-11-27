@@ -2944,6 +2944,32 @@ describe("#documents.drafts", () => {
     expect(body.data.length).toEqual(drafts.length);
   });
 
+  it("should only return drafts in the given collection", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDraftDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+    });
+    await buildDraftDocument({
+      userId: user.id,
+      collectionId: null,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/documents.drafts", user, {
+      body: { collectionId: collection.id },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
   it("should not return drafts in private collections not a member of", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
