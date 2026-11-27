@@ -4,7 +4,7 @@ import fs from "fs-extra";
 import invariant from "invariant";
 import contentDisposition from "content-disposition";
 import Router from "@koa/router";
-import { escapeRegExp, has, remove, uniq } from "es-toolkit/compat";
+import { escapeRegExp, uniq } from "es-toolkit/compat";
 import mime from "mime-types";
 import type { Order, ScopeOptions, WhereOptions } from "sequelize";
 import type { Filter } from "@shared/helpers/FilterHelper";
@@ -331,9 +331,6 @@ router.post(
       );
 
       where[Op.and].push({ id: sourceDocumentIds });
-
-      // For safety, ensure the collectionId is not set in the query.
-      remove(where[Op.and], (cond) => has(cond, "collectionId"));
     }
 
     // A filter referencing publishedAt can surface drafts (the replacement
