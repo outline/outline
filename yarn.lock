@@ -85,23 +85,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/core@npm:^3.981.0":
-  version: 3.981.0
-  resolution: "@aws-sdk/core@npm:3.981.0"
-  dependencies:
-    "@aws-sdk/types": "npm:^3.975.1"
-    "@aws-sdk/xml-builder": "npm:^3.972.43"
-    "@aws/lambda-invoke-store": "npm:^0.3.0"
-    "@smithy/core": "npm:^3.40.0"
-    "@smithy/signature-v4": "npm:^5.7.5"
-    "@smithy/types": "npm:^4.20.0"
-    bowser: "npm:^2.11.0"
-    tslib: "npm:^2.6.2"
-  checksum: 10c0/4108dfaac2488e6d87c3c0cd14ded569e3545bdcb2cf17597321ba666d9b29eb28372ebd953995318eca47e225cf1f47d98e8089a253af64e5f9cd9bb113b743
-  languageName: node
-  linkType: hard
-
-"@aws-sdk/core@npm:^3.981.1":
+"@aws-sdk/core@npm:^3.981.0, @aws-sdk/core@npm:^3.981.1":
   version: 3.981.1
   resolution: "@aws-sdk/core@npm:3.981.1"
   dependencies:
@@ -6064,7 +6048,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/react-virtual@npm:^3.14.28":
+"@tanstack/react-virtual@npm:^3.14.28, @tanstack/react-virtual@npm:^3.14.9":
   version: 3.14.28
   resolution: "@tanstack/react-virtual@npm:3.14.28"
   dependencies:
@@ -6076,29 +6060,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/react-virtual@npm:^3.14.9":
-  version: 3.14.26
-  resolution: "@tanstack/react-virtual@npm:3.14.26"
-  dependencies:
-    "@tanstack/virtual-core": "npm:3.19.11"
-  peerDependencies:
-    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10c0/71291177ac4c4b067a40351d46c69af0d5fc9dfcc6cb328cb87717b29209501a7193e92e75e599273ee423fff6c55c88157bd238684846b0d926dfa73b5d6dac
-  languageName: node
-  linkType: hard
-
 "@tanstack/table-core@npm:8.21.3":
   version: 8.21.3
   resolution: "@tanstack/table-core@npm:8.21.3"
   checksum: 10c0/40e3560e6d55e07cc047024aa7f83bd47a9323d21920d4adabba8071fd2d21230c48460b26cedf392588f8265b9edc133abb1b0d6d0adf4dae0970032900a8c9
-  languageName: node
-  linkType: hard
-
-"@tanstack/virtual-core@npm:3.19.11":
-  version: 3.19.11
-  resolution: "@tanstack/virtual-core@npm:3.19.11"
-  checksum: 10c0/61558882fd09f64020104ecd94bacaa2a6ccbb0745247610ede7683d709cf8d134cc3f6d1ee2d22203cb881e531bc4a3bb92e4657c08edf923ab6d5c39a958ec
   languageName: node
   linkType: hard
 
@@ -12498,20 +12463,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lib0@npm:^0.2.109, lib0@npm:^0.2.46, lib0@npm:^0.2.47, lib0@npm:^0.2.85, lib0@npm:^0.2.99":
-  version: 0.2.119
-  resolution: "lib0@npm:0.2.119"
-  dependencies:
-    isomorphic.js: "npm:^0.2.4"
-  bin:
-    0ecdsa-generate-keypair: bin/0ecdsa-generate-keypair.js
-    0gentesthtml: bin/gentesthtml.js
-    0serve: bin/0serve.js
-  checksum: 10c0/722277c01158cc560c4cdc6093803435d5c1c1ed278a7ccfca4693968cc8a8ff361a0bbfcf7d76d6085c8b65716d381af81cf8d415bd9b5e48428df8896393bf
-  languageName: node
-  linkType: hard
-
-"lib0@npm:^0.2.120":
+"lib0@npm:^0.2.109, lib0@npm:^0.2.120, lib0@npm:^0.2.46, lib0@npm:^0.2.47, lib0@npm:^0.2.85, lib0@npm:^0.2.99":
   version: 0.2.120
   resolution: "lib0@npm:0.2.120"
   dependencies:
@@ -14001,12 +13953,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"outline-icons@npm:^4.6.0":
-  version: 4.6.0
-  resolution: "outline-icons@npm:4.6.0"
+"outline-icons@npm:^4.7.0":
+  version: 4.7.0
+  resolution: "outline-icons@npm:4.7.0"
   peerDependencies:
     react: ^17.0.0 || ^18.0.0
-  checksum: 10c0/b3ea4b2fe3af3eed52a2f93296aaecbeee6f5c692592ee0b9d31b25bc6887910e74506f080368887b5d6aad95c399a8987434882c5acddb6f6f36ef218a83175
+  checksum: 10c0/eef091f685d785f2f22df2d5f2cf5e370c0494b7ea04dccccbc2429043376a2e8343ccd22cacc54bad6919927a415cc8a64b80455ceed5d2977856ce4037f58c
   languageName: node
   linkType: hard
 
@@ -14199,7 +14151,7 @@ __metadata:
     node-fetch: "npm:2.7.0"
     nodemailer: "npm:^10.6.0"
     octokit: "npm:^5.0.5"
-    outline-icons: "npm:^4.6.0"
+    outline-icons: "npm:^4.7.0"
     oxfmt: "npm:0.73.0"
     oxlint: "npm:1.94.0"
     oxlint-tsgolint: "npm:7.0.2006"
