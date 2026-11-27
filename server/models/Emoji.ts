@@ -1,8 +1,13 @@
-import type { InferAttributes, InferCreationAttributes } from "sequelize";
-import { type SaveOptions } from "sequelize";
+import type {
+  InferAttributes,
+  InferCreationAttributes,
+  InstanceDestroyOptions,
+} from "sequelize";
+import { Op, type SaveOptions } from "sequelize";
 import {
+  AfterDestroy,
   BeforeCreate,
-  BeforeDestroy,
+  BeforeSave,
   BelongsTo,
   Column,
   DataType,
@@ -16,7 +21,6 @@ import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Length from "./validators/Length";
-import FileStorage from "@server/storage/files";
 import Attachment from "./Attachment";
 
 @Table({ tableName: "emojis", modelName: "emoji" })
@@ -76,12 +80,37 @@ class Emoji extends IdModel<
     }
   }
 
-  @BeforeDestroy
-  static async deleteAttachmentFromS3(model: Emoji) {
-    const attachment = await Attachment.findByPk(model.attachmentId);
-    if (attachment) {
-      await FileStorage.deleteFile(attachment.key);
+  @BeforeSave
+  static async checkUniqueAttachment(
+    model: Emoji,
+    options: SaveOptions<Emoji>
+  ): Promise<void> {
+    if (!model.changed("attachmentId")) {
+      return;
     }
+
+    const existingEmoji = await this.findOne({
+      where: {
+        attachmentId: model.attachmentId,
+        id: { [Op.ne]: model.id },
+      },
+      transaction: options.transaction,
+    });
+
+    if (existingEmoji) {
+      throw ValidationError("Attachment is already used by another emoji");
+    }
+  }
+
+  @AfterDestroy
+  static async deleteAttachment(
+    model: Emoji,
+    options: InstanceDestroyOptions
+  ): Promise<void> {
+    const attachment = await Attachment.findByPk(model.attachmentId, {
+      transaction: options.transaction,
+    });
+    await attachment?.destroy({ transaction: options.transaction });
   }
 }
 
