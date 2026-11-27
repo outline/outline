@@ -550,7 +550,7 @@ export default class Image extends SimpleImage {
 
     markdown +=
       "![" +
-      state.esc((node.attrs.alt || "").replace("\n", "") || "", false) +
+      state.esc((node.attrs.alt || "").replace(/\n/g, "") || "", false) +
       "](" +
       state.esc(node.attrs.src || "", false);
 
@@ -578,7 +578,11 @@ export default class Image extends SimpleImage {
     }
 
     if (titleParts.length > 0 || size) {
-      markdown += ' "' + state.esc(titleParts.join(" "), false) + size + '"';
+      let title = titleParts.join(" ").replace(/["\\]/g, "\\$&");
+      if (state.inTable) {
+        title = title.replace(/\|/g, "\\|");
+      }
+      markdown += ' "' + title + size + '"';
     }
     markdown += ")";
     state.write(markdown);

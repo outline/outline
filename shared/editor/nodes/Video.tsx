@@ -347,13 +347,14 @@ export default class Video extends Node {
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
-    state.ensureNewLine();
+    // Separate writes, so that a list or quote delimiter also prefixes the opener.
+    state.write("\n");
     state.write(
       `[${node.attrs.title} ${node.attrs.width ?? ""}x${
         node.attrs.height ?? ""
-      }](${node.attrs.src})\n\n`
+      }](${node.attrs.src})`
     );
-    state.ensureNewLine();
+    state.closeBlock(node);
   }
 
   parseMarkdown() {
