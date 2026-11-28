@@ -1302,16 +1302,17 @@ class Document extends ArchivableModel<
   cascadeRestrict = async (options: { transaction?: Transaction }) => {
     const { transaction } = options;
     const restrictionSourceId = this.restrictionSourceId ?? this.id;
+    // Deleted descendants are included so that a restore does not bring them back unrestricted.
     const childDocumentIds = await this.findAllChildDocumentIds(
       { isPrivate: false },
-      { transaction }
+      { transaction, paranoid: false }
     );
 
     if (childDocumentIds.length) {
       // Note: bulk update intentionally does not fire instance hooks
       await (this.constructor as typeof Document).update(
         { isPrivate: true, restrictionSourceId },
-        { where: { id: childDocumentIds }, transaction }
+        { where: { id: childDocumentIds }, transaction, paranoid: false }
       );
     }
 
@@ -1373,14 +1374,14 @@ class Document extends ArchivableModel<
     const { transaction } = options;
     const childDocumentIds = await this.findAllChildDocumentIds(
       { restrictionSourceId: this.id },
-      { transaction }
+      { transaction, paranoid: false }
     );
 
     if (childDocumentIds.length) {
       // Note: bulk update intentionally does not fire instance hooks
       await (this.constructor as typeof Document).update(
         { isPrivate: false, restrictionSourceId: null },
-        { where: { id: childDocumentIds }, transaction }
+        { where: { id: childDocumentIds }, transaction, paranoid: false }
       );
     }
 
@@ -1434,13 +1435,13 @@ class Document extends ArchivableModel<
 
     const childDocumentIds = await this.findAllChildDocumentIds(
       { restrictionSourceId: previousRootId },
-      { transaction }
+      { transaction, paranoid: false }
     );
     if (childDocumentIds.length) {
       // Note: bulk update intentionally does not fire instance hooks
       await (this.constructor as typeof Document).update(
         { restrictionSourceId: rootId },
-        { where: { id: childDocumentIds }, transaction }
+        { where: { id: childDocumentIds }, transaction, paranoid: false }
       );
     }
 
@@ -1748,17 +1749,20 @@ class Document extends ArchivableModel<
       }
     }
 
+    // An independent restriction root keeps its own root and memberships.
+    const isRestrictionRoot = this.isPrivate && !this.restrictionSourceId;
+
     // Auto-restrict when publishing under a restricted parent
-    const parentRestrictionSourceId = await this.getParentRestrictionSourceId({
-      transaction,
-    });
+    const parentRestrictionSourceId = isRestrictionRoot
+      ? null
+      : await this.getParentRestrictionSourceId({ transaction });
     if (parentRestrictionSourceId) {
       this.isPrivate = true;
       this.restrictionSourceId = parentRestrictionSourceId;
     }
 
     // Copy the group and user memberships from the parent document, if any
-    if (this.parentDocumentId) {
+    if (this.parentDocumentId && !isRestrictionRoot) {
       await GroupMembership.copy(
         {
           documentId: this.parentDocumentId,

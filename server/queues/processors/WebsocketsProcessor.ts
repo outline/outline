@@ -233,7 +233,33 @@ export default class WebsocketsProcessor {
           presentDocument(undefined, document),
           this.getDocumentEventChannels(event, document),
         ]);
-        return socketio.to(channels).emit(event.name, data);
+        socketio.to(channels).emit(event.name, data);
+
+        // Users who lost access get an invalidation only, not the document.
+        if (
+          event.name === "documents.update" &&
+          document.isPrivate &&
+          event.changes?.attributes.isPrivate !== undefined &&
+          document.collectionId
+        ) {
+          const documentIds = [
+            document.id,
+            ...(await document.findAllChildDocumentIds()),
+          ];
+          const formerChannels = document.collection
+            ? this.getCollectionEventChannels(event, document.collection)
+            : [`collection-${document.collectionId}`];
+          socketio
+            .to(formerChannels)
+            .except(channels)
+            .emit("entities", {
+              event: event.name,
+              invalidatedPolicies: documentIds,
+              documentIds: documentIds.map((id) => ({ id })),
+              collectionIds: [{ id: document.collectionId }],
+            });
+        }
+        return;
       }
 
       case "documents.move": {
@@ -1132,14 +1158,8 @@ export default class WebsocketsProcessor {
     }
 
     // Include collection/team channels for published documents that are not
-    // restricted. Also include them when the privacy state just changed so that
-    // clients can react to the transition (e.g. remove from or add to their view).
-    const changes = (
-      event as { changes?: { attributes?: Record<string, unknown> } }
-    ).changes;
-    const privacyChanged = changes?.attributes?.isPrivate !== undefined;
-
-    if (document.publishedAt && (!document.isPrivate || privacyChanged)) {
+    // restricted. Restricted documents only reach their members.
+    if (document.publishedAt && !document.isPrivate) {
       if (document.collection) {
         channels.push(
           ...this.getCollectionEventChannels(event, document.collection)

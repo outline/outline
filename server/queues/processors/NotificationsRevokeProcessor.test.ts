@@ -243,6 +243,29 @@ describe("NotificationsRevokeProcessor", () => {
     );
   });
 
+  it("should only queue document updates that change the restriction", async () => {
+    const event = {
+      name: "documents.update" as const,
+      documentId: "doc",
+      collectionId: "collection",
+      createdAt: new Date().toISOString(),
+      teamId: "team",
+      actorId: "actor",
+      ip: "127.0.0.1",
+    };
+
+    expect(await NotificationsRevokeProcessor.shouldQueue(event)).toBe(false);
+    expect(
+      await NotificationsRevokeProcessor.shouldQueue({
+        ...event,
+        changes: {
+          attributes: { isPrivate: true },
+          previous: { isPrivate: false },
+        },
+      })
+    ).toBe(true);
+  });
+
   it.each(["documents.restore", "documents.unarchive"] as const)(
     "should schedule a check for recipients of the document and its children on %s",
     async (name) => {

@@ -2011,6 +2011,79 @@ describe("isPrivate", () => {
       expect(draft.isPrivate).toBe(true);
       expect(draft.restrictionSourceId).toBe(docA.id);
     });
+
+    it("should keep an independent restriction when publishing under a parent", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const viewer = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+      const parent = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      await UserMembership.create({
+        userId: viewer.id,
+        documentId: parent.id,
+        permission: DocumentPermission.Read,
+        createdById: user.id,
+      });
+      const draft = await buildDraftDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: parent.id,
+        isPrivate: true,
+      });
+
+      await withContext(user, (ctx) =>
+        draft.publish(ctx, { collectionId: collection.id })
+      );
+
+      expect(draft.isPrivate).toBe(true);
+      expect(draft.restrictionSourceId).toBeNull();
+      expect(
+        await UserMembership.count({
+          where: { documentId: draft.id, userId: viewer.id },
+        })
+      ).toBe(0);
+    });
+
+    it("should cascade restriction changes to deleted descendants", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+      const parent = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      const child = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: parent.id,
+      });
+      await withContext(user, (ctx) => child.destroyWithCtx(ctx));
+
+      parent.isPrivate = true;
+      await parent.save();
+      await child.reload({ paranoid: false });
+      expect(child.isPrivate).toBe(true);
+      expect(child.restrictionSourceId).toBe(parent.id);
+
+      parent.isPrivate = false;
+      await parent.save();
+      await child.reload({ paranoid: false });
+      expect(child.isPrivate).toBe(false);
+      expect(child.restrictionSourceId).toBeNull();
+    });
   });
 });
 

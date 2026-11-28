@@ -7,7 +7,9 @@ module.exports = {
       allowNull: false,
       defaultValue: false,
     });
-    await queryInterface.addIndex("documents", ["isPrivate"]);
+    await queryInterface.addIndex("documents", ["isPrivate"], {
+      concurrently: true,
+    });
   },
 
   down: async (queryInterface) => {

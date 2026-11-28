@@ -1410,6 +1410,11 @@ router.post(
       Object.keys(ctx.input.body).every(
         (key) => key === "id" || key === "deprecatedReason"
       );
+    const updatingPrivacy =
+      isPrivate !== undefined &&
+      Object.keys(ctx.input.body).every(
+        (key) => key === "id" || key === "isPrivate"
+      );
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
 
     const { user } = ctx.auth;
@@ -1424,7 +1429,11 @@ router.post(
     collection = document?.collection;
     authorize(
       user,
-      updatingDeprecatedReason ? "updateDeprecatedReason" : "update",
+      updatingDeprecatedReason
+        ? "updateDeprecatedReason"
+        : updatingPrivacy
+          ? "manageUsers"
+          : "update",
       document
     );
 
@@ -1438,7 +1447,9 @@ router.post(
 
     // Handle restrict/unrestrict toggle — validation and descendant cascade
     // are enforced by Document model hooks (@BeforeUpdate and @AfterUpdate)
-    if (isPrivate !== undefined && isPrivate !== document.isPrivate) {
+    const privacyChanged =
+      isPrivate !== undefined && isPrivate !== document.isPrivate;
+    if (privacyChanged) {
       authorize(user, "manageUsers", document);
 
       if (!isPrivate) {
@@ -1476,6 +1487,9 @@ router.post(
             },
             { transaction }
           );
+        } else if (existingMembership.permission !== DocumentPermission.Admin) {
+          existingMembership.permission = DocumentPermission.Admin;
+          await existingMembership.save({ transaction });
         }
       }
     }
@@ -1504,6 +1518,15 @@ router.post(
       insightsEnabled,
       editorVersion,
     });
+
+    // Reload the memberships of the user, which a restriction change can add.
+    if (privacyChanged) {
+      document = await Document.findByPk(document.id, {
+        userId: user.id,
+        rejectOnEmpty: true,
+        transaction,
+      });
+    }
 
     ctx.body = {
       data: await presentDocument(ctx, document),

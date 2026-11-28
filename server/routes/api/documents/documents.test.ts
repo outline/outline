@@ -7541,6 +7541,74 @@ describe("#documents.create", () => {
 });
 
 describe("#documents.update", () => {
+  it("should let a team admin remove a restriction without write access", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: owner.id,
+      permission: CollectionPermission.Read,
+    });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: owner.id,
+      collectionId: collection.id,
+      isPrivate: true,
+    });
+
+    const res = await server.post("/api/documents.update", admin, {
+      body: { id: document.id, isPrivate: false },
+    });
+    expect(res.status).toEqual(200);
+    expect((await res.json()).data.isPrivate).toBe(false);
+
+    const edit = await server.post("/api/documents.update", admin, {
+      body: { id: document.id, isPrivate: true, title: "Changed" },
+    });
+    expect(edit.status).toEqual(403);
+  });
+
+  it("should give the user admin access when they restrict a document", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: owner.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    await UserMembership.create({
+      collectionId: collection.id,
+      userId: user.id,
+      permission: CollectionPermission.Admin,
+      createdById: owner.id,
+    });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: owner.id,
+      collectionId: collection.id,
+    });
+    await UserMembership.create({
+      documentId: document.id,
+      userId: user.id,
+      permission: DocumentPermission.Read,
+      createdById: owner.id,
+    });
+
+    const res = await server.post("/api/documents.update", user, {
+      body: { id: document.id, isPrivate: true },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.policies[0].abilities.manageUsers).toBeTruthy();
+
+    const membership = await UserMembership.findOne({
+      where: { documentId: document.id, userId: user.id, sourceId: null },
+    });
+    expect(membership?.permission).toEqual(DocumentPermission.Admin);
+  });
+
   it("should replace a nested restriction with the enclosing restriction when removed", async () => {
     const team = await buildTeam();
     const owner = await buildUser({ teamId: team.id });
