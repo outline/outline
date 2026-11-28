@@ -7,6 +7,8 @@ import type {
 } from "@hocuspocus/server";
 import type { Document as HocuspocusDocument } from "@hocuspocus/server";
 import * as Y from "yjs";
+import { DocumentReset } from "@shared/collaboration/CloseEvents";
+import { parseDocumentName } from "@shared/collaboration/documentName";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 import Document from "@server/models/Document";
@@ -80,8 +82,7 @@ export class APIUpdateExtension implements Extension {
     documentName,
     document,
   }: afterLoadDocumentPayload): Promise<void> {
-    const [, documentId] = documentName.split(".");
-    this.documents.set(documentId, document);
+    this.documents.set(documentName, document);
   }
 
   async onDestroy(_data: onDestroyPayload): Promise<void> {
@@ -101,8 +102,7 @@ export class APIUpdateExtension implements Extension {
     clientsCount,
   }: onDisconnectPayload): Promise<void> {
     if (clientsCount === 0) {
-      const [, documentId] = documentName.split(".");
-      this.documents.delete(documentId);
+      this.documents.delete(documentName);
     }
   }
 
@@ -116,9 +116,12 @@ export class APIUpdateExtension implements Extension {
   ): Promise<void> => {
     try {
       const documentId = channel.replace(`${CHANNEL_PREFIX}:`, "");
-      const document = this.documents.get(documentId);
+      const loaded = Array.from(this.documents.entries()).filter(
+        ([documentName]) =>
+          parseDocumentName(documentName)?.documentId === documentId
+      );
 
-      if (!document) {
+      if (!loaded.length) {
         // Document not loaded in this instance, ignore
         return;
       }
@@ -132,7 +135,7 @@ export class APIUpdateExtension implements Extension {
 
       // Fetch the latest state from the database
       const dbDocument = await Document.unscoped().findOne({
-        attributes: ["state", "content", "text"],
+        attributes: ["state", "stateGeneration"],
         where: { id: documentId },
       });
 
@@ -150,18 +153,32 @@ export class APIUpdateExtension implements Extension {
       const dbYdoc = new Y.Doc();
       Y.applyUpdate(dbYdoc, dbDocument.state);
 
-      // Calculate the diff between the current in-memory state and the database state
-      const currentStateVector = Y.encodeStateVector(document);
-      const update = Y.encodeStateAsUpdate(dbYdoc, currentStateVector);
+      for (const [documentName, document] of loaded) {
+        // A room of an earlier generation has state that must not merge into
+        // the current state, so its clients must connect again.
+        if (
+          parseDocumentName(documentName)?.stateGeneration !==
+          dbDocument.stateGeneration
+        ) {
+          document
+            .getConnections()
+            .forEach((connection) => connection.close(DocumentReset));
+          continue;
+        }
 
-      // Apply the update if there are changes
-      if (update.length > 0) {
-        Y.applyUpdate(document, update);
+        // Calculate the diff between the current in-memory state and the database state
+        const currentStateVector = Y.encodeStateVector(document);
+        const update = Y.encodeStateAsUpdate(dbYdoc, currentStateVector);
 
-        Logger.info("multiplayer", `Applied API update to document`, {
-          documentId,
-          updateSize: update.length,
-        });
+        // Apply the update if there are changes
+        if (update.length > 0) {
+          Y.applyUpdate(document, update);
+
+          Logger.info("multiplayer", `Applied API update to document`, {
+            documentId,
+            updateSize: update.length,
+          });
+        }
       }
 
       dbYdoc.destroy();

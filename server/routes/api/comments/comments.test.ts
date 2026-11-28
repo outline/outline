@@ -952,6 +952,7 @@ describe("#comments.create", () => {
 
       await documentCollaborativeUpdater({
         documentId: document.id,
+        stateGeneration: 0,
         ydoc,
         collaborators: { ids: [user.id] },
         isLastConnection: true,

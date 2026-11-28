@@ -87,6 +87,7 @@ async function presentDocument(
     collaboratorIds: [],
     ownerIds: [],
     revision: document.revisionCount,
+    stateGeneration: document.stateGeneration,
     fullWidth: document.fullWidth,
     preferences: document.preferences,
     collectionId: undefined,

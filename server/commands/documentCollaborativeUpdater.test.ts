@@ -1,5 +1,6 @@
 import { Node } from "prosemirror-model";
 import { prosemirrorToYDoc } from "y-prosemirror";
+import * as Y from "yjs";
 import { schema } from "@server/editor";
 import { createContext } from "@server/context";
 import { Document, Event, Revision } from "@server/models";
@@ -37,6 +38,7 @@ describe("documentCollaborativeUpdater", () => {
 
     await documentCollaborativeUpdater({
       documentId: document.id,
+      stateGeneration: 0,
       ydoc,
       collaborators: { ids: [user.id] },
       isLastConnection: true,
@@ -73,6 +75,7 @@ describe("documentCollaborativeUpdater", () => {
 
     await documentCollaborativeUpdater({
       documentId: document.id,
+      stateGeneration: 0,
       ydoc,
       collaborators: { ids: [collaborator.id] },
       isLastConnection: true,
@@ -114,6 +117,7 @@ describe("documentCollaborativeUpdater", () => {
 
     await documentCollaborativeUpdater({
       documentId: document.id,
+      stateGeneration: 0,
       ydoc,
       collaborators: { ids: [user.id] },
       isLastConnection: true,
@@ -143,6 +147,7 @@ describe("documentCollaborativeUpdater", () => {
 
       await documentCollaborativeUpdater({
         documentId: document.id,
+        stateGeneration: 0,
         ydoc,
         collaborators: {
           ids: scenario === "single" ? [userB.id] : [userA.id, userB.id],
@@ -194,6 +199,7 @@ describe("documentCollaborativeUpdater", () => {
 
     await documentCollaborativeUpdater({
       documentId: document.id,
+      stateGeneration: 0,
       ydoc,
       collaborators: { ids: [user.id], sequence: 42 },
       isLastConnection: true,
@@ -219,12 +225,13 @@ describe("documentCollaborativeUpdater", () => {
     await expect(
       documentCollaborativeUpdater({
         documentId: document.id,
+        stateGeneration: 0,
         ydoc,
         collaborators: { ids: [user.id] },
         isLastConnection: true,
         clientVersion: null,
       })
-    ).resolves.toBeUndefined();
+    ).resolves.toEqual({ reset: false });
 
     await document.reload();
     expect(document.content?.content?.[0]?.content?.[0]?.text).toBe(
@@ -256,6 +263,7 @@ describe("documentCollaborativeUpdater", () => {
 
       const save = documentCollaborativeUpdater({
         documentId: document.id,
+        stateGeneration: 0,
         ydoc,
         collaborators: { ids: [user.id] },
         isLastConnection: true,
@@ -275,5 +283,121 @@ describe("documentCollaborativeUpdater", () => {
       "Saved while referenced"
     );
     ydoc.destroy();
+  });
+
+  describe("state generation", () => {
+    const text = (ydoc: Y.Doc) => {
+      const paragraph = ydoc
+        .get("default", Y.XmlFragment)
+        .get(0) as Y.XmlElement;
+      return paragraph.get(0) as Y.XmlText;
+    };
+
+    /**
+     * Build a ydoc whose state has the given length of deleted history.
+     * Without garbage collection, deleted text stays in the state.
+     */
+    const buildHistory = (length: number) => {
+      const ydoc = new Y.Doc({ gc: false });
+      Y.applyUpdate(
+        ydoc,
+        Y.encodeStateAsUpdate(
+          buildYDoc([
+            { type: "paragraph", content: [{ type: "text", text: "Hello" }] },
+          ])
+        )
+      );
+      text(ydoc).insert(5, "x".repeat(length));
+      text(ydoc).delete(5, length);
+      return ydoc;
+    };
+
+    it("replaces state that is over the maximum length", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const ydoc = buildHistory(1_600_000);
+
+      const result = await documentCollaborativeUpdater({
+        documentId: document.id,
+        stateGeneration: 0,
+        ydoc,
+        collaborators: { ids: [user.id] },
+        isLastConnection: true,
+        clientVersion: null,
+      });
+
+      expect(result).toEqual({ reset: true });
+      const reloaded = await Document.unscoped().findByPk(document.id, {
+        attributes: ["state", "stateGeneration", "content"],
+        rejectOnEmpty: true,
+      });
+      expect(reloaded.stateGeneration).toBe(1);
+      expect(reloaded.state?.length).toBeLessThan(1000);
+      expect(reloaded.content?.content?.[0]?.content?.[0]?.text).toBe("Hello");
+
+      const flattened = new Y.Doc();
+      Y.applyUpdate(flattened, reloaded.state ?? new Uint8Array());
+      expect(text(flattened).toString()).toBe("Hello");
+      flattened.destroy();
+      ydoc.destroy();
+    });
+
+    it("keeps large state that is under the maximum length", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const ydoc = buildHistory(1_100_000);
+
+      const result = await documentCollaborativeUpdater({
+        documentId: document.id,
+        stateGeneration: 0,
+        ydoc,
+        collaborators: { ids: [user.id] },
+        isLastConnection: true,
+        clientVersion: null,
+      });
+
+      expect(result).toEqual({ reset: false });
+      const reloaded = await Document.unscoped().findByPk(document.id, {
+        attributes: ["state", "stateGeneration"],
+        rejectOnEmpty: true,
+      });
+      expect(reloaded.stateGeneration).toBe(0);
+      expect(reloaded.state?.length).toBeGreaterThan(1_000_000);
+      ydoc.destroy();
+    });
+
+    it("does not persist state of an earlier generation", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      await document.update({ stateGeneration: 1 });
+      const content = document.content;
+      const ydoc = buildYDoc([
+        { type: "paragraph", content: [{ type: "text", text: "Stale edit" }] },
+      ]);
+
+      const result = await documentCollaborativeUpdater({
+        documentId: document.id,
+        stateGeneration: 0,
+        ydoc,
+        collaborators: { ids: [user.id] },
+        isLastConnection: true,
+        clientVersion: null,
+      });
+
+      expect(result).toEqual({ reset: true });
+      await document.reload();
+      expect(document.content).toEqual(content);
+      expect(document.stateGeneration).toBe(1);
+      ydoc.destroy();
+    });
   });
 });

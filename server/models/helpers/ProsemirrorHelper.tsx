@@ -171,6 +171,21 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
   }
 
   /**
+   * Returns YJS state for the input content that has no edit history.
+   *
+   * @param content The content of the document
+   * @returns The content as a YJS state update
+   */
+  static flatten(content: ProsemirrorData) {
+    const ydoc = ProsemirrorHelper.toYDoc(content);
+    try {
+      return ProsemirrorHelper.toState(ydoc);
+    } finally {
+      ydoc.destroy();
+    }
+  }
+
+  /**
    * Converts a plain object or Markdown string into a Prosemirror Node.
    *
    * @param data The ProsemirrorData object or string to parse.
