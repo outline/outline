@@ -16,6 +16,7 @@ import {
   buildDocument,
   buildEmoji,
   buildResolvedComment,
+  buildRestrictedDocument,
   buildTeam,
   buildUser,
   buildViewer,
@@ -174,6 +175,25 @@ describe("#comments.info", () => {
 });
 
 describe("#comments.list", () => {
+  it("should only return comments on a restricted document to its members", async () => {
+    const { document, member } = await buildRestrictedDocument();
+    const user = await buildUser({ teamId: document.teamId });
+    const comment = await buildComment({
+      userId: document.createdById,
+      documentId: document.id,
+    });
+
+    for (const [actor, ids] of [
+      [user, []],
+      [member, [comment.id]],
+    ] satisfies [typeof user, string[]][]) {
+      const res = await server.post("/api/comments.list", actor);
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.map((c: { id: string }) => c.id)).toEqual(ids);
+    }
+  });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/comments.list");
     const body = await res.json();

@@ -1,4 +1,4 @@
-import { groupBy } from "es-toolkit";
+import { groupBy, keyBy } from "es-toolkit";
 import type { Transaction } from "sequelize";
 import { Document, GroupMembership, UserMembership } from "@server/models";
 import { sequelize } from "@server/storage/database";
@@ -36,10 +36,17 @@ export default class DocumentMovedProcessor extends BaseProcessor {
       // membership document are found without a query per membership.
       const documents = await Document.unsafeFindAll({
         scope: null,
-        attributes: ["id", "parentDocumentId", "publishedAt"],
+        attributes: [
+          "id",
+          "parentDocumentId",
+          "publishedAt",
+          "isPrivate",
+          "restrictionSourceId",
+        ],
         where: { id: documentIds },
         transaction,
       });
+      const documentsById = keyBy(documents, (doc) => doc.id);
       const documentsByParentId = groupBy(
         documents,
         (doc) => doc.parentDocumentId ?? ""
@@ -47,19 +54,24 @@ export default class DocumentMovedProcessor extends BaseProcessor {
 
       // If there are any sourced memberships for this document, we need to go to the source
       // memberships and recalculate the membership for the user or group.
+      // A restriction root does not inherit memberships from its parent.
+      const parentDocumentId =
+        document.isPrivate && !document.restrictionSourceId
+          ? null
+          : document.parentDocumentId;
       const [parentDocumentUserMemberships, parentDocumentGroupMemberships] =
         await Promise.all([
-          document.parentDocumentId
+          parentDocumentId
             ? UserMembership.findRootMembershipsForDocument(
-                document.parentDocumentId,
+                parentDocumentId,
                 undefined,
                 { transaction }
               )
             : [],
 
-          document.parentDocumentId
+          parentDocumentId
             ? GroupMembership.findRootMembershipsForDocument(
-                document.parentDocumentId,
+                parentDocumentId,
                 undefined,
                 { transaction }
               )
@@ -87,12 +99,14 @@ export default class DocumentMovedProcessor extends BaseProcessor {
       await this.recalculateUserMemberships(
         parentDocumentUserMemberships,
         transaction,
+        documentsById,
         documentsByParentId,
         document.id
       );
       await this.recalculateGroupMemberships(
         parentDocumentGroupMemberships,
         transaction,
+        documentsById,
         documentsByParentId,
         document.id
       );
@@ -100,11 +114,13 @@ export default class DocumentMovedProcessor extends BaseProcessor {
       await this.recalculateUserMemberships(
         ownUserMemberships,
         transaction,
+        documentsById,
         documentsByParentId
       );
       await this.recalculateGroupMemberships(
         ownGroupMemberships,
         transaction,
+        documentsById,
         documentsByParentId
       );
     });
@@ -139,6 +155,7 @@ export default class DocumentMovedProcessor extends BaseProcessor {
   private async recalculateUserMemberships(
     memberships: UserMembership[],
     transaction: Transaction,
+    documentsById: Record<string, Document>,
     documentsByParentId: Record<string, Document[]>,
     documentId?: string
   ) {
@@ -153,7 +170,7 @@ export default class DocumentMovedProcessor extends BaseProcessor {
           transaction,
           documentId,
           childDocumentIds: this.getPublishedChildDocumentIds(
-            targetDocumentId,
+            documentsById[targetDocumentId],
             documentsByParentId
           ),
         });
@@ -164,6 +181,7 @@ export default class DocumentMovedProcessor extends BaseProcessor {
   private async recalculateGroupMemberships(
     memberships: GroupMembership[],
     transaction: Transaction,
+    documentsById: Record<string, Document>,
     documentsByParentId: Record<string, Document[]>,
     documentId?: string
   ) {
@@ -178,7 +196,7 @@ export default class DocumentMovedProcessor extends BaseProcessor {
           transaction,
           documentId,
           childDocumentIds: this.getPublishedChildDocumentIds(
-            targetDocumentId,
+            documentsById[targetDocumentId],
             documentsByParentId
           ),
         });
@@ -187,24 +205,38 @@ export default class DocumentMovedProcessor extends BaseProcessor {
   }
 
   /**
-   * Find the published descendants of a document, without passing through
-   * unpublished documents.
+   * Find the published descendants of a document that its memberships cascade
+   * to, without passing through unpublished documents or restriction
+   * boundaries.
    *
-   * @param documentId the id of the document to start from.
+   * @param document the document to start from.
    * @param documentsByParentId the documents of the subtree, grouped by parent id.
    * @returns the ids of the published descendant documents.
    */
   private getPublishedChildDocumentIds(
-    documentId: string,
+    document: Document | undefined,
     documentsByParentId: Record<string, Document[]>
   ): string[] {
+    if (!document) {
+      return [];
+    }
+
+    const restrictionSourceId = document.isPrivate
+      ? (document.restrictionSourceId ?? document.id)
+      : undefined;
     const result: string[] = [];
-    let parentIds = [documentId];
+    let parentIds = [document.id];
 
     while (parentIds.length) {
       parentIds = parentIds
         .flatMap((parentId) => documentsByParentId[parentId] ?? [])
-        .filter((doc) => doc.publishedAt)
+        .filter(
+          (doc) =>
+            doc.publishedAt &&
+            (restrictionSourceId
+              ? doc.restrictionSourceId === restrictionSourceId
+              : !doc.isPrivate)
+        )
         .map((doc) => doc.id);
       result.push(...parentIds);
     }

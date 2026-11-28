@@ -59,6 +59,7 @@ export default class RevokeUserNotificationsTask extends BaseTask<Props> {
             "collectionId",
             "createdById",
             "publishedAt",
+            "isPrivate",
           ],
           where: { id: candidateIds },
         })

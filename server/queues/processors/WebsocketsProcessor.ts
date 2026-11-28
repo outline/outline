@@ -233,7 +233,33 @@ export default class WebsocketsProcessor {
           presentDocument(undefined, document),
           this.getDocumentEventChannels(event, document),
         ]);
-        return socketio.to(channels).emit(event.name, data);
+        socketio.to(channels).emit(event.name, data);
+
+        // Users who lost access get an invalidation only, not the document.
+        if (
+          event.name === "documents.update" &&
+          document.isPrivate &&
+          event.changes?.attributes.isPrivate !== undefined &&
+          document.collectionId
+        ) {
+          const documentIds = [
+            document.id,
+            ...(await document.findAllChildDocumentIds()),
+          ];
+          const formerChannels = document.collection
+            ? this.getCollectionEventChannels(event, document.collection)
+            : [`collection-${document.collectionId}`];
+          socketio
+            .to(formerChannels)
+            .except(channels)
+            .emit("entities", {
+              event: event.name,
+              invalidatedPolicies: documentIds,
+              documentIds: documentIds.map((id) => ({ id })),
+              collectionIds: [{ id: document.collectionId }],
+            });
+        }
+        return;
       }
 
       case "documents.move": {
@@ -633,7 +659,7 @@ export default class WebsocketsProcessor {
         }
 
         const operator = await this.getShareEventOperator(socketio, share);
-        return operator?.emit(event.name, presentShare(share));
+        return operator.emit(event.name, presentShare(share));
       }
 
       case "shares.revoke": {
@@ -643,7 +669,7 @@ export default class WebsocketsProcessor {
         }
 
         const operator = await this.getShareEventOperator(socketio, share);
-        return operator?.emit(event.name, { modelId: event.modelId });
+        return operator.emit(event.name, { modelId: event.modelId });
       }
 
       case "comments.create":
@@ -1082,20 +1108,21 @@ export default class WebsocketsProcessor {
 
   /**
    * Returns the broadcast operator for share events. The audience matches the
-   * shares.info policy: non-guest users who can read the shared collection or
-   * document.
+   * shares.info policy: the share creator and non-guest users who can read
+   * the shared collection or document.
    *
    * @param socketio the socket.io server.
    * @param share the share with its document loaded.
-   * @returns the broadcast operator to emit to, or null if there is no audience.
+   * @returns the broadcast operator to emit to.
    */
   private async getShareEventOperator(socketio: Server, share: Share) {
-    const rooms: string[] = [];
+    const rooms: string[] = [`user-${share.userId}`];
     const collectionId = share.collectionId ?? share.document?.collectionId;
 
-    if (collectionId) {
+    // Restricted documents only reach their members, which are added below.
+    if (collectionId && !share.document?.isPrivate) {
       rooms.push(`collection-${collectionId}`);
-    } else if (share.document) {
+    } else if (share.document && !collectionId) {
       rooms.push(`user-${share.document.createdById}`);
     }
 
@@ -1117,10 +1144,6 @@ export default class WebsocketsProcessor {
       );
     }
 
-    if (rooms.length === 0) {
-      return null;
-    }
-
     return socketio.to(uniq(rooms)).except(`team-${share.teamId}.guests`);
   }
 
@@ -1134,7 +1157,9 @@ export default class WebsocketsProcessor {
       channels.push(`user-${event.actorId}`);
     }
 
-    if (document.publishedAt) {
+    // Include collection/team channels for published documents that are not
+    // restricted. Restricted documents only reach their members.
+    if (document.publishedAt && !document.isPrivate) {
       if (document.collection) {
         channels.push(
           ...this.getCollectionEventChannels(event, document.collection)

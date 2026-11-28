@@ -1,4 +1,5 @@
 import { Transaction } from "sequelize";
+import type { NavigationNode } from "@shared/types";
 import { traceFunction } from "@server/logging/tracing";
 import { Document, Collection, Pin } from "@server/models";
 import type { Context } from "@server/types";
@@ -93,6 +94,39 @@ async function documentMover(
     document.lastModifiedById = user.id;
     document.updatedBy = user;
 
+    // The restriction root of the new location, if it is restricted
+    const newRestrictionSourceId = await document.getParentRestrictionSourceId({
+      transaction,
+    });
+
+    if (document.isPrivate) {
+      // A document restricted directly remains its own restriction root. One
+      // with inherited restriction stays restricted, but is re-rooted: to the
+      // new location's root, or to itself when the new location is open. The
+      // descendant repoint is handled by the @AfterUpdate hook on save.
+      if (
+        document.restrictionSourceId &&
+        document.restrictionSourceId !== newRestrictionSourceId
+      ) {
+        document.restrictionSourceId = newRestrictionSourceId;
+      }
+    } else if (newRestrictionSourceId) {
+      // Auto-restrict when moving into a restricted parent — descendant
+      // cascade is handled by the @AfterUpdate hook on Document.save()
+      document.isPrivate = true;
+      document.restrictionSourceId = newRestrictionSourceId;
+
+      // Update the document structure nodes to reflect the restriction
+      if (documentJson) {
+        const markRestricted = (node: NavigationNode): NavigationNode => ({
+          ...node,
+          isPrivate: true,
+          children: node.children.map(markRestricted),
+        });
+        documentJson = markRestricted(documentJson);
+      }
+    }
+
     if (newCollection) {
       // Add the document and it's tree to the new collection
       await newCollection.addDocumentToStructure(document, toIndex, {
@@ -124,12 +158,14 @@ async function documentMover(
     result.collections.push(collection);
   }
 
+  let childDocumentIds: string[] = [];
+
   // If the collection has changed then we also need to update the properties
   // on all of the documents children to reflect the new collectionId
   if (collectionChanged) {
     // Efficiently find the ID's of all the documents that are children of
     // the moved document and update in one query
-    const childDocumentIds = await document.findAllChildDocumentIds();
+    childDocumentIds = await document.findAllChildDocumentIds();
 
     if (collectionId) {
       // Reload the collection to get relationship data
@@ -171,12 +207,11 @@ async function documentMover(
       );
     }
 
-    // We must reload from the database to get the relationship data
-    const documents = await Document.unsafeFindAll({
+    // Reload for the relationship data, only the children the user can read.
+    const documents = await Document.findAllWithCtx(ctx, {
       where: {
         id: childDocumentIds,
       },
-      transaction,
     });
 
     document.collection = newCollection;
@@ -214,7 +249,8 @@ async function documentMover(
     name: "move",
     data: {
       collectionIds: result.collections.map((c) => c.id),
-      documentIds: result.documents.map((d) => d.id),
+      // Processors need every moved id, including children the user cannot read.
+      documentIds: [...childDocumentIds, document.id],
     },
   });
 

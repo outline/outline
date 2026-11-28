@@ -2,6 +2,7 @@ import AuthenticationExtension from "@server/collaboration/AuthenticationExtensi
 import { Document } from "@server/models";
 import type {
   CollectionUserEvent,
+  DocumentEvent,
   DocumentUserEvent,
   Event as TEvent,
 } from "@server/types";
@@ -27,6 +28,7 @@ export default class CollaborationAuthorizationProcessor extends BaseProcessor {
     "documents.remove_group",
     "documents.move",
     "documents.unpublish",
+    "documents.update",
     "documents.archive",
     "documents.unarchive",
     "documents.delete",
@@ -39,6 +41,20 @@ export default class CollaborationAuthorizationProcessor extends BaseProcessor {
     "users.delete",
     "users.signout",
   ];
+
+  /**
+   * Skip document updates that do not change the restriction, as most are
+   * content edits.
+   *
+   * @param event The event about to be queued.
+   * @returns true if a job should be queued for the event.
+   */
+  static async shouldQueue(event: TEvent) {
+    if (event.name === "documents.update") {
+      return CollaborationAuthorizationProcessor.changesRestriction(event);
+    }
+    return true;
+  }
 
   async perform(event: TEvent) {
     switch (event.name) {
@@ -104,6 +120,16 @@ export default class CollaborationAuthorizationProcessor extends BaseProcessor {
           documentIds: [event.documentId],
         });
 
+      // A restriction cascades to descendants with a bulk update that emits no
+      // events, so the whole tree is resolved here.
+      case "documents.update":
+        if (!CollaborationAuthorizationProcessor.changesRestriction(event)) {
+          return;
+        }
+        return AuthenticationExtension.invalidate({
+          documentIds: await this.resolveDocumentTree(event.documentId),
+        });
+
       // The document changed state along with its descendants, which emit no
       // events of their own, so the whole tree is resolved here.
       case "documents.archive":
@@ -141,6 +167,21 @@ export default class CollaborationAuthorizationProcessor extends BaseProcessor {
       default:
         return;
     }
+  }
+
+  /**
+   * Check if a document update changed its restriction, which cascades to its
+   * descendants.
+   *
+   * @param event The document update event to check.
+   * @returns true if the restriction of the document changed.
+   */
+  private static changesRestriction(event: DocumentEvent) {
+    const attributes = event.changes?.attributes;
+    return (
+      !!attributes &&
+      ("isPrivate" in attributes || "restrictionSourceId" in attributes)
+    );
   }
 
   /**

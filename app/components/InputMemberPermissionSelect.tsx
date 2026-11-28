@@ -1,7 +1,5 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import styled from "styled-components";
-import { s } from "@shared/styles";
 import type { Option } from "~/components/InputSelect";
 import { InputSelect } from "~/components/InputSelect";
 import type { Permission } from "~/types";
@@ -34,7 +32,7 @@ export default function InputMemberPermissionSelect(
   );
 
   return (
-    <Select
+    <InputSelect
       options={options}
       value={value || EmptySelectValue}
       onChange={onChange}
@@ -45,7 +43,3 @@ export default function InputMemberPermissionSelect(
     />
   );
 }
-
-const Select = styled(InputSelect)`
-  color: ${s("textSecondary")};
-`;

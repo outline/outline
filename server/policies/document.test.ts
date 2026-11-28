@@ -823,6 +823,229 @@ describe("manage document", () => {
   }
 });
 
+describe("restricted document", () => {
+  it("should block collection-level access for restricted document", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+      isPrivate: true,
+    });
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    const abilities = serialize(user, document);
+    expect(abilities.read).toEqual(false);
+    expect(abilities.update).toEqual(false);
+    expect(abilities.move).toEqual(false);
+    expect(abilities.archive).toEqual(false);
+  });
+
+  it("should allow direct membership access for restricted document", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+      isPrivate: true,
+    });
+    await UserMembership.create({
+      documentId: doc.id,
+      userId: user.id,
+      permission: DocumentPermission.ReadWrite,
+      createdById: user.id,
+    });
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    const abilities = serialize(user, document);
+    expect(abilities.read).toBeTruthy();
+    expect(abilities.update).toBeTruthy();
+  });
+
+  it("should allow admin bypass for restricted document", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+      isPrivate: true,
+    });
+    const document = await Document.findByPk(doc.id, { userId: admin.id });
+    const abilities = serialize(admin, document);
+    expect(abilities.read).toBeTruthy();
+  });
+
+  it("should not allow an admin to read documents in a private collection they are not a member of", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: null,
+    });
+    const [open, restricted] = await Promise.all([
+      buildDocument({ teamId: team.id, collectionId: collection.id }),
+      buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+        isPrivate: true,
+      }),
+    ]);
+    for (const doc of [open, restricted]) {
+      const document = await Document.findByPk(doc.id, { userId: admin.id });
+      expect(serialize(admin, document).read).toEqual(false);
+    }
+  });
+
+  it("should not allow an admin to read another user's unfiled draft", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const author = await buildUser({ teamId: team.id });
+    const document = await buildDraftDocument({
+      teamId: team.id,
+      userId: author.id,
+      collectionId: null,
+    });
+    expect(serialize(admin, document).read).toEqual(false);
+  });
+
+  it("should allow manageUsers permission for document admin members", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    await UserMembership.create({
+      documentId: doc.id,
+      userId: user.id,
+      permission: DocumentPermission.Admin,
+      createdById: user.id,
+    });
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    const abilities = serialize(user, document);
+    expect(abilities.manageUsers).toBeTruthy();
+  });
+
+  it("should allow manageUsers permission for team admins", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const document = await Document.findByPk(doc.id, { userId: admin.id });
+    const abilities = serialize(admin, document);
+    expect(abilities.manageUsers).toBeTruthy();
+  });
+
+  it("should not allow manageUsers permission for regular members via collection", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.Read,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    const abilities = serialize(user, document);
+    expect(abilities.manageUsers).toEqual(false);
+  });
+
+  it("should not allow unpublish for collection writer without direct membership", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+      isPrivate: true,
+    });
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    const abilities = serialize(user, document);
+    expect(abilities.unpublish).toEqual(false);
+  });
+
+  it("should allow unpublish for direct ReadWrite member", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+      isPrivate: true,
+    });
+    await UserMembership.create({
+      documentId: doc.id,
+      userId: user.id,
+      permission: DocumentPermission.ReadWrite,
+      createdById: user.id,
+    });
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    const abilities = serialize(user, document);
+    expect(abilities.unpublish).toBeTruthy();
+  });
+
+  it("should allow unpublish for team admin", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+      isPrivate: true,
+    });
+    const document = await Document.findByPk(doc.id, { userId: admin.id });
+    const abilities = serialize(admin, document);
+    expect(abilities.unpublish).toBeTruthy();
+  });
+
+  it("should allow unpublish for collection writer on non-private document", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    const abilities = serialize(user, document);
+    expect(abilities.unpublish).toBeTruthy();
+  });
+});
+
 describe("personal collection", () => {
   const buildPersonal = async () => {
     const team = await buildTeam();

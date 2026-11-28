@@ -40,10 +40,24 @@ export default class NotificationsRevokeProcessor extends BaseProcessor {
     "documents.move",
     "documents.restore",
     "documents.unarchive",
+    "documents.update",
     "groups.remove_user",
     "groups.delete",
     "users.demote",
   ];
+
+  /**
+   * Skip document updates that do not change the restriction.
+   *
+   * @param event the event about to be queued.
+   * @returns true if a job should be queued for the event.
+   */
+  static async shouldQueue(event: Event) {
+    if (event.name === "documents.update") {
+      return event.changes?.attributes.isPrivate !== undefined;
+    }
+    return true;
+  }
 
   async perform(event: ReceivedEvent) {
     switch (event.name) {
@@ -92,8 +106,11 @@ export default class NotificationsRevokeProcessor extends BaseProcessor {
           event.data.documentIds
         );
 
+      // A restriction cascades to descendants with a bulk update that emits no
+      // events, so it is handled in the same way as a restore.
       case "documents.restore":
       case "documents.unarchive":
+      case "documents.update":
         return this.handleDocumentRestored(event.documentId);
     }
   }

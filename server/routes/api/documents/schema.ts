@@ -454,6 +454,9 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     /** @deprecated Version of the API to be used, remove in a few releases */
     apiVersion: z.number().optional(),
 
+    /** Whether the document should have restricted access (independent of parent/collection permissions) */
+    isPrivate: z.boolean().optional(),
+
     /** IDs of the users that own the doc */
     ownerIds: z.array(z.uuid()).max(DocumentValidation.maxOwners).optional(),
   }),

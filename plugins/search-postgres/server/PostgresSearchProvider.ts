@@ -807,7 +807,8 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
         collectionIds = await model.collectionIds();
       }
       if (collectionIds.length) {
-        where[Op.or].push({ collectionId: collectionIds });
+        // Team-level searches fail closed and never include restricted documents
+        where[Op.or].push({ collectionId: collectionIds, isPrivate: false });
       }
     }
 

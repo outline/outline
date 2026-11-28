@@ -1,5 +1,10 @@
 import { observer } from "mobx-react";
-import { DoneIcon, TableOfContentsIcon, EditIcon } from "outline-icons";
+import {
+  DoneIcon,
+  PadlockIcon,
+  TableOfContentsIcon,
+  EditIcon,
+} from "outline-icons";
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -191,6 +196,11 @@ function DocumentHeader({
             />
           )}
           {document.title}
+          {document.isPrivate && (
+            <Tooltip content={t("Access restricted")} side="bottom">
+              <PadlockIcon size={16} />
+            </Tooltip>
+          )}
           {document.isArchived && <Badge>{t("Archived")}</Badge>}
           {document.isDraft && <Badge>{t("Draft")}</Badge>}
         </Flex>

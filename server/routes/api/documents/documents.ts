@@ -1403,12 +1403,17 @@ router.post(
   transaction(),
   async (ctx: Context<T.DocumentsUpdateReq>) => {
     const { transaction } = ctx;
-    const { id, insightsEnabled, publish, collectionId, ...input } =
+    const { id, insightsEnabled, publish, collectionId, isPrivate, ...input } =
       ctx.input.body;
     const updatingDeprecatedReason =
       input.deprecatedReason !== undefined &&
       Object.keys(ctx.input.body).every(
         (key) => key === "id" || key === "deprecatedReason"
+      );
+    const updatingPrivacy =
+      isPrivate !== undefined &&
+      Object.keys(ctx.input.body).every(
+        (key) => key === "id" || key === "isPrivate"
       );
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
 
@@ -1424,7 +1429,11 @@ router.post(
     collection = document?.collection;
     authorize(
       user,
-      updatingDeprecatedReason ? "updateDeprecatedReason" : "update",
+      updatingDeprecatedReason
+        ? "updateDeprecatedReason"
+        : updatingPrivacy
+          ? "manageUsers"
+          : "update",
       document
     );
 
@@ -1434,6 +1443,55 @@ router.post(
 
     if (collection && insightsEnabled !== undefined) {
       authorize(user, "updateInsights", document);
+    }
+
+    // Handle restrict/unrestrict toggle — validation and descendant cascade
+    // are enforced by Document model hooks (@BeforeUpdate and @AfterUpdate)
+    const privacyChanged =
+      isPrivate !== undefined && isPrivate !== document.isPrivate;
+    if (privacyChanged) {
+      authorize(user, "manageUsers", document);
+
+      if (!isPrivate) {
+        // When a restriction is removed inside a restricted tree, the
+        // enclosing restriction cascades down to replace it — the document
+        // stays restricted, now managed by the enclosing root.
+        const parentRestrictionSourceId =
+          await document.getParentRestrictionSourceId({ transaction });
+        if (parentRestrictionSourceId) {
+          document.restrictionSourceId = parentRestrictionSourceId;
+        } else {
+          document.isPrivate = false;
+          document.restrictionSourceId = null;
+        }
+      }
+
+      if (isPrivate) {
+        document.isPrivate = true;
+        // Ensure the acting user has direct admin access
+        const existingMembership = await UserMembership.findOne({
+          where: {
+            documentId: document.id,
+            userId: user.id,
+            sourceId: null,
+          },
+          transaction,
+        });
+        if (!existingMembership) {
+          await UserMembership.create(
+            {
+              documentId: document.id,
+              userId: user.id,
+              permission: DocumentPermission.Admin,
+              createdById: user.id,
+            },
+            { transaction }
+          );
+        } else if (existingMembership.permission !== DocumentPermission.Admin) {
+          existingMembership.permission = DocumentPermission.Admin;
+          await existingMembership.save({ transaction });
+        }
+      }
     }
 
     if (input.ownerIds) {
@@ -1460,6 +1518,15 @@ router.post(
       insightsEnabled,
       editorVersion,
     });
+
+    // Reload the memberships of the user, which a restriction change can add.
+    if (privacyChanged) {
+      document = await Document.findByPk(document.id, {
+        userId: user.id,
+        rejectOnEmpty: true,
+        transaction,
+      });
+    }
 
     ctx.body = {
       data: await presentDocument(ctx, document),

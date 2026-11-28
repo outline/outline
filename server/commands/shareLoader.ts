@@ -98,8 +98,9 @@ export async function loadPublicShare({
       await share.collection.structureFor(null)
     );
   } else if (share.document && share.includeChildDocuments) {
+    // The share exposes the subtree that its creator can read.
     const [node] =
-      (await associatedCollection?.structureFor(null, {
+      (await associatedCollection?.structureFor(share.user, {
         documentId: share.document.id,
       })) ?? [];
     sharedTree = node ?? null;
