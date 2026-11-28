@@ -54,19 +54,24 @@ export default class DocumentMovedProcessor extends BaseProcessor {
 
       // If there are any sourced memberships for this document, we need to go to the source
       // memberships and recalculate the membership for the user or group.
+      // A restriction root does not inherit memberships from its parent.
+      const parentDocumentId =
+        document.isPrivate && !document.restrictionSourceId
+          ? null
+          : document.parentDocumentId;
       const [parentDocumentUserMemberships, parentDocumentGroupMemberships] =
         await Promise.all([
-          document.parentDocumentId
+          parentDocumentId
             ? UserMembership.findRootMembershipsForDocument(
-                document.parentDocumentId,
+                parentDocumentId,
                 undefined,
                 { transaction }
               )
             : [],
 
-          document.parentDocumentId
+          parentDocumentId
             ? GroupMembership.findRootMembershipsForDocument(
-                document.parentDocumentId,
+                parentDocumentId,
                 undefined,
                 { transaction }
               )

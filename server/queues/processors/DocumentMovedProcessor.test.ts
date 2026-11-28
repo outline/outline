@@ -986,4 +986,58 @@ describe("DocumentMovedProcessor", () => {
       ).toBe(0);
     }
   );
+
+  it("should not apply parent permissions to a restricted document", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+    const user2 = await buildUser({ teamId: team.id });
+    const group = await buildGroup({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const topDocument = await buildDocument({
+      collectionId: collection.id,
+      teamId: team.id,
+    });
+    const restrictedDocument = await buildDocument({
+      collectionId: collection.id,
+      teamId: team.id,
+      parentDocumentId: topDocument.id,
+      isPrivate: true,
+    });
+    const restrictedChild = await buildDocument({
+      collectionId: collection.id,
+      teamId: team.id,
+      parentDocumentId: restrictedDocument.id,
+    });
+    await UserMembership.create({
+      userId: user2.id,
+      documentId: topDocument.id,
+      createdById: user.id,
+    });
+    await GroupMembership.create({
+      groupId: group.id,
+      documentId: topDocument.id,
+      createdById: user.id,
+    });
+
+    const processor = new DocumentMovedProcessor();
+    await processor.perform({
+      name: "documents.restore",
+      documentId: restrictedDocument.id,
+      collectionId: collection.id,
+      teamId: team.id,
+      actorId: user.id,
+      ip,
+    });
+
+    const documentId = [restrictedDocument.id, restrictedChild.id];
+    expect(
+      await UserMembership.count({ where: { documentId, userId: user2.id } })
+    ).toBe(0);
+    expect(
+      await GroupMembership.count({ where: { documentId, groupId: group.id } })
+    ).toBe(0);
+  });
 });

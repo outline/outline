@@ -1,6 +1,8 @@
 import { CollectionPermission } from "@shared/types";
 import AuthenticationExtension from "@server/collaboration/AuthenticationExtension";
-import { buildDocument } from "@server/test/factories";
+import { createContext } from "@server/context";
+import { Event } from "@server/models";
+import { buildDocument, buildUser } from "@server/test/factories";
 import type { CollectionUserEvent } from "@server/types";
 import CollaborationAuthorizationProcessor from "./CollaborationAuthorizationProcessor";
 
@@ -147,6 +149,69 @@ describe("CollaborationAuthorizationProcessor", () => {
     expect(spy).toHaveBeenCalledWith({
       documentIds: [document.id, child.id, grandchild.id],
     });
+  });
+
+  it("should invalidate the document tree when the document is restricted", async () => {
+    const spy = invalidate();
+    const user = await buildUser();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const child = await buildDocument({
+      teamId: user.teamId,
+      collectionId: document.collectionId,
+      parentDocumentId: document.id,
+    });
+    document.isPrivate = true;
+    await document.saveWithCtx(createContext({ user }));
+
+    const persisted = await Event.findOne({
+      where: { name: "documents.update", documentId: document.id },
+    });
+    const event = {
+      name: "documents.update" as const,
+      teamId: document.teamId,
+      actorId: user.id,
+      ip: null,
+      documentId: document.id,
+      collectionId: document.collectionId!,
+      createdAt: new Date().toISOString(),
+      changes: {
+        attributes: persisted?.changes?.attributes ?? {},
+        previous: persisted?.changes?.previous ?? {},
+      },
+    };
+
+    expect(await CollaborationAuthorizationProcessor.shouldQueue(event)).toBe(
+      true
+    );
+    await processor.perform(event);
+
+    expect(spy).toHaveBeenCalledWith({
+      documentIds: [document.id, child.id],
+    });
+  });
+
+  it("should not queue document updates that do not change the restriction", async () => {
+    const spy = invalidate();
+    const event = {
+      name: "documents.update" as const,
+      teamId: "team-id",
+      actorId: "actor-id",
+      ip: null,
+      documentId: "document-id",
+      collectionId: "collection-id",
+      createdAt: new Date().toISOString(),
+      changes: { attributes: { title: "New" }, previous: { title: "Old" } },
+    };
+
+    expect(await CollaborationAuthorizationProcessor.shouldQueue(event)).toBe(
+      false
+    );
+    await processor.perform(event);
+
+    expect(spy).not.toHaveBeenCalled();
   });
 
   it("should invalidate the document on documents.permanent_delete", async () => {

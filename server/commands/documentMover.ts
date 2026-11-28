@@ -158,12 +158,14 @@ async function documentMover(
     result.collections.push(collection);
   }
 
+  let childDocumentIds: string[] = [];
+
   // If the collection has changed then we also need to update the properties
   // on all of the documents children to reflect the new collectionId
   if (collectionChanged) {
     // Efficiently find the ID's of all the documents that are children of
     // the moved document and update in one query
-    const childDocumentIds = await document.findAllChildDocumentIds();
+    childDocumentIds = await document.findAllChildDocumentIds();
 
     if (collectionId) {
       // Reload the collection to get relationship data
@@ -205,12 +207,11 @@ async function documentMover(
       );
     }
 
-    // We must reload from the database to get the relationship data
-    const documents = await Document.unsafeFindAll({
+    // Reload for the relationship data, only the children the user can read.
+    const documents = await Document.findAllWithCtx(ctx, {
       where: {
         id: childDocumentIds,
       },
-      transaction,
     });
 
     document.collection = newCollection;
@@ -248,7 +249,8 @@ async function documentMover(
     name: "move",
     data: {
       collectionIds: result.collections.map((c) => c.id),
-      documentIds: result.documents.map((d) => d.id),
+      // Processors need every moved id, including children the user cannot read.
+      documentIds: [...childDocumentIds, document.id],
     },
   });
 

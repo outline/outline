@@ -4,6 +4,7 @@ import type { MockInstance } from "vitest";
 import { vi } from "vitest";
 import { randomString } from "@shared/random";
 import { CollectionPermission, Plan, TeamPreference } from "@shared/types";
+import { loadPublicShare } from "@server/commands/shareLoader";
 import { createContext } from "@server/context";
 import { UserMembership, Share, ShareSubscription, Team } from "@server/models";
 import {
@@ -15,6 +16,7 @@ import {
   buildViewer,
   buildCollection,
   buildTeam,
+  buildRestrictedDocument,
 } from "@server/test/factories";
 
 import { getTestServer, withContext } from "@server/test/support";
@@ -639,7 +641,7 @@ describe("#shares.create", () => {
     expect(body.data.id).toBe(share.id);
   });
 
-  it("should publish an existing unpublished share and keep its creator", async () => {
+  it("should publish an existing unpublished share as the publisher", async () => {
     const owner = await buildUser();
     const user = await buildUser({ teamId: owner.teamId });
     const document = await buildDocument({
@@ -664,9 +666,10 @@ describe("#shares.create", () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toBe(share.id);
     expect(body.data.published).toBe(true);
-    expect(body.data.createdBy.id).toBe(owner.id);
+    expect(body.data.createdBy.id).toBe(user.id);
     await share.reload();
     expect(share.published).toBe(true);
+    expect(share.userId).toBe(user.id);
     expect(share.expiresAt?.toISOString()).toBe(expiresAt.toISOString());
   });
 
@@ -1220,6 +1223,46 @@ describe("#shares.info", () => {
 });
 
 describe("#shares.update", () => {
+  it("should build the public tree with the access of the user that publishes it", async () => {
+    const creator = await buildUser();
+    const collection = await buildCollection({
+      userId: creator.id,
+      teamId: creator.teamId,
+    });
+    const parent = await buildDocument({
+      userId: creator.id,
+      teamId: creator.teamId,
+      collectionId: collection.id,
+    });
+    const { document: restricted, member } = await buildRestrictedDocument({
+      userId: creator.id,
+      teamId: creator.teamId,
+      collectionId: collection.id,
+      parentDocumentId: parent.id,
+    });
+    const share = await buildShare({
+      documentId: parent.id,
+      teamId: creator.teamId,
+      userId: member.id,
+      published: false,
+      includeChildDocuments: true,
+    });
+    const publisher = await buildUser({ teamId: creator.teamId });
+
+    const res = await server.post("/api/shares.update", publisher, {
+      body: { id: share.id, published: true },
+    });
+    expect(res.status).toEqual(200);
+    await share.reload();
+    expect(share.userId).toEqual(publisher.id);
+
+    const { sharedTree } = await loadPublicShare({ id: share.id });
+    expect(sharedTree?.id).toEqual(parent.id);
+    expect(sharedTree?.children.map((node) => node.id)).not.toContain(
+      restricted.id
+    );
+  });
+
   it("should set and clear expiresAt", async () => {
     const user = await buildAdmin();
     const document = await buildDocument({

@@ -633,7 +633,7 @@ export default class WebsocketsProcessor {
         }
 
         const operator = await this.getShareEventOperator(socketio, share);
-        return operator?.emit(event.name, presentShare(share));
+        return operator.emit(event.name, presentShare(share));
       }
 
       case "shares.revoke": {
@@ -643,7 +643,7 @@ export default class WebsocketsProcessor {
         }
 
         const operator = await this.getShareEventOperator(socketio, share);
-        return operator?.emit(event.name, { modelId: event.modelId });
+        return operator.emit(event.name, { modelId: event.modelId });
       }
 
       case "comments.create":
@@ -1082,20 +1082,21 @@ export default class WebsocketsProcessor {
 
   /**
    * Returns the broadcast operator for share events. The audience matches the
-   * shares.info policy: non-guest users who can read the shared collection or
-   * document.
+   * shares.info policy: the share creator and non-guest users who can read
+   * the shared collection or document.
    *
    * @param socketio the socket.io server.
    * @param share the share with its document loaded.
-   * @returns the broadcast operator to emit to, or null if there is no audience.
+   * @returns the broadcast operator to emit to.
    */
   private async getShareEventOperator(socketio: Server, share: Share) {
-    const rooms: string[] = [];
+    const rooms: string[] = [`user-${share.userId}`];
     const collectionId = share.collectionId ?? share.document?.collectionId;
 
-    if (collectionId) {
+    // Restricted documents only reach their members, which are added below.
+    if (collectionId && !share.document?.isPrivate) {
       rooms.push(`collection-${collectionId}`);
-    } else if (share.document) {
+    } else if (share.document && !collectionId) {
       rooms.push(`user-${share.document.createdById}`);
     }
 
@@ -1115,10 +1116,6 @@ export default class WebsocketsProcessor {
         ...userMemberships.map((membership) => `user-${membership.userId}`),
         ...groupMemberships.map((membership) => `group-${membership.groupId}`)
       );
-    }
-
-    if (rooms.length === 0) {
-      return null;
     }
 
     return socketio.to(uniq(rooms)).except(`team-${share.teamId}.guests`);

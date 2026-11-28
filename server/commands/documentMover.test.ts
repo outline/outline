@@ -160,6 +160,41 @@ describe("documentMover", () => {
     expect(response.documents[1].updatedBy.id).toEqual(user.id);
   });
 
+  it("should not return restricted children the user cannot read", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({ teamId: team.id });
+    const newCollection = await buildCollection({ teamId: team.id });
+    const document = await buildDocument({
+      collectionId: collection.id,
+      teamId: team.id,
+    });
+    const child = await buildDocument({
+      parentDocumentId: document.id,
+      collectionId: collection.id,
+      teamId: team.id,
+    });
+    const restricted = await buildDocument({
+      parentDocumentId: document.id,
+      collectionId: collection.id,
+      teamId: team.id,
+      isPrivate: true,
+    });
+
+    const response = await withContext(user, (ctx) =>
+      documentMover(ctx, {
+        document,
+        collectionId: newCollection.id,
+      })
+    );
+
+    expect(response.documents.map((d) => d.id).sort()).toEqual(
+      [document.id, child.id].sort()
+    );
+    await restricted.reload();
+    expect(restricted.collectionId).toBe(newCollection.id);
+  });
+
   it("should remove associated collection pin if moved to another collection", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });

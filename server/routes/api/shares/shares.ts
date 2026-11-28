@@ -343,6 +343,10 @@ router.post(
       authorize(user, "update", share);
       share.published = true;
       share.includeChildDocuments = true;
+
+      // The public tree uses the access of the user that publishes it.
+      share.userId = user.id;
+      share.user = user;
       if (expiresAt !== undefined) {
         share.expiresAt = expiresAt;
       }
@@ -418,6 +422,16 @@ router.post(
       title: title === "" ? null : title,
       iconUrl: iconUrl === "" ? null : iconUrl,
     });
+
+    // The public tree uses the access of the user that publishes it.
+    if (
+      share.published &&
+      share.includeChildDocuments &&
+      (share.changed("published") || share.changed("includeChildDocuments"))
+    ) {
+      share.userId = user.id;
+      share.user = user;
+    }
 
     await share.saveWithCtx(ctx);
 
